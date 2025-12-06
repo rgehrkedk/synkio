@@ -1,0 +1,17 @@
+{
+  "name": "synkio-plugin-export",
+  "version": "1.0.0",
+  "description": "Synkio Export - Export Figma Variables to design tokens",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/code.ts --bundle --outfile=code.js --target=es2020",
+    "dev": "npm run build -- --watch",
+    "clean": "rm -f code.js"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.90.0",
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.0.0"
+  }
+}

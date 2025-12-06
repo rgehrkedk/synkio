@@ -1,0 +1,21 @@
+{
+  "name": "synkio-plugin-import",
+  "version": "1.0.0",
+  "description": "Synkio Import - Import JSON design tokens as Figma Variables",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/code.ts --bundle --outfile=code.js --target=es2020 && esbuild src/ui.tsx --bundle --outfile=ui.js --target=es2020",
+    "dev": "npm run build -- --watch",
+    "clean": "rm -f code.js ui.js"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.90.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "esbuild": "^0.20.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}

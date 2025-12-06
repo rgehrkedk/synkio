@@ -1,0 +1,67 @@
+{
+  "name": "@synkio/core",
+  "version": "0.1.0",
+  "description": "Sync Figma design tokens to code - CLI and programmatic API",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "synkio": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "import": "./dist/api/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x dist/cli/index.js",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "figma",
+    "design-tokens",
+    "design-system",
+    "sync",
+    "css-variables",
+    "tailwind",
+    "style-dictionary"
+  ],
+  "author": "Synkio",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourname/synkio.git",
+    "directory": "packages/core"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "inquirer": "^9.0.0",
+    "chalk": "^5.0.0",
+    "ora": "^8.0.0",
+    "cli-table3": "^0.6.0",
+    "boxen": "^7.0.0",
+    "dotenv": "^17.0.0",
+    "glob": "^11.0.0",
+    "style-dictionary": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
+  }
+}
