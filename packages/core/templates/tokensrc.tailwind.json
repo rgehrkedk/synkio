@@ -1,0 +1,16 @@
+{
+  "$schema": "./schemas/tokensrc.schema.json",
+  "version": "1.0.0",
+  "paths": {
+    "root": ".",
+    "data": ".synkio/data",
+    "baseline": ".synkio/data/baseline.json",
+    "baselinePrev": ".synkio/data/baseline.prev.json",
+    "reports": ".synkio/reports",
+    "tokens": "tokens",
+    "styles": "tailwind"
+  },
+  "build": {
+    "command": "npm run build:tokens"
+  }
+}

@@ -1,5 +1,7 @@
 /**
  * CLI Utilities - Barrel Export
+ *
+ * Exports prompt utilities and formatting utilities for CLI commands
  */
 
 export {
@@ -10,4 +12,17 @@ export {
   askChoice,
   askMultipleChoiceToggle,
   prompt,
-} from './prompt';
+} from './prompt.js';
+
+export {
+  formatSuccess,
+  formatError,
+  formatInfo,
+  formatWarning,
+  createSpinner,
+  createTable,
+  logSuccess,
+  logError,
+  logInfo,
+  logWarning,
+} from './utils.js';

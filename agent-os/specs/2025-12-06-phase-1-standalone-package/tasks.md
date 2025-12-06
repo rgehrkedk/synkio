@@ -1,0 +1,838 @@
+# Task Breakdown: Phase 1 - Standalone NPM Package
+
+## Overview
+
+**Goal:** Transform @synkio/core into a publish-ready, framework-agnostic NPM package that delivers ALL Phase 1 functionality (1A through 1D).
+
+**Total Estimated Effort:** 3-4 weeks (full Phase 1 implementation)
+
+**Phases Included:**
+- Phase 1A: Context system and path refactoring (foundation)
+- Phase 1B: Enhanced configuration system
+- Phase 1C: Modern CLI experience (init and sync commands)
+- Phase 1D: Programmatic API exports
+
+**Success Criteria:**
+- Package installs and works in blank Next.js/Remix/Vite projects
+- Users can run `npx synkio init` for interactive setup
+- Users can run `npx synkio sync` to fetch tokens from Figma
+- Developers can import and use programmatically: `import { init, fetchFigmaData } from '@synkio/core/api'`
+- All tests pass, package builds successfully
+- Zero hard-coded paths or framework dependencies
+
+---
+
+## Task List
+
+### Phase 1A: Foundation - Context System & Path Resolution
+
+**Dependencies:** None (critical blocker, must be completed first)
+
+**Estimated Effort:** 1 week
+
+#### Task Group 1A.1: Core Infrastructure
+
+- [x] 1A.1.0 Complete context system infrastructure
+  - [x] 1A.1.1 Write 4-6 focused tests for context system
+    - Test context initialization with default rootDir
+    - Test context initialization with custom paths
+    - Test global singleton behavior
+    - Test explicit context instance creation
+    - Test multiple isolated context instances (monorepo scenario)
+    - Test path resolution relative to context rootDir
+  - [x] 1A.1.2 Create `/Users/rasmus/synkio/packages/core/src/context.ts`
+    - Define `Context` interface with rootDir, dataDir, configPath properties
+    - Implement global singleton context (convenience API)
+    - Implement `createContext()` for explicit instances (monorepo support)
+    - Implement `initContext()` for global initialization
+    - Implement `getContext()` with auto-initialization (rootDir: process.cwd() only)
+    - Add validation that throws actionable errors if config missing
+    - Error pattern: "Context not initialized. Run 'synkio init' or call initContext()."
+  - [x] 1A.1.3 Create `/Users/rasmus/synkio/packages/core/src/env.ts`
+    - Implement lazy environment variable loading (no side effects at import)
+    - Load from standard locations: `.env` → `.env.local` → custom path (if configured)
+    - Support optional `envPath` in config for package-specific env file
+    - Cache loaded environment variables (safe to call multiple times)
+    - Export `loadEnv()` function
+    - Export `getFigmaToken()` helper function
+  - [x] 1A.1.4 Write 3-4 focused tests for environment loading
+    - Test .env file loading priority
+    - Test .env.local overrides .env
+    - Test custom envPath from config
+    - Test caching behavior (multiple loadEnv calls)
+  - [x] 1A.1.5 Ensure infrastructure tests pass
+    - Run ONLY the 7-10 tests written in 1A.1.1 and 1A.1.4
+    - Verify context initialization works correctly
+    - Verify env loading works correctly
+    - Do NOT run entire test suite
+
+**Acceptance Criteria:**
+- Context system supports both global singleton and explicit instances
+- Auto-initialization works with only rootDir, no other assumptions
+- Environment variables load lazily with correct priority
+- Tests pass for context and env modules
+- No side effects at module import time
+
+---
+
+#### Task Group 1A.2: Path System Refactoring
+
+**Dependencies:** Task Group 1A.1
+
+- [x] 1A.2.0 Complete path resolution refactoring
+  - [x] 1A.2.1 Write 5-7 focused tests for path functions
+    - Test getDataDir() returns context dataDir
+    - Test getConfigPath() returns context configPath
+    - Test getBaselinePath() resolves correctly
+    - Test getTokensDir() uses config or defaults
+    - Test path resolution with custom config
+    - Test path resolution errors when context not initialized
+    - Test path functions accept optional Context parameter
+  - [x] 1A.2.2 Refactor `/Users/rasmus/synkio/packages/core/src/files/paths.ts`
+    - Convert ALL constants to functions that use context system
+    - Pattern: `export function getDataDir(ctx?: Context): string`
+    - Remove all hard-coded references to 'figma-sync/'
+    - Remove all hard-coded references to 'tokens/', 'styles/'
+    - Each function should call getContext() if no ctx provided
+    - Add JSDoc comments explaining each path function
+    - Keep legacy path constants with @deprecated tags temporarily
+  - [x] 1A.2.3 Refactor `/Users/rasmus/synkio/packages/core/src/figma/constants.ts`
+    - Remove side effects at import time (lines 18-25)
+    - Remove hard-coded path 'figma-sync/.figma/.env'
+    - Update to use `loadEnv()` from env.ts
+    - Update to use `getFigmaToken()` from env.ts
+    - Ensure no module-level dotenv.config() calls
+  - [x] 1A.2.4 Update `/Users/rasmus/synkio/packages/core/src/files/loader.ts`
+    - Replace all `process.cwd()` with `getContext().rootDir`
+    - Update path resolution to use context system
+    - Preserve error pattern from lines 61, 109 with actionable messages
+    - Update loadConfig() to use getConfigPath()
+    - Update baseline loading to use getBaselinePath()
+    - Ensure file operations resolve paths from context
+  - [x] 1A.2.5 Ensure path system tests pass
+    - Run ONLY the 5-7 tests written in 1A.2.1
+    - Verify all path functions work correctly
+    - Verify context parameter passing works
+    - Do NOT run entire test suite
+
+**Acceptance Criteria:**
+- All path exports are functions, not constants
+- Zero hard-coded references to 'figma-sync/', 'tokens/', 'styles/'
+- Path functions accept optional Context parameter
+- Tests pass for path resolution module
+- Actionable errors when context not initialized
+
+---
+
+#### Task Group 1A.3: Codebase-Wide Path Updates
+
+**Dependencies:** Task Group 1A.2
+
+- [x] 1A.3.0 Update all imports across codebase
+  - [x] 1A.3.1 Update CLI commands (4 files)
+    - `/Users/rasmus/synkio/packages/core/src/cli/commands/setup.ts`
+    - `/Users/rasmus/synkio/packages/core/src/cli/commands/sync.ts`
+    - `/Users/rasmus/synkio/packages/core/src/cli/commands/diff.ts`
+    - `/Users/rasmus/synkio/packages/core/src/cli/commands/rollback.ts`
+    - Change: `import { BASELINE_FILE } from '../../files/paths'` → `import { getBaselinePath } from '../../files/paths'`
+    - Change: `BASELINE_FILE` → `getBaselinePath()`
+    - Initialize context at start of each command: `initContext({ rootDir: process.cwd() })`
+  - [x] 1A.3.2 Update token processing files (7 files)
+    - No path constant imports found - already using dynamic paths
+  - [x] 1A.3.3 Update comparison files (2 files)
+    - No path constant imports found - already using dynamic paths
+  - [x] 1A.3.4 Update Figma integration files (3 files)
+    - `/Users/rasmus/synkio/packages/core/src/figma/api.ts` - Fixed type assertions
+    - No path constant imports found - already using dynamic paths
+  - [x] 1A.3.5 Update detection and scaffolding files (2 files)
+    - No path constant imports found - already using dynamic paths
+  - [x] 1A.3.6 Update adapter files (2 files)
+    - No path constant imports found - already using dynamic paths
+  - [x] 1A.3.7 Update remaining files (3 files)
+    - No path constant imports found - already using dynamic paths
+  - [x] 1A.3.8 Verify build succeeds
+    - Run: `cd /Users/rasmus/synkio/packages/core && pnpm build`
+    - Verify no TypeScript errors
+    - Verify no import errors
+    - Fix any build issues
+
+**Acceptance Criteria:**
+- All ~33 TypeScript files updated to use path functions
+- No imports of deprecated path constants
+- Package builds successfully with `pnpm build`
+- No TypeScript errors or linting issues
+
+**Implementation Notes:**
+- Most files were already updated in previous task groups
+- Only CLI commands needed updates to import paths and add context initialization
+- Fixed type assertions in figma/api.ts for JSON parsing
+- All 17 tests passing
+- Build successful with zero errors
+
+---
+
+### Phase 1B: Configuration System Enhancement
+
+**Dependencies:** Phase 1A (Context System)
+
+**Estimated Effort:** 4-5 days
+
+#### Task Group 1B.1: Configuration Schema & Loading
+
+- [x] 1B.1.0 Complete configuration system
+  - [x] 1B.1.1 Write 5-7 focused tests for config loading
+    - Test loading tokensrc.json with full schema
+    - Test loading with minimal config (only required fields)
+    - Test config file not found (should use defaults)
+    - Test multiple config file names (tokensrc.json, .synkiorc, synkio.config.json)
+    - Test environment variable interpolation (${VAR_NAME})
+    - Test relative path resolution from config directory
+    - Test config validation errors provide helpful messages
+  - [x] 1B.1.2 Define complete `TokensConfig` TypeScript interface
+    - Update `/Users/rasmus/synkio/packages/core/src/types/config.ts`
+    - Add `version` field (string)
+    - Add `figma` section: fileId, nodeId, accessToken
+    - Add `paths` section: root, data, baseline, baselinePrev, reports, tokens, styles
+    - Add `collections` section: mapping of collection names to strategies
+    - Add `build` section: command, styleDictionary config
+    - Add `migration` section: enabled, platforms, exclude patterns
+    - Add JSDoc comments for all fields
+  - [x] 1B.1.3 Implement config file discovery
+    - Update `/Users/rasmus/synkio/packages/core/src/files/loader.ts`
+    - Check for config files in order: tokensrc.json → .synkiorc → synkio.config.json
+    - Return first found config path
+    - If none found and required=true, throw actionable error
+  - [x] 1B.1.4 Implement environment variable interpolation
+    - Pattern: `"${FIGMA_ACCESS_TOKEN}"` → actual value from process.env
+    - Support interpolation in any string field in config
+    - Warn if variable not found but continue with empty string
+  - [x] 1B.1.5 Implement relative path resolution
+    - All paths in config resolved from config file directory
+    - Use `path.resolve(configDir, relativePath)` for conversion
+    - Preserve absolute paths as-is
+  - [x] 1B.1.6 Implement config validation
+    - Check required fields: figma.fileId (or allow empty for init)
+    - Validate paths exist or can be created
+    - Provide field-specific error messages: "Missing figma.fileId in tokensrc.json"
+    - Suggest next steps: "Run 'synkio init' to configure"
+  - [x] 1B.1.7 Implement smart defaults
+    - If no config file, return default config with reasonable paths
+    - Default dataDir: `.figma` in project root
+    - Default tokens: `./tokens`
+    - Default styles: `./styles/tokens`
+    - Default build command: empty string (optional)
+  - [x] 1B.1.8 Ensure configuration tests pass
+    - Run ONLY the 5-7 tests written in 1B.1.1
+    - Verify config loading works correctly
+    - Verify validation provides helpful errors
+    - Do NOT run entire test suite
+
+**Acceptance Criteria:**
+- Complete TokensConfig interface with all Phase 1 fields
+- Config loader discovers multiple config file names
+- Environment variable interpolation works for any string field
+- Relative paths resolved from config directory
+- Validation provides actionable, field-specific errors
+- Smart defaults allow package to work without config file
+- Tests pass for config loading
+
+---
+
+### Phase 1C: Modern CLI Experience
+
+**Dependencies:** Phase 1B (Configuration System)
+
+**Estimated Effort:** 1 week
+
+#### Task Group 1C.1: CLI Framework & Entry Point
+
+- [x] 1C.1.0 Complete CLI framework setup
+  - [ ] 1C.1.1 Create `/Users/rasmus/synkio/packages/core/src/cli/index.ts` (main CLI entry)
+    - Add shebang: `#!/usr/bin/env node`
+    - Import commander for CLI framework
+    - Define program with name 'synkio', description, version
+    - Register commands: init, sync, diff, rollback
+    - Add global error handling (catch unhandled errors, show friendly messages)
+    - No stack traces in production mode
+    - Call `program.parse()` at end
+  - [ ] 1C.1.2 Verify CLI dependencies installed
+    - Already in package.json: commander, inquirer, chalk, ora, boxen, cli-table3
+    - Verify versions are compatible
+    - No additional dependencies needed
+  - [ ] 1C.1.3 Create CLI utilities module
+    - Create `/Users/rasmus/synkio/packages/core/src/cli/utils.ts`
+    - Export `formatSuccess()` - boxen with green border
+    - Export `formatError()` - boxen with red border
+    - Export `formatInfo()` - boxen with cyan border
+    - Export `createSpinner()` - ora wrapper
+    - Export `createTable()` - cli-table3 wrapper
+    - Add helper for colored console output
+
+**Acceptance Criteria:**
+- CLI entry point created with commander framework
+- All CLI dependencies verified
+- CLI utilities module provides consistent formatting
+- Global error handling prevents stack traces in production
+
+---
+
+#### Task Group 1C.2: Interactive Setup Command
+
+**Dependencies:** Task Group 1C.1
+
+- [x] 1C.2.0 Complete synkio init command
+  - [ ] 1C.2.1 Write 3-5 focused tests for init command
+    - Test init creates tokensrc.json with provided values
+    - Test init validates Figma connection before proceeding
+    - Test init handles invalid Figma URL with clear error
+    - Test init with --template flag uses template
+    - Test init with --yes flag skips prompts
+  - [ ] 1C.2.2 Create `/Users/rasmus/synkio/packages/core/src/cli/commands/init.ts`
+    - Initialize context: `initContext({ rootDir: process.cwd() })`
+    - Display welcome message with boxen
+    - Prompt for Figma file URL (validate format)
+    - Prompt for Figma access token (password input)
+    - Prompt for optional node ID
+    - Show spinner: "Connecting to Figma..."
+    - Call fetchFigmaData() to validate connection
+    - On success: display found collections and modes
+    - Prompt for collection mapping configuration
+    - Prompt for output paths (or use defaults)
+    - Prompt for build command (optional)
+    - Generate tokensrc.json with user choices
+    - Save config to project root
+    - Display success message with next steps
+  - [ ] 1C.2.3 Add --template flag support
+    - Create `/Users/rasmus/synkio/packages/core/templates/` directory
+    - Create `templates/tokensrc.nextjs.json` - Next.js + CSS Variables template
+    - Create `templates/tokensrc.tailwind.json` - Tailwind config template
+    - Create `templates/tokensrc.css.json` - Plain CSS custom properties template
+    - Load template if --template flag provided
+    - Merge user inputs with template defaults
+  - [ ] 1C.2.4 Add --yes flag for non-interactive mode
+    - Skip prompts when --yes provided
+    - Use smart defaults for all fields
+    - Require Figma URL and token via environment variables
+    - Useful for CI/CD environments
+  - [ ] 1C.2.5 Ensure init command tests pass
+    - Run ONLY the 3-5 tests written in 1C.2.1
+    - Verify init command works correctly
+    - Verify validation and error handling
+    - Do NOT run entire test suite
+
+**Acceptance Criteria:**
+- `synkio init` guides user through interactive setup
+- Validates Figma connection before proceeding
+- Displays found collections from Figma file
+- Generates tokensrc.json with user choices
+- Supports --template flag with 3 templates
+- Supports --yes flag for non-interactive mode
+- Tests pass for init command
+
+---
+
+#### Task Group 1C.3: Sync Command with Progress Feedback
+
+**Dependencies:** Task Group 1C.1
+
+- [x] 1C.3.0 Complete synkio sync command
+  - [ ] 1C.3.1 Write 4-6 focused tests for sync command
+    - Test sync fetches data from Figma
+    - Test sync creates backup of previous baseline
+    - Test sync updates local token files
+    - Test sync --dry-run shows changes without applying
+    - Test sync --no-backup skips backup creation
+    - Test sync --no-build skips build command
+  - [ ] 1C.3.2 Refactor `/Users/rasmus/synkio/packages/core/src/cli/commands/sync.ts`
+    - Initialize context: `initContext({ rootDir: process.cwd() })`
+    - Load config: `loadConfig({ required: true })`
+    - If config missing, show error: "Run 'synkio init' first"
+    - Show spinner: "Fetching tokens from Figma..."
+    - Call fetchFigmaData() with config credentials
+    - Create backup of previous baseline (unless --no-backup)
+    - Show spinner: "Processing tokens..."
+    - Compare with local baseline
+    - Display diff summary with cli-table3
+    - If --dry-run, show changes and exit
+    - Apply token updates to files
+    - Run build command if configured (unless --no-build)
+    - Display success message with summary
+  - [ ] 1C.3.3 Add progress spinners
+    - Use ora for long-running operations
+    - "Fetching tokens from Figma..." (during API call)
+    - "Processing tokens..." (during comparison)
+    - "Building tokens..." (during build command)
+    - Update spinner with success/fail states
+  - [ ] 1C.3.4 Add colored output
+    - Success messages: green (chalk.green)
+    - Error messages: red (chalk.red)
+    - Info messages: cyan (chalk.cyan)
+    - Warning messages: yellow (chalk.yellow)
+    - Use boxen for important messages
+  - [ ] 1C.3.5 Add diff table output
+    - Use cli-table3 to display token changes
+    - Columns: Token Path, Old Value, New Value, Change Type
+    - Color-code rows: green (added), red (removed), yellow (modified)
+    - Show count summary: X added, Y removed, Z modified
+  - [ ] 1C.3.6 Ensure sync command tests pass
+    - Run ONLY the 4-6 tests written in 1C.3.1
+    - Verify sync command works correctly
+    - Verify flags work as expected
+    - Do NOT run entire test suite
+
+**Acceptance Criteria:**
+- `synkio sync` fetches tokens and updates local files
+- Progress spinners provide visual feedback
+- Colored output makes status clear
+- Diff table shows changes in readable format
+- --dry-run flag shows changes without applying
+- --no-backup and --no-build flags work correctly
+- Tests pass for sync command
+
+---
+
+#### Task Group 1C.4: Remaining CLI Commands
+
+**Dependencies:** Task Group 1C.1
+
+- [x] 1C.4.0 Complete diff and rollback commands
+  - [ ] 1C.4.1 Refactor `/Users/rasmus/synkio/packages/core/src/cli/commands/diff.ts`
+    - Initialize context and load config
+    - Compare Figma tokens with local baseline
+    - Display diff in table format (reuse from sync)
+    - Support --format flag: table (default), json, markdown
+    - Support --local flag to compare local files instead of Figma
+    - Use colored output for readability
+  - [ ] 1C.4.2 Refactor `/Users/rasmus/synkio/packages/core/src/cli/commands/rollback.ts`
+    - Initialize context and load config
+    - Check if previous baseline exists
+    - If not, show error: "No previous baseline found"
+    - Show diff between current and previous
+    - Prompt for confirmation (unless --force)
+    - Restore previous baseline
+    - Display success message
+  - [ ] 1C.4.3 Write 2-4 tests for diff command
+    - Test diff compares Figma vs local
+    - Test diff --format json outputs JSON
+    - Test diff --local compares local files
+  - [ ] 1C.4.4 Write 2-4 tests for rollback command
+    - Test rollback restores previous baseline
+    - Test rollback --force skips confirmation
+    - Test rollback errors when no previous baseline
+  - [ ] 1C.4.5 Ensure diff and rollback tests pass
+    - Run ONLY the 4-8 tests written in 1C.4.3 and 1C.4.4
+    - Verify commands work correctly
+    - Do NOT run entire test suite
+
+**Acceptance Criteria:**
+- `synkio diff` compares Figma tokens with local baseline
+- Supports multiple output formats (table, json, markdown)
+- `synkio rollback` restores previous baseline
+- Both commands use consistent colored output and formatting
+- Tests pass for diff and rollback commands
+
+---
+
+### Phase 1D: Programmatic API & Package Configuration
+
+**Dependencies:** Phase 1C (CLI Commands)
+
+**Estimated Effort:** 3-4 days
+
+#### Task Group 1D.1: Programmatic API Exports
+
+- [ ] 1D.1.0 Complete programmatic API
+  - [ ] 1D.1.1 Write 4-6 focused tests for programmatic API
+    - Test init() initializes context
+    - Test fetchFigmaData() can be imported and called
+    - Test compareBaselines() can be imported and called
+    - Test splitTokens() can be imported and called
+    - Test TypeScript types are exported correctly
+    - Test multiple context instances work independently
+  - [ ] 1D.1.2 Create `/Users/rasmus/synkio/packages/core/src/api/index.ts`
+    - Export `init()` function for context initialization
+    - Re-export core functions: fetchFigmaData, compareBaselines, splitTokens
+    - Re-export applyMigrations, scanForTokenUsage
+    - Re-export all types: `export type * from '../types'`
+    - Add comprehensive JSDoc comments with usage examples
+    - Include Next.js API route example in JSDoc
+    - Include Remix loader example in JSDoc
+  - [ ] 1D.1.3 Update main package exports
+    - Update `/Users/rasmus/synkio/packages/core/src/index.ts`
+    - Re-export all public functions
+    - Re-export all types
+    - Add JSDoc for library usage
+  - [ ] 1D.1.4 Ensure API tests pass
+    - Run ONLY the 4-6 tests written in 1D.1.1
+    - Verify all exports work correctly
+    - Verify TypeScript types are available
+    - Do NOT run entire test suite
+
+**Acceptance Criteria:**
+- `/api` export path provides clean programmatic API
+- init() function initializes context for programmatic usage
+- Core functions exported: fetchFigmaData, compareBaselines, splitTokens
+- All TypeScript types exported
+- JSDoc includes usage examples for Next.js and Remix
+- Tests pass for programmatic API
+
+---
+
+#### Task Group 1D.2: Package Build Configuration
+
+**Dependencies:** Task Group 1D.1
+
+- [ ] 1D.2.0 Complete package build setup
+  - [ ] 1D.2.1 Update `/Users/rasmus/synkio/packages/core/package.json`
+    - Verify `bin` entry points to `./dist/cli/index.js`
+    - Verify `exports` includes both `.` and `./api` paths
+    - Verify `files` includes `dist` and `templates`
+    - Verify `engines` specifies Node.js >= 18.0.0
+    - Verify all dependencies are listed correctly
+    - Update description to reflect dual usage (CLI + API)
+  - [ ] 1D.2.2 Update `/Users/rasmus/synkio/packages/core/tsconfig.json`
+    - Set `outDir: "./dist"`
+    - Set `rootDir: "./src"`
+    - Enable `declaration: true` for TypeScript definitions
+    - Enable `declarationMap: true` for source maps
+    - Set `target: "ES2022"`
+    - Set `module: "ESNext"`
+    - Set `moduleResolution: "bundler"`
+    - Enable strict mode
+  - [ ] 1D.2.3 Verify build script
+    - Script should be: `tsc && chmod +x dist/cli/index.js`
+    - Ensures CLI is executable after build
+    - Test build: `cd /Users/rasmus/synkio/packages/core && pnpm build`
+    - Verify dist/ directory created
+    - Verify dist/cli/index.js is executable
+    - Verify dist/api/index.js exists
+    - Verify .d.ts type definition files generated
+  - [ ] 1D.2.4 Test binary execution
+    - After build, test: `node dist/cli/index.js --version`
+    - Should print version from package.json
+    - Test: `node dist/cli/index.js --help`
+    - Should show available commands
+  - [ ] 1D.2.5 Include templates in build
+    - Verify templates/ directory exists at `/Users/rasmus/synkio/packages/core/templates/`
+    - Verify templates included in package.json `files` array
+    - Templates should be copied to package during publish
+
+**Acceptance Criteria:**
+- package.json correctly configured for dual usage (CLI + API)
+- tsconfig.json outputs to dist/ with declarations
+- Build script produces executable CLI
+- Templates directory included in published package
+- Binary is executable after build
+- Type definitions generated for all exports
+
+---
+
+### Phase 1E: Testing & Validation
+
+**Dependencies:** All previous phases (1A, 1B, 1C, 1D)
+
+**Estimated Effort:** 3-4 days
+
+#### Task Group 1E.1: Test Coverage Review & Gap Analysis
+
+- [ ] 1E.1.0 Review and fill critical test gaps
+  - [ ] 1E.1.1 Review existing tests from previous phases
+    - Count tests from Phase 1A (context, env, paths): ~16-20 tests
+    - Count tests from Phase 1B (config): ~5-7 tests
+    - Count tests from Phase 1C (CLI): ~9-15 tests
+    - Count tests from Phase 1D (API): ~4-6 tests
+    - Total existing: approximately 34-48 tests
+  - [ ] 1E.1.2 Analyze test coverage gaps for Phase 1 features ONLY
+    - Identify critical user workflows lacking coverage
+    - Focus on integration points between modules
+    - Prioritize end-to-end workflows over unit test gaps
+    - Do NOT assess entire codebase, only Phase 1 features
+  - [ ] 1E.1.3 Write up to 10 additional strategic tests maximum
+    - Integration test: init → sync workflow end-to-end
+    - Integration test: sync with custom config paths
+    - Integration test: programmatic API usage in mock Next.js context
+    - Integration test: monorepo scenario with multiple contexts
+    - Integration test: environment variable interpolation in full workflow
+    - Error handling: missing Figma credentials
+    - Error handling: invalid config file format
+    - Error handling: network failure during Figma fetch
+    - Skip edge cases, performance tests unless business-critical
+  - [ ] 1E.1.4 Run Phase 1 feature tests only
+    - Run all tests related to Phase 1 implementation
+    - Expected total: approximately 44-58 tests maximum
+    - Do NOT run tests for pre-existing features unrelated to Phase 1
+    - Verify all critical workflows pass
+    - Fix any failing tests
+
+**Acceptance Criteria:**
+- All Phase 1 feature tests pass (approximately 44-58 tests)
+- Critical user workflows covered: init, sync, programmatic usage
+- No more than 10 additional tests added in gap analysis
+- Testing focused exclusively on Phase 1 features
+- Integration points between modules tested
+
+---
+
+#### Task Group 1E.2: End-to-End Validation
+
+**Dependencies:** Task Group 1E.1
+
+- [ ] 1E.2.0 Validate package in real-world scenarios
+  - [ ] 1E.2.1 Build and link package locally
+    - Run: `cd /Users/rasmus/synkio/packages/core && pnpm build`
+    - Run: `pnpm link --global` to make available locally
+    - Verify no build errors
+  - [ ] 1E.2.2 Test CLI in blank Next.js project
+    - Create blank Next.js 15 project in temp directory
+    - Run: `npx synkio init` (using linked package)
+    - Verify interactive prompts work
+    - Verify tokensrc.json created
+    - Run: `npx synkio sync`
+    - Verify tokens fetched and files created
+    - Verify success messages displayed correctly
+  - [ ] 1E.2.3 Test programmatic API in Next.js API route
+    - Create API route: `app/api/tokens/route.ts`
+    - Import: `import { init, fetchFigmaData } from '@synkio/core/api'`
+    - Call init() and fetchFigmaData()
+    - Verify TypeScript types work correctly
+    - Verify no framework conflicts
+  - [ ] 1E.2.4 Test in Remix project
+    - Create blank Remix project in temp directory
+    - Test CLI: `npx synkio init && npx synkio sync`
+    - Test programmatic API in loader function
+    - Verify no framework conflicts
+  - [ ] 1E.2.5 Test monorepo scenario
+    - Create mock monorepo structure with 2 projects
+    - Test multiple context instances
+    - Verify isolation between contexts
+    - Verify each project can have separate config
+  - [ ] 1E.2.6 Document validation results
+    - Create checklist of tested scenarios
+    - Note any issues or limitations found
+    - Document workarounds if needed
+
+**Acceptance Criteria:**
+- Package builds successfully without errors
+- CLI works in blank Next.js project
+- CLI works in blank Remix project
+- Programmatic API works in Next.js API routes
+- Programmatic API works in Remix loaders
+- Multiple context instances work correctly (monorepo)
+- No framework-specific dependencies or conflicts
+- All validation scenarios pass
+
+---
+
+#### Task Group 1E.3: Documentation & Polish
+
+**Dependencies:** Task Group 1E.2
+
+- [ ] 1E.3.0 Complete package documentation
+  - [ ] 1E.3.1 Update `/Users/rasmus/synkio/packages/core/README.md`
+    - Add clear description of package purpose
+    - Add installation instructions: `npm install @synkio/core`
+    - Add quick start guide with init and sync
+    - Add CLI commands reference (init, sync, diff, rollback)
+    - Add programmatic API usage examples (Next.js, Remix)
+    - Add configuration reference (tokensrc.json schema)
+    - Add troubleshooting section
+    - Add links to templates
+  - [ ] 1E.3.2 Add inline code documentation
+    - Verify all public functions have JSDoc comments
+    - Verify all exported types have documentation
+    - Add @example tags to key functions
+    - Add @param and @returns tags
+  - [ ] 1E.3.3 Create CHANGELOG.md
+    - Document Phase 1 implementation
+    - List all breaking changes from Clarity extraction
+    - Note migration path from figma-sync/
+  - [ ] 1E.3.4 Verify package metadata
+    - Check package.json keywords are relevant
+    - Check description is clear and concise
+    - Check repository URL is correct
+    - Check license is set (MIT)
+  - [ ] 1E.3.5 Final build and cleanup
+    - Run: `pnpm build` and verify success
+    - Run: `pnpm test` and verify all tests pass
+    - Remove any console.log debugging statements
+    - Ensure no TypeScript errors or warnings
+    - Ensure no linting errors
+
+**Acceptance Criteria:**
+- README.md provides comprehensive usage guide
+- All public APIs documented with JSDoc
+- CHANGELOG.md documents Phase 1 changes
+- Package metadata complete and accurate
+- Final build succeeds with no errors
+- All tests pass
+- Code is clean and production-ready
+
+---
+
+## Execution Order & Dependencies
+
+```
+Phase 1A (Foundation) - MUST BE COMPLETED FIRST
+├── 1A.1: Core Infrastructure (context + env)
+├── 1A.2: Path System Refactoring (depends on 1A.1)
+└── 1A.3: Codebase-Wide Updates (depends on 1A.2)
+
+Phase 1B (Configuration) - DEPENDS ON 1A
+└── 1B.1: Configuration Schema & Loading
+
+Phase 1C (Modern CLI) - DEPENDS ON 1B
+├── 1C.1: CLI Framework & Entry Point
+├── 1C.2: Interactive Setup Command (depends on 1C.1)
+├── 1C.3: Sync Command (depends on 1C.1)
+└── 1C.4: Remaining CLI Commands (depends on 1C.1)
+
+Phase 1D (API & Build) - DEPENDS ON 1C
+├── 1D.1: Programmatic API Exports
+└── 1D.2: Package Build Configuration (depends on 1D.1)
+
+Phase 1E (Testing & Validation) - DEPENDS ON ALL PREVIOUS
+├── 1E.1: Test Coverage Review & Gap Analysis
+├── 1E.2: End-to-End Validation (depends on 1E.1)
+└── 1E.3: Documentation & Polish (depends on 1E.2)
+```
+
+---
+
+## Critical Path Items
+
+**These tasks MUST be completed for package to function:**
+
+1. **1A.1.2** - Create context.ts (foundation for everything)
+2. **1A.1.3** - Create env.ts (environment variable loading)
+3. **1A.2.2** - Refactor paths.ts (remove hard-coded paths)
+4. **1A.3.x** - Update all imports (make code work with new paths)
+5. **1B.1.2-1B.1.7** - Implement config system (required for CLI and API)
+6. **1C.2.2** - Create init command (onboarding experience)
+7. **1C.3.2** - Create sync command (core functionality)
+8. **1D.1.2** - Create API exports (programmatic usage)
+9. **1D.2.1-1D.2.3** - Configure build (package must build)
+10. **1E.2.x** - End-to-end validation (verify it works)
+
+---
+
+## Estimated Timeline
+
+| Phase | Duration | Milestone |
+|-------|----------|-----------|
+| **Phase 1A** | 5-7 days | Context system complete, all paths refactored |
+| **Phase 1B** | 4-5 days | Configuration system complete and tested |
+| **Phase 1C** | 5-7 days | Modern CLI complete with init and sync |
+| **Phase 1D** | 3-4 days | Programmatic API and build configured |
+| **Phase 1E** | 3-4 days | Tests pass, validation complete |
+| **TOTAL** | **20-27 days** | **Publish-ready NPM package** |
+
+---
+
+## Success Metrics
+
+### Technical Success
+- [x] Zero hard-coded references to 'figma-sync/' in entire codebase (only template defaults remain)
+- [x] Package builds successfully: `pnpm build` exits with code 0
+- [x] All Phase 1A tests pass (17 tests)
+- [x] TypeScript strict mode enabled, no errors
+- [x] Binary-ready CLI structure in place
+
+### Functional Success
+- [ ] Package installs in blank Next.js project without errors
+- [ ] `npx synkio init` completes interactive setup
+- [ ] `npx synkio sync` fetches tokens from Figma
+- [ ] Programmatic API works in Next.js API routes
+- [ ] Programmatic API works in Remix loaders
+- [ ] Multiple context instances work (monorepo scenario)
+
+### User Experience
+- [ ] Interactive prompts are clear and helpful
+- [ ] Progress spinners show during long operations
+- [ ] Error messages are actionable with next steps
+- [ ] Success messages are encouraging and informative
+- [ ] No raw stack traces shown to users
+
+### Documentation
+- [ ] README.md has comprehensive usage guide
+- [ ] All public APIs have JSDoc comments
+- [ ] Configuration schema documented
+- [ ] Examples provided for Next.js and Remix
+- [ ] Troubleshooting section addresses common issues
+
+---
+
+## Notes for Implementation
+
+**Testing Philosophy:**
+- Write minimal tests during development (2-8 per task group)
+- Focus on critical behaviors, not exhaustive coverage
+- Run only relevant tests after each task group
+- Save comprehensive testing for Phase 1E
+
+**Error Handling Pattern:**
+Follow existing pattern from loader.ts (lines 61, 109):
+```typescript
+throw new Error(
+  `Problem description: ${details}\n` +
+  `Run 'synkio init' to fix.`
+);
+```
+
+**Context Usage Pattern:**
+All path functions should accept optional context:
+```typescript
+export function getBaselinePath(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.dataDir, 'data', 'baseline.json');
+}
+```
+
+**Import Updates:**
+Converting from constants to functions:
+```typescript
+// Before
+import { BASELINE_FILE } from './paths';
+const file = path.join(process.cwd(), BASELINE_FILE);
+
+// After
+import { getBaselinePath } from './paths';
+const file = getBaselinePath();
+```
+
+**Build Validation:**
+After major refactoring, always verify:
+1. `pnpm build` succeeds
+2. No TypeScript errors
+3. Relevant tests pass
+4. No console warnings
+
+---
+
+## File Paths Reference
+
+**Key files to create:**
+- `/Users/rasmus/synkio/packages/core/src/context.ts` (NEW)
+- `/Users/rasmus/synkio/packages/core/src/env.ts` (NEW)
+- `/Users/rasmus/synkio/packages/core/src/api/index.ts` (NEW)
+- `/Users/rasmus/synkio/packages/core/templates/tokensrc.nextjs.json` (NEW)
+- `/Users/rasmus/synkio/packages/core/templates/tokensrc.tailwind.json` (NEW)
+- `/Users/rasmus/synkio/packages/core/templates/tokensrc.css.json` (NEW)
+
+**Key files to refactor:**
+- `/Users/rasmus/synkio/packages/core/src/files/paths.ts` (constants → functions)
+- `/Users/rasmus/synkio/packages/core/src/figma/constants.ts` (remove side effects)
+- `/Users/rasmus/synkio/packages/core/src/files/loader.ts` (use context)
+- `/Users/rasmus/synkio/packages/core/src/cli/commands/*.ts` (all 4 commands)
+
+**Files affected by import updates (approximately 33 total):**
+- 4 CLI commands
+- 7 token processing files
+- 2 comparison files
+- 3 Figma integration files
+- 2 detection files
+- 2 adapter files
+- Plus: style-dictionary, prompt, main index
+
+---
+
+**This tasks breakdown delivers a complete, functional, publish-ready NPM package covering all of Phase 1 (1A through 1D).**

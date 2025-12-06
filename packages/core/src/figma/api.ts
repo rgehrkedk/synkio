@@ -75,7 +75,7 @@ export async function fetchFromNode(nodeId: string, options?: FetchOptions): Pro
     throw new Error(`Figma API error (${response.status}): ${errorText}`);
   }
 
-  const data: FigmaNodesResponse = await response.json();
+  const data = await response.json() as FigmaNodesResponse;
   const nodeData = data.nodes[normalizedNodeId];
 
   if (!nodeData) {
@@ -115,7 +115,7 @@ export async function fetchFromFile(options?: FetchOptions): Promise<any> {
     throw new Error(`Figma API error (${response.status}): ${errorText}`);
   }
 
-  const data: FigmaFileResponse = await response.json();
+  const data = await response.json() as FigmaFileResponse;
 
   console.log('🔍 Searching for synced token data...');
   return findPluginData(data.document);

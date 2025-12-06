@@ -9,55 +9,200 @@
 // Main Config
 // ============================================================================
 
+/**
+ * Complete configuration schema for Synkio
+ *
+ * @example
+ * ```json
+ * {
+ *   "version": "2.0.0",
+ *   "figma": {
+ *     "fileId": "abc123",
+ *     "accessToken": "${FIGMA_ACCESS_TOKEN}"
+ *   },
+ *   "paths": {
+ *     "root": ".",
+ *     "data": ".figma",
+ *     "baseline": ".figma/baseline.json",
+ *     "baselinePrev": ".figma/baseline.prev.json",
+ *     "reports": ".figma/reports",
+ *     "tokens": "tokens",
+ *     "styles": "styles/tokens"
+ *   },
+ *   "collections": {
+ *     "core": {
+ *       "strategy": "byMode",
+ *       "output": "tokens/core",
+ *       "files": {
+ *         "light": "tokens/core/light.json",
+ *         "dark": "tokens/core/dark.json"
+ *       }
+ *     }
+ *   }
+ * }
+ * ```
+ */
 export interface TokensConfig {
+  /** JSON Schema reference for IDE support */
   $schema?: string;
+
+  /** Config version (e.g., "2.0.0") */
   version: string;
+
+  /** Figma connection settings */
   figma: FigmaConfig;
+
+  /** File and directory paths */
   paths: PathsConfig;
+
+  /** Collection output configuration (Phase 1B - simplified) */
+  collections?: CollectionsConfig;
+
+  /** Optional build configuration */
   build?: BuildConfig;
-  split: SplitConfig;
-  migration: MigrationConfig;
+
+  /** Optional migration configuration */
+  migration?: MigrationConfig;
+
+  /** Legacy: Split configuration (for backwards compatibility with old setup.ts) */
+  split?: SplitConfig;
 }
 
 // ============================================================================
 // Figma Config
 // ============================================================================
 
+/**
+ * Figma API connection settings
+ */
 export interface FigmaConfig {
+  /** Figma file ID (from URL: figma.com/file/{fileId}/...) */
   fileId: string;
-  nodeId?: string; // Registry node ID from Figma plugin
-  accessToken: string; // Can be "${FIGMA_ACCESS_TOKEN}" to use env var
+
+  /** Optional: Registry node ID from Figma plugin */
+  nodeId?: string;
+
+  /** Figma access token. Supports env var interpolation: "${FIGMA_ACCESS_TOKEN}" */
+  accessToken: string;
 }
 
 // ============================================================================
 // Build Config
 // ============================================================================
 
+/**
+ * Build command configuration
+ */
 export interface BuildConfig {
-  command: string; // e.g., "npm run tokens:build"
+  /** Shell command to run after token sync (e.g., "npm run tokens:build") */
+  command?: string;
+
+  /** Style Dictionary integration settings */
   styleDictionary?: StyleDictionaryConfig;
 }
 
+/**
+ * Style Dictionary configuration
+ */
 export interface StyleDictionaryConfig {
-  configPath: string; // Path to SD config file (e.g., "scripts/build-tokens.js")
-  version?: 'v3' | 'v4'; // Detected SD version
+  /** Whether Style Dictionary integration is enabled */
+  enabled?: boolean;
+
+  /** Path to Style Dictionary config file (e.g., "scripts/build-tokens.js") */
+  config?: string;
+
+  /** Detected Style Dictionary version */
+  version?: 'v3' | 'v4';
 }
 
 // ============================================================================
 // Paths Config
 // ============================================================================
 
+/**
+ * File and directory paths
+ * All paths are relative to config file location unless absolute
+ */
 export interface PathsConfig {
+  /** Project root directory (optional, defaults to config file location) */
+  root?: string;
+
+  /** Data directory for baselines and internal files (default: ".figma") */
   data: string;
+
+  /** Baseline file path (default: ".figma/baseline.json") */
   baseline: string;
+
+  /** Previous baseline file path for rollback (default: ".figma/baseline.prev.json") */
   baselinePrev: string;
+
+  /** Reports directory (default: ".figma/reports") */
   reports: string;
+
+  /** Token output directory (default: "tokens") */
   tokens: string;
+
+  /** Styles output directory (default: "styles/tokens") */
   styles: string;
 }
 
 // ============================================================================
-// Split Config
+// Collections Config (Phase 1B - Simplified)
+// ============================================================================
+
+/**
+ * Collection output configuration
+ * Maps collection names to their output strategies
+ */
+export interface CollectionsConfig {
+  [collectionName: string]: CollectionConfig;
+}
+
+/**
+ * Single collection configuration
+ */
+export interface CollectionConfig {
+  /** Output strategy: split by group, by mode, or flat */
+  strategy: 'byGroup' | 'byMode' | 'flat';
+
+  /** Base output directory */
+  output: string;
+
+  /** Explicit file mappings for modes/groups */
+  files?: FileMapping;
+}
+
+/**
+ * File mapping for modes or groups
+ */
+export interface FileMapping {
+  [key: string]: string; // mode/group name -> file path
+}
+
+// ============================================================================
+// Migration Config
+// ============================================================================
+
+/**
+ * Code migration settings
+ * Supports both simple (Phase 1B) and advanced (legacy) formats
+ */
+export interface MigrationConfig {
+  /** Whether automatic migration is enabled (Phase 1B simple format) */
+  enabled?: boolean;
+
+  /** Target platforms for migration (Phase 1B simple format) */
+  platforms?: string[] | { [platformName: string]: PlatformConfig };
+
+  /** Glob patterns to exclude from migration (Phase 1B simple format) */
+  exclude?: string[];
+
+  /** Auto-apply flag (legacy format) */
+  autoApply?: boolean;
+}
+
+// ============================================================================
+// Split Config (Legacy - for backwards compatibility)
 // ============================================================================
 
 export interface SplitConfig {
@@ -71,10 +216,6 @@ export interface CollectionSplitConfig {
   files: FileMapping;         // Explicit file paths for each mode/group
 }
 
-export interface FileMapping {
-  [key: string]: string; // mode/group name -> full file path
-}
-
 // Legacy types for backwards compatibility
 export interface GroupMapping {
   [groupName: string]: string; // group name -> filename
@@ -85,18 +226,11 @@ export interface ModeMapping {
 }
 
 // ============================================================================
-// Migration Config
+// Migration Platform Config
 // ============================================================================
 
-export interface MigrationConfig {
-  autoApply: boolean;
-  platforms: {
-    [platformName: string]: PlatformConfig;
-  };
-}
-
 export interface PlatformConfig {
-  enabled: boolean;
+  enabled?: boolean;
   include: string[];
   exclude: string[];
   transform: TransformConfig;
@@ -138,7 +272,7 @@ export interface LegacyCollectionConfig {
 export interface LegacyMigrationConfig {
   version: string;
   styleDictionary: {
-    enabled: boolean;
+    enabled?: boolean;
     configPath: string | null;
   };
   adapters: {
@@ -153,7 +287,7 @@ export interface LegacyMigrationConfig {
 }
 
 export interface LegacyAdapter {
-  enabled: boolean;
+  enabled?: boolean;
   include: string[];
   exclude: string[];
   transform: {
@@ -198,7 +332,7 @@ export interface TransformOptions {
 // ============================================================================
 
 export interface Adapter {
-  enabled: boolean;
+  enabled?: boolean;
   include: string[];
   exclude: string[];
   transform: {

@@ -1,0 +1,358 @@
+/**
+ * Sync Command (Modern)
+ *
+ * Fetch and apply tokens from Figma with modern CLI UX.
+ * Uses spinners, colored output, and tables for better user experience.
+ */
+
+import { execSync } from 'child_process';
+import chalk from 'chalk';
+import { initContext } from '../../context.js';
+import type { TokensConfig, ComparisonResult } from '../../types/index.js';
+import {
+  loadConfigOrThrow,
+  loadBaseline,
+  backupBaseline,
+  restoreBaseline,
+  saveJsonFile,
+  saveTextFile,
+  ensureFigmaDir,
+  getBaselinePath,
+  getDiffReportPath,
+} from '../../files/index.js';
+import { fetchFigmaData } from '../../figma/index.js';
+import { splitTokens } from '../../tokens/index.js';
+import {
+  compareBaselines,
+  hasChanges,
+  getChangeCounts,
+  generateDiffReport,
+} from '../../compare/index.js';
+import {
+  formatSuccess,
+  formatWarning,
+  formatInfo,
+  createSpinner,
+  createTable,
+  logInfo,
+} from '../utils.js';
+import { askYesNo, createPrompt } from '../prompt.js';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+interface SyncOptions {
+  dryRun?: boolean;
+  backup?: boolean;
+  build?: boolean;
+}
+
+// ============================================================================
+// Build Utilities
+// ============================================================================
+
+/**
+ * Run build command if configured
+ */
+function runBuildCommand(config: TokensConfig, skipBuild: boolean): void {
+  if (skipBuild) {
+    logInfo('Skipping build command (--no-build flag)');
+    return;
+  }
+
+  if (!config.build?.command) {
+    return;
+  }
+
+  const spinner = createSpinner('Running build command...');
+  spinner.start();
+
+  try {
+    execSync(config.build.command, { stdio: 'inherit' });
+    spinner.succeed('Build completed successfully');
+  } catch (error) {
+    spinner.warn('Build command failed');
+    console.log(formatWarning(`Build command failed. You can run it manually:\n${config.build.command}`));
+  }
+}
+
+// ============================================================================
+// Diff Display
+// ============================================================================
+
+/**
+ * Display changes in a formatted table
+ */
+function displayChangesTable(result: ComparisonResult): void {
+  const changes: Array<{ path: string; oldValue: any; newValue: any; type: string }> = [];
+
+  // Collect all changes
+  changes.push(...result.valueChanges.map(c => ({
+    path: c.path,
+    oldValue: c.oldValue,
+    newValue: c.newValue,
+    type: 'modified',
+  })));
+
+  changes.push(...result.pathChanges.map(c => ({
+    path: c.newPath,
+    oldValue: c.oldPath,
+    newValue: c.newPath,
+    type: 'renamed',
+  })));
+
+  changes.push(...result.newVariables.map(c => ({
+    path: c.path,
+    oldValue: null,
+    newValue: c.value,
+    type: 'added',
+  })));
+
+  changes.push(...result.deletedVariables.map(c => ({
+    path: c.path,
+    oldValue: c.value,
+    newValue: null,
+    type: 'removed',
+  })));
+
+  if (changes.length === 0) {
+    return;
+  }
+
+  // Show up to 10 changes in table
+  const displayCount = Math.min(changes.length, 10);
+  const rows = changes.slice(0, displayCount).map(change => {
+    const oldValue = String(change.oldValue || '-');
+    const newValue = String(change.newValue || '-');
+    const type = change.type;
+
+    // Color-code based on change type
+    let coloredType = type;
+    if (type === 'added') {
+      coloredType = chalk.green(type);
+    } else if (type === 'removed') {
+      coloredType = chalk.red(type);
+    } else if (type === 'modified') {
+      coloredType = chalk.yellow(type);
+    } else if (type === 'renamed') {
+      coloredType = chalk.cyan(type);
+    }
+
+    return [
+      change.path,
+      oldValue.substring(0, 30),
+      newValue.substring(0, 30),
+      coloredType,
+    ];
+  });
+
+  const table = createTable(
+    ['Token Path', 'Old Value', 'New Value', 'Type'],
+    rows
+  );
+
+  console.log('\n' + table.toString());
+
+  if (changes.length > displayCount) {
+    console.log(chalk.gray(`\n... and ${changes.length - displayCount} more changes`));
+  }
+}
+
+/**
+ * Display change summary
+ */
+function displaySummary(result: ComparisonResult): void {
+  const counts = getChangeCounts(result);
+
+  console.log('\nChanges detected:');
+  if (result.newVariables.length > 0) {
+    console.log(chalk.green(`  + ${result.newVariables.length} added`));
+  }
+  if (result.deletedVariables.length > 0) {
+    console.log(chalk.red(`  - ${result.deletedVariables.length} removed`));
+  }
+  if (result.valueChanges.length > 0) {
+    console.log(chalk.yellow(`  ~ ${result.valueChanges.length} modified`));
+  }
+  if (result.pathChanges.length > 0) {
+    console.log(chalk.cyan(`  → ${result.pathChanges.length} renamed`));
+  }
+  console.log(chalk.bold(`  = ${counts.total} total changes`));
+
+  if (counts.breaking > 0) {
+    console.log(chalk.red.bold(`\n⚠ ${counts.breaking} breaking changes detected!`));
+  }
+}
+
+// ============================================================================
+// Sync Handlers
+// ============================================================================
+
+/**
+ * Handle first-time sync (no previous baseline)
+ */
+async function handleFirstSync(
+  config: TokensConfig,
+  fetchedData: any
+): Promise<void> {
+  console.log(formatInfo('First sync - no previous baseline found'));
+
+  const spinner = createSpinner('Processing tokens...');
+  spinner.start();
+
+  const splitResult = splitTokens(fetchedData, config);
+  spinner.succeed(`Processed ${splitResult.filesWritten} token files`);
+
+  runBuildCommand(config, false);
+
+  console.log(formatSuccess('Initial sync complete!\n\nTokens have been saved to your project.'));
+}
+
+/**
+ * Handle sync with no changes
+ */
+async function handleNoChanges(): Promise<void> {
+  console.log(formatInfo('No changes detected. Your tokens are up to date.'));
+}
+
+/**
+ * Handle sync with changes
+ */
+async function handleChanges(
+  config: TokensConfig,
+  fetchedData: any,
+  result: ComparisonResult,
+  options: SyncOptions
+): Promise<void> {
+  // Display changes
+  displaySummary(result);
+  displayChangesTable(result);
+
+  // If dry run, stop here
+  if (options.dryRun) {
+    console.log(formatInfo('Dry run mode - no changes applied.\n\nRun without --dry-run to apply these changes.'));
+    // Restore backup since we're not applying
+    restoreBaseline();
+    return;
+  }
+
+  // Confirm with user
+  const counts = getChangeCounts(result);
+  const rl = createPrompt();
+  try {
+    const proceed = await askYesNo(rl, '\nApply these changes?', true);
+    if (!proceed) {
+      restoreBaseline();
+      console.log(formatWarning('Sync cancelled. No changes applied.'));
+      return;
+    }
+  } finally {
+    rl.close();
+  }
+
+  // Apply changes
+  const spinner = createSpinner('Applying token changes...');
+  spinner.start();
+
+  const splitResult = splitTokens(fetchedData, config);
+  spinner.succeed(`Applied changes to ${splitResult.filesWritten} files`);
+
+  // Save diff report
+  const report = generateDiffReport(result, fetchedData.$metadata);
+  saveTextFile(getDiffReportPath(), report);
+  logInfo(`Diff report saved: ${getDiffReportPath()}`);
+
+  // Run build
+  runBuildCommand(config, options.build === false);
+
+  console.log(formatSuccess(`Sync complete!\n\nApplied ${counts.total} change(s) to your tokens.`));
+}
+
+// ============================================================================
+// Main Command
+// ============================================================================
+
+/**
+ * Sync command handler
+ */
+export async function syncCommand(options: SyncOptions = {}): Promise<void> {
+  // Initialize context
+  initContext({ rootDir: process.cwd() });
+
+  console.log(chalk.bold.cyan('\nSynkio Token Sync\n'));
+
+  // Load config
+  let config: TokensConfig;
+  try {
+    config = loadConfigOrThrow();
+  } catch (error) {
+    throw new Error(
+      `Configuration not found.\n\nRun 'synkio init' to create a configuration file.`
+    );
+  }
+
+  // Ensure directories exist
+  ensureFigmaDir();
+
+  // Backup current baseline (unless --no-backup)
+  if (options.backup !== false) {
+    const hadBaseline = backupBaseline();
+    if (hadBaseline) {
+      logInfo('Created backup of current baseline');
+    }
+  }
+
+  // Fetch from Figma
+  const fetchSpinner = createSpinner('Fetching tokens from Figma...');
+  fetchSpinner.start();
+
+  let fetchedData;
+  try {
+    fetchedData = await fetchFigmaData({
+      fileId: config.figma.fileId,
+      nodeId: config.figma.nodeId,
+    });
+    fetchSpinner.succeed('Fetched tokens from Figma');
+  } catch (error) {
+    fetchSpinner.fail('Failed to fetch from Figma');
+    if (options.backup !== false) {
+      restoreBaseline();
+    }
+    throw new Error(
+      `Could not fetch from Figma: ${error instanceof Error ? error.message : String(error)}\n\nPlease check your configuration and network connection.`
+    );
+  }
+
+  // Show metadata
+  if (fetchedData.$metadata) {
+    logInfo(`File: ${fetchedData.$metadata.fileName}`);
+    logInfo(`Exported: ${new Date(fetchedData.$metadata.exportedAt).toLocaleString()}`);
+  }
+
+  // Save as new baseline
+  saveJsonFile(getBaselinePath(), fetchedData);
+
+  // Load previous baseline for comparison
+  const previousBaseline = loadBaseline(config.paths.baselinePrev);
+
+  // Handle first sync
+  if (!previousBaseline) {
+    await handleFirstSync(config, fetchedData);
+    return;
+  }
+
+  // Compare baselines
+  const compareSpinner = createSpinner('Comparing with previous baseline...');
+  compareSpinner.start();
+
+  const result = compareBaselines(previousBaseline, fetchedData);
+  compareSpinner.succeed('Comparison complete');
+
+  // Handle based on changes
+  if (!hasChanges(result)) {
+    await handleNoChanges();
+  } else {
+    await handleChanges(config, fetchedData, result, options);
+  }
+}

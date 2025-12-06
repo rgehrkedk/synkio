@@ -2,22 +2,22 @@
  * File Utilities - Barrel Export
  */
 
-// Path constants
+// Path functions (new context-based API)
 export {
-  // Directory paths
-  FIGMA_DIR,
-  FIGMA_CONFIG_DIR,
-  FIGMA_DATA_DIR,
-  FIGMA_REPORTS_DIR,
-  TOKENS_DIR,
-  STYLES_DIR,
-  TYPES_DIR,
-  // File paths
-  CONFIG_FILE,
-  BASELINE_FILE,
-  BASELINE_PREV_FILE,
-  DIFF_REPORT_FILE,
-  MIGRATION_REPORT_FILE,
+  // Directory path functions
+  getFigmaDir,
+  getConfigDir,
+  getDataDir,
+  getReportsDir,
+  getTokensDir,
+  getStylesDir,
+  getTypesDir,
+  // File path functions
+  getConfigPath,
+  getBaselinePath,
+  getBaselinePrevPath,
+  getDiffReportPath,
+  getMigrationReportPath,
   // Legacy paths (for migration compatibility)
   LEGACY_BASELINE_FILE,
   LEGACY_BASELINE_PREV_FILE,
@@ -27,8 +27,6 @@ export {
   LEGACY_MIGRATION_REPORT_FILE,
   LEGACY_MIGRATION_CONFIG_FILE,
   LEGACY_TOKEN_SPLIT_CONFIG_FILE,
-  // Deprecated
-  REPORTS_DIR,
 } from './paths';
 
 // File operations

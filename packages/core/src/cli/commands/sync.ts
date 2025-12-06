@@ -10,7 +10,8 @@
 
 import { execSync } from 'child_process';
 
-import type { TokensConfig, ComparisonResult } from '../lib/types';
+import { initContext } from '../../context';
+import type { TokensConfig, ComparisonResult } from '../../types';
 
 import {
   loadConfigOrThrow,
@@ -20,23 +21,23 @@ import {
   saveJsonFile,
   saveTextFile,
   ensureFigmaDir,
-  BASELINE_FILE,
-  DIFF_REPORT_FILE,
-  MIGRATION_REPORT_FILE,
-} from '../lib/files';
+  getBaselinePath,
+  getDiffReportPath,
+  getMigrationReportPath,
+} from '../../files';
 
-import { fetchFigmaData } from '../lib/figma';
+import { fetchFigmaData } from '../../figma';
 
 import {
   splitTokens,
   scanAllPlatforms,
   generateMultiPlatformDiffReport,
   applyAllPlatformReplacements,
-} from '../lib/tokens';
+} from '../../tokens';
 
-import type { PlatformScanResult } from '../lib/tokens';
+import type { PlatformScanResult } from '../../tokens';
 
-import type { PlatformConfig } from '../lib/types';
+import type { PlatformConfig } from '../../types';
 
 import {
   compareBaselines,
@@ -45,9 +46,9 @@ import {
   getChangeCounts,
   generateDiffReport,
   printDiffSummary,
-} from '../lib/compare';
+} from '../../compare';
 
-import { createPrompt, askYesNo, askChoice } from '../lib/cli';
+import { createPrompt, askYesNo, askChoice } from '../prompt';
 
 /**
  * Build CSS from token files
@@ -112,7 +113,7 @@ async function handleValueChanges(
 
   // Save report
   const report = generateDiffReport(result, fetchedData.$metadata);
-  saveTextFile(DIFF_REPORT_FILE, report);
+  saveTextFile(getDiffReportPath(), report);
 
   console.log(`\n✓ Synced ${counts.valueChanges} value change(s)\n`);
   return true;
@@ -138,7 +139,7 @@ async function handleBreakingChanges(
   printDiffSummary(result);
 
   // Get enabled platforms and scan for impact
-  const platforms = config.migration?.platforms || {};
+  const platforms = (config.migration?.platforms && typeof config.migration.platforms === 'object' && !Array.isArray(config.migration.platforms)) ? config.migration.platforms : {};
   const enabledPlatforms = Object.entries(platforms)
     .filter(([_, cfg]) => (cfg as PlatformConfig).enabled)
     .map(([name]) => name);
@@ -215,8 +216,8 @@ async function handleBreakingChanges(
   // Generate and save migration report (for all non-abort choices)
   if (platformResults.length > 0) {
     const migrationReport = generateMultiPlatformDiffReport(platformResults, fetchedData.$metadata);
-    saveTextFile(MIGRATION_REPORT_FILE, migrationReport);
-    console.log(`\nMigration report saved: ${MIGRATION_REPORT_FILE}`);
+    saveTextFile(getMigrationReportPath(), migrationReport);
+    console.log(`\nMigration report saved: ${getMigrationReportPath()}`);
   }
 
   if (choice === 'report-only') {
@@ -258,7 +259,7 @@ async function handleBreakingChanges(
 
   // Save diff report
   const report = generateDiffReport(result, fetchedData.$metadata);
-  saveTextFile(DIFF_REPORT_FILE, report);
+  saveTextFile(getDiffReportPath(), report);
 
   console.log(`\n✓ Applied ${counts.total} token change(s) (${counts.breaking} breaking)\n`);
   return true;
@@ -268,6 +269,9 @@ async function handleBreakingChanges(
  * Main sync function
  */
 async function main() {
+  // Initialize context
+  initContext({ rootDir: process.cwd() });
+
   console.log('\n' + '='.repeat(60));
   console.log('  Figma Token Sync');
   console.log('='.repeat(60) + '\n');
@@ -308,7 +312,7 @@ async function main() {
   }
 
   // Save fetched data as new baseline
-  saveJsonFile(BASELINE_FILE, fetchedData);
+  saveJsonFile(getBaselinePath(), fetchedData);
 
   // Show metadata
   if (fetchedData.$metadata) {

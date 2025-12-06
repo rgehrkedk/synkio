@@ -1,43 +1,200 @@
 /**
  * File Paths
  *
- * Standard file path constants used across scripts.
- * All Figma-related files are stored in figma-sync/.figma/ directory.
+ * Context-based path resolution functions for framework-agnostic usage.
+ * All paths are resolved relative to the context rootDir.
+ *
+ * All functions accept an optional Context parameter.
+ * If no context is provided, the global context is used.
+ *
+ * @example
+ * ```typescript
+ * // Using global context
+ * const baselinePath = getBaselinePath();
+ *
+ * // Using explicit context (monorepo)
+ * const ctx = createContext({ rootDir: './apps/web' });
+ * const baselinePath = getBaselinePath(ctx);
+ * ```
  */
 
-// Main directories
-export const FIGMA_SYNC_DIR = 'figma-sync';
-export const FIGMA_DIR = 'figma-sync/.figma';
-export const FIGMA_CONFIG_DIR = 'figma-sync/.figma/config';
-export const FIGMA_DATA_DIR = 'figma-sync/.figma/data';
-export const FIGMA_REPORTS_DIR = 'figma-sync/.figma/reports';
+import path from 'path';
+import { getContext, type Context } from '../context';
 
-// Output directories (outside figma-sync - configurable in tokensrc.json)
-export const TOKENS_DIR = 'tokens';
-export const STYLES_DIR = 'styles/tokens';
-export const TYPES_DIR = 'types';
+// ============================================================================
+// Main Directories
+// ============================================================================
 
-// Config file
-export const CONFIG_FILE = 'figma-sync/.figma/config/tokensrc.json';
+/**
+ * Get the data directory where baselines and internal files are stored.
+ * Default: {rootDir}/.figma/data
+ */
+export function getDataDir(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.rootDir, '.figma', 'data');
+}
 
-// Baseline files
-export const BASELINE_FILE = 'figma-sync/.figma/data/baseline.json';
-export const BASELINE_PREV_FILE = 'figma-sync/.figma/data/baseline.prev.json';
+/**
+ * Get the config directory where configuration files are stored.
+ * Default: {rootDir}/.figma/config
+ */
+export function getConfigDir(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.rootDir, '.figma', 'config');
+}
 
-// Report files
-export const DIFF_REPORT_FILE = 'figma-sync/.figma/reports/diff-report.md';
-export const MIGRATION_REPORT_FILE = 'figma-sync/.figma/reports/migration-report.md';
+/**
+ * Get the reports directory where diff and migration reports are stored.
+ * Default: {rootDir}/.figma/reports
+ */
+export function getReportsDir(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.rootDir, '.figma', 'reports');
+}
 
-// Legacy paths (for migration compatibility - can be removed later)
+/**
+ * Get the main .figma directory.
+ * Default: {rootDir}/.figma
+ */
+export function getFigmaDir(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.rootDir, '.figma');
+}
+
+// ============================================================================
+// Output Directories (Configurable)
+// ============================================================================
+
+/**
+ * Get the tokens output directory.
+ * Default: {rootDir}/tokens
+ *
+ * TODO: Read from config file when config system is implemented
+ */
+export function getTokensDir(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.rootDir, 'tokens');
+}
+
+/**
+ * Get the styles output directory.
+ * Default: {rootDir}/styles/tokens
+ *
+ * TODO: Read from config file when config system is implemented
+ */
+export function getStylesDir(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.rootDir, 'styles', 'tokens');
+}
+
+/**
+ * Get the types output directory.
+ * Default: {rootDir}/types
+ *
+ * TODO: Read from config file when config system is implemented
+ */
+export function getTypesDir(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.rootDir, 'types');
+}
+
+// ============================================================================
+// Config Files
+// ============================================================================
+
+/**
+ * Get the path to the main config file (tokensrc.json).
+ * Default: {rootDir}/.figma/config/tokensrc.json
+ */
+export function getConfigPath(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(getConfigDir(context), 'tokensrc.json');
+}
+
+// ============================================================================
+// Baseline Files
+// ============================================================================
+
+/**
+ * Get the path to the current baseline file.
+ * Default: {rootDir}/.figma/data/baseline.json
+ */
+export function getBaselinePath(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(getDataDir(context), 'baseline.json');
+}
+
+/**
+ * Get the path to the previous baseline file (for rollback).
+ * Default: {rootDir}/.figma/data/baseline.prev.json
+ */
+export function getBaselinePrevPath(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(getDataDir(context), 'baseline.prev.json');
+}
+
+// ============================================================================
+// Report Files
+// ============================================================================
+
+/**
+ * Get the path to the diff report file.
+ * Default: {rootDir}/.figma/reports/diff-report.md
+ */
+export function getDiffReportPath(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(getReportsDir(context), 'diff-report.md');
+}
+
+/**
+ * Get the path to the migration report file.
+ * Default: {rootDir}/.figma/reports/migration-report.md
+ */
+export function getMigrationReportPath(ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(getReportsDir(context), 'migration-report.md');
+}
+
+// ============================================================================
+// Legacy Path Constants (DEPRECATED - for backwards compatibility)
+// ============================================================================
+
+/**
+ * @deprecated Use getBaselinePath() instead
+ */
 export const LEGACY_BASELINE_FILE = '.baseline-export.json';
-export const LEGACY_BASELINE_PREV_FILE = '.baseline-export.prev.json';
-export const LEGACY_SNAPSHOT_FILE = '.figma-snapshot.json';
-export const LEGACY_MIGRATION_FILE = '.figma-migration.json';
-export const LEGACY_DIFF_REPORT_FILE = '.figma-diff-report.md';
-export const LEGACY_MIGRATION_REPORT_FILE = '.figma-migration-report.md';
-export const LEGACY_MIGRATION_CONFIG_FILE = '.migrationrc.json';
-export const LEGACY_TOKEN_SPLIT_CONFIG_FILE = '.tokensplitrc.json';
 
-// Deprecated - use new names
-/** @deprecated Use FIGMA_REPORTS_DIR instead */
-export const REPORTS_DIR = FIGMA_REPORTS_DIR;
+/**
+ * @deprecated Use getBaselinePrevPath() instead
+ */
+export const LEGACY_BASELINE_PREV_FILE = '.baseline-export.prev.json';
+
+/**
+ * @deprecated Legacy snapshot file path
+ */
+export const LEGACY_SNAPSHOT_FILE = '.figma-snapshot.json';
+
+/**
+ * @deprecated Legacy migration file path
+ */
+export const LEGACY_MIGRATION_FILE = '.figma-migration.json';
+
+/**
+ * @deprecated Use getDiffReportPath() instead
+ */
+export const LEGACY_DIFF_REPORT_FILE = '.figma-diff-report.md';
+
+/**
+ * @deprecated Use getMigrationReportPath() instead
+ */
+export const LEGACY_MIGRATION_REPORT_FILE = '.figma-migration-report.md';
+
+/**
+ * @deprecated Legacy migration config file path
+ */
+export const LEGACY_MIGRATION_CONFIG_FILE = '.migrationrc.json';
+
+/**
+ * @deprecated Legacy token split config file path
+ */
+export const LEGACY_TOKEN_SPLIT_CONFIG_FILE = '.tokensplitrc.json';

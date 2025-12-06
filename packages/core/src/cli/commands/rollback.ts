@@ -10,19 +10,20 @@
 
 import { execSync } from 'child_process';
 
+import { initContext } from '../../context';
 import {
   loadConfigOrThrow,
   loadBaseline,
   loadBaselinePrev,
   restoreBaseline,
   fileExists,
-  BASELINE_FILE,
-  BASELINE_PREV_FILE,
-} from '../lib/files';
+  getBaselinePath,
+  getBaselinePrevPath,
+} from '../../files';
 
-import { splitTokens } from '../lib/tokens';
-import { compareBaselines, getChangeCounts, printDiffSummary } from '../lib/compare';
-import { createPrompt, askYesNo } from '../lib/cli';
+import { splitTokens } from '../../tokens';
+import { compareBaselines, getChangeCounts, printDiffSummary } from '../../compare';
+import { createPrompt, askYesNo } from '../prompt';
 
 /**
  * Build CSS from token files
@@ -42,14 +43,17 @@ function buildCss(): boolean {
  * Main rollback function
  */
 async function main() {
+  // Initialize context
+  initContext({ rootDir: process.cwd() });
+
   console.log('\n' + '='.repeat(60));
   console.log('  Figma Token Rollback');
   console.log('='.repeat(60) + '\n');
 
   // Check for previous baseline
-  if (!fileExists(BASELINE_PREV_FILE)) {
+  if (!fileExists(getBaselinePrevPath())) {
     console.log('No previous baseline found.');
-    console.log(`Expected: ${BASELINE_PREV_FILE}\n`);
+    console.log(`Expected: ${getBaselinePrevPath()}\n`);
     console.log('Nothing to rollback. Run "npm run figma:sync" first.\n');
     process.exit(0);
   }
@@ -121,7 +125,7 @@ async function main() {
       process.exit(1);
     }
 
-    console.log(`  ${BASELINE_PREV_FILE} → ${BASELINE_FILE}`);
+    console.log(`  ${getBaselinePrevPath()} → ${getBaselinePath()}`);
 
     // Re-split tokens
     console.log('\nRe-splitting tokens...');

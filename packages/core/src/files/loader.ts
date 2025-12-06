@@ -2,35 +2,206 @@
  * File Loader Utilities
  *
  * Functions for loading and saving JSON/text files.
+ * All functions use the context system for path resolution.
  */
 
 import fs from 'fs';
 import path from 'path';
 import type { BaselineData, MigrationManifest } from '../types';
 import type { TokensConfig, LegacyTokenSplitConfig, LegacyMigrationConfig } from '../types/config';
+import { getContext, type Context } from '../context';
 import {
-  BASELINE_FILE,
-  BASELINE_PREV_FILE,
-  CONFIG_FILE,
-  FIGMA_DIR,
-  FIGMA_CONFIG_DIR,
-  FIGMA_DATA_DIR,
-  FIGMA_REPORTS_DIR,
+  getBaselinePath,
+  getBaselinePrevPath,
+  getConfigPath,
+  getFigmaDir,
+  getConfigDir,
+  getDataDir,
+  getReportsDir,
   LEGACY_BASELINE_FILE,
   LEGACY_TOKEN_SPLIT_CONFIG_FILE,
   LEGACY_MIGRATION_CONFIG_FILE,
 } from './paths';
 
 // ============================================================================
-// Config Loading
+// Config File Discovery
 // ============================================================================
 
 /**
- * Load unified config from .tokensrc.json
- * Resolves environment variables like ${FIGMA_TOKEN}
+ * Find config file by checking multiple file names
+ * Checks in order: tokensrc.json → .synkiorc → synkio.config.json
+ *
+ * @param rootDir - Root directory to search in
+ * @returns Path to config file or null if not found
  */
-export function loadConfig(filePath?: string): TokensConfig | null {
-  const targetPath = path.join(process.cwd(), filePath || CONFIG_FILE);
+export function findConfigFile(rootDir: string): string | null {
+  const configNames = ['tokensrc.json', '.synkiorc', 'synkio.config.json'];
+
+  for (const name of configNames) {
+    const configPath = path.join(rootDir, name);
+    if (fs.existsSync(configPath)) {
+      return configPath;
+    }
+  }
+
+  return null;
+}
+
+// ============================================================================
+// Environment Variable Interpolation
+// ============================================================================
+
+/**
+ * Interpolate environment variables in config
+ * Replaces ${VAR_NAME} with process.env.VAR_NAME
+ *
+ * @param config - Config object with potential env vars
+ * @returns Config with env vars replaced
+ */
+export function interpolateEnvVars<T extends Record<string, any>>(config: T): T {
+  const interpolated = JSON.parse(JSON.stringify(config)) as T;
+
+  function interpolateValue(value: any): any {
+    if (typeof value === 'string') {
+      // Match ${VAR_NAME} pattern
+      const match = value.match(/^\$\{([A-Z_][A-Z0-9_]*)\}$/);
+      if (match) {
+        const varName = match[1];
+        const envValue = process.env[varName];
+        if (!envValue) {
+          console.warn(`Warning: Environment variable ${varName} not found, using empty string`);
+          return '';
+        }
+        return envValue;
+      }
+      return value;
+    } else if (Array.isArray(value)) {
+      return value.map(interpolateValue);
+    } else if (value !== null && typeof value === 'object') {
+      return interpolateObject(value);
+    }
+    return value;
+  }
+
+  function interpolateObject(obj: Record<string, any>): Record<string, any> {
+    const result: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = interpolateValue(value);
+    }
+    return result;
+  }
+
+  return interpolateObject(interpolated) as T;
+}
+
+// ============================================================================
+// Config Validation
+// ============================================================================
+
+/**
+ * Validate config and return list of errors
+ *
+ * @param config - Config to validate
+ * @returns Array of error messages (empty if valid)
+ */
+export function validateConfig(config: Partial<TokensConfig>): string[] {
+  const errors: string[] = [];
+
+  // Check version
+  if (!config.version) {
+    errors.push('Missing required field: version');
+  }
+
+  // Check figma config
+  if (!config.figma) {
+    errors.push('Missing required section: figma');
+  } else {
+    if (!config.figma.fileId) {
+      errors.push('Missing required field: figma.fileId - Run \'synkio init\' to configure');
+    }
+    if (!config.figma.accessToken) {
+      errors.push('Missing required field: figma.accessToken - Set FIGMA_ACCESS_TOKEN environment variable');
+    }
+  }
+
+  // Check paths config
+  if (!config.paths) {
+    errors.push('Missing required section: paths');
+  } else {
+    const requiredPaths = ['data', 'baseline', 'baselinePrev', 'reports', 'tokens', 'styles'];
+    for (const pathKey of requiredPaths) {
+      if (!(config.paths as any)[pathKey]) {
+        errors.push(`Missing required field: paths.${pathKey}`);
+      }
+    }
+  }
+
+  // Check collections config
+  // Collections are optional in Phase 1B
+  if (false && !config.collections) {
+    errors.push('Missing required section: collections - Can be empty {} for default behavior');
+  }
+
+  return errors;
+}
+
+// ============================================================================
+// Default Config
+// ============================================================================
+
+/**
+ * Get default config with smart defaults
+ *
+ * @param ctx - Optional context (uses global if not provided)
+ * @returns Default config
+ */
+export function getDefaultConfig(ctx?: Context): TokensConfig {
+  const context = ctx || getContext();
+
+  return {
+    version: '2.0.0',
+    figma: {
+      fileId: '',
+      accessToken: '',
+    },
+    paths: {
+      root: context.rootDir,
+      data: '.figma',
+      baseline: '.figma/baseline.json',
+      baselinePrev: '.figma/baseline.prev.json',
+      reports: '.figma/reports',
+      tokens: 'tokens',
+      styles: 'styles/tokens',
+    },
+    collections: {},
+  };
+}
+
+// ============================================================================
+// Config Loading (Updated with new features)
+// ============================================================================
+
+/**
+ * Load unified config from tokensrc.json
+ * - Discovers config file if not specified
+ * - Resolves environment variables like ${FIGMA_TOKEN}
+ * - Resolves relative paths from config directory
+ *
+ * @param filePath - Optional custom config file path
+ * @param ctx - Optional context (uses global if not provided)
+ */
+export function loadConfig(filePath?: string, ctx?: Context): TokensConfig | null {
+  const context = ctx || getContext();
+
+  // Discover config file if not specified
+  let targetPath = filePath;
+  if (!targetPath) {
+    const discovered = findConfigFile(context.rootDir);
+    if (!discovered) {
+      return null;
+    }
+    targetPath = discovered;
+  }
 
   if (!fs.existsSync(targetPath)) {
     return null;
@@ -38,36 +209,70 @@ export function loadConfig(filePath?: string): TokensConfig | null {
 
   try {
     const content = fs.readFileSync(targetPath, 'utf-8');
-    const config = JSON.parse(content) as TokensConfig;
+    let config = JSON.parse(content) as TokensConfig;
 
-    // Resolve environment variables in accessToken
-    if (config.figma?.accessToken?.startsWith('${') && config.figma.accessToken.endsWith('}')) {
-      const envVar = config.figma.accessToken.slice(2, -1);
-      config.figma.accessToken = process.env[envVar] || '';
+    // Interpolate environment variables
+    config = interpolateEnvVars(config);
+
+    // Resolve relative paths from config directory
+    const configDir = path.dirname(targetPath);
+    if (config.paths) {
+      const paths = config.paths;
+      for (const [key, value] of Object.entries(paths)) {
+        if (value && typeof value === 'string' && !path.isAbsolute(value)) {
+          (paths as any)[key] = path.resolve(configDir, value);
+        }
+      }
     }
 
     return config;
-  } catch {
+  } catch (error) {
+    console.error('Error loading config:', error);
     return null;
   }
 }
 
 /**
  * Load config or throw if not found
+ *
+ * @param filePath - Optional custom config file path
+ * @param ctx - Optional context (uses global if not provided)
+ * @throws Error if config file not found
  */
-export function loadConfigOrThrow(filePath?: string): TokensConfig {
-  const config = loadConfig(filePath);
+export function loadConfigOrThrow(filePath?: string, ctx?: Context): TokensConfig {
+  const context = ctx || getContext();
+  const config = loadConfig(filePath, context);
+
   if (!config) {
-    throw new Error(`Config file not found: ${filePath || CONFIG_FILE}\nRun 'npm run figma:setup' to create one.`);
+    const configPath = filePath || findConfigFile(context.rootDir) || 'tokensrc.json';
+    throw new Error(
+      `Config file not found: ${configPath}\n` +
+      "Run 'synkio init' to create one."
+    );
   }
+
+  // Validate config
+  const errors = validateConfig(config);
+  if (errors.length > 0) {
+    throw new Error(
+      `Invalid configuration:\n${errors.map(e => `  - ${e}`).join('\n')}\n` +
+      "Run 'synkio init' to reconfigure."
+    );
+  }
+
   return config;
 }
 
 /**
  * Save config to file
+ *
+ * @param config - Config object to save
+ * @param filePath - Optional custom config file path
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function saveConfig(config: TokensConfig, filePath?: string): void {
-  const targetPath = filePath || CONFIG_FILE;
+export function saveConfig(config: TokensConfig, filePath?: string, ctx?: Context): void {
+  const context = ctx || getContext();
+  const targetPath = filePath || path.join(context.rootDir, 'tokensrc.json');
   saveJsonFile(targetPath, config);
 }
 
@@ -77,13 +282,17 @@ export function saveConfig(config: TokensConfig, filePath?: string): void {
 
 /**
  * Load baseline data from file
+ *
+ * @param filePath - Optional custom baseline file path
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function loadBaseline(filePath?: string): BaselineData | null {
-  const targetPath = path.join(process.cwd(), filePath || BASELINE_FILE);
+export function loadBaseline(filePath?: string, ctx?: Context): BaselineData | null {
+  const context = ctx || getContext();
+  const targetPath = filePath || getBaselinePath(context);
 
   if (!fs.existsSync(targetPath)) {
     // Try legacy path
-    const legacyPath = path.join(process.cwd(), LEGACY_BASELINE_FILE);
+    const legacyPath = path.join(context.rootDir, LEGACY_BASELINE_FILE);
     if (fs.existsSync(legacyPath)) {
       const content = fs.readFileSync(legacyPath, 'utf-8');
       return JSON.parse(content);
@@ -101,21 +310,34 @@ export function loadBaseline(filePath?: string): BaselineData | null {
 
 /**
  * Load baseline data, throw if not found
+ *
+ * @param filePath - Optional custom baseline file path
+ * @param ctx - Optional context (uses global if not provided)
+ * @throws Error if baseline file not found
  */
-export function loadBaselineOrThrow(filePath?: string): BaselineData {
-  const data = loadBaseline(filePath);
+export function loadBaselineOrThrow(filePath?: string, ctx?: Context): BaselineData {
+  const context = ctx || getContext();
+  const data = loadBaseline(filePath, context);
+  const baselinePath = filePath || getBaselinePath(context);
+
   if (!data) {
-    const file = filePath || BASELINE_FILE;
-    throw new Error(`Baseline file not found: ${file}\nRun 'npm run figma:sync' to fetch from Figma.`);
+    throw new Error(
+      `Baseline file not found: ${baselinePath}\n` +
+      "Run 'synkio sync' to fetch from Figma."
+    );
   }
   return data;
 }
 
 /**
  * Load previous baseline (for comparison/rollback)
+ *
+ * @param filePath - Optional custom baseline prev file path
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function loadBaselinePrev(filePath?: string): BaselineData | null {
-  const targetPath = path.join(process.cwd(), filePath || BASELINE_PREV_FILE);
+export function loadBaselinePrev(filePath?: string, ctx?: Context): BaselineData | null {
+  const context = ctx || getContext();
+  const targetPath = filePath || getBaselinePrevPath(context);
 
   if (!fs.existsSync(targetPath)) {
     return null;
@@ -131,20 +353,23 @@ export function loadBaselinePrev(filePath?: string): BaselineData | null {
 
 /**
  * Backup current baseline to prev
+ *
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function backupBaseline(): boolean {
-  const baselinePath = path.join(process.cwd(), BASELINE_FILE);
-  const prevPath = path.join(process.cwd(), BASELINE_PREV_FILE);
+export function backupBaseline(ctx?: Context): boolean {
+  const context = ctx || getContext();
+  const baselinePath = getBaselinePath(context);
+  const prevPath = getBaselinePrevPath(context);
 
   if (!fs.existsSync(baselinePath)) {
     return false;
   }
 
   try {
-    // Ensure .figma directory exists
-    const figmaDir = path.join(process.cwd(), FIGMA_DIR);
-    if (!fs.existsSync(figmaDir)) {
-      fs.mkdirSync(figmaDir, { recursive: true });
+    // Ensure data directory exists
+    const dataDir = getDataDir(context);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
     }
 
     fs.copyFileSync(baselinePath, prevPath);
@@ -156,10 +381,13 @@ export function backupBaseline(): boolean {
 
 /**
  * Restore previous baseline
+ *
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function restoreBaseline(): boolean {
-  const baselinePath = path.join(process.cwd(), BASELINE_FILE);
-  const prevPath = path.join(process.cwd(), BASELINE_PREV_FILE);
+export function restoreBaseline(ctx?: Context): boolean {
+  const context = ctx || getContext();
+  const baselinePath = getBaselinePath(context);
+  const prevPath = getBaselinePrevPath(context);
 
   if (!fs.existsSync(prevPath)) {
     return false;
@@ -179,9 +407,12 @@ export function restoreBaseline(): boolean {
 
 /**
  * Load legacy token split config
+ *
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function loadLegacyTokenSplitConfig(): LegacyTokenSplitConfig | null {
-  const targetPath = path.join(process.cwd(), LEGACY_TOKEN_SPLIT_CONFIG_FILE);
+export function loadLegacyTokenSplitConfig(ctx?: Context): LegacyTokenSplitConfig | null {
+  const context = ctx || getContext();
+  const targetPath = path.join(context.rootDir, LEGACY_TOKEN_SPLIT_CONFIG_FILE);
 
   if (!fs.existsSync(targetPath)) {
     return null;
@@ -197,9 +428,12 @@ export function loadLegacyTokenSplitConfig(): LegacyTokenSplitConfig | null {
 
 /**
  * Load legacy migration config
+ *
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function loadLegacyMigrationConfig(): LegacyMigrationConfig | null {
-  const targetPath = path.join(process.cwd(), LEGACY_MIGRATION_CONFIG_FILE);
+export function loadLegacyMigrationConfig(ctx?: Context): LegacyMigrationConfig | null {
+  const context = ctx || getContext();
+  const targetPath = path.join(context.rootDir, LEGACY_MIGRATION_CONFIG_FILE);
 
   if (!fs.existsSync(targetPath)) {
     return null;
@@ -219,9 +453,13 @@ export function loadLegacyMigrationConfig(): LegacyMigrationConfig | null {
 
 /**
  * Load migration manifest from file
+ *
+ * @param filePath - Optional custom manifest file path
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function loadMigrationManifest(filePath?: string): MigrationManifest | null {
-  const targetPath = path.join(process.cwd(), filePath || '.figma/migration.json');
+export function loadMigrationManifest(filePath?: string, ctx?: Context): MigrationManifest | null {
+  const context = ctx || getContext();
+  const targetPath = filePath || path.join(getFigmaDir(context), 'migration.json');
 
   if (!fs.existsSync(targetPath)) {
     return null;
@@ -241,9 +479,13 @@ export function loadMigrationManifest(filePath?: string): MigrationManifest | nu
 
 /**
  * Load JSON from file, returns empty object if not found
+ *
+ * @param filePath - File path (absolute or relative to context rootDir)
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function loadJsonFile(filePath: string): Record<string, any> {
-  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath);
+export function loadJsonFile(filePath: string, ctx?: Context): Record<string, any> {
+  const context = ctx || getContext();
+  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(context.rootDir, filePath);
 
   if (!fs.existsSync(fullPath)) {
     return {};
@@ -259,9 +501,14 @@ export function loadJsonFile(filePath: string): Record<string, any> {
 
 /**
  * Save JSON to file
+ *
+ * @param filePath - File path (absolute or relative to context rootDir)
+ * @param data - Data to save
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function saveJsonFile(filePath: string, data: any): void {
-  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath);
+export function saveJsonFile(filePath: string, data: any, ctx?: Context): void {
+  const context = ctx || getContext();
+  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(context.rootDir, filePath);
   const dir = path.dirname(fullPath);
 
   if (!fs.existsSync(dir)) {
@@ -273,9 +520,14 @@ export function saveJsonFile(filePath: string, data: any): void {
 
 /**
  * Save text to file
+ *
+ * @param filePath - File path (absolute or relative to context rootDir)
+ * @param content - Text content to save
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function saveTextFile(filePath: string, content: string): void {
-  const fullPath = path.join(process.cwd(), filePath);
+export function saveTextFile(filePath: string, content: string, ctx?: Context): void {
+  const context = ctx || getContext();
+  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(context.rootDir, filePath);
   const dir = path.dirname(fullPath);
 
   if (!fs.existsSync(dir)) {
@@ -286,24 +538,38 @@ export function saveTextFile(filePath: string, content: string): void {
 }
 
 /**
- * Check if file exists (relative to cwd)
+ * Check if file exists (relative to context rootDir)
+ *
+ * @param filePath - File path (absolute or relative to context rootDir)
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function fileExists(filePath: string): boolean {
-  return fs.existsSync(path.join(process.cwd(), filePath));
+export function fileExists(filePath: string, ctx?: Context): boolean {
+  const context = ctx || getContext();
+  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(context.rootDir, filePath);
+  return fs.existsSync(fullPath);
 }
 
 /**
  * Get absolute path from relative
+ *
+ * @param filePath - Relative file path
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function getAbsolutePath(filePath: string): string {
-  return path.join(process.cwd(), filePath);
+export function getAbsolutePath(filePath: string, ctx?: Context): string {
+  const context = ctx || getContext();
+  return path.join(context.rootDir, filePath);
 }
 
 /**
  * Ensure directory exists
+ *
+ * @param dirPath - Directory path (absolute or relative to context rootDir)
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function ensureDir(dirPath: string): void {
-  const fullPath = path.join(process.cwd(), dirPath);
+export function ensureDir(dirPath: string, ctx?: Context): void {
+  const context = ctx || getContext();
+  const fullPath = path.isAbsolute(dirPath) ? dirPath : path.join(context.rootDir, dirPath);
+
   if (!fs.existsSync(fullPath)) {
     fs.mkdirSync(fullPath, { recursive: true });
   }
@@ -311,10 +577,13 @@ export function ensureDir(dirPath: string): void {
 
 /**
  * Ensure .figma directory structure exists
+ *
+ * @param ctx - Optional context (uses global if not provided)
  */
-export function ensureFigmaDir(): void {
-  ensureDir(FIGMA_DIR);
-  ensureDir(FIGMA_CONFIG_DIR);
-  ensureDir(FIGMA_DATA_DIR);
-  ensureDir(FIGMA_REPORTS_DIR);
+export function ensureFigmaDir(ctx?: Context): void {
+  const context = ctx || getContext();
+  ensureDir(getFigmaDir(context), context);
+  ensureDir(getConfigDir(context), context);
+  ensureDir(getDataDir(context), context);
+  ensureDir(getReportsDir(context), context);
 }

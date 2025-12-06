@@ -21,28 +21,29 @@ if (fs.existsSync(packageEnvPath)) {
   loadEnv({ path: packageEnvPath, override: true });
 }
 
-import type { TokensConfig, CollectionInfo, CollectionSplitConfig, PlatformConfig } from '../lib/types';
+import { initContext } from '../../context';
+import type { TokensConfig, CollectionInfo, CollectionSplitConfig, PlatformConfig } from '../../types';
 
 import {
   loadConfig,
   saveConfig,
   saveJsonFile,
   ensureFigmaDir,
-  CONFIG_FILE,
-  BASELINE_FILE,
-} from '../lib/files';
+  getConfigPath,
+  getBaselinePath,
+} from '../../files';
 
-import { fetchFigmaData } from '../lib/figma';
-import { extractCollections, analyzeCollections, splitTokens } from '../lib/tokens';
+import { fetchFigmaData } from '../../figma';
+import { extractCollections, analyzeCollections, splitTokens } from '../../tokens';
 import {
   createPrompt,
   askYesNo,
   askText,
   askChoice,
   askMultipleChoiceToggle,
-} from '../lib/cli';
-import { detectAndParseStyleDictionary, mapSDPlatformToAdapter } from '../lib/style-dictionary';
-import { PLATFORM_CHOICES, createPlatformsConfig, type PlatformType } from '../lib/adapters';
+} from '../prompt';
+import { detectAndParseStyleDictionary, mapSDPlatformToAdapter } from '../../style-dictionary';
+import { PLATFORM_CHOICES, createPlatformsConfig, type PlatformType } from '../../adapters';
 import {
   detectProject,
   printDetectionResults,
@@ -51,12 +52,12 @@ import {
   type ProjectDetection,
   type FileMappingResult,
   type DiscoveredFile,
-} from '../lib/detect';
+} from '../../detect';
 import {
   scaffoldStyleDictionary,
   detectModuleType,
   addBuildScript,
-} from '../lib/detect/scaffold';
+} from '../../detect/scaffold';
 
 // ============================================================================
 // Config Templates
@@ -813,6 +814,9 @@ async function configureAllCollections(
 // ============================================================================
 
 async function main() {
+  // Initialize context
+  initContext({ rootDir: process.cwd() });
+
   console.log('\n' + '='.repeat(60));
   console.log('  Figma Token Sync Setup');
   console.log('='.repeat(60) + '\n');
@@ -823,7 +827,7 @@ async function main() {
     // Check for existing config
     const existingConfig = loadConfig();
     if (existingConfig) {
-      console.log(`Found existing config: ${CONFIG_FILE}\n`);
+      console.log(`Found existing config: ${getConfigPath()}\n`);
       const overwrite = await askYesNo(rl, 'Overwrite existing configuration?', false);
       if (!overwrite) {
         console.log('\nSetup cancelled. Existing config preserved.');
@@ -904,8 +908,8 @@ async function main() {
     }
 
     // Save baseline
-    saveJsonFile(BASELINE_FILE, baseline);
-    console.log(`Saved baseline: ${BASELINE_FILE}`);
+    saveJsonFile(getBaselinePath(), baseline);
+    console.log(`Saved baseline: ${getBaselinePath()}`);
 
     // Analyze structure
     const collections = extractCollections(baseline);
@@ -977,11 +981,13 @@ async function main() {
     for (const platformConfig of Object.values(platformConfigs)) {
       platformConfig.transform.stripSegments = stripSegments;
     }
-    config.migration.platforms = platformConfigs;
+    if (config.migration) {
+      config.migration.platforms = platformConfigs;
+    }
 
     // Save config
     saveConfig(config);
-    console.log(`\nSaved config: ${CONFIG_FILE}`);
+    console.log(`\nSaved config: ${getConfigPath()}`);
 
     // Split tokens
     console.log('\nSplitting tokens...\n');
@@ -1006,8 +1012,8 @@ async function main() {
     console.log('='.repeat(60) + '\n');
 
     console.log('Files created:');
-    console.log(`  - ${CONFIG_FILE} (configuration)`);
-    console.log(`  - ${BASELINE_FILE} (Figma data)`);
+    console.log(`  - ${getConfigPath()} (configuration)`);
+    console.log(`  - ${getBaselinePath()} (Figma data)`);
     console.log(`  - ${config.paths.tokens}/*/*.json (token files)`);
     if (config.build?.command) {
       console.log(`  - ${config.paths.styles}/*.css (CSS variables)`);

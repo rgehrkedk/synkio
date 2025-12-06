@@ -103,7 +103,7 @@ export function splitTokens(
   const fileDetails: { path: string; tokenCount: number }[] = [];
 
   for (const info of collectionsInfo) {
-    const splitConfig = config.split[info.name];
+    const splitConfig = config.split?.[info.name];
     if (!splitConfig) {
       if (!options?.silent) {
         console.warn(`  Warning: No configuration found for collection: ${info.name}`);
@@ -203,7 +203,7 @@ export function previewSplit(
   const files: { path: string; tokenCount: number }[] = [];
 
   for (const info of collectionsInfo) {
-    const splitConfig = config.split[info.name];
+    const splitConfig = config.split?.[info.name];
     if (!splitConfig) continue;
 
     const collectionData = collections[info.name];

@@ -12,17 +12,18 @@
  *   npm run figma:diff --dry-run   # Preview what --apply would change
  */
 
+import { initContext } from '../../context';
 import {
   loadConfigOrThrow,
   loadBaseline,
   loadBaselinePrev,
   saveTextFile,
   ensureFigmaDir,
-  BASELINE_FILE,
-  DIFF_REPORT_FILE,
-} from '../lib/files';
+  getBaselinePath,
+  getDiffReportPath,
+} from '../../files';
 
-import { fetchFigmaData } from '../lib/figma';
+import { fetchFigmaData } from '../../figma';
 
 import {
   compareBaselines,
@@ -31,18 +32,18 @@ import {
   getChangeCounts,
   generateDiffReport,
   printDiffSummary,
-} from '../lib/compare';
+} from '../../compare';
 
 import {
   scanAllPlatforms,
   generateMultiPlatformDiffReport,
   applyAllPlatformReplacements,
-} from '../lib/tokens';
+} from '../../tokens';
 
-import type { PlatformScanResult } from '../lib/tokens';
-import type { PlatformConfig } from '../lib/types';
+import type { PlatformScanResult } from '../../tokens';
+import type { PlatformConfig } from '../../types';
 
-import { createPrompt, askChoice } from '../lib/cli';
+import { createPrompt, askChoice } from '../prompt';
 
 /**
  * Parse command line arguments
@@ -60,6 +61,9 @@ function parseArgs(): { local: boolean; apply: boolean; dryRun: boolean } {
  * Main diff function
  */
 async function main() {
+  // Initialize context
+  initContext({ rootDir: process.cwd() });
+
   const { local, apply, dryRun } = parseArgs();
 
   console.log('\n' + '='.repeat(60));
@@ -183,13 +187,13 @@ async function main() {
 
   // Save token diff report
   const report = generateDiffReport(result, metadata);
-  saveTextFile(DIFF_REPORT_FILE, report);
-  console.log(`Token diff report saved: ${DIFF_REPORT_FILE}`);
+  saveTextFile(getDiffReportPath(), report);
+  console.log(`Token diff report saved: ${getDiffReportPath()}`);
 
   // Save multi-platform impact report if we have breaking changes
   if (hasBreakingChanges(result) && platformResults.length > 0) {
     const impactReport = generateMultiPlatformDiffReport(platformResults, metadata);
-    const impactReportFile = DIFF_REPORT_FILE.replace('.md', '-impact.md');
+    const impactReportFile = getDiffReportPath().replace('.md', '-impact.md');
     saveTextFile(impactReportFile, impactReport);
     console.log(`Platform impact report saved: ${impactReportFile}`);
   }
