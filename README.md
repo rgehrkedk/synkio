@@ -104,7 +104,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 - [Website](https://synkio.io)
 - [Documentation](https://synkio.io/docs)
 - [NPM Package](https://npmjs.com/package/@synkio/core)
-- [GitHub](https://github.com/yourname/synkio)
+- [GitHub](https://github.com/rgehrkedk/synkio)
 - [Figma Community](https://figma.com/community/plugin/synkio)
 
 ---

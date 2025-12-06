@@ -5,9 +5,9 @@
   "description": "Designer-first design token synchronization from Figma to code",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourname/synkio.git"
+    "url": "https://github.com/rgehrkedk/synkio.git"
   },
-  "author": "Your Name",
+  "author": "Rasmus Gehrke",
   "license": "MIT",
   "packageManager": "pnpm@9.0.0",
   "engines": {
