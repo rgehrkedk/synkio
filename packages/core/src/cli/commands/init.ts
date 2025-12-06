@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { initContext } from '../../context.js';
 import { fetchFigmaData } from '../../figma/index.js';
-import { extractCollections } from '../../tokens/index.js';
+import { extractCollections, analyzeCollections } from '../../tokens/index.js';
 import { saveConfig, findConfigFile } from '../../files/loader.js';
 import type { TokensConfig } from '../../types/index.js';
 import {
@@ -156,6 +156,7 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
     fetchedData = await fetchFigmaData({
       fileId,
       nodeId: nodeId || undefined,
+      accessToken: accessToken || undefined,
     });
     spinner.succeed('Connected to Figma successfully!');
   } catch (error) {
@@ -165,14 +166,18 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
     );
   }
 
+  // Close and reopen readline interface after spinner
+  // This fixes the conflict between ora and readline
+  rl.close();
+  rl = createPrompt();
+
   // Show found collections
   const collections = extractCollections(fetchedData);
-  const collectionNames = Object.keys(collections);
-  if (collectionNames.length > 0) {
-    console.log(formatInfo(`Found ${collectionNames.length} collection(s):\n${collectionNames.map(name => {
-      const collection = collections[name];
-      const modesCount = collection.$modes ? Object.keys(collection.$modes).length : 0;
-      return `- ${name} (${modesCount} mode${modesCount !== 1 ? 's' : ''})`;
+  const collectionsInfo = analyzeCollections(collections);
+
+  if (collectionsInfo.length > 0) {
+    console.log(formatInfo(`Found ${collectionsInfo.length} collection(s):\n${collectionsInfo.map(info => {
+      return `- ${info.name} (${info.modes.length} mode${info.modes.length !== 1 ? 's' : ''})`;
     }).join('\n')}`));
   } else {
     console.log(formatWarning('No collections found in this file.'));

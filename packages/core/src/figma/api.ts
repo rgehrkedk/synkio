@@ -38,7 +38,7 @@ function getCredentials(options?: FetchOptions) {
   if (!accessToken) {
     throw new Error(
       'FIGMA_ACCESS_TOKEN not found.\n' +
-      'Set it in figma-sync/.figma/.env or as an environment variable.'
+      'Set it in .env, .env.local, or as an environment variable.'
     );
   }
 

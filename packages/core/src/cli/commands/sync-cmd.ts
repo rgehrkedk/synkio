@@ -6,8 +6,11 @@
  */
 
 import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 import chalk from 'chalk';
 import { initContext } from '../../context.js';
+import { loadEnv } from '../../env.js';
 import type { TokensConfig, ComparisonResult } from '../../types/index.js';
 import {
   loadConfigOrThrow,
@@ -258,6 +261,10 @@ async function handleChanges(
   const splitResult = splitTokens(fetchedData, config);
   spinner.succeed(`Applied changes to ${splitResult.filesWritten} files`);
 
+  // Save the new baseline as current (already done on line 338, but baselinePrev needs update)
+  // The backup we made earlier becomes the new baselinePrev automatically via backupBaseline()
+  // So we don't need to do anything else - the backup system handles it!
+
   // Save diff report
   const report = generateDiffReport(result, fetchedData.$metadata);
   saveTextFile(getDiffReportPath(), report);
@@ -280,6 +287,9 @@ export async function syncCommand(options: SyncOptions = {}): Promise<void> {
   // Initialize context
   initContext({ rootDir: process.cwd() });
 
+  // Load environment variables from .env files
+  loadEnv();
+
   console.log(chalk.bold.cyan('\nSynkio Token Sync\n'));
 
   // Load config
@@ -297,8 +307,13 @@ export async function syncCommand(options: SyncOptions = {}): Promise<void> {
 
   // Backup current baseline (unless --no-backup)
   if (options.backup !== false) {
-    const hadBaseline = backupBaseline();
-    if (hadBaseline) {
+    // Manually backup using config paths (not hardcoded paths)
+    if (fs.existsSync(config.paths.baseline)) {
+      const dataDir = path.dirname(config.paths.baseline);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      fs.copyFileSync(config.paths.baseline, config.paths.baselinePrev);
       logInfo('Created backup of current baseline');
     }
   }
@@ -331,7 +346,7 @@ export async function syncCommand(options: SyncOptions = {}): Promise<void> {
   }
 
   // Save as new baseline
-  saveJsonFile(getBaselinePath(), fetchedData);
+  saveJsonFile(config.paths.baseline, fetchedData);
 
   // Load previous baseline for comparison
   const previousBaseline = loadBaseline(config.paths.baselinePrev);
