@@ -9,4 +9,4 @@ export {
   getChangeCounts,
   generateDiffReport,
   printDiffSummary,
-} from './diff';
+} from './diff.js';

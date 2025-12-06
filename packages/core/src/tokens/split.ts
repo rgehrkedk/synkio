@@ -13,10 +13,10 @@ import type {
   CollectionSplitConfig,
   CollectionData,
   CollectionInfo,
-} from '../types';
+} from '../types/index.js';
 
-import { countTokens } from './parser';
-import { transformNestedTokens } from './transform';
+import { countTokens } from './parser.js';
+import { transformNestedTokens } from './transform.js';
 
 /**
  * Extract nested collections from baseline (ignore flat "baseline" section and $metadata)

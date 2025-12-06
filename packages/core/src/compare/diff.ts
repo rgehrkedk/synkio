@@ -12,9 +12,9 @@ import type {
   PathChange,
   NewVariable,
   DeletedVariable,
-} from '../types';
+} from '../types/index.js';
 
-import { parseVariableId } from '../tokens';
+import { parseVariableId } from '../tokens/index.js';
 
 /**
  * Compare two baselines and return categorized changes

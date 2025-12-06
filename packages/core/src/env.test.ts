@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { loadEnv, getFigmaToken, resetEnv } from './env';
+import { loadEnv, getFigmaToken, resetEnv } from './env.js';
 
 describe('Environment Loading', () => {
   beforeEach(() => {

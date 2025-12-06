@@ -4,8 +4,8 @@
  * Functions for parsing plugin data from Figma nodes.
  */
 
-import type { FigmaNode } from '../types';
-import { PLUGIN_NAMESPACE, REGISTRY_NODE_NAME } from './constants';
+import type { FigmaNode } from '../types/index.js';
+import { PLUGIN_NAMESPACE, REGISTRY_NODE_NAME } from './constants.js';
 
 /**
  * Extract and reconstruct chunked data from plugin data

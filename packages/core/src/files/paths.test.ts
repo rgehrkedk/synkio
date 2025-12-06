@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createContext, resetContext } from '../context';
+import { createContext, resetContext } from '../context.js';
 import {
   getDataDir,
   getConfigPath,
@@ -16,7 +16,7 @@ import {
   getReportsDir,
   getDiffReportPath,
   getMigrationReportPath,
-} from './paths';
+} from './paths.js';
 
 describe('Path Functions', () => {
   beforeEach(() => {

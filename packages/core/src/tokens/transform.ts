@@ -4,8 +4,8 @@
  * Functions for transforming token paths to platform-specific names.
  */
 
-import type { Adapter, TokenEntry, TransformOptions } from '../types';
-import { isToken } from './parser';
+import type { Adapter, TokenEntry, TransformOptions } from '../types/index.js';
+import { isToken } from './parser.js';
 
 /**
  * Transform case of a string

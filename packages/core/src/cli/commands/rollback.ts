@@ -10,7 +10,7 @@
 
 import { execSync } from 'child_process';
 
-import { initContext } from '../../context';
+import { initContext } from '../../context.js';
 import {
   loadConfigOrThrow,
   loadBaseline,
@@ -19,11 +19,11 @@ import {
   fileExists,
   getBaselinePath,
   getBaselinePrevPath,
-} from '../../files';
+} from '../../files/index.js';
 
-import { splitTokens } from '../../tokens';
-import { compareBaselines, getChangeCounts, printDiffSummary } from '../../compare';
-import { createPrompt, askYesNo } from '../prompt';
+import { splitTokens } from '../../tokens/index.js';
+import { compareBaselines, getChangeCounts, printDiffSummary } from '../../compare/index.js';
+import { createPrompt, askYesNo } from '../prompt.js';
 
 /**
  * Build CSS from token files

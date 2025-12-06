@@ -13,7 +13,7 @@ import type {
   ComparisonResult,
   PathChange,
   PlatformConfig,
-} from '../types';
+} from '../types/index.js';
 
 export interface CssReplacement {
   from: string;  // e.g., "--text-primary"

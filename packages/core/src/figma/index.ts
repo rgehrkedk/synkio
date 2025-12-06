@@ -10,16 +10,16 @@ export {
   PLUGIN_NAMESPACE,
   REGISTRY_NODE_NAME,
   validateFigmaCredentials,
-} from './constants';
+} from './constants.js';
 
 export {
   extractChunkedData,
   findPluginData,
-} from './parser';
+} from './parser.js';
 
 export {
   fetchFromNode,
   fetchFromFile,
   fetchFigmaData,
   type FetchOptions,
-} from './api';
+} from './api.js';

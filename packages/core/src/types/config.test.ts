@@ -7,15 +7,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { createContext, resetContext } from '../context';
+import { createContext, resetContext } from '../context.js';
 import {
   loadConfig,
   findConfigFile,
   validateConfig,
   getDefaultConfig,
   interpolateEnvVars,
-} from '../files/loader';
-import type { TokensConfig } from './config';
+} from '../files/loader.js';
+import type { TokensConfig } from './config.js';
 
 describe('Config Schema & Loading', () => {
   const testRoot = '/test/project';

@@ -4,7 +4,7 @@
  * Functions for parsing and manipulating token identifiers.
  */
 
-import type { TokenEntry, LegacyTokenEntry } from '../types';
+import type { TokenEntry, LegacyTokenEntry } from '../types/index.js';
 
 /**
  * Parse prefixed variable ID: "collection:mode:VariableID:X:Y"

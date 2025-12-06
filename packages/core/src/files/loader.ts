@@ -7,9 +7,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { BaselineData, MigrationManifest } from '../types';
-import type { TokensConfig, LegacyTokenSplitConfig, LegacyMigrationConfig } from '../types/config';
-import { getContext, type Context } from '../context';
+import type { BaselineData, MigrationManifest } from '../types/index.js';
+import type { TokensConfig, LegacyTokenSplitConfig, LegacyMigrationConfig } from '../types/config.js';
+import { getContext, type Context } from '../context.js';
 import {
   getBaselinePath,
   getBaselinePrevPath,
@@ -21,7 +21,7 @@ import {
   LEGACY_BASELINE_FILE,
   LEGACY_TOKEN_SPLIT_CONFIG_FILE,
   LEGACY_MIGRATION_CONFIG_FILE,
-} from './paths';
+} from './paths.js';
 
 // ============================================================================
 // Config File Discovery

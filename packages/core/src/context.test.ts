@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { initContext, getContext, createContext, resetContext } from './context';
+import { initContext, getContext, createContext, resetContext } from './context.js';
 
 describe('Context System', () => {
   beforeEach(() => {

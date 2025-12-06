@@ -5,7 +5,7 @@
  * Isolated from scan/apply functionality for clean separation.
  */
 
-import type { CssReplacement, CssFileMatch, PlatformScanResult } from './migrate';
+import type { CssReplacement, CssFileMatch, PlatformScanResult } from './migrate.js';
 
 /**
  * Generate CSS migration report markdown

@@ -12,7 +12,7 @@
  *   npm run figma:diff --dry-run   # Preview what --apply would change
  */
 
-import { initContext } from '../../context';
+import { initContext } from '../../context.js';
 import {
   loadConfigOrThrow,
   loadBaseline,
@@ -21,9 +21,9 @@ import {
   ensureFigmaDir,
   getBaselinePath,
   getDiffReportPath,
-} from '../../files';
+} from '../../files/index.js';
 
-import { fetchFigmaData } from '../../figma';
+import { fetchFigmaData } from '../../figma/index.js';
 
 import {
   compareBaselines,
@@ -32,18 +32,18 @@ import {
   getChangeCounts,
   generateDiffReport,
   printDiffSummary,
-} from '../../compare';
+} from '../../compare/index.js';
 
 import {
   scanAllPlatforms,
   generateMultiPlatformDiffReport,
   applyAllPlatformReplacements,
-} from '../../tokens';
+} from '../../tokens/index.js';
 
-import type { PlatformScanResult } from '../../tokens';
-import type { PlatformConfig } from '../../types';
+import type { PlatformScanResult } from '../../tokens/index.js';
+import type { PlatformConfig } from '../../types/index.js';
 
-import { createPrompt, askChoice } from '../prompt';
+import { createPrompt, askChoice } from '../prompt.js';
 
 /**
  * Parse command line arguments

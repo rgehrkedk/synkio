@@ -5,7 +5,7 @@
  * Used during setup when Style Dictionary is not available or user wants manual config.
  */
 
-import type { PlatformConfig } from '../types';
+import type { PlatformConfig } from '../types/index.js';
 
 export type PlatformType = 'css' | 'scss' | 'typescript' | 'swift' | 'kotlin';
 

@@ -8,9 +8,9 @@
 import fs from 'fs';
 import path from 'path';
 
-import type { PlatformConfig } from '../types';
-import type { TokenReplacement, FileMatch } from './migrate';
-import { findPlatformFiles } from './migrate';
+import type { PlatformConfig } from '../types/index.js';
+import type { TokenReplacement, FileMatch } from './migrate.js';
+import { findPlatformFiles } from './migrate.js';
 
 /**
  * Escape special regex characters

@@ -4,15 +4,15 @@
  * Functions for fetching data from Figma REST API.
  */
 
-import type { FigmaNodesResponse, FigmaFileResponse, BaselineData } from '../types';
+import type { FigmaNodesResponse, FigmaFileResponse, BaselineData } from '../types/index.js';
 import {
   FIGMA_FILE_KEY,
   FIGMA_ACCESS_TOKEN,
   FIGMA_REGISTRY_NODE,
   PLUGIN_ID,
   PLUGIN_NAMESPACE,
-} from './constants';
-import { extractChunkedData, findPluginData } from './parser';
+} from './constants.js';
+import { extractChunkedData, findPluginData } from './parser.js';
 
 /**
  * Options for fetching Figma data

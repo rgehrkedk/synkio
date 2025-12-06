@@ -11,7 +11,7 @@ export {
   isToken,
   isLegacyToken,
   countTokens,
-} from './parser';
+} from './parser.js';
 
 // Transform utilities
 export {
@@ -22,7 +22,7 @@ export {
   getJsonPath,
   transformToken,
   transformNestedTokens,
-} from './transform';
+} from './transform.js';
 
 // Apply utilities (for modifying token files)
 export {
@@ -35,9 +35,9 @@ export {
   bulkUpdateTokensInFile,
   toFileFormat,
   findTokenByVariableId,
-} from './apply';
+} from './apply.js';
 
-export type { TokenFileEntry } from './apply';
+export type { TokenFileEntry } from './apply.js';
 
 // Split utilities (for splitting baseline into token files)
 export {
@@ -45,9 +45,9 @@ export {
   analyzeCollections,
   splitTokens,
   previewSplit,
-} from './split';
+} from './split.js';
 
-export type { SplitResult } from './split';
+export type { SplitResult } from './split.js';
 
 // Migration utilities - Scan only (no file modifications)
 export {
@@ -65,13 +65,13 @@ export {
   findPlatformFiles,
   scanPlatformUsages,
   scanAllPlatforms,
-} from './migrate';
+} from './migrate.js';
 
 // Report generation (isolated)
 export {
   generateMigrationReport,
   generateMultiPlatformDiffReport,
-} from './report-generator';
+} from './report-generator.js';
 
 export type {
   CssReplacement,
@@ -80,15 +80,15 @@ export type {
   TokenReplacement,
   // Note: FileMatch is exported from lib/types to avoid duplicate export
   PlatformScanResult,
-} from './migrate';
+} from './migrate.js';
 
 // Apply migrations (isolated - modifies source files)
 export {
   applyPlatformReplacements,
   applyAllPlatformReplacements,
-} from './apply-migrations';
+} from './apply-migrations.js';
 
 export type {
   PlatformMigrationResult,
   ApplyOptions,
-} from './apply-migrations';
+} from './apply-migrations.js';

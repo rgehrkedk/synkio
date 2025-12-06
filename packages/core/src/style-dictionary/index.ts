@@ -8,7 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import { detectStyleDictionary as detectSD } from '../detect';
+import { detectStyleDictionary as detectSD } from '../detect/index.js';
 
 export interface SDPlatformConfig {
   name: string;

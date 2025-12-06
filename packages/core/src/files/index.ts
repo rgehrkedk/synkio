@@ -27,7 +27,7 @@ export {
   LEGACY_MIGRATION_REPORT_FILE,
   LEGACY_MIGRATION_CONFIG_FILE,
   LEGACY_TOKEN_SPLIT_CONFIG_FILE,
-} from './paths';
+} from './paths.js';
 
 // File operations
 export {
@@ -54,4 +54,4 @@ export {
   getAbsolutePath,
   ensureDir,
   ensureFigmaDir,
-} from './loader';
+} from './loader.js';

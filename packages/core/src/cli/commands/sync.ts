@@ -10,8 +10,8 @@
 
 import { execSync } from 'child_process';
 
-import { initContext } from '../../context';
-import type { TokensConfig, ComparisonResult } from '../../types';
+import { initContext } from '../../context.js';
+import type { TokensConfig, ComparisonResult } from '../../types/index.js';
 
 import {
   loadConfigOrThrow,
@@ -24,20 +24,20 @@ import {
   getBaselinePath,
   getDiffReportPath,
   getMigrationReportPath,
-} from '../../files';
+} from '../../files/index.js';
 
-import { fetchFigmaData } from '../../figma';
+import { fetchFigmaData } from '../../figma/index.js';
 
 import {
   splitTokens,
   scanAllPlatforms,
   generateMultiPlatformDiffReport,
   applyAllPlatformReplacements,
-} from '../../tokens';
+} from '../../tokens/index.js';
 
-import type { PlatformScanResult } from '../../tokens';
+import type { PlatformScanResult } from '../../tokens/index.js';
 
-import type { PlatformConfig } from '../../types';
+import type { PlatformConfig } from '../../types/index.js';
 
 import {
   compareBaselines,
@@ -46,9 +46,9 @@ import {
   getChangeCounts,
   generateDiffReport,
   printDiffSummary,
-} from '../../compare';
+} from '../../compare/index.js';
 
-import { createPrompt, askYesNo, askChoice } from '../prompt';
+import { createPrompt, askYesNo, askChoice } from '../prompt.js';
 
 /**
  * Build CSS from token files

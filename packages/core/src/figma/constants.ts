@@ -7,7 +7,7 @@
  * Credentials are loaded from .env → .env.local → process.env
  */
 
-import { getFigmaToken } from '../env';
+import { getFigmaToken } from '../env.js';
 
 // ============================================================================
 // Figma API Credentials

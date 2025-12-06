@@ -5,8 +5,8 @@
  * Used by: splitTokens, applyMigration
  */
 
-import type { TransformOptions } from '../types';
-import { loadJsonFile, saveJsonFile } from '../files';
+import type { TransformOptions } from '../types/index.js';
+import { loadJsonFile, saveJsonFile } from '../files/index.js';
 
 /**
  * Token entry in legacy format (as stored in JSON files)

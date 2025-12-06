@@ -19,7 +19,7 @@
  */
 
 import path from 'path';
-import { getContext, type Context } from '../context';
+import { getContext, type Context } from '../context.js';
 
 // ============================================================================
 // Main Directories

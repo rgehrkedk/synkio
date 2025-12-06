@@ -9,14 +9,14 @@ export type {
   BaselineEntry,
   BaselineMetadata,
   BaselineData,
-} from './baseline';
+} from './baseline.js';
 
 // Figma API types
 export type {
   FigmaNode,
   FigmaNodesResponse,
   FigmaFileResponse,
-} from './figma';
+} from './figma.js';
 
 // Migration types
 export type {
@@ -29,7 +29,7 @@ export type {
   NewVariable,
   DeletedVariable,
   ComparisonResult,
-} from './migration';
+} from './migration.js';
 
 // Config types (new unified config)
 export type {
@@ -60,4 +60,4 @@ export type {
   // Transform types
   TransformOptions,
   Adapter,
-} from './config';
+} from './config.js';

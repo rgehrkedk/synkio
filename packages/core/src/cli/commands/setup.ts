@@ -21,8 +21,8 @@ if (fs.existsSync(packageEnvPath)) {
   loadEnv({ path: packageEnvPath, override: true });
 }
 
-import { initContext } from '../../context';
-import type { TokensConfig, CollectionInfo, CollectionSplitConfig, PlatformConfig } from '../../types';
+import { initContext } from '../../context.js';
+import type { TokensConfig, CollectionInfo, CollectionSplitConfig, PlatformConfig } from '../../types/index.js';
 
 import {
   loadConfig,
@@ -31,19 +31,19 @@ import {
   ensureFigmaDir,
   getConfigPath,
   getBaselinePath,
-} from '../../files';
+} from '../../files/index.js';
 
-import { fetchFigmaData } from '../../figma';
-import { extractCollections, analyzeCollections, splitTokens } from '../../tokens';
+import { fetchFigmaData } from '../../figma/index.js';
+import { extractCollections, analyzeCollections, splitTokens } from '../../tokens/index.js';
 import {
   createPrompt,
   askYesNo,
   askText,
   askChoice,
   askMultipleChoiceToggle,
-} from '../prompt';
-import { detectAndParseStyleDictionary, mapSDPlatformToAdapter } from '../../style-dictionary';
-import { PLATFORM_CHOICES, createPlatformsConfig, type PlatformType } from '../../adapters';
+} from '../prompt.js';
+import { detectAndParseStyleDictionary, mapSDPlatformToAdapter } from '../../style-dictionary/index.js';
+import { PLATFORM_CHOICES, createPlatformsConfig, type PlatformType } from '../../adapters/index.js';
 import {
   detectProject,
   printDetectionResults,
@@ -52,12 +52,12 @@ import {
   type ProjectDetection,
   type FileMappingResult,
   type DiscoveredFile,
-} from '../../detect';
+} from '../../detect/index.js';
 import {
   scaffoldStyleDictionary,
   detectModuleType,
   addBuildScript,
-} from '../../detect/scaffold';
+} from '../../detect/scaffold.js';
 
 // ============================================================================
 // Config Templates

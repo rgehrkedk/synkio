@@ -7,6 +7,6 @@ export {
   DEFAULT_ADAPTERS,
   getEnabledAdapter,
   createPlatformsConfig,
-} from './defaults';
+} from './defaults.js';
 
-export type { PlatformType, PlatformChoice } from './defaults';
+export type { PlatformType, PlatformChoice } from './defaults.js';
