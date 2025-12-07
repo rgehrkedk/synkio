@@ -22,17 +22,11 @@ export interface TokenOutputs {
 }
 
 /**
- * Single entry in the token map
+ * Single entry in the token map (minimal - only what's needed for migration)
  */
 export interface TokenMapEntry {
   /** Full token path, e.g., "color.brand.primary" */
   path: string;
-  /** Token type, e.g., "color", "dimension" */
-  type: string;
-  /** Collection name, e.g., "base", "theme" */
-  collection: string;
-  /** Mode name, e.g., "light", "dark", "value" */
-  mode: string;
   /** Platform-specific output names */
   outputs: TokenOutputs;
 }
@@ -54,7 +48,7 @@ export interface TokenMapMetadata {
 /**
  * Complete token map structure
  *
- * Maps Figma Variable ID to token information and platform outputs.
+ * Maps Figma Variable ID to token path and platform outputs.
  * Used for precise migration when tokens are renamed.
  *
  * @example
@@ -64,13 +58,8 @@ export interface TokenMapMetadata {
  *   "tokens": {
  *     "base:value:VariableID:4:75": {
  *       "path": "color.base.gray.50",
- *       "type": "color",
- *       "collection": "base",
- *       "mode": "value",
  *       "outputs": {
- *         "css": "--color-base-gray-50",
- *         "scss": "$color-base-gray-50",
- *         "js": "colorBaseGray50"
+ *         "css": "--color-base-gray-50"
  *       }
  *     }
  *   }

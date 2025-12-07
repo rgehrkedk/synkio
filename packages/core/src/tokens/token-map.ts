@@ -190,9 +190,6 @@ export function generateTokenMap(
 
     tokens[variableId] = {
       path: entry.path,
-      type: entry.type,
-      collection: entry.collection,
-      mode: entry.mode,
       outputs,
     };
   }
