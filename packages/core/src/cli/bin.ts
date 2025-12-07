@@ -124,6 +124,40 @@ program
     }
   });
 
+/**
+ * synkio migrate
+ * Manage code migrations when tokens change
+ */
+program
+  .command('migrate')
+  .description('Manage code migrations when tokens change')
+  .option('--apply', 'Apply approved migration plan')
+  .option('--scan', 'Scan codebase for token usage patterns')
+  .option('--plan', 'Generate migration plan from current changes')
+  .option('--dir <path>', 'Directory to scan (default: src)', 'src')
+  .option('--yes, -y', 'Skip confirmation prompts')
+  .addHelpText('after', `
+Examples:
+  $ synkio migrate                # Show current plan status
+  $ synkio migrate --scan         # Scan for token usage patterns
+  $ synkio migrate --plan         # Generate migration plan
+  $ synkio migrate --apply        # Apply approved plan
+
+Workflow:
+  1. Run 'synkio sync' to detect token changes
+  2. Run 'synkio migrate --plan' to generate a plan
+  3. Review and approve the plan (edit migration-plan.md)
+  4. Run 'synkio migrate --apply' to execute changes
+  `)
+  .action(async (options) => {
+    try {
+      const { migrateCommand } = await import('./commands/migrate.js');
+      await migrateCommand(options);
+    } catch (error) {
+      handleError(error);
+    }
+  });
+
 // ============================================================================
 // Global Error Handling
 // ============================================================================

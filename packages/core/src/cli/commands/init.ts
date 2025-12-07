@@ -13,14 +13,11 @@ import { fetchFigmaData } from '../../figma/index.js';
 import { extractCollections, analyzeCollections } from '../../tokens/index.js';
 import { saveConfig, findConfigFile } from '../../files/loader.js';
 import { detectProject } from '../../detect/index.js';
-import { PLATFORM_CHOICES, createPlatformsConfig } from '../../adapters/defaults.js';
 import type { TokensConfig } from '../../types/index.js';
 import type { ProjectDetection } from '../../detect/index.js';
-import type { PlatformType } from '../../adapters/defaults.js';
 import {
   askText,
   askYesNo,
-  askMultipleChoice,
   createPrompt,
 } from '../prompt.js';
 import {
@@ -689,40 +686,74 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
     console.log('\n  ┌─────────────────────────────────────────────────────────');
     console.log('  │ MIGRATION');
     console.log('  └─────────────────────────────────────────────────────────');
-    console.log('     Auto-update code when token names change.\n');
+    console.log('     Auto-update code when token names change.');
+    console.log('     Synkio will scan your code to detect actual usage patterns.\n');
 
-    // Ask which platforms to configure
-    const platformLabels = PLATFORM_CHOICES.map(p => `${p.label} - ${p.description}`);
-    const selected = await askMultipleChoice(
-      rl,
-      'Which platforms?',
-      platformLabels,
-      ['CSS - CSS custom properties (--token-name)']
-    );
+    // Ask for scan directory
+    const scanDir = await askText(rl, '     Directory to scan', 'src');
 
-    // Map selections back to platform types
-    const selectedPlatforms: PlatformType[] = [];
-    for (const selection of selected) {
-      const index = platformLabels.indexOf(selection);
-      if (index >= 0) {
-        selectedPlatforms.push(PLATFORM_CHOICES[index].value);
+    console.log(`\n     Scanning ${scanDir}/ for token patterns...`);
+
+    // Import and run pattern scanner
+    const { scanForPatterns, formatPatternsForDisplay } = await import('../../detect/patterns.js');
+    const scanResult = await scanForPatterns(scanDir);
+
+    if (scanResult.patterns.length === 0) {
+      console.log('     No token usage patterns detected.');
+      console.log('     You can run `synkio migrate --scan` later.\n');
+    } else {
+      console.log(`\n     Found ${scanResult.patterns.length} pattern(s):\n`);
+
+      // Group by platform
+      const byPlatform = new Map<string, typeof scanResult.patterns>();
+      for (const pattern of scanResult.patterns) {
+        if (!byPlatform.has(pattern.platform)) {
+          byPlatform.set(pattern.platform, []);
+        }
+        byPlatform.get(pattern.platform)!.push(pattern);
+      }
+
+      // Show patterns and let user confirm each platform
+      const enabledPlatforms: Record<string, any> = {};
+
+      for (const [platform, patterns] of byPlatform) {
+        const totalMatches = patterns.reduce((sum, p) => sum + p.matchCount, 0);
+        const totalFiles = new Set(patterns.flatMap(p => p.files)).size;
+
+        console.log(`     ${platform.toUpperCase()}: ${totalMatches} matches in ${totalFiles} files`);
+        for (const pattern of patterns.slice(0, 2)) {
+          console.log(`       Example: ${pattern.example}`);
+        }
+
+        const include = await askYesNo(rl, `     Include ${platform}?`, true);
+
+        if (include) {
+          // Build platform config from detected patterns
+          enabledPlatforms[platform] = {
+            enabled: true,
+            include: patterns[0]?.includePaths || [`${scanDir}/**/*`],
+            patterns: patterns.map(p => p.pattern),
+          };
+        }
+        console.log('');
+      }
+
+      if (Object.keys(enabledPlatforms).length > 0) {
+        // Generate strip segments from collections
+        const stripSegments = collectionsInfo.length > 0 ? generateStripSegments(collectionsInfo) : ['value'];
+
+        config.migration = {
+          autoApply: false,
+          stripSegments,
+          platforms: enabledPlatforms
+        };
+
+        console.log(formatSuccess(`     ✓ Migration configured for ${Object.keys(enabledPlatforms).length} platform(s)`));
+        console.log('     Patterns detected from actual code usage.\n');
+      } else {
+        console.log('     No platforms selected for migration.\n');
       }
     }
-
-    // Generate strip segments from collections
-    const stripSegments = collectionsInfo.length > 0 ? generateStripSegments(collectionsInfo) : ['value'];
-
-    // Create platform configs
-    const platforms = createPlatformsConfig(selectedPlatforms);
-
-    // Add migration config with stripSegments at root level
-    config.migration = {
-      autoApply: false,
-      stripSegments,
-      platforms
-    };
-
-    console.log(formatSuccess(`\n✓ Migration configured for ${selectedPlatforms.length} platform(s)`));
   }
 
   return { config, accessToken };

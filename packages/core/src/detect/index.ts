@@ -1156,3 +1156,6 @@ export function printDetectionResults(detection: ProjectDetection): void {
 
   console.log();
 }
+
+// Re-export pattern detection
+export * from './patterns.js';
