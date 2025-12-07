@@ -74,9 +74,14 @@ describe('rollback command', () => {
 
     vi.mocked(compare.hasChanges).mockReturnValue(true);
     vi.mocked(compare.getChangeCounts).mockReturnValue({
+      valueChanges: 1,
+      pathChanges: 0,
+      newModes: 0,
+      deletedModes: 0,
+      newVariables: 0,
+      deletedVariables: 0,
       total: 1,
       breaking: 0,
-      nonBreaking: 1,
     });
 
     vi.mocked(prompt.askYesNo).mockResolvedValue(true);
@@ -101,9 +106,14 @@ describe('rollback command', () => {
 
     vi.mocked(compare.hasChanges).mockReturnValue(true);
     vi.mocked(compare.getChangeCounts).mockReturnValue({
+      valueChanges: 1,
+      pathChanges: 0,
+      newModes: 0,
+      deletedModes: 0,
+      newVariables: 0,
+      deletedVariables: 0,
       total: 1,
       breaking: 0,
-      nonBreaking: 1,
     });
 
     await rollbackCommand({ force: true });
@@ -135,9 +145,14 @@ describe('rollback command', () => {
 
     vi.mocked(compare.hasChanges).mockReturnValue(true);
     vi.mocked(compare.getChangeCounts).mockReturnValue({
+      valueChanges: 1,
+      pathChanges: 0,
+      newModes: 0,
+      deletedModes: 0,
+      newVariables: 0,
+      deletedVariables: 0,
       total: 1,
       breaking: 0,
-      nonBreaking: 1,
     });
 
     vi.mocked(prompt.askYesNo).mockResolvedValue(false);

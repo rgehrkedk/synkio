@@ -58,7 +58,6 @@ export const DEFAULT_ADAPTERS: Record<PlatformType, PlatformConfig> = {
       prefix: '--',
       separator: '-',
       case: 'kebab',
-      stripSegments: ['primitives', 'value', 'themes', 'light', 'dark', 'brands'],
     },
     patterns: [
       'var\\(--{token}\\)',
@@ -74,7 +73,6 @@ export const DEFAULT_ADAPTERS: Record<PlatformType, PlatformConfig> = {
       prefix: '$',
       separator: '-',
       case: 'kebab',
-      stripSegments: ['primitives', 'value'],
     },
     patterns: [
       '\\${token}',
@@ -89,7 +87,6 @@ export const DEFAULT_ADAPTERS: Record<PlatformType, PlatformConfig> = {
       prefix: 'tokens.',
       separator: '.',
       case: 'camel',
-      stripSegments: [],
     },
     patterns: [
       'tokens\\.{token}',
@@ -105,7 +102,6 @@ export const DEFAULT_ADAPTERS: Record<PlatformType, PlatformConfig> = {
       prefix: 'DesignTokens.',
       separator: '.',
       case: 'camel',
-      stripSegments: [],
     },
     patterns: [
       'DesignTokens\\.{token}',
@@ -121,7 +117,6 @@ export const DEFAULT_ADAPTERS: Record<PlatformType, PlatformConfig> = {
       prefix: 'AppTheme.',
       separator: '.',
       case: 'camel',
-      stripSegments: [],
     },
     patterns: [
       'AppTheme\\.{token}',

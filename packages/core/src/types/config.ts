@@ -199,6 +199,9 @@ export interface MigrationConfig {
 
   /** Auto-apply flag (legacy format) */
   autoApply?: boolean;
+
+  /** Segments to strip from token paths when generating migration patterns */
+  stripSegments?: string[];
 }
 
 // ============================================================================
@@ -241,7 +244,7 @@ export interface TransformConfig {
   prefix: string;
   separator: string;
   case: 'kebab' | 'camel' | 'snake' | 'pascal';
-  stripSegments: string[];
+  stripSegments?: string[];
 }
 
 // ============================================================================

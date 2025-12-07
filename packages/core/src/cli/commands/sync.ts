@@ -151,7 +151,11 @@ async function handleBreakingChanges(
     console.log(`Scanning ${enabledPlatforms.length} platform(s) for impact...`);
     console.log(`  Platforms: ${enabledPlatforms.join(', ')}\n`);
 
-    platformResults = await scanAllPlatforms(result, platforms as { [key: string]: PlatformConfig });
+    platformResults = await scanAllPlatforms(
+      result, 
+      platforms as { [key: string]: PlatformConfig },
+      config.migration?.stripSegments
+    );
 
     // Print per-platform summary
     for (const platformResult of platformResults) {

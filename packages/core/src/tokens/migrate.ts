@@ -305,9 +305,11 @@ function transformCase(str: string, caseType: 'kebab' | 'camel' | 'snake' | 'pas
  */
 export function buildPlatformTokenName(
   pathParts: string[],
-  config: PlatformConfig
+  config: PlatformConfig,
+  globalStripSegments?: string[]
 ): string {
-  const { prefix, separator, case: caseType, stripSegments } = config.transform;
+  const { prefix, separator, case: caseType } = config.transform;
+  const stripSegments = globalStripSegments || config.transform.stripSegments || [];
 
   // Filter out segments that should be stripped
   const filteredParts = pathParts.filter(p => !stripSegments.includes(p.toLowerCase()));
@@ -326,13 +328,14 @@ export function buildPlatformTokenName(
  */
 export function pathChangeToTokenReplacement(
   change: PathChange,
-  config: PlatformConfig
+  config: PlatformConfig,
+  globalStripSegments?: string[]
 ): TokenReplacement | null {
   const oldParts = change.oldPath.split('.');
   const newParts = change.newPath.split('.');
 
-  const oldToken = buildPlatformTokenName(oldParts, config);
-  const newToken = buildPlatformTokenName(newParts, config);
+  const oldToken = buildPlatformTokenName(oldParts, config, globalStripSegments);
+  const newToken = buildPlatformTokenName(newParts, config, globalStripSegments);
 
   if (oldToken === newToken) {
     return null;
@@ -346,13 +349,14 @@ export function pathChangeToTokenReplacement(
  */
 export function buildPlatformReplacements(
   result: ComparisonResult,
-  config: PlatformConfig
+  config: PlatformConfig,
+  globalStripSegments?: string[]
 ): TokenReplacement[] {
   const replacements: TokenReplacement[] = [];
   const seen = new Set<string>();
 
   for (const change of result.pathChanges) {
-    const replacement = pathChangeToTokenReplacement(change, config);
+    const replacement = pathChangeToTokenReplacement(change, config, globalStripSegments);
     if (replacement && !seen.has(replacement.from)) {
       seen.add(replacement.from);
       replacements.push(replacement);
@@ -437,14 +441,15 @@ export async function scanPlatformUsages(
  */
 export async function scanAllPlatforms(
   result: ComparisonResult,
-  platforms: { [name: string]: PlatformConfig }
+  platforms: { [name: string]: PlatformConfig },
+  globalStripSegments?: string[]
 ): Promise<PlatformScanResult[]> {
   const results: PlatformScanResult[] = [];
 
   for (const [platformName, config] of Object.entries(platforms)) {
     if (!config.enabled) continue;
 
-    const replacements = buildPlatformReplacements(result, config);
+    const replacements = buildPlatformReplacements(result, config, globalStripSegments);
 
     if (replacements.length === 0) {
       results.push({

@@ -161,7 +161,7 @@ async function main() {
       console.log(`Scanning ${enabledPlatforms.length} platform(s) for impact...`);
       console.log(`  Platforms: ${enabledPlatforms.join(', ')}\n`);
 
-      platformResults = await scanAllPlatforms(result, platforms);
+      platformResults = await scanAllPlatforms(result, platforms, config?.migration?.stripSegments);
 
       // Print summary for each platform
       for (const platformResult of platformResults) {

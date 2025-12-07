@@ -472,7 +472,7 @@ async function configurePlatformAdapters(
       const stripSegs = await askText(
         rl,
         'Path segments to strip from token names (comma-separated)',
-        config.transform.stripSegments.join(', ')
+        config.transform.stripSegments?.join(', ') || ''
       );
       config.transform.stripSegments = stripSegs.split(',').map(s => s.trim()).filter(Boolean);
     }

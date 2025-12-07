@@ -41,8 +41,11 @@ describe('diff command', () => {
     collections: {},
     variables: {},
     $metadata: {
-      fileName: 'Test',
+      version: '1.0.0',
       exportedAt: new Date().toISOString(),
+      pluginVersion: '1.0.0',
+      fileKey: 'abc123',
+      fileName: 'Test',
     },
   };
 
@@ -70,9 +73,14 @@ describe('diff command', () => {
     vi.mocked(compare.compareBaselines).mockReturnValue(mockComparison as any);
     vi.mocked(compare.hasChanges).mockReturnValue(true);
     vi.mocked(compare.getChangeCounts).mockReturnValue({
+      valueChanges: 1,
+      pathChanges: 0,
+      newModes: 0,
+      deletedModes: 0,
+      newVariables: 0,
+      deletedVariables: 0,
       total: 1,
       breaking: 0,
-      nonBreaking: 1,
     });
   });
 

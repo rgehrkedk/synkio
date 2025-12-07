@@ -82,7 +82,7 @@ describe('Config Schema & Loading', () => {
     expect(config?.figma.fileId).toBe('abc123');
     // Paths are resolved to absolute - check that they end with the expected relative path
     expect(config?.paths.data).toBe(path.resolve(testRoot, '.figma/data'));
-    expect(config?.collections.core.strategy).toBe('byMode');
+    expect(config?.collections?.core.strategy).toBe('byMode');
     expect(config?.build?.command).toBe('npm run tokens:build');
     expect(config?.migration?.enabled).toBe(true);
   });

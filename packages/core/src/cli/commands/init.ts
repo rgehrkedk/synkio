@@ -361,26 +361,20 @@ async function configureCollection(rl: readline.Interface, info: any): Promise<a
   // Get available strategies
   const strategies = determineAvailableStrategies(info);
   
-  // If only one strategy (byMode for multi-mode collections), use it automatically
+  // Always ask user to choose (with smart default)
+  console.log('\nHow should this collection be organized?');
+  for (let i = 0; i < strategies.length; i++) {
+    console.log(`  ${i + 1}. ${strategies[i].label} - ${strategies[i].description}`);
+  }
+  
+  const choiceStr = await askText(rl, 'Choose strategy (1-' + strategies.length + ')', '1');
+  const choiceIndex = parseInt(choiceStr) - 1;
+  
   let selectedStrategy: string;
-  if (strategies.length === 1 && strategies[0].value === 'byMode') {
-    console.log(`\n✓ Strategy: ${strategies[0].description}`);
-    selectedStrategy = 'byMode';
+  if (choiceIndex < 0 || choiceIndex >= strategies.length) {
+    selectedStrategy = strategies[0].value;
   } else {
-    // Ask user to choose
-    console.log('\nHow should this collection be organized?');
-    for (let i = 0; i < strategies.length; i++) {
-      console.log(`  ${i + 1}. ${strategies[i].label} - ${strategies[i].description}`);
-    }
-    
-    const choiceStr = await askText(rl, 'Choose strategy (1-' + strategies.length + ')', '1');
-    const choiceIndex = parseInt(choiceStr) - 1;
-    
-    if (choiceIndex < 0 || choiceIndex >= strategies.length) {
-      selectedStrategy = strategies[0].value;
-    } else {
-      selectedStrategy = strategies[choiceIndex].value;
-    }
+    selectedStrategy = strategies[choiceIndex].value;
   }
   
   // Handle skip
@@ -425,10 +419,10 @@ function createDefaultConfig(): TokensConfig {
     },
     paths: {
       root: '.',
-      data: 'figma-sync/.figma/data',
-      baseline: 'figma-sync/.figma/data/baseline.json',
-      baselinePrev: 'figma-sync/.figma/data/baseline.prev.json',
-      reports: 'figma-sync/.figma/reports',
+      data: '.figma/data',
+      baseline: '.figma/data/baseline.json',
+      baselinePrev: '.figma/data/baseline.prev.json',
+      reports: '.figma/reports',
       tokens: 'tokens',
       styles: 'styles/tokens',
     },
@@ -442,8 +436,9 @@ function createDefaultConfig(): TokensConfig {
 
 /**
  * Run interactive setup
+ * Returns config and raw access token for .env creation
  */
-async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
+async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; accessToken: string }> {
   // Opening welcome message with realistic expectations
   console.log(formatInfo(
     'Welcome to Synkio! Let\'s set up your project.\n\n' +
@@ -511,11 +506,7 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
   // Get optional node ID
   const nodeId = await askText(rl, 'Figma node ID (optional, press Enter to skip):');
 
-  // Validate connection
-  const spinner = createSpinner('Connecting to Figma...');
-  spinner.start();
-
-  // Retry loop for connection failures
+  // Validate connection - Retry loop for connection failures
   let fetchedData;
   let attempt = 0;
   const maxAttempts = 3;
@@ -640,10 +631,10 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
   }
 
   // Ask about output paths
-  const useDefaults = await askYesNo(rl, '\nUse default output paths? (figma-sync/.figma/data)', true);
+  const useDefaults = await askYesNo(rl, '\nUse default output paths? (.figma/data)', true);
 
-  if (!useDefaults) {
-    const dataPath = await askText(rl, 'Data directory:', 'figma-sync/.figma/data');
+  if (useDefaults) {
+    const dataPath = await askText(rl, 'Data directory:', '.figma/data');
 
     config.paths.data = dataPath;
     config.paths.baseline = path.join(dataPath, 'baseline.json');
@@ -709,14 +700,10 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
     // Create platform configs
     const platforms = createPlatformsConfig(selectedPlatforms);
 
-    // Apply strip segments to all platforms
-    for (const platform of Object.values(platforms)) {
-      platform.transform.stripSegments = stripSegments;
-    }
-
-    // Add migration config
+    // Add migration config with stripSegments at root level
     config.migration = {
       autoApply: false,
+      stripSegments,
       platforms
     };
 
@@ -724,7 +711,7 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
     console.log(formatInfo('Note: autoApply is set to false for safety. Review migrations before applying.'));
   }
 
-  return config;
+  return { config, accessToken };
 }
 
 // ============================================================================
@@ -788,6 +775,7 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
 
   // Run setup
   let config: TokensConfig;
+  let rawAccessToken: string | undefined;
 
   if (options.yes) {
     // Non-interactive mode
@@ -797,7 +785,9 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
     // Interactive mode
     const rl = createPrompt();
     try {
-      config = await runInteractiveSetup(rl);
+      const result = await runInteractiveSetup(rl);
+      config = result.config;
+      rawAccessToken = result.accessToken;
     } finally {
       rl.close();
     }
@@ -822,6 +812,37 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
   const configPath = path.join(process.cwd(), 'tokensrc.json');
   await saveConfig(config, configPath);
 
+  // Create or update .env file with access token (if provided)
+  if (rawAccessToken) {
+    const envPath = path.join(process.cwd(), '.env');
+    const envExists = fs.existsSync(envPath);
+    
+    if (envExists) {
+      // Read existing .env and update/add FIGMA_ACCESS_TOKEN
+      let envContent = fs.readFileSync(envPath, 'utf-8');
+      const tokenLine = `FIGMA_ACCESS_TOKEN=${rawAccessToken}`;
+      
+      if (envContent.includes('FIGMA_ACCESS_TOKEN=')) {
+        // Replace existing token
+        envContent = envContent.replace(/FIGMA_ACCESS_TOKEN=.*/g, tokenLine);
+      } else {
+        // Append new token
+        envContent += `\n${tokenLine}\n`;
+      }
+      
+      fs.writeFileSync(envPath, envContent, 'utf-8');
+      console.log(formatInfo('Updated FIGMA_ACCESS_TOKEN in existing .env file'));
+    } else {
+      // Create new .env file
+      fs.writeFileSync(envPath, `FIGMA_ACCESS_TOKEN=${rawAccessToken}\n`, 'utf-8');
+      console.log(formatSuccess('Created .env file with FIGMA_ACCESS_TOKEN'));
+    }
+  }
+
   // Show success message
-  console.log(formatSuccess(`Configuration saved to: ${configPath}\n\nNext steps:\n1. Set FIGMA_ACCESS_TOKEN in your .env file\n2. Run 'synkio sync' to fetch tokens from Figma`));
+  const nextSteps = rawAccessToken 
+    ? 'Next step:\n  Run \'synkio sync\' to fetch tokens from Figma'
+    : 'Next steps:\n  1. Set FIGMA_ACCESS_TOKEN in your .env file\n  2. Run \'synkio sync\' to fetch tokens from Figma';
+  
+  console.log(formatSuccess(`Configuration saved to: ${configPath}\n\n${nextSteps}`));
 }

@@ -110,7 +110,8 @@ describe('Integration Tests - Phase 1E', () => {
 
     it('should handle missing config file gracefully', () => {
       // Test with non-existent context
-      const config = loadConfig(createContext({ rootDir: '/nonexistent/path/12345' }));
+      const ctx = createContext({ rootDir: '/nonexistent/path/12345' });
+      const config = loadConfig(undefined, ctx);
       expect(config).toBeNull();
     });
   });

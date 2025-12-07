@@ -60,8 +60,11 @@ describe('init command', () => {
       },
       variables: {},
       $metadata: {
-        fileName: 'Test File',
+        version: '1.0.0',
         exportedAt: new Date().toISOString(),
+        pluginVersion: '1.0.0',
+        fileKey: 'abc123',
+        fileName: 'Test File',
       },
     });
 
@@ -116,8 +119,11 @@ describe('init command', () => {
       collections: {},
       variables: {},
       $metadata: {
-        fileName: 'Test',
+        version: '1.0.0',
         exportedAt: new Date().toISOString(),
+        pluginVersion: '1.0.0',
+        fileKey: 'abc123',
+        fileName: 'Test',
       },
     });
 
@@ -156,8 +162,11 @@ describe('init command', () => {
       collections: {},
       variables: {},
       $metadata: {
-        fileName: 'Test',
+        version: '1.0.0',
         exportedAt: new Date().toISOString(),
+        pluginVersion: '1.0.0',
+        fileKey: 'abc123',
+        fileName: 'Test',
       },
     });
 
@@ -186,8 +195,11 @@ describe('init command', () => {
       collections: {},
       variables: {},
       $metadata: {
-        fileName: 'Test',
+        version: '1.0.0',
         exportedAt: new Date().toISOString(),
+        pluginVersion: '1.0.0',
+        fileKey: 'abc123',
+        fileName: 'Test',
       },
     });
 
