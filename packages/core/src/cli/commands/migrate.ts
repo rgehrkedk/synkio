@@ -42,6 +42,13 @@ import { compareBaselines } from '../../compare/index.js';
 // CLI Helpers
 // ============================================================================
 
+/**
+ * Escape special regex characters in a string
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function createPrompt(): readline.Interface {
   return readline.createInterface({
     input: process.stdin,
@@ -358,17 +365,14 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
     let content = fs.readFileSync(fullPath, 'utf-8');
     let modified = false;
 
-    // Sort changes by line number (descending) to avoid offset issues
-    const sortedChanges = fileChanges.sort((a, b) => b.line - a.line);
-
-    for (const change of sortedChanges) {
+    for (const change of fileChanges) {
       if (change.excluded) continue;
 
-      // Replace the specific line
-      const lines = content.split('\n');
-      if (lines[change.line - 1] === change.before) {
-        lines[change.line - 1] = change.after;
-        content = lines.join('\n');
+      // Replace oldToken → newToken with word boundary to avoid partial matches
+      // e.g., don't match "background" inside "backgroundHover"
+      const regex = new RegExp(escapeRegex(change.oldToken) + '(?![a-zA-Z0-9_])', 'g');
+      if (regex.test(content)) {
+        content = content.replace(regex, change.newToken);
         modified = true;
         totalChanges++;
       }
@@ -397,27 +401,16 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
 function parseChangesFromMarkdown(markdown: string): PlannedChange[] {
   const changes: PlannedChange[] = [];
 
-  // Find all table rows
-  const tableRowRegex = /\|\s*([^|]+)\s*\|\s*(\d+)\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|/g;
-
-  let currentOldToken = '';
-  let currentNewToken = '';
-
-  // Track current rename context
-  const renameRegex = /###\s*`([^`]+)`\s*→\s*`([^`]+)`/g;
-  let renameMatch;
-  while ((renameMatch = renameRegex.exec(markdown)) !== null) {
-    currentOldToken = renameMatch[1];
-    currentNewToken = renameMatch[2];
-  }
+  // Find all table rows - now stores oldToken and newToken directly
+  const tableRowRegex = /\|\s*(~~)?([^|~]+)(~~)?\s*\|\s*(\d+)\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|/g;
 
   let match;
   while ((match = tableRowRegex.exec(markdown)) !== null) {
-    const file = match[1].trim().replace(/~~/g, '');
-    const line = parseInt(match[2]);
-    const before = match[3].replace(/\\'/g, "'");
-    const after = match[4].replace(/\\'/g, "'");
-    const excluded = match[1].includes('~~');
+    const excluded = !!match[1];
+    const file = match[2].trim();
+    const line = parseInt(match[4]);
+    const oldToken = match[5];
+    const newToken = match[6];
 
     // Skip header row
     if (file === 'File' || file.includes('---')) continue;
@@ -426,10 +419,10 @@ function parseChangesFromMarkdown(markdown: string): PlannedChange[] {
       file,
       line,
       column: 0,
-      before,
-      after,
-      oldToken: currentOldToken,
-      newToken: currentNewToken,
+      before: '',  // Not used anymore
+      after: '',   // Not used anymore
+      oldToken,
+      newToken,
       platform: 'unknown',
       excluded,
     });

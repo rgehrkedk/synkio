@@ -358,14 +358,13 @@ export function planToMarkdown(plan: MigrationPlan): string {
     lines.push('');
     lines.push(`${rename.changes.length} change(s)`);
     lines.push('');
-    lines.push('| File | Line | Before | After |');
-    lines.push('|------|------|--------|-------|');
+    lines.push('| File | Line | Old Token | New Token |');
+    lines.push('|------|------|-----------|-----------|');
 
     for (const change of rename.changes) {
       const excluded = change.excluded ? '~~' : '';
-      const before = escapeMarkdownTableCell(change.before.trim());
-      const after = escapeMarkdownTableCell(change.after.trim());
-      lines.push(`| ${excluded}${change.file}${excluded} | ${change.line} | \`${before}\` | \`${after}\` |`);
+      // Store the actual token strings, not full lines
+      lines.push(`| ${excluded}${change.file}${excluded} | ${change.line} | \`${change.oldToken}\` | \`${change.newToken}\` |`);
     }
 
     lines.push('');
