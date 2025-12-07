@@ -289,34 +289,38 @@ function buildSearchRegex(token: string, pattern: DetectedPattern): RegExp {
 
   switch (pattern.platform) {
     case 'css':
-      // Match var(--token) or --token:
-      return new RegExp(`(var\\(\\s*--${escaped}\\s*[,)]|--${escaped}\\s*:)`, 'g');
+      // Match var(--token) or --token: with word boundary
+      // The boundary is implicit because of the -- prefix and the : or ) suffix
+      return new RegExp(`(var\\(\\s*--${escaped}(?![\\w-])\\s*[,)]|--${escaped}(?![\\w-])\\s*:)`, 'g');
     case 'scss':
-      // Match $token
+      // Match $token with word boundary
       return new RegExp(`\\$${escaped}(?![\\w-])`, 'g');
     case 'typescript':
       // Extract the prefix from the pattern (e.g., "theme" from "theme.{token}")
       // The pattern.format is like "theme.{token}" or "tokens['token']"
       const dotMatch = pattern.format.match(/^(\w+)\.\{token\}/);
       if (dotMatch) {
-        // Dot notation: match prefix.token
+        // Dot notation: match prefix.token with word boundary
         const prefix = dotMatch[1];
         return new RegExp(`${prefix}\\.${escaped}(?![\\w])`, 'g');
       }
       const bracketMatch = pattern.format.match(/^(\w+)\[/);
       if (bracketMatch) {
-        // Bracket notation: match prefix['token']
+        // Bracket notation: match prefix['token'] - already bounded by quotes
         const prefix = bracketMatch[1];
         return new RegExp(`${prefix}\\[['"]${escaped}['"]\\]`, 'g');
       }
-      // Fallback: just search for the token
+      // Fallback: search for the token with word boundary
       return new RegExp(`\\b${escaped}(?![\\w])`, 'g');
     case 'swift':
+      // Match DesignTokens.token with word boundary
       return new RegExp(`(DesignTokens|Color|Tokens)\\.${escaped}(?![\\w])`, 'g');
     case 'kotlin':
+      // Match AppTheme.token or R.color.token with word boundary
       return new RegExp(`(AppTheme|R\\.color|R\\.dimen)\\.${escaped.replace(/\./g, '_')}(?![\\w])`, 'g');
     default:
-      return new RegExp(escaped, 'g');
+      // Generic search with word boundary
+      return new RegExp(`${escaped}(?![\\w])`, 'g');
   }
 }
 
