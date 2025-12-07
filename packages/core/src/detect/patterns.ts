@@ -218,16 +218,8 @@ export async function scanForPatterns(
           const token = match.groups?.token;
           if (!token) continue;
 
-          // Optional: validate against known tokens
-          if (knownTokens && knownTokens.length > 0) {
-            const normalizedToken = normalizeToken(token);
-            const isKnown = knownTokens.some(kt => 
-              normalizeToken(kt) === normalizedToken ||
-              normalizedToken.includes(normalizeToken(kt)) ||
-              normalizeToken(kt).includes(normalizedToken)
-            );
-            if (!isKnown) continue;
-          }
+          // Skip if token is too short (likely false positive)
+          if (token.length < 3) continue;
 
           // Find line number
           const beforeMatch = content.substring(0, match.index);
