@@ -145,7 +145,20 @@ async function scanPatterns(config: TokensConfig, scanDir: string): Promise<Dete
   console.log('Scanning for Token Usage Patterns');
   console.log('━'.repeat(60) + '\n');
 
-  console.log(`Scanning: ${scanDir}`);
+  // Use current directory if 'src' doesn't exist
+  let actualScanDir = scanDir;
+  if (scanDir === 'src' && !fs.existsSync(scanDir)) {
+    // Try common alternatives
+    const alternatives = ['packages', 'app', 'apps', 'lib', '.'];
+    for (const alt of alternatives) {
+      if (fs.existsSync(alt)) {
+        actualScanDir = alt === '.' ? process.cwd() : alt;
+        break;
+      }
+    }
+  }
+
+  console.log(`Scanning: ${actualScanDir}`);
   console.log('Looking for CSS, SCSS, TypeScript, Swift, Kotlin patterns...\n');
 
   // Get known tokens from baseline if available
@@ -160,7 +173,7 @@ async function scanPatterns(config: TokensConfig, scanDir: string): Promise<Dete
     console.log('No baseline found, scanning without token validation\n');
   }
 
-  const result = await scanForPatterns(scanDir, knownTokens);
+  const result = await scanForPatterns(actualScanDir, knownTokens);
 
   console.log(formatPatternsForDisplay(result));
 
