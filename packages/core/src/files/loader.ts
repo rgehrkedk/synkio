@@ -193,22 +193,15 @@ export function getDefaultConfig(ctx?: Context): TokensConfig {
 export function loadConfig(filePath?: string, ctx?: Context): TokensConfig | null {
   const context = ctx || getContext();
 
-  console.log(`[DEBUG] loadConfig - rootDir: ${context.rootDir}`);
-  console.log(`[DEBUG] loadConfig - filePath: ${filePath || 'not specified'}`);
-
   // Discover config file if not specified
   let targetPath = filePath;
   if (!targetPath) {
     const discovered = findConfigFile(context.rootDir);
-    console.log(`[DEBUG] loadConfig - discovered: ${discovered || 'null'}`);
     if (!discovered) {
       return null;
     }
     targetPath = discovered;
   }
-
-  console.log(`[DEBUG] loadConfig - targetPath: ${targetPath}`);
-  console.log(`[DEBUG] loadConfig - exists: ${fs.existsSync(targetPath)}`);
 
   if (!fs.existsSync(targetPath)) {
     return null;
@@ -216,14 +209,11 @@ export function loadConfig(filePath?: string, ctx?: Context): TokensConfig | nul
 
   try {
     const content = fs.readFileSync(targetPath, 'utf-8');
-    console.log(`[DEBUG] loadConfig - content length: ${content.length}`);
 
     let config = JSON.parse(content) as TokensConfig;
-    console.log(`[DEBUG] loadConfig - parsed config:`, JSON.stringify(config, null, 2));
 
     // Interpolate environment variables
     config = interpolateEnvVars(config);
-    console.log(`[DEBUG] loadConfig - after interpolation:`, JSON.stringify(config, null, 2));
 
     // Resolve relative paths from config directory
     const configDir = path.dirname(targetPath);
@@ -236,10 +226,8 @@ export function loadConfig(filePath?: string, ctx?: Context): TokensConfig | nul
       }
     }
 
-    console.log(`[DEBUG] loadConfig - returning config successfully`);
     return config;
   } catch (error) {
-    console.error('[DEBUG] Error loading config:', error);
     return null;
   }
 }

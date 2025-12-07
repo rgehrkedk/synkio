@@ -897,10 +897,6 @@ async function main() {
     // Get the access token (either from env or just entered)
     const accessToken = process.env.FIGMA_ACCESS_TOKEN || process.env.FIGMA_TOKEN;
 
-    console.log(`[DEBUG] Access token available: ${accessToken ? 'YES' : 'NO'}`);
-    console.log(`[DEBUG] File ID: ${config.figma.fileId}`);
-    console.log(`[DEBUG] Node ID: ${config.figma.nodeId || '(none)'}`);
-
     let baseline;
     try {
       baseline = await fetchFigmaData({

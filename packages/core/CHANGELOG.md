@@ -5,6 +5,77 @@ All notable changes to @synkio/core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-12-07
+
+### Added - Enhanced Init Command & Production Ready
+
+#### Complete Configuration Generation
+- **Collection Configuration**: Comprehensive collection analysis and configuration
+  - Automatic mode/group detection from Figma collections
+  - Strategy determination (byMode for themes, byGroup for primitives)
+  - Automatic file path generation with safe naming conventions
+  - Preview of generated files before saving
+  - Path conflict detection across collections
+- **Schema Support**: JSON Schema for IDE autocomplete
+  - `tokensrc.schema.json` with complete type definitions
+  - Automatic `$schema` reference in generated configs
+  - IntelliSense support in VS Code and other editors
+  - Helpful descriptions and examples for all fields
+- **Migration Configuration**: Optional code migration setup
+  - Platform selection (CSS, SCSS, TypeScript, Swift, Kotlin)
+  - Automatic strip segments generation from collections
+  - Safe defaults (autoApply: false)
+  - Pre-configured regex patterns for token usage detection
+- **Early Project Detection**: Smart defaults before prompts
+  - Style Dictionary version detection (v3/v4)
+  - Auto-detect build commands and scripts
+  - Token/style directory discovery
+  - Build integration auto-configuration
+
+#### User Experience Improvements
+- **Realistic Expectations**: Honest communication about setup process
+  - Clear messaging: "5-10 minutes with 12-20 questions"
+  - Progress indication with section headers
+  - Visual separators for clarity
+  - Step numbering (Step 1, Step 2, etc.)
+- **Retry Logic**: Connection failure handling
+  - Up to 3 retry attempts for Figma connection
+  - Helpful error messages for common issues (403, 404, network)
+  - Readline interface reset after spinner (fixes ora/readline conflict)
+  - User choice to retry or cancel
+- **Filename Sanitization**: Safe paths for all platforms
+  - Special character handling (/, :, *, ?, etc.)
+  - Windows reserved name detection (con, prn, aux, etc.)
+  - Path traversal prevention
+  - Consistent lowercase kebab-case output
+
+### Fixed
+- **Bug #1**: Missing `accessToken` parameter in `fetchFigmaData()` call
+- **Bug #2**: Unsafe filenames from Figma mode/group names
+- **Bug #3**: No retry on connection failures, ora/readline conflict
+- **Cleanup**: Removed all `[DEBUG]` console.log statements from production code
+
+### Changed
+- **Package Name**: `@rgehrkedk/synkio-core` → `@synkio/core` (public npm)
+- **Package Version**: 0.1.1 → 1.0.0 (production ready)
+- **Publish Config**: GitHub Packages → npm registry with public access
+- **Files**: Added `schemas` directory to published package
+- **Dependencies Optimized**: Reduced from 9 to 5 dependencies
+  - Removed: `inquirer`, `boxen`, `cli-table3` (unused or replaced)
+  - Moved: `style-dictionary` to optional peer dependency
+  - Kept: `commander`, `chalk`, `ora`, `dotenv`, `glob`
+  - Result: Smaller package size, faster installs
+- **CLI Formatting**: Custom chalk-only formatting
+  - Replaced boxen with simple bordered messages
+  - Replaced cli-table3 with manual table formatting
+  - Maintains visual consistency with less overhead
+
+### Documentation
+- Updated CLI help text with realistic timing and requirements
+- Added examples for common use cases
+- Comprehensive JSDoc comments on all utility functions
+- Enhanced error messages with actionable steps
+
 ## [0.1.0] - 2025-12-06
 
 ### Added - Phase 1: Standalone NPM Package

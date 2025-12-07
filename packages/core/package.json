@@ -1,10 +1,11 @@
 {
-  "name": "@rgehrkedk/synkio-core",
-  "version": "0.1.1",
+  "name": "@synkio/core",
+  "version": "1.0.0",
   "description": "Sync Figma design tokens to code - CLI and programmatic API",
   "type": "module",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,7 +24,8 @@
   },
   "files": [
     "dist",
-    "templates"
+    "templates",
+    "schemas"
   ],
   "scripts": {
     "build": "tsc && chmod +x dist/cli/bin.js",
@@ -53,14 +55,18 @@
   },
   "dependencies": {
     "commander": "^12.0.0",
-    "inquirer": "^9.0.0",
     "chalk": "^5.0.0",
     "ora": "^8.0.0",
-    "cli-table3": "^0.6.0",
-    "boxen": "^7.0.0",
     "dotenv": "^17.0.0",
-    "glob": "^11.0.0",
+    "glob": "^11.0.0"
+  },
+  "peerDependencies": {
     "style-dictionary": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "style-dictionary": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

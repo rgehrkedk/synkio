@@ -7,14 +7,20 @@
 
 import fs from 'fs';
 import path from 'path';
+import * as readline from 'readline';
 import { initContext } from '../../context.js';
 import { fetchFigmaData } from '../../figma/index.js';
 import { extractCollections, analyzeCollections } from '../../tokens/index.js';
 import { saveConfig, findConfigFile } from '../../files/loader.js';
+import { detectProject } from '../../detect/index.js';
+import { PLATFORM_CHOICES, createPlatformsConfig } from '../../adapters/defaults.js';
 import type { TokensConfig } from '../../types/index.js';
+import type { ProjectDetection } from '../../detect/index.js';
+import type { PlatformType } from '../../adapters/defaults.js';
 import {
   askText,
   askYesNo,
+  askMultipleChoice,
   createPrompt,
 } from '../prompt.js';
 import {
@@ -59,11 +65,121 @@ function loadTemplate(templateName: string): Partial<TokensConfig> | null {
 }
 
 // ============================================================================
+// Filename Sanitization
+// ============================================================================
+
+/**
+ * Sanitize mode/group name for use in filename
+ * 
+ * Handles special characters, spaces, path traversal, and Windows reserved names.
+ * 
+ * @param name - The name to sanitize
+ * @returns A safe filename string
+ * 
+ * @example
+ * sanitizeForFilename('Dark / High Contrast') // => 'dark-high-contrast'
+ * sanitizeForFilename('con') // => '_con' (Windows reserved)
+ * sanitizeForFilename('../secrets') // => 'secrets' (path traversal)
+ * sanitizeForFilename('   ') // => 'default' (empty fallback)
+ */
+function sanitizeForFilename(name: string): string {
+  // Remove leading/trailing spaces
+  let sanitized = name.trim();
+
+  // Remove path traversal attempts
+  sanitized = sanitized.replace(/\.\./g, '');
+
+  // Replace path separators and special chars unsafe for filenames
+  sanitized = sanitized.replace(/[\/\\:*?"<>|]/g, '-');
+
+  // Replace spaces with hyphens
+  sanitized = sanitized.replace(/\s+/g, '-');
+
+  // Remove parentheses and brackets
+  sanitized = sanitized.replace(/[\(\)\[\]]/g, '');
+
+  // Convert to lowercase for consistency
+  sanitized = sanitized.toLowerCase();
+
+  // Remove consecutive hyphens
+  sanitized = sanitized.replace(/-+/g, '-');
+
+  // Remove leading/trailing hyphens
+  sanitized = sanitized.replace(/^-+|-+$/g, '');
+
+  // Check for Windows reserved names
+  const reserved = [
+    'con', 'prn', 'aux', 'nul',
+    'com1', 'com2', 'com3', 'com4', 'com5', 'com6', 'com7', 'com8', 'com9',
+    'lpt1', 'lpt2', 'lpt3', 'lpt4', 'lpt5', 'lpt6', 'lpt7', 'lpt8', 'lpt9'
+  ];
+  if (reserved.includes(sanitized)) {
+    sanitized = `_${sanitized}`;
+  }
+
+  // Fallback to 'default' if empty after sanitization
+  return sanitized || 'default';
+}
+
+// ============================================================================
+// Error Handling
+// ============================================================================
+
+/**
+ * Get user-friendly error message with actionable steps
+ * 
+ * Maps common Figma API errors to helpful messages that guide users
+ * toward resolving the issue.
+ * 
+ * @param error - Error object from Figma API or network request
+ * @returns User-friendly error message with actionable steps
+ */
+function getHelpfulErrorMessage(error: any): string {
+  const message = error?.message || String(error);
+  const messageLower = message.toLowerCase();
+
+  // 403 Forbidden / Unauthorized
+  if (messageLower.includes('403') || messageLower.includes('forbidden') || messageLower.includes('unauthorized')) {
+    return 'Access denied. Please check:\n  - Your access token is valid and not expired\n  - The token has permission to access this file\n  - You have at least "can view" access to the file';
+  }
+
+  // 404 Not Found
+  if (messageLower.includes('404') || messageLower.includes('not found')) {
+    return 'File not found. Please check:\n  - The file ID is correct\n  - The file hasn\'t been deleted\n  - The file URL is from figma.com (not figjam.com)';
+  }
+
+  // Network errors
+  if (messageLower.includes('network') || messageLower.includes('econnrefused') || messageLower.includes('timeout')) {
+    return 'Network connection failed. Please check:\n  - Your internet connection\n  - Firewall or proxy settings\n  - Try again in a few moments';
+  }
+
+  // Rate limiting
+  if (messageLower.includes('rate limit') || messageLower.includes('429')) {
+    return 'Rate limit exceeded. Please wait a moment and try again.';
+  }
+
+  // Generic fallback
+  return `${message}\n\nPlease verify your Figma file ID and access token.`;
+}
+
+// ============================================================================
 // Figma URL Parsing
 // ============================================================================
 
 /**
  * Extract file ID from Figma URL
+ * 
+ * Supports multiple URL formats:
+ * - https://www.figma.com/file/ABC123/...
+ * - https://figma.com/design/ABC123/...
+ * - ABC123 (just the ID)
+ * 
+ * @param url - Figma URL or file ID
+ * @returns File ID string or null if invalid
+ * 
+ * @example
+ * extractFileIdFromUrl('https://figma.com/file/abc123/My-Design')
+ * // => 'abc123'
  */
 function extractFileIdFromUrl(url: string): string | null {
   // Support formats:
@@ -91,6 +207,208 @@ function validateFigmaUrl(url: string): boolean {
 }
 
 // ============================================================================
+// Migration Utilities
+// ============================================================================
+
+/**
+ * Generate strip segments from collection information
+ * 
+ * Extracts sanitized collection names, mode names, and common segments
+ * to be used in migration configuration for removing path segments
+ * from token names.
+ * 
+ * @param collectionsInfo - Array of collection information
+ * @returns Array of unique strip segment strings
+ */
+function generateStripSegments(collectionsInfo: any[]): string[] {
+  const segments = new Set<string>();
+
+  // Add collection names
+  for (const info of collectionsInfo) {
+    segments.add(sanitizeForFilename(info.name));
+
+    // Add mode names
+    for (const mode of info.modes) {
+      segments.add(sanitizeForFilename(mode));
+    }
+  }
+
+  // Add common segments that should be stripped
+  segments.add('value');
+
+  return Array.from(segments);
+}
+
+// ============================================================================
+// Collection Configuration Utilities
+// ============================================================================
+
+/**
+ * Determine available split strategies for a collection
+ * 
+ * Rules:
+ * - If collection has multiple modes (>1): Only 'byMode' strategy
+ * - If collection has single mode: 'byGroup', 'flat', or 'skip'
+ * 
+ * @param info - Collection information
+ * @returns Array of available strategy choices
+ */
+function determineAvailableStrategies(info: any): Array<{value: string; label: string; description: string}> {
+  if (info.modes.length > 1) {
+    // Multiple modes: must split by mode
+    return [
+      {
+        value: 'byMode',
+        label: 'Split by mode',
+        description: `Create separate files for each mode (${info.modes.length} files)`
+      }
+    ];
+  } else {
+    // Single mode: offer group split, flat, or skip options
+    const firstMode = info.modes[0];
+    const groups = Object.keys(info.groups[firstMode] || {});
+    
+    return [
+      {
+        value: 'byGroup',
+        label: 'Split by group',
+        description: `Create separate files for each group (${groups.length} files)`
+      },
+      {
+        value: 'flat',
+        label: 'Single file',
+        description: 'All tokens in one file'
+      },
+      {
+        value: 'skip',
+        label: 'Skip this collection',
+        description: 'Don\'t include in configuration'
+      }
+    ];
+  }
+}
+
+/**
+ * Generate file paths for a collection using conventions
+ * 
+ * Convention: tokens/{sanitized-collection}/{sanitized-key}.json
+ * 
+ * @param collectionName - Name of the collection
+ * @param strategy - Split strategy ('byMode', 'byGroup', or 'flat')
+ * @param keys - Array of mode or group names to generate paths for
+ * @returns Object with output directory and file mapping
+ */
+function generateFilePaths(
+  collectionName: string,
+  strategy: 'byMode' | 'byGroup' | 'flat',
+  keys: string[]
+): { output: string; files: Record<string, string> } {
+  const sanitizedCollection = sanitizeForFilename(collectionName);
+  const baseDir = `tokens/${sanitizedCollection}`;
+  const files: Record<string, string> = {};
+
+  if (strategy === 'flat') {
+    // All keys map to a single file
+    for (const key of keys) {
+      files[key] = `${baseDir}/tokens.json`;
+    }
+  } else {
+    // Each key gets its own file
+    for (const key of keys) {
+      const sanitizedKey = sanitizeForFilename(key);
+      files[key] = `${baseDir}/${sanitizedKey}.json`;
+    }
+  }
+
+  return {
+    output: baseDir,
+    files
+  };
+}
+
+/**
+ * Configure a single collection interactively
+ * 
+ * @param rl - Readline interface
+ * @param info - Collection information with modes and groups
+ * @returns Collection split configuration or null if skipped
+ */
+async function configureCollection(rl: readline.Interface, info: any): Promise<any | null> {
+  console.log('\n' + '─'.repeat(60));
+  console.log(`Collection: ${info.name}`);
+  console.log('─'.repeat(60));
+  
+  // Show modes with token counts
+  console.log(`\nModes (${info.modes.length}):`);
+  for (const mode of info.modes) {
+    const tokenCount = Object.values(info.groups[mode] || {}).reduce((sum: number, count) => sum + (count as number), 0);
+    console.log(`  - ${mode} (${tokenCount} tokens)`);
+  }
+  
+  // Show groups from first mode
+  const firstMode = info.modes[0];
+  const groups = Object.keys(info.groups[firstMode] || {});
+  if (groups.length > 0) {
+    console.log(`\nGroups in "${firstMode}" (${groups.length}):`);
+    for (const group of groups.slice(0, 5)) { // Show first 5 groups
+      console.log(`  - ${group} (${info.groups[firstMode][group]} tokens)`);
+    }
+    if (groups.length > 5) {
+      console.log(`  ... and ${groups.length - 5} more`);
+    }
+  }
+  
+  // Get available strategies
+  const strategies = determineAvailableStrategies(info);
+  
+  // If only one strategy (byMode for multi-mode collections), use it automatically
+  let selectedStrategy: string;
+  if (strategies.length === 1 && strategies[0].value === 'byMode') {
+    console.log(`\n✓ Strategy: ${strategies[0].description}`);
+    selectedStrategy = 'byMode';
+  } else {
+    // Ask user to choose
+    console.log('\nHow should this collection be organized?');
+    for (let i = 0; i < strategies.length; i++) {
+      console.log(`  ${i + 1}. ${strategies[i].label} - ${strategies[i].description}`);
+    }
+    
+    const choiceStr = await askText(rl, 'Choose strategy (1-' + strategies.length + ')', '1');
+    const choiceIndex = parseInt(choiceStr) - 1;
+    
+    if (choiceIndex < 0 || choiceIndex >= strategies.length) {
+      selectedStrategy = strategies[0].value;
+    } else {
+      selectedStrategy = strategies[choiceIndex].value;
+    }
+  }
+  
+  // Handle skip
+  if (selectedStrategy === 'skip') {
+    console.log('  Skipped.');
+    return null;
+  }
+  
+  // Generate file paths
+  const keys = selectedStrategy === 'byMode' ? info.modes : groups;
+  const { output, files } = generateFilePaths(info.name, selectedStrategy as 'byMode' | 'byGroup' | 'flat', keys);
+  
+  // Show preview of files that will be created
+  console.log('\nFiles to be created:');
+  const uniqueFiles = Array.from(new Set(Object.values(files)));
+  for (const file of uniqueFiles) {
+    console.log(`  - ${file}`);
+  }
+  
+  return {
+    collection: info.name,
+    strategy: selectedStrategy,
+    output,
+    files
+  };
+}
+
+// ============================================================================
 // Default Config Generation
 // ============================================================================
 
@@ -99,6 +417,7 @@ function validateFigmaUrl(url: string): boolean {
  */
 function createDefaultConfig(): TokensConfig {
   return {
+    $schema: 'https://unpkg.com/@synkio/core/schemas/tokensrc.schema.json',
     version: '1.0.0',
     figma: {
       fileId: '',
@@ -125,7 +444,52 @@ function createDefaultConfig(): TokensConfig {
  * Run interactive setup
  */
 async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
-  console.log(formatInfo('Welcome to Synkio! Let\'s set up your project.\n\nYou\'ll need:\n- Figma file URL\n- Figma access token (from figma.com/settings)'));
+  // Opening welcome message with realistic expectations
+  console.log(formatInfo(
+    'Welcome to Synkio! Let\'s set up your project.\n\n' +
+    'This will take about 5-10 minutes with 12-20 questions.\n\n' +
+    'You\'ll need:\n' +
+    '- Figma file URL\n' +
+    '- Figma access token (from figma.com/settings)\n' +
+    '- Details about how you want tokens organized'
+  ));
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Step 1: Project Detection
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  console.log('\n' + '━'.repeat(60));
+  console.log('Step 1: Project Detection');
+  console.log('━'.repeat(60) + '\n');
+
+  const detection = detectProject();
+
+  // Display detection results
+  if (detection.styleDictionary.found) {
+    console.log(`✓ Style Dictionary ${detection.styleDictionary.version || ''} detected`);
+    if (detection.styleDictionary.configPath) {
+      console.log(`  Config: ${detection.styleDictionary.configPath}`);
+    }
+    if (detection.build.command) {
+      console.log(`  Build: ${detection.build.command}`);
+    }
+  } else {
+    console.log('○ No Style Dictionary setup detected');
+  }
+
+  if (detection.paths.tokens) {
+    console.log(`✓ Token directory found: ${detection.paths.tokens}`);
+  }
+
+  if (detection.paths.styles) {
+    console.log(`✓ Styles directory found: ${detection.paths.styles}`);
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Step 2: Figma Connection
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  console.log('\n' + '━'.repeat(60));
+  console.log('Step 2: Figma Connection');
+  console.log('━'.repeat(60) + '\n');
 
   // Get Figma file URL
   let figmaUrl = '';
@@ -151,19 +515,44 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
   const spinner = createSpinner('Connecting to Figma...');
   spinner.start();
 
+  // Retry loop for connection failures
   let fetchedData;
-  try {
-    fetchedData = await fetchFigmaData({
-      fileId,
-      nodeId: nodeId || undefined,
-      accessToken: accessToken || undefined,
-    });
-    spinner.succeed('Connected to Figma successfully!');
-  } catch (error) {
-    spinner.fail('Failed to connect to Figma');
-    throw new Error(
-      `Could not fetch from Figma: ${error instanceof Error ? error.message : String(error)}\n\nPlease check:\n- Your access token is valid\n- The file ID is correct\n- You have access to the file`
-    );
+  let attempt = 0;
+  const maxAttempts = 3;
+  let success = false;
+
+  while (!success && attempt < maxAttempts) {
+    attempt++;
+    const spinner = createSpinner(`Connecting to Figma... (attempt ${attempt}/${maxAttempts})`);
+    spinner.start();
+
+    try {
+      fetchedData = await fetchFigmaData({
+        fileId,
+        nodeId: nodeId || undefined,
+        accessToken: accessToken || undefined,
+      });
+      spinner.succeed('Connected to Figma successfully!');
+      success = true;
+    } catch (error) {
+      spinner.fail('Connection failed');
+      
+      const helpfulMessage = getHelpfulErrorMessage(error);
+      console.log(formatWarning(`\\n${helpfulMessage}`));
+
+      if (attempt < maxAttempts) {
+        // Close and recreate readline after spinner to avoid ora/readline conflict
+        rl.close();
+        rl = createPrompt();
+
+        const retry = await askYesNo(rl, 'Would you like to retry?', true);
+        if (!retry) {
+          throw new Error('Setup cancelled by user');
+        }
+      } else {
+        throw new Error(`Failed to connect after ${maxAttempts} attempts. Setup cancelled.`);
+      }
+    }
   }
 
   // Close and reopen readline interface after spinner
@@ -171,8 +560,15 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
   rl.close();
   rl = createPrompt();
 
-  // Show found collections
-  const collections = extractCollections(fetchedData);
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Step 3: Collection Analysis
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  console.log('\n' + '━'.repeat(60));
+  console.log('Step 3: Collection Analysis');
+  console.log('━'.repeat(60) + '\n');
+
+  // Show found collections (fetchedData is guaranteed to be defined after successful fetch)
+  const collections = extractCollections(fetchedData!);
   const collectionsInfo = analyzeCollections(collections);
 
   if (collectionsInfo.length > 0) {
@@ -191,27 +587,141 @@ async function runInteractiveSetup(rl: any): Promise<TokensConfig> {
     config.figma.nodeId = nodeId;
   }
 
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Step 4: Collection Configuration
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  if (collectionsInfo.length > 0) {
+    console.log('\n' + '━'.repeat(60));
+    console.log('Step 4: Collection Configuration');
+    console.log('━'.repeat(60));
+    console.log(formatInfo(`\nYou'll configure how each collection should be organized.`));
+
+    // Initialize split config
+    config.split = {};
+
+    // Configure each collection
+    for (const info of collectionsInfo) {
+      const splitConfig = await configureCollection(rl, info);
+      if (splitConfig) {
+        config.split[info.name] = splitConfig;
+      }
+    }
+
+    // Validate at least one collection configured
+    if (Object.keys(config.split).length === 0) {
+      console.log(formatWarning('\nNo collections configured. At least one collection is required.'));
+      const restart = await askYesNo(rl, 'Would you like to restart configuration?', true);
+      if (restart) {
+        throw new Error('Restart requested - please run synkio init again');
+      } else {
+        throw new Error('Setup cancelled - no collections configured');
+      }
+    }
+
+    // Check for path conflicts
+    const allPaths = new Set<string>();
+    const conflicts: string[] = [];
+    for (const [collName, splitCfg] of Object.entries(config.split)) {
+      const uniqueFiles = Array.from(new Set(Object.values(splitCfg.files)));
+      for (const file of uniqueFiles) {
+        if (allPaths.has(file)) {
+          conflicts.push(file);
+        }
+        allPaths.add(file);
+      }
+    }
+
+    if (conflicts.length > 0) {
+      console.log(formatWarning(`\n⚠ Warning: Path conflicts detected:\n${conflicts.map(p => `  - ${p}`).join('\n')}`));
+      console.log(formatInfo('Multiple collections will write to the same file. This may cause data loss.'));
+    }
+
+    console.log(formatSuccess(`\n✓ Configured ${Object.keys(config.split).length} collection(s)`));
+  }
+
   // Ask about output paths
-  const useDefaults = await askYesNo(rl, 'Use default output paths? (figma-sync/.figma/data, tokens/)', true);
+  const useDefaults = await askYesNo(rl, '\nUse default output paths? (figma-sync/.figma/data)', true);
 
   if (!useDefaults) {
     const dataPath = await askText(rl, 'Data directory:', 'figma-sync/.figma/data');
-    const tokensPath = await askText(rl, 'Tokens directory:', 'tokens');
 
     config.paths.data = dataPath;
     config.paths.baseline = path.join(dataPath, 'baseline.json');
     config.paths.baselinePrev = path.join(dataPath, 'baseline.prev.json');
-    config.paths.tokens = tokensPath;
   }
 
-  // Ask about build command
-  const hasBuildCommand = await askYesNo(rl, 'Add a build command to run after sync? (e.g., "npm run tokens:build")', false);
-
-  if (hasBuildCommand) {
-    const buildCommand = await askText(rl, 'Build command:', 'npm run tokens:build');
+  // Use detection results for build configuration
+  if (detection.styleDictionary.found) {
+    // Auto-configure Style Dictionary integration
     config.build = {
-      command: buildCommand,
+      command: detection.build.command || 'npm run tokens:build',
+      styleDictionary: {
+        enabled: true,
+        config: detection.styleDictionary.configPath || 'style-dictionary.config.js',
+        version: detection.styleDictionary.version || 'v4',
+      }
     };
+    console.log(formatSuccess('\n✓ Style Dictionary integration configured automatically'));
+  } else {
+    // Ask about build command
+    const hasBuildCommand = await askYesNo(rl, '\nAdd a build command to run after sync? (e.g., "npm run tokens:build")', false);
+
+    if (hasBuildCommand) {
+      const buildCommand = await askText(rl, 'Build command:', 'npm run tokens:build');
+      config.build = {
+        command: buildCommand,
+      };
+    }
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // Step 5: Optional Migration Configuration
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  const wantsMigration = await askYesNo(rl, '\n\nOptional: Configure automatic migration for breaking token changes?', false);
+
+  if (wantsMigration) {
+    console.log('\n' + '━'.repeat(60));
+    console.log('Step 5: Migration Configuration');
+    console.log('━'.repeat(60));
+    console.log(formatInfo('\nMigration helps update your codebase when token names change.\nThis is useful for refactoring and maintaining consistency.\n'));
+
+    // Ask which platforms to configure
+    const platformLabels = PLATFORM_CHOICES.map(p => `${p.label} - ${p.description}`);
+    const selected = await askMultipleChoice(
+      rl,
+      'Which platforms would you like to configure?',
+      platformLabels,
+      ['CSS - CSS custom properties (--token-name)']
+    );
+
+    // Map selections back to platform types
+    const selectedPlatforms: PlatformType[] = [];
+    for (const selection of selected) {
+      const index = platformLabels.indexOf(selection);
+      if (index >= 0) {
+        selectedPlatforms.push(PLATFORM_CHOICES[index].value);
+      }
+    }
+
+    // Generate strip segments from collections
+    const stripSegments = collectionsInfo.length > 0 ? generateStripSegments(collectionsInfo) : ['value'];
+
+    // Create platform configs
+    const platforms = createPlatformsConfig(selectedPlatforms);
+
+    // Apply strip segments to all platforms
+    for (const platform of Object.values(platforms)) {
+      platform.transform.stripSegments = stripSegments;
+    }
+
+    // Add migration config
+    config.migration = {
+      autoApply: false,
+      platforms
+    };
+
+    console.log(formatSuccess(`\n✓ Migration configured for ${selectedPlatforms.length} platform(s)`));
+    console.log(formatInfo('Note: autoApply is set to false for safety. Review migrations before applying.'));
   }
 
   return config;

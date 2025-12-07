@@ -41,9 +41,26 @@ program
  */
 program
   .command('init')
-  .description('Interactive setup wizard to configure Synkio')
+  .description('Interactive setup wizard (5-10 min, 12-20 questions) to configure Synkio')
   .option('--template <name>', 'Use a template (nextjs, tailwind, css)')
   .option('--yes, -y', 'Skip prompts and use defaults (requires env vars)')
+  .addHelpText('after', `
+Examples:
+  $ synkio init                           # Interactive setup
+  $ synkio init --template nextjs         # Use Next.js template
+  $ synkio init --yes                     # Non-interactive (needs env vars)
+
+Requirements:
+  - Figma file URL or file ID
+  - Figma access token (get from figma.com/settings)
+
+The wizard will:
+  1. Detect existing project setup (Style Dictionary, etc.)
+  2. Connect to your Figma file
+  3. Configure collection organization
+  4. Set up build integration
+  5. Optionally configure migration
+  `)
   .action(async (options) => {
     try {
       const { initCommand } = await import('./commands/init.js');

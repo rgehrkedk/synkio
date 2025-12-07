@@ -7,18 +7,16 @@
 
 import chalk from 'chalk';
 import ora, { type Ora } from 'ora';
-import boxen from 'boxen';
-import Table from 'cli-table3';
 
 // ============================================================================
 // Formatted Messages
 // ============================================================================
 
 /**
- * Format a success message with green boxen border
+ * Format a success message with simple border
  *
  * @param message - Success message to display
- * @returns Formatted string with boxen
+ * @returns Formatted string with chalk
  *
  * @example
  * ```typescript
@@ -26,19 +24,24 @@ import Table from 'cli-table3';
  * ```
  */
 export function formatSuccess(message: string): string {
-  return boxen(chalk.green(message), {
-    padding: 1,
-    margin: 1,
-    borderStyle: 'round',
-    borderColor: 'green',
+  const lines = message.split('\n');
+  const maxLength = Math.max(...lines.map(l => l.length));
+  const width = Math.min(maxLength + 4, 80);
+  const border = '═'.repeat(width);
+  
+  const paddedLines = lines.map(line => {
+    const padding = ' '.repeat(Math.max(0, width - line.length - 2));
+    return `  ${line}${padding}`;
   });
+  
+  return chalk.green(`╭${border}╮\n${paddedLines.map(l => `│${l}│`).join('\n')}\n╰${border}╯`);
 }
 
 /**
- * Format an error message with red boxen border
+ * Format an error message with simple border
  *
  * @param message - Error message to display
- * @returns Formatted string with boxen
+ * @returns Formatted string with chalk
  *
  * @example
  * ```typescript
@@ -46,19 +49,24 @@ export function formatSuccess(message: string): string {
  * ```
  */
 export function formatError(message: string): string {
-  return boxen(chalk.red(message), {
-    padding: 1,
-    margin: 1,
-    borderStyle: 'round',
-    borderColor: 'red',
+  const lines = message.split('\n');
+  const maxLength = Math.max(...lines.map(l => l.length));
+  const width = Math.min(maxLength + 4, 80);
+  const border = '═'.repeat(width);
+  
+  const paddedLines = lines.map(line => {
+    const padding = ' '.repeat(Math.max(0, width - line.length - 2));
+    return `  ${line}${padding}`;
   });
+  
+  return chalk.red(`╭${border}╮\n${paddedLines.map(l => `│${l}│`).join('\n')}\n╰${border}╯`);
 }
 
 /**
- * Format an info message with cyan boxen border
+ * Format an info message with simple border
  *
  * @param message - Info message to display
- * @returns Formatted string with boxen
+ * @returns Formatted string with chalk
  *
  * @example
  * ```typescript
@@ -66,19 +74,24 @@ export function formatError(message: string): string {
  * ```
  */
 export function formatInfo(message: string): string {
-  return boxen(chalk.cyan(message), {
-    padding: 1,
-    margin: 1,
-    borderStyle: 'round',
-    borderColor: 'cyan',
+  const lines = message.split('\n');
+  const maxLength = Math.max(...lines.map(l => l.length));
+  const width = Math.min(maxLength + 4, 80);
+  const border = '═'.repeat(width);
+  
+  const paddedLines = lines.map(line => {
+    const padding = ' '.repeat(Math.max(0, width - line.length - 2));
+    return `  ${line}${padding}`;
   });
+  
+  return chalk.cyan(`╭${border}╮\n${paddedLines.map(l => `│${l}│`).join('\n')}\n╰${border}╯`);
 }
 
 /**
- * Format a warning message with yellow boxen border
+ * Format a warning message with simple border
  *
  * @param message - Warning message to display
- * @returns Formatted string with boxen
+ * @returns Formatted string with chalk
  *
  * @example
  * ```typescript
@@ -86,12 +99,17 @@ export function formatInfo(message: string): string {
  * ```
  */
 export function formatWarning(message: string): string {
-  return boxen(chalk.yellow(message), {
-    padding: 1,
-    margin: 1,
-    borderStyle: 'round',
-    borderColor: 'yellow',
+  const lines = message.split('\n');
+  const maxLength = Math.max(...lines.map(l => l.length));
+  const width = Math.min(maxLength + 4, 80);
+  const border = '═'.repeat(width);
+  
+  const paddedLines = lines.map(line => {
+    const padding = ' '.repeat(Math.max(0, width - line.length - 2));
+    return `  ${line}${padding}`;
   });
+  
+  return chalk.yellow(`╭${border}╮\n${paddedLines.map(l => `│${l}│`).join('\n')}\n╰${border}╯`);
 }
 
 // ============================================================================
@@ -139,21 +157,37 @@ export function createSpinner(text: string): Ora {
  *     ['color.secondary', '#0000FF', '#FFFF00']
  *   ]
  * );
- * console.log(table.toString());
+ * console.log(table);
  * ```
  */
-export function createTable(headers: string[], rows: string[][]): Table.Table {
-  const table = new Table({
-    head: headers.map(h => chalk.cyan.bold(h)),
-    style: {
-      head: [],
-      border: ['grey'],
-    },
+export function createTable(headers: string[], rows: string[][]): string {
+  // Calculate column widths
+  const colWidths = headers.map((header, i) => {
+    const cellWidths = rows.map(row => (row[i] || '').length);
+    return Math.max(header.length, ...cellWidths) + 2; // +2 for padding
   });
 
-  rows.forEach(row => table.push(row));
+  // Format header
+  const headerRow = headers.map((h, i) => {
+    return chalk.cyan.bold(h.padEnd(colWidths[i]));
+  }).join(' │ ');
+  
+  const separator = colWidths.map(w => '─'.repeat(w)).join('─┼─');
 
-  return table;
+  // Format rows
+  const dataRows = rows.map(row => {
+    return row.map((cell, i) => {
+      return (cell || '').padEnd(colWidths[i]);
+    }).join(' │ ');
+  });
+
+  return [
+    `┌─${colWidths.map(w => '─'.repeat(w)).join('─┬─')}─┐`,
+    `│ ${headerRow} │`,
+    `├─${separator}─┤`,
+    ...dataRows.map(r => `│ ${r} │`),
+    `└─${colWidths.map(w => '─'.repeat(w)).join('─┴─')}─┘`
+  ].join('\n');
 }
 
 // ============================================================================

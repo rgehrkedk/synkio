@@ -17,14 +17,14 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 1.1: Critical Bug Fixes
 
-- [ ] **1.1.1: Fix Figma API accessToken Parameter** (File: `packages/core/src/cli/commands/init.ts:159`)
+- [x] **1.1.1: Fix Figma API accessToken Parameter** (File: `packages/core/src/cli/commands/init.ts:159`)
   - Add `accessToken: accessToken || undefined` to fetchFigmaData call
   - Verify token is passed correctly from user input
   - Test with valid and invalid tokens
   - **Acceptance:** User-entered token is used for API authentication
   - **Reference:** Bug #1 in BUGS_AND_FIXES.md
 
-- [ ] **1.1.2: Implement Retry Loop with Readline Reset** (File: `packages/core/src/cli/commands/init.ts:~145-180`)
+- [x] **1.1.2: Implement Retry Loop with Readline Reset** (File: `packages/core/src/cli/commands/init.ts:~145-180`)
   - Replace single try/catch with while loop (max 3 attempts)
   - Add attempt counter to spinner message
   - Close and recreate readline interface after each spinner failure
@@ -43,7 +43,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
     }
     ```
 
-- [ ] **1.1.3: Remove Debug Statements and Clean Imports** (File: `packages/core/src/cli/commands/init.ts`)
+- [x] **1.1.3: Remove Debug Statements and Clean Imports** (File: `packages/core/src/cli/commands/init.ts`)
   - Remove all `[DEBUG]` console.log statements (lines ~900-902)
   - Remove unused imports: `backupBaseline`, `getBaselinePath` (if present)
   - Verify no `any` types are used
@@ -52,7 +52,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 1.2: Package Configuration Updates
 
-- [ ] **1.2.1: Update package.json for Public NPM** (File: `packages/core/package.json`)
+- [x] **1.2.1: Update package.json for Public NPM** (File: `packages/core/package.json`)
   - Check @synkio/core is available on npmjs.org
   - Change name from `@rgehrkedk/synkio-core` to `@synkio/core`
   - Update publishConfig:
@@ -68,10 +68,10 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 1362-1408, requirements.md lines 60-82
 
 **Phase 1 Checkpoint:**
-- [ ] All bug fixes tested manually
-- [ ] Package.json validates correctly
-- [ ] No TypeScript errors
-- [ ] Code is clean and professional
+- [x] All bug fixes tested manually
+- [x] Package.json validates correctly
+- [x] No TypeScript errors
+- [x] Code is clean and professional
 
 ---
 
@@ -82,14 +82,14 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 2.1: Project Detection Before Figma Connection
 
-- [ ] **2.1.1: Move detectProject() Call Early** (File: `packages/core/src/cli/commands/init.ts:~125`)
+- [x] **2.1.1: Move detectProject() Call Early** (File: `packages/core/src/cli/commands/init.ts:~125`)
   - Import `detectProject` from `../../detect/index.js`
   - Call `detectProject()` BEFORE Figma connection prompts
   - Store detection results in variable for later use
   - **Acceptance:** Project detection happens first in flow
   - **Reference:** spec.md lines 15-30, requirements.md lines 369-412
 
-- [ ] **2.1.2: Display Detection Results to User** (File: `packages/core/src/cli/commands/init.ts:~130`)
+- [x] **2.1.2: Display Detection Results to User** (File: `packages/core/src/cli/commands/init.ts:~130`)
   - Format and show Style Dictionary version (if found)
   - Show config path and detected build command
   - Show detected token directories
@@ -107,7 +107,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
       Build: npm run tokens:build
     ```
 
-- [ ] **2.1.3: Add Opening Welcome Message** (File: `packages/core/src/cli/commands/init.ts:~100`)
+- [x] **2.1.3: Add Opening Welcome Message** (File: `packages/core/src/cli/commands/init.ts:~100`)
   - Update welcome message with realistic expectations
   - Mention 12-20 questions, 5-10 minutes
   - List what user needs (Figma URL, token)
@@ -116,9 +116,9 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 407-416, Bug #3 fix
 
 **Phase 2 Checkpoint:**
-- [ ] Detection runs before Figma connection
-- [ ] Results displayed clearly to user
-- [ ] Welcome message sets correct expectations
+- [x] Detection runs before Figma connection
+- [x] Results displayed clearly to user
+- [x] Welcome message sets correct expectations
 
 ---
 
@@ -129,7 +129,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 3.1: Create Sanitization Function
 
-- [ ] **3.1.1: Implement sanitizeForFilename()** (File: `packages/core/src/cli/commands/init.ts`, new function)
+- [x] **3.1.1: Implement sanitizeForFilename()** (File: `packages/core/src/cli/commands/init.ts`, new function)
   - Handle special characters (/, \, :, *, ?, ", <, >, |)
   - Replace spaces with hyphens
   - Remove parentheses and brackets
@@ -141,7 +141,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 156-226, requirements.md lines 275-321
   - **Implementation:** See spec.md lines 157-195 for exact logic
 
-- [ ] **3.1.2: Write Unit Tests for Sanitization** (File: `packages/core/src/cli/commands/__tests__/init.test.ts`, new file)
+- [x] **3.1.2: Write Unit Tests for Sanitization** (File: `packages/core/src/cli/commands/__tests__/init.test.ts`, new file)
   - Test special characters: "Dark / High Contrast" → "dark-high-contrast"
   - Test Windows reserved: "con" → "_con"
   - Test path traversal: "../secrets" → "secrets"
@@ -152,9 +152,9 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 849-877
 
 **Phase 3 Checkpoint:**
-- [ ] sanitizeForFilename() function complete
-- [ ] Unit tests pass (6-8 tests)
-- [ ] JSDoc documentation clear
+- [x] sanitizeForFilename() function complete
+- [x] Unit tests pass (6-8 tests)
+- [x] JSDoc documentation clear
 
 ---
 
@@ -165,7 +165,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 4.1: Collection Extraction & Analysis
 
-- [ ] **4.1.1: Add Collection Analysis After Figma Fetch** (File: `packages/core/src/cli/commands/init.ts:~180`)
+- [x] **4.1.1: Add Collection Analysis After Figma Fetch** (File: `packages/core/src/cli/commands/init.ts:~180`)
   - Import `extractCollections`, `analyzeCollections` from `../../tokens/index.js`
   - After successful fetchFigmaData, call extractCollections(fetchedData)
   - Call analyzeCollections(collections) to get CollectionInfo[]
@@ -173,7 +173,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** Collections extracted and analyzed correctly
   - **Reference:** spec.md lines 86-137, requirements.md lines 459-505
 
-- [ ] **4.1.2: Handle Edge Case - Zero Collections Found** (File: `packages/core/src/cli/commands/init.ts:~185`)
+- [x] **4.1.2: Handle Edge Case - Zero Collections Found** (File: `packages/core/src/cli/commands/init.ts:~185`)
   - Check if collectionsInfo.length === 0
   - Show warning about no collections found
   - Prompt user to continue or exit
@@ -183,14 +183,14 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 4.2: Strategy Determination & Path Generation
 
-- [ ] **4.2.1: Implement determineAvailableStrategies()** (File: `packages/core/src/cli/commands/init.ts`, new function)
+- [x] **4.2.1: Implement determineAvailableStrategies()** (File: `packages/core/src/cli/commands/init.ts`, new function)
   - If collection has multiple modes (>1): FORCE byMode only
   - If collection has single mode: Offer byGroup, flat, skip
   - Return array of strategy choices with descriptions
   - **Acceptance:** Correct strategies offered based on collection structure
   - **Reference:** spec.md lines 138-144
 
-- [ ] **4.2.2: Implement generateFilePaths()** (File: `packages/core/src/cli/commands/init.ts`, new function)
+- [x] **4.2.2: Implement generateFilePaths()** (File: `packages/core/src/cli/commands/init.ts`, new function)
   - Accept collectionName, strategy, keys (modes or groups)
   - Apply sanitizeForFilename to all names
   - Generate baseDir: `tokens/{sanitized-collection}`
@@ -202,7 +202,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 199-247, requirements.md lines 726-753
   - **Implementation:** See spec.md lines 199-225 for exact logic
 
-- [ ] **4.2.3: Write Unit Tests for Path Generation** (File: `packages/core/src/cli/commands/__tests__/init.test.ts`)
+- [x] **4.2.3: Write Unit Tests for Path Generation** (File: `packages/core/src/cli/commands/__tests__/init.test.ts`)
   - Test byMode strategy with 2 modes
   - Test byGroup strategy with 3 groups
   - Test flat strategy
@@ -213,7 +213,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 4.3: Interactive Collection Configuration Loop
 
-- [ ] **4.3.1: Create configureCollection() Function** (File: `packages/core/src/cli/commands/init.ts`, new function)
+- [x] **4.3.1: Create configureCollection() Function** (File: `packages/core/src/cli/commands/init.ts`, new function)
   - Display collection name with visual separator
   - Show modes with counts
   - Show groups (from first mode) with counts
@@ -225,7 +225,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** Single collection configured interactively
   - **Reference:** spec.md lines 94-137, requirements.md lines 420-446
 
-- [ ] **4.3.2: Implement Collection Configuration Loop** (File: `packages/core/src/cli/commands/init.ts:~200`)
+- [x] **4.3.2: Implement Collection Configuration Loop** (File: `packages/core/src/cli/commands/init.ts:~200`)
   - Add section header: "Step 3: Collection Configuration"
   - Show collection count: `Found ${collectionsInfo.length} collection(s)`
   - For each collection in collectionsInfo:
@@ -235,13 +235,13 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** All collections configured or skipped
   - **Reference:** spec.md lines 417-440
 
-- [ ] **4.3.3: Validate At Least One Collection Configured** (File: `packages/core/src/cli/commands/init.ts:~230`)
+- [x] **4.3.3: Validate At Least One Collection Configured** (File: `packages/core/src/cli/commands/init.ts:~230`)
   - After loop, check if config.split is empty
   - If empty, show error and prompt to restart
   - **Acceptance:** Cannot proceed without at least one collection
   - **Reference:** spec.md lines 777-796
 
-- [ ] **4.3.4: Add Path Conflict Detection** (File: `packages/core/src/cli/commands/init.ts:~235`)
+- [x] **4.3.4: Add Path Conflict Detection** (File: `packages/core/src/cli/commands/init.ts:~235`)
   - Track all file paths in Set
   - Check for duplicates across collections
   - Warn user if conflicts found
@@ -249,12 +249,12 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 228-246
 
 **Phase 4 Checkpoint:**
-- [ ] Collections analyzed correctly
-- [ ] Strategies determined appropriately
-- [ ] File paths generated safely
-- [ ] Interactive loop works smoothly
-- [ ] Unit tests pass (12-16 total)
-- [ ] Edge cases handled gracefully
+- [x] Collections analyzed correctly
+- [x] Strategies determined appropriately
+- [x] File paths generated safely
+- [x] Interactive loop works smoothly
+- [x] Unit tests pass (12-16 total)
+- [x] Edge cases handled gracefully
 
 ---
 
@@ -265,7 +265,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 5.1: Build Configuration
 
-- [ ] **5.1.1: Populate build.styleDictionary Section** (File: `packages/core/src/cli/commands/init.ts:~250`)
+- [x] **5.1.1: Populate build.styleDictionary Section** (File: `packages/core/src/cli/commands/init.ts:~250`)
   - Use detection results from Phase 2
   - If Style Dictionary found:
     - Set build.command from detected scripts
@@ -277,9 +277,9 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 250-287, requirements.md lines 508-540
 
 **Phase 5 Checkpoint:**
-- [ ] Build config populated correctly
-- [ ] Detection results used appropriately
-- [ ] Manual build command works when SD not found
+- [x] Build config populated correctly
+- [x] Detection results used appropriately
+- [x] Manual build command works when SD not found
 
 ---
 
@@ -290,7 +290,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 6.1: Create JSON Schema File
 
-- [ ] **6.1.1: Create tokensrc.schema.json** (File: `packages/core/schemas/tokensrc.schema.json`, new file)
+- [x] **6.1.1: Create tokensrc.schema.json** (File: `packages/core/schemas/tokensrc.schema.json`, new file)
   - Use JSON Schema draft-07
   - Set $id to unpkg.com URL
   - Define root object with required properties: version, figma, paths
@@ -310,7 +310,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 1074-1341, requirements.md lines 559-566
   - **Implementation:** See spec.md lines 1075-1341 for exact schema structure
 
-- [ ] **6.1.2: Validate Schema Against Example Configs** (Local testing)
+- [x] **6.1.2: Validate Schema Against Example Configs** (Local testing)
   - Install ajv-cli for validation
   - Test schema against generated configs
   - Fix validation errors
@@ -319,14 +319,14 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 6.2: Schema Integration
 
-- [ ] **6.2.1: Add Schema Reference to Generated Configs** (File: `packages/core/src/cli/commands/init.ts:~260`)
+- [x] **6.2.1: Add Schema Reference to Generated Configs** (File: `packages/core/src/cli/commands/init.ts:~260`)
   - Always add `$schema` property to config object
   - Use URL: `https://unpkg.com/@synkio/core/schemas/tokensrc.schema.json`
   - Place as first property in config
   - **Acceptance:** All generated configs include schema reference
   - **Reference:** spec.md lines 299-305
 
-- [ ] **6.2.2: Test Schema Autocomplete in VS Code** (Manual testing)
+- [x] **6.2.2: Test Schema Autocomplete in VS Code** (Manual testing)
   - Generate a config with init
   - Open tokensrc.json in VS Code
   - Verify autocomplete appears
@@ -336,10 +336,10 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 1621-1629
 
 **Phase 6 Checkpoint:**
-- [ ] Schema file created and complete
-- [ ] Schema validates against real configs
-- [ ] Autocomplete works in VS Code
-- [ ] Tooltips provide helpful context
+- [x] Schema file created and complete
+- [x] Schema validates against real configs
+- [x] Autocomplete works in VS Code
+- [x] Tooltips provide helpful context
 
 ---
 
@@ -350,7 +350,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 7.1: Migration Helper Functions
 
-- [ ] **7.1.1: Port generateStripSegments()** (File: `packages/core/src/cli/commands/init.ts`, new function)
+- [x] **7.1.1: Port generateStripSegments()** (File: `packages/core/src/cli/commands/init.ts`, new function)
   - Port logic from setup.ts lines 119-136
   - Accept collectionsInfo as parameter
   - Extract collection names (sanitized)
@@ -361,7 +361,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** Strip segments generated from collections
   - **Reference:** spec.md lines 372-395, requirements.md lines 613-621
 
-- [ ] **7.1.2: Write Unit Tests for generateStripSegments()** (File: `packages/core/src/cli/commands/__tests__/init.test.ts`)
+- [x] **7.1.2: Write Unit Tests for generateStripSegments()** (File: `packages/core/src/cli/commands/__tests__/init.test.ts`)
   - Test with single collection
   - Test with multiple collections
   - Test with sanitized names
@@ -371,7 +371,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 7.2: Migration Configuration Prompts
 
-- [ ] **7.2.1: Add Migration Prompt at End of Flow** (File: `packages/core/src/cli/commands/init.ts:~270`)
+- [x] **7.2.1: Add Migration Prompt at End of Flow** (File: `packages/core/src/cli/commands/init.ts:~270`)
   - After saving main config, show success message
   - Prompt: "Optional: Configure automatic migration for breaking token changes?"
   - Default to "No" for easy skip
@@ -379,7 +379,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** Migration is clearly optional
   - **Reference:** spec.md lines 313-370, requirements.md lines 568-628
 
-- [ ] **7.2.2: Implement Migration Platform Selection** (File: `packages/core/src/cli/commands/init.ts:~275`)
+- [x] **7.2.2: Implement Migration Platform Selection** (File: `packages/core/src/cli/commands/init.ts:~275`)
   - Import `askMultipleChoiceToggle`, `PLATFORM_CHOICES`, `createPlatformsConfig` from adapters
   - If user opts in, show explanation of migration
   - Ask which platforms to configure (multi-select)
@@ -387,7 +387,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** User can select multiple platforms
   - **Reference:** spec.md lines 342-358
 
-- [ ] **7.2.3: Generate and Apply Migration Config** (File: `packages/core/src/cli/commands/init.ts:~280`)
+- [x] **7.2.3: Generate and Apply Migration Config** (File: `packages/core/src/cli/commands/init.ts:~280`)
   - Generate stripSegments from collectionsInfo
   - Call createPlatformsConfig(selectedPlatforms)
   - Apply stripSegments to all platform configs
@@ -399,11 +399,11 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** spec.md lines 350-369
 
 **Phase 7 Checkpoint:**
-- [ ] Migration is optional (default: No)
-- [ ] Strip segments generated correctly
-- [ ] Platform configs created properly
-- [ ] Generated migration config is functional
-- [ ] Unit tests pass (16-22 total)
+- [x] Migration is optional (default: No)
+- [x] Strip segments generated correctly
+- [x] Platform configs created properly
+- [x] Generated migration config is functional
+- [x] Unit tests pass (16-22 total)
 
 ---
 
@@ -414,7 +414,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 8.1: Progress Indication & Messaging
 
-- [ ] **8.1.1: Add Section Headers Throughout Flow** (File: `packages/core/src/cli/commands/init.ts`)
+- [x] **8.1.1: Add Section Headers Throughout Flow** (File: `packages/core/src/cli/commands/init.ts`)
   - Add visual separators using `━` characters
   - Number each major step (Step 1, Step 2, etc.)
   - Sections: Project Detection, Figma Connection, Collection Configuration, Migration (optional)
@@ -422,7 +422,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** Clear visual structure throughout flow
   - **Reference:** spec.md lines 398-440
 
-- [ ] **8.1.2: Implement Helpful Error Messages** (File: `packages/core/src/cli/commands/init.ts`, new function)
+- [x] **8.1.2: Implement Helpful Error Messages** (File: `packages/core/src/cli/commands/init.ts`, new function)
   - Create getHelpfulErrorMessage(error) function
   - Map common errors to user-friendly messages:
     - 403/Unauthorized → Check access token
@@ -432,7 +432,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** Users understand errors and know how to fix them
   - **Reference:** spec.md lines 478-510, requirements.md lines 639-647
 
-- [ ] **8.1.3: Add JSDoc Comments to All Functions** (File: `packages/core/src/cli/commands/init.ts`)
+- [x] **8.1.3: Add JSDoc Comments to All Functions** (File: `packages/core/src/cli/commands/init.ts`)
   - Document all new functions with JSDoc
   - Include @param, @returns, @example tags
   - Explain edge cases and special behavior
@@ -442,7 +442,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 8.2: Final Testing & Validation
 
-- [ ] **8.2.1: Manual Testing Checklist** (Local testing)
+- [x] **8.2.1: Manual Testing Checklist** (Local testing)
   - Run init with valid Figma file (2-3 collections)
   - Test retry with invalid token (verify readline reset)
   - Test retry with invalid file ID
@@ -459,7 +459,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** All scenarios work correctly
   - **Reference:** spec.md lines 1035-1057
 
-- [ ] **8.2.2: Integration Test for Full Flow** (File: `packages/core/src/cli/commands/__tests__/init.test.ts`)
+- [x] **8.2.2: Integration Test for Full Flow** (File: `packages/core/src/cli/commands/__tests__/init.test.ts`)
   - Mock Figma API responses
   - Simulate user inputs
   - Test complete init flow end-to-end
@@ -470,7 +470,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** Critical flows covered by tests
   - **Reference:** spec.md lines 956-1032
 
-- [ ] **8.2.3: Run All Tests and Verify Passing** (Local testing)
+- [x] **8.2.3: Run All Tests and Verify Passing** (Local testing)
   - Run complete test suite
   - Target: ~22-30 total tests passing
   - Fix any failures
@@ -480,7 +480,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 
 ### Task Group 8.3: Documentation Updates
 
-- [ ] **8.3.1: Update CLI Help Text** (File: `packages/core/src/cli/commands/init.ts`)
+- [x] **8.3.1: Update CLI Help Text** (File: `packages/core/src/cli/commands/init.ts`)
   - Update command description
   - Add help text with realistic info (12-20 questions)
   - Include examples
@@ -488,7 +488,7 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Acceptance:** Help text is accurate and helpful
   - **Reference:** spec.md lines 1640-1671
 
-- [ ] **8.3.2: Create CHANGELOG Entry** (File: `packages/core/CHANGELOG.md`)
+- [x] **8.3.2: Create CHANGELOG Entry** (File: `packages/core/CHANGELOG.md`)
   - Document all changes in v1.0.0 release
   - List bug fixes (7 critical bugs)
   - List new features (collection config, schema, migration)
@@ -497,13 +497,13 @@ This task list provides a strategic, sequential breakdown for enhancing the init
   - **Reference:** Implementation notes in spec.md
 
 **Phase 8 Checkpoint:**
-- [ ] All sections have clear headers
-- [ ] Error messages are helpful
-- [ ] All functions documented
-- [ ] Manual testing complete
-- [ ] Integration tests pass (22-30 total tests)
-- [ ] Help text updated
-- [ ] Documentation complete
+- [x] All sections have clear headers
+- [x] Error messages are helpful
+- [x] All functions documented
+- [x] Manual testing complete
+- [x] Integration tests pass (22-30 total tests)
+- [x] Help text updated
+- [x] Documentation complete
 
 ---
 
@@ -512,33 +512,33 @@ This task list provides a strategic, sequential breakdown for enhancing the init
 Before marking this spec complete, verify:
 
 ### Functional Completeness
-- [ ] Generated tokensrc.json works immediately with `synkio sync`
-- [ ] All collections configured with explicit file paths
-- [ ] Style Dictionary auto-detected and configured
-- [ ] Migration optionally configured (if user chooses)
-- [ ] Schema provides IDE autocomplete
-- [ ] All 7 bugs from BUGS_AND_FIXES.md fixed
+- [x] Generated tokensrc.json works immediately with `synkio sync`
+- [x] All collections configured with explicit file paths
+- [x] Style Dictionary auto-detected and configured
+- [x] Migration optionally configured (if user chooses)
+- [x] Schema provides IDE autocomplete
+- [x] All 7 bugs from BUGS_AND_FIXES.md fixed
 
 ### User Experience
-- [ ] Clear progress indication (section headers)
-- [ ] Informative prompts with context
-- [ ] Smart defaults based on detection
-- [ ] Graceful error handling with retry
-- [ ] Realistic documentation (12-20 prompts)
-- [ ] Migration clearly optional
+- [x] Clear progress indication (section headers)
+- [x] Informative prompts with context
+- [x] Smart defaults based on detection
+- [x] Graceful error handling with retry
+- [x] Realistic documentation (12-20 prompts)
+- [x] Migration clearly optional
 
 ### Code Quality
-- [ ] Zero DEBUG statements
-- [ ] Zero unused imports
-- [ ] No `any` types
-- [ ] JSDoc on all public functions
-- [ ] 22-30 tests covering critical paths
+- [x] Zero DEBUG statements
+- [x] Zero unused imports
+- [x] No `any` types
+- [x] JSDoc on all public functions
+- [x] 22-30 tests covering critical paths
 
 ### Documentation
-- [ ] CLI help text accurate
-- [ ] Schema has descriptions
-- [ ] Error messages actionable
-- [ ] CHANGELOG complete
+- [x] CLI help text accurate
+- [x] Schema has descriptions
+- [x] Error messages actionable
+- [x] CHANGELOG complete
 
 ---
 
