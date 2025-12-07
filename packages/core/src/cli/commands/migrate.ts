@@ -15,7 +15,7 @@ import { initContext } from '../../context.js';
 import type { TokensConfig } from '../../types/index.js';
 
 import {
-  loadConfigOrThrow,
+  loadConfig,
   loadBaseline,
 } from '../../files/index.js';
 
@@ -432,12 +432,11 @@ export async function migrateCommand(options: MigrateOptions = {}): Promise<void
   // Initialize context
   initContext({ rootDir: process.cwd() });
 
-  // Load config
-  let config: TokensConfig;
-  try {
-    config = loadConfigOrThrow();
-  } catch (error) {
-    console.error(`${error instanceof Error ? error.message : error}`);
+  // Load config (without strict validation - migrate doesn't need Figma token)
+  const config = loadConfig();
+  
+  if (!config) {
+    console.error('No tokensrc.json found. Run \'synkio init\' first.');
     process.exit(1);
   }
 
