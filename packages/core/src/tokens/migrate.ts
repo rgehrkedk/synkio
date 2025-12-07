@@ -140,7 +140,9 @@ export async function scanCssUsages(
     };
 
     for (const { from } of replacements) {
-      const regex = new RegExp(escapeRegex(from), 'g');
+      // Use word boundary: match token but not if followed by more token segments (e.g., -hover)
+      // For CSS: --token-name should not match --token-name-extended
+      const regex = createTokenBoundaryRegex(from);
 
       lines.forEach((line, index) => {
         const lineMatches = line.match(regex);
@@ -190,7 +192,8 @@ export async function applyCssReplacements(
     const matchedLines: { line: number; content: string }[] = [];
 
     for (const { from, to } of replacements) {
-      const regex = new RegExp(escapeRegex(from), 'g');
+      // Use word boundary: match token but not if followed by more token segments
+      const regex = createTokenBoundaryRegex(from);
       const matches = content.match(regex);
 
       if (matches) {
@@ -233,6 +236,22 @@ export async function applyCssReplacements(
  */
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Create a regex that matches a token with word boundaries.
+ * For CSS tokens like --color-brand-primary:
+ * - Matches: var(--color-brand-primary), --color-brand-primary:
+ * - Does NOT match: --color-brand-primary-hover (token is extended)
+ * 
+ * Uses negative lookahead to ensure the token isn't followed by more segments.
+ */
+function createTokenBoundaryRegex(token: string): RegExp {
+  // Escape the token for regex
+  const escaped = escapeRegex(token);
+  // Negative lookahead: not followed by hyphen + word char (which would extend the token)
+  // This ensures --color-brand-primary doesn't match --color-brand-primary-hover
+  return new RegExp(`${escaped}(?!-[a-zA-Z0-9])`, 'g');
 }
 
 /**
@@ -408,7 +427,8 @@ export async function scanPlatformUsages(
       };
 
       for (const { from } of replacements) {
-        const regex = new RegExp(escapeRegex(from), 'g');
+        // Use word boundary to avoid matching extended tokens (e.g., --token-hover when searching --token)
+        const regex = createTokenBoundaryRegex(from);
 
         lines.forEach((line, index) => {
           const lineMatches = line.match(regex);

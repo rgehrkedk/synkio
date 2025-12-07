@@ -19,6 +19,15 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/**
+ * Create a regex that matches a token with word boundaries.
+ * Uses negative lookahead to ensure the token isn't followed by more segments.
+ */
+function createTokenBoundaryRegex(token: string): RegExp {
+  const escaped = escapeRegex(token);
+  return new RegExp(`${escaped}(?!-[a-zA-Z0-9])`, 'g');
+}
+
 /** Result of applying migrations to a platform */
 export interface PlatformMigrationResult {
   platform: string;
@@ -64,7 +73,8 @@ export async function applyPlatformReplacements(
       const matchedLines: { line: number; content: string }[] = [];
 
       for (const { from, to } of replacements) {
-        const regex = new RegExp(escapeRegex(from), 'g');
+        // Use word boundary to avoid matching extended tokens
+        const regex = createTokenBoundaryRegex(from);
         const matches = content.match(regex);
 
         if (matches) {
@@ -73,7 +83,7 @@ export async function applyPlatformReplacements(
           // Track which lines were modified
           const lines = content.split('\n');
           lines.forEach((line, index) => {
-            if (line.includes(from) && !matchedLines.some(l => l.line === index + 1)) {
+            if (line.match(createTokenBoundaryRegex(from)) && !matchedLines.some(l => l.line === index + 1)) {
               matchedLines.push({ line: index + 1, content: line.trim() });
             }
           });
