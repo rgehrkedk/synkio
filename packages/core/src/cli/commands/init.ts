@@ -632,28 +632,36 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
     console.log(formatSuccess(`\n✓ Using custom data directory: ${dataPath}`));
   }
 
-  // Use detection results for build configuration
+  // Ask about build command
+  let wantsBuild = false;
+  
   if (detection.styleDictionary.found) {
-    // Auto-configure Style Dictionary integration
-    config.build = {
-      command: detection.build.command || 'npm run tokens:build',
-      styleDictionary: {
-        enabled: true,
-        config: detection.styleDictionary.configPath || 'style-dictionary.config.js',
-        version: detection.styleDictionary.version || 'v4',
-      }
-    };
-    console.log(formatSuccess('\n✓ Style Dictionary integration configured automatically'));
+    console.log(formatInfo(`\nStyle Dictionary detected: ${detection.styleDictionary.configPath || 'style-dictionary.config.js'}`));
+    wantsBuild = await askYesNo(rl, 'Configure Style Dictionary build?', true);
   } else {
-    // Ask about build command
-    const hasBuildCommand = await askYesNo(rl, '\nAdd a build command to run after sync? (e.g., "npm run tokens:build")', false);
+    wantsBuild = await askYesNo(rl, '\nAdd a build command to run after sync?', false);
+  }
 
-    if (hasBuildCommand) {
-      const buildCommand = await askText(rl, 'Build command:', 'npm run tokens:build');
-      config.build = {
-        command: buildCommand,
+  if (wantsBuild) {
+    const defaultCommand = detection.build.command || 'npm run tokens:build';
+    const buildCommand = await askText(rl, 'Build command', defaultCommand);
+    
+    config.build = {
+      command: buildCommand,
+    };
+    
+    if (detection.styleDictionary.found) {
+      const defaultConfig = detection.styleDictionary.configPath || 'style-dictionary.config.js';
+      const sdConfig = await askText(rl, 'Style Dictionary config path', defaultConfig);
+      
+      config.build.styleDictionary = {
+        enabled: true,
+        config: sdConfig,
+        version: detection.styleDictionary.version || 'v4',
       };
     }
+    
+    console.log(formatSuccess(`\n✓ Build command: ${config.build.command}`));
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
