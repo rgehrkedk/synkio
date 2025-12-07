@@ -286,7 +286,7 @@ function getSplitStrategyChoices(): Array<{value: string; label: string; descrip
  */
 async function configureCollection(rl: readline.Interface, info: any): Promise<any | null> {
   console.log('\n' + '─'.repeat(60));
-  console.log(`Collection: ${info.name}`);
+  console.log(`📦 Collection: ${info.name}`);
   console.log('─'.repeat(60));
   
   // Show summary
@@ -294,18 +294,22 @@ async function configureCollection(rl: readline.Interface, info: any): Promise<a
   const groups = Object.keys(info.groups[firstMode] || {});
   const totalTokens = Object.values(info.groups[firstMode] || {}).reduce((sum: number, count) => sum + (count as number), 0);
   
-  console.log(`\n  Modes: ${info.modes.join(', ')} (${info.modes.length})`);
-  console.log(`  Groups: ${groups.slice(0, 5).join(', ')}${groups.length > 5 ? ` (+${groups.length - 5} more)` : ''}`);
-  console.log(`  Total tokens: ${totalTokens}`);
+  console.log('\n  What was found in Figma:');
+  console.log(`  ├─ Modes: ${info.modes.join(', ')} (${info.modes.length} total)`);
+  console.log(`  ├─ Groups: ${groups.slice(0, 5).join(', ')}${groups.length > 5 ? ` (+${groups.length - 5} more)` : ''}`);
+  console.log(`  └─ Total tokens: ${totalTokens}`);
   
   // Step 1: Choose split strategy
   const strategies = getSplitStrategyChoices();
-  console.log('\n1. How should this collection be split?');
+  console.log('\n  ┌─────────────────────────────────────────────────────────');
+  console.log('  │ STEP 1: Choose how to split this collection');
+  console.log('  └─────────────────────────────────────────────────────────');
   for (let i = 0; i < strategies.length; i++) {
-    console.log(`   ${i + 1}. ${strategies[i].label} - ${strategies[i].description}`);
+    console.log(`     ${i + 1}. ${strategies[i].label}`);
+    console.log(`        ${strategies[i].description}`);
   }
   
-  const choiceStr = await askText(rl, 'Choose (1-4)', '1');
+  const choiceStr = await askText(rl, '\n  Your choice (1-4)', '1');
   const choiceIndex = parseInt(choiceStr) - 1;
   
   let selectedStrategy: string;
@@ -317,31 +321,46 @@ async function configureCollection(rl: readline.Interface, info: any): Promise<a
   
   // Handle skip
   if (selectedStrategy === 'skip') {
-    console.log('  → Skipped');
+    console.log('\n  ⏭️  Skipping this collection - it will NOT be included in output');
     return null;
   }
   
+  console.log(`\n  ✓ Selected: ${strategies[choiceIndex]?.label || strategies[0].label}`);
+  
   // Step 2: User specifies output directory
   const defaultDir = `tokens/${sanitizeForFilename(info.name)}`;
-  console.log('\n2. Where should the files be saved?');
-  const outputDir = await askText(rl, 'Output directory', defaultDir);
+  console.log('\n  ┌─────────────────────────────────────────────────────────');
+  console.log('  │ STEP 2: Choose output directory');
+  console.log('  └─────────────────────────────────────────────────────────');
+  console.log(`     Default suggestion: ${defaultDir}`);
+  console.log('     (Press Enter to accept, or type a custom path)');
+  const outputDir = await askText(rl, '\n  Output directory', defaultDir);
+  
+  console.log(`\n  ✓ Output directory: ${outputDir}`);
   
   // Step 3: Generate file mapping based on strategy
   const files: Record<string, string> = {};
   const keys = selectedStrategy === 'byMode' ? info.modes : groups;
   
+  console.log('\n  ┌─────────────────────────────────────────────────────────');
+  console.log('  │ STEP 3: Confirm file names');
+  console.log('  └─────────────────────────────────────────────────────────');
+  
   if (selectedStrategy === 'flat') {
     // All keys map to single file - user chooses filename
     const defaultFile = `${outputDir}/tokens.json`;
-    console.log('\n3. What should the file be named?');
-    const filename = await askText(rl, 'Filename', defaultFile);
+    console.log('     All tokens will be saved to a single file.');
+    console.log(`     Default suggestion: ${defaultFile}`);
+    const filename = await askText(rl, '\n  Filename', defaultFile);
     for (const key of keys) {
       files[key] = filename;
     }
+    console.log(`\n  ✓ File: ${filename}`);
   } else {
     // Each key gets its own file
-    console.log(`\n3. Files will be created in: ${outputDir}/`);
-    console.log('   File naming: Each ' + (selectedStrategy === 'byMode' ? 'mode' : 'group') + ' becomes a file');
+    const keyType = selectedStrategy === 'byMode' ? 'mode' : 'group';
+    console.log(`     Each ${keyType} will become a separate file.`);
+    console.log(`     Files will be created in: ${outputDir}/`);
     
     for (const key of keys) {
       const sanitizedKey = sanitizeForFilename(key);
@@ -350,27 +369,36 @@ async function configureCollection(rl: readline.Interface, info: any): Promise<a
     
     // Show preview
     const uniqueFiles = Array.from(new Set(Object.values(files)));
-    console.log('\n   Files to be created:');
-    for (const file of uniqueFiles.slice(0, 5)) {
-      console.log(`   - ${file}`);
+    console.log('\n     Proposed files:');
+    for (const file of uniqueFiles.slice(0, 8)) {
+      console.log(`     • ${file}`);
     }
-    if (uniqueFiles.length > 5) {
-      console.log(`   ... and ${uniqueFiles.length - 5} more`);
+    if (uniqueFiles.length > 8) {
+      console.log(`     ... and ${uniqueFiles.length - 8} more files`);
     }
     
     // Confirm or let user rename
-    const confirmFiles = await askYesNo(rl, 'Accept these file names?', true);
+    const confirmFiles = await askYesNo(rl, '\n  Accept these file names?', true);
     if (!confirmFiles) {
-      console.log('\n   Enter custom filenames (or press Enter to keep default):');
+      console.log('\n     Enter custom path for each (or press Enter to keep default):');
       for (const key of keys) {
         const defaultName = files[key];
-        const customName = await askText(rl, `   ${key}`, defaultName);
+        const customName = await askText(rl, `     ${key}`, defaultName);
         files[key] = customName;
       }
     }
+    
+    console.log(`\n  ✓ ${uniqueFiles.length} files will be created`);
   }
   
-  console.log(`  → Configured: ${selectedStrategy} → ${outputDir}`);
+  // Summary
+  console.log('\n  ┌─────────────────────────────────────────────────────────');
+  console.log(`  │ ✅ CONFIGURED: ${info.name}`);
+  console.log('  ├─────────────────────────────────────────────────────────');
+  console.log(`  │ Strategy: ${selectedStrategy}`);
+  console.log(`  │ Output: ${outputDir}`);
+  console.log(`  │ Files: ${Object.keys(files).length}`);
+  console.log('  └─────────────────────────────────────────────────────────');
   
   return {
     collection: info.name,
@@ -433,34 +461,37 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   console.log('\n' + '━'.repeat(60));
   console.log('Step 1: Project Detection');
-  console.log('━'.repeat(60) + '\n');
+  console.log('━'.repeat(60));
+  console.log(formatInfo('\nScanning your project for existing configuration...\n'));
 
   const detection = detectProject();
 
-  // Display detection results
+  // Display detection results clearly
+  console.log('Detection Results:');
+  console.log('─'.repeat(40));
+  
   if (detection.styleDictionary.found) {
-    console.log(`✓ Style Dictionary ${detection.styleDictionary.version || ''} detected`);
-    if (detection.styleDictionary.configPath) {
-      console.log(`  Config: ${detection.styleDictionary.configPath}`);
-    }
-    if (detection.build.command) {
-      console.log(`  Build: ${detection.build.command}`);
-    }
+    console.log(`  ✓ Style Dictionary: Found (${detection.styleDictionary.version || 'unknown version'})`);
+    console.log(`    Config file: ${detection.styleDictionary.configPath || 'not found'}`);
+    console.log(`    Build script: ${detection.build.command || 'not found'}`);
   } else {
-    console.log('○ No Style Dictionary setup detected');
+    console.log('  ○ Style Dictionary: Not found');
   }
 
   if (detection.paths.tokens) {
-    console.log(`✓ Token directory found: ${detection.paths.tokens}`);
+    console.log(`  ✓ Token directory: ${detection.paths.tokens}`);
   } else {
-    console.log('○ No token directory detected (defaults to tokens/)');
+    console.log('  ○ Token directory: Not found');
   }
 
   if (detection.paths.styles) {
-    console.log(`✓ Styles directory found: ${detection.paths.styles}`);
+    console.log(`  ✓ Styles directory: ${detection.paths.styles}`);
   } else {
-    console.log('○ No styles directory detected (defaults to styles/tokens)');
+    console.log('  ○ Styles directory: Not found');
   }
+  
+  console.log('─'.repeat(40));
+  console.log(formatInfo('\nThese are only suggestions. You will configure everything manually.\n'));
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 2: Figma Connection
@@ -614,37 +645,56 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
   }
 
   // Ask about output paths
+  console.log('\n  ┌─────────────────────────────────────────────────────────');
+  console.log('  │ DATA STORAGE');
+  console.log('  └─────────────────────────────────────────────────────────');
+  console.log('     Synkio stores baseline data and token maps locally.');
+  console.log(`     Default location: ${config.paths.data || '.figma/data'}`);
+  
   const defaultDataPath = config.paths.data || '.figma/data';
-  const useDefaults = await askYesNo(rl, `\nUse default output paths? (${defaultDataPath})`, true);
+  const useDefaults = await askYesNo(rl, '\n  Use default data directory?', true);
 
   if (useDefaults) {
     config.paths.data = defaultDataPath;
     config.paths.baseline = path.join(defaultDataPath, 'baseline.json');
     config.paths.baselinePrev = path.join(defaultDataPath, 'baseline.prev.json');
     config.paths.tokenMap = path.join(defaultDataPath, 'token-map.json');
-    console.log(formatSuccess(`\n✓ Using default data directory: ${defaultDataPath}`));
+    console.log(`\n  ✓ Data directory: ${defaultDataPath}`);
   } else {
-    const dataPath = await askText(rl, 'Data directory:', defaultDataPath);
+    const dataPath = await askText(rl, '  Data directory', defaultDataPath);
     config.paths.data = dataPath;
     config.paths.baseline = path.join(dataPath, 'baseline.json');
     config.paths.baselinePrev = path.join(dataPath, 'baseline.prev.json');
     config.paths.tokenMap = path.join(dataPath, 'token-map.json');
-    console.log(formatSuccess(`\n✓ Using custom data directory: ${dataPath}`));
+    console.log(`\n  ✓ Data directory: ${dataPath}`);
   }
+  
+  console.log('     Files that will be created:');
+  console.log(`     • ${config.paths.baseline} (token baseline)`);
+  console.log(`     • ${config.paths.tokenMap} (migration map)`);
 
   // Ask about build command
+  console.log('\n  ┌─────────────────────────────────────────────────────────');
+  console.log('  │ BUILD COMMAND (Optional)');
+  console.log('  └─────────────────────────────────────────────────────────');
+  console.log('     Run a command after each sync (e.g., Style Dictionary build)');
+  
   let wantsBuild = false;
   
   if (detection.styleDictionary.found) {
-    console.log(formatInfo(`\nStyle Dictionary detected: ${detection.styleDictionary.configPath || 'style-dictionary.config.js'}`));
-    wantsBuild = await askYesNo(rl, 'Configure Style Dictionary build?', true);
+    console.log(`\n     📦 Style Dictionary was detected in your project:`);
+    console.log(`        Config: ${detection.styleDictionary.configPath || 'style-dictionary.config.js'}`);
+    console.log(`        Build script: ${detection.build.command || 'not found'}`);
+    wantsBuild = await askYesNo(rl, '\n  Configure Style Dictionary build?', true);
   } else {
-    wantsBuild = await askYesNo(rl, '\nAdd a build command to run after sync?', false);
+    console.log('\n     No build tools detected.');
+    wantsBuild = await askYesNo(rl, '  Add a build command?', false);
   }
 
   if (wantsBuild) {
     const defaultCommand = detection.build.command || 'npm run tokens:build';
-    const buildCommand = await askText(rl, 'Build command', defaultCommand);
+    console.log(`\n     Default suggestion: ${defaultCommand}`);
+    const buildCommand = await askText(rl, '  Build command', defaultCommand);
     
     config.build = {
       command: buildCommand,
@@ -652,7 +702,8 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
     
     if (detection.styleDictionary.found) {
       const defaultConfig = detection.styleDictionary.configPath || 'style-dictionary.config.js';
-      const sdConfig = await askText(rl, 'Style Dictionary config path', defaultConfig);
+      console.log(`\n     Style Dictionary config suggestion: ${defaultConfig}`);
+      const sdConfig = await askText(rl, '  Config path', defaultConfig);
       
       config.build.styleDictionary = {
         enabled: true,
@@ -661,7 +712,9 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
       };
     }
     
-    console.log(formatSuccess(`\n✓ Build command: ${config.build.command}`));
+    console.log(`\n  ✓ Build command configured: ${config.build.command}`);
+  } else {
+    console.log('\n  ○ No build command configured');
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
