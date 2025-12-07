@@ -168,9 +168,20 @@ async function findChangesForRename(
   const searchRegex = buildSearchRegex(oldToken, pattern);
 
   // Get include paths - use fallback if empty
-  const includePaths = pattern.includePaths.length > 0 
+  // NOTE: Pattern includePaths may be relative to scan directory (e.g., "packages/")
+  // but we're searching from rootDir. Need to handle both cases.
+  let includePaths = pattern.includePaths.length > 0 
     ? pattern.includePaths 
     : ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.css', '**/*.scss'];
+  
+  // If include paths don't start with **, prefix with **/ to search recursively
+  includePaths = includePaths.map(p => {
+    // If it's a specific path that doesn't exist at root, try with **/ prefix
+    if (!p.startsWith('**') && !p.startsWith('/')) {
+      return `**/${p}`;
+    }
+    return p;
+  });
 
   // Search in files matching the pattern's include paths
   for (const includePath of includePaths) {
@@ -284,8 +295,22 @@ function buildSearchRegex(token: string, pattern: DetectedPattern): RegExp {
       // Match $token
       return new RegExp(`\\$${escaped}(?![\\w-])`, 'g');
     case 'typescript':
-      // Match tokens.token or tokens['token']
-      return new RegExp(`tokens\\.${escaped}(?![\\w])|tokens\\[['"]${escaped}['"]\\]`, 'g');
+      // Extract the prefix from the pattern (e.g., "theme" from "theme.{token}")
+      // The pattern.format is like "theme.{token}" or "tokens['token']"
+      const dotMatch = pattern.format.match(/^(\w+)\.\{token\}/);
+      if (dotMatch) {
+        // Dot notation: match prefix.token
+        const prefix = dotMatch[1];
+        return new RegExp(`${prefix}\\.${escaped}(?![\\w])`, 'g');
+      }
+      const bracketMatch = pattern.format.match(/^(\w+)\[/);
+      if (bracketMatch) {
+        // Bracket notation: match prefix['token']
+        const prefix = bracketMatch[1];
+        return new RegExp(`${prefix}\\[['"]${escaped}['"]\\]`, 'g');
+      }
+      // Fallback: just search for the token
+      return new RegExp(`\\b${escaped}(?![\\w])`, 'g');
     case 'swift':
       return new RegExp(`(DesignTokens|Color|Tokens)\\.${escaped}(?![\\w])`, 'g');
     case 'kotlin':

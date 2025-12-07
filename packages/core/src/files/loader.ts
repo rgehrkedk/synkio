@@ -56,9 +56,13 @@ export function findConfigFile(rootDir: string): string | null {
  * Replaces ${VAR_NAME} with process.env.VAR_NAME
  *
  * @param config - Config object with potential env vars
+ * @param options - Options for interpolation
  * @returns Config with env vars replaced
  */
-export function interpolateEnvVars<T extends Record<string, any>>(config: T): T {
+export function interpolateEnvVars<T extends Record<string, any>>(
+  config: T,
+  options: { silent?: boolean } = {}
+): T {
   const interpolated = JSON.parse(JSON.stringify(config)) as T;
 
   function interpolateValue(value: any): any {
@@ -69,7 +73,9 @@ export function interpolateEnvVars<T extends Record<string, any>>(config: T): T 
         const varName = match[1];
         const envValue = process.env[varName];
         if (!envValue) {
-          console.warn(`Warning: Environment variable ${varName} not found, using empty string`);
+          if (!options.silent) {
+            console.warn(`Warning: Environment variable ${varName} not found, using empty string`);
+          }
           return '';
         }
         return envValue;
@@ -189,8 +195,13 @@ export function getDefaultConfig(ctx?: Context): TokensConfig {
  *
  * @param filePath - Optional custom config file path
  * @param ctx - Optional context (uses global if not provided)
+ * @param options - Options for config loading
  */
-export function loadConfig(filePath?: string, ctx?: Context): TokensConfig | null {
+export function loadConfig(
+  filePath?: string,
+  ctx?: Context,
+  options: { silent?: boolean } = {}
+): TokensConfig | null {
   const context = ctx || getContext();
 
   // Discover config file if not specified
@@ -213,7 +224,7 @@ export function loadConfig(filePath?: string, ctx?: Context): TokensConfig | nul
     let config = JSON.parse(content) as TokensConfig;
 
     // Interpolate environment variables
-    config = interpolateEnvVars(config);
+    config = interpolateEnvVars(config, { silent: options.silent });
 
     // Resolve relative paths from config directory
     const configDir = path.dirname(targetPath);

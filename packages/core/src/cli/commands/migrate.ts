@@ -445,8 +445,8 @@ export async function migrateCommand(options: MigrateOptions = {}): Promise<void
   // Initialize context
   initContext({ rootDir: process.cwd() });
 
-  // Load config (without strict validation - migrate doesn't need Figma token)
-  const config = loadConfig();
+  // Load config (with silent=true - migrate doesn't need Figma token warning)
+  const config = loadConfig(undefined, undefined, { silent: true });
   
   if (!config) {
     console.error('No tokensrc.json found. Run \'synkio init\' first.');
