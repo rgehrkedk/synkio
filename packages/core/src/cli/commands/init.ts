@@ -422,6 +422,7 @@ function createDefaultConfig(): TokensConfig {
       data: '.figma/data',
       baseline: '.figma/data/baseline.json',
       baselinePrev: '.figma/data/baseline.prev.json',
+      tokenMap: '.figma/data/token-map.json',
       reports: '.figma/reports',
       tokens: 'tokens',
       styles: 'styles/tokens',
@@ -642,12 +643,14 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
     config.paths.data = defaultDataPath;
     config.paths.baseline = path.join(defaultDataPath, 'baseline.json');
     config.paths.baselinePrev = path.join(defaultDataPath, 'baseline.prev.json');
+    config.paths.tokenMap = path.join(defaultDataPath, 'token-map.json');
     console.log(formatSuccess(`\n✓ Using default data directory: ${defaultDataPath}`));
   } else {
     const dataPath = await askText(rl, 'Data directory:', defaultDataPath);
     config.paths.data = dataPath;
     config.paths.baseline = path.join(dataPath, 'baseline.json');
     config.paths.baselinePrev = path.join(dataPath, 'baseline.prev.json');
+    config.paths.tokenMap = path.join(dataPath, 'token-map.json');
     console.log(formatSuccess(`\n✓ Using custom data directory: ${dataPath}`));
   }
 
