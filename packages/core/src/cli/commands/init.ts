@@ -473,10 +473,14 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
 
   if (detection.paths.tokens) {
     console.log(`✓ Token directory found: ${detection.paths.tokens}`);
+  } else {
+    console.log('○ No token directory detected (defaults to tokens/)');
   }
 
   if (detection.paths.styles) {
     console.log(`✓ Styles directory found: ${detection.paths.styles}`);
+  } else {
+    console.log('○ No styles directory detected (defaults to styles/tokens)');
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -631,14 +635,20 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
   }
 
   // Ask about output paths
-  const useDefaults = await askYesNo(rl, '\nUse default output paths? (.figma/data)', true);
+  const defaultDataPath = config.paths.data || '.figma/data';
+  const useDefaults = await askYesNo(rl, `\nUse default output paths? (${defaultDataPath})`, true);
 
   if (useDefaults) {
-    const dataPath = await askText(rl, 'Data directory:', '.figma/data');
-
+    config.paths.data = defaultDataPath;
+    config.paths.baseline = path.join(defaultDataPath, 'baseline.json');
+    config.paths.baselinePrev = path.join(defaultDataPath, 'baseline.prev.json');
+    console.log(formatSuccess(`\n✓ Using default data directory: ${defaultDataPath}`));
+  } else {
+    const dataPath = await askText(rl, 'Data directory:', defaultDataPath);
     config.paths.data = dataPath;
     config.paths.baseline = path.join(dataPath, 'baseline.json');
     config.paths.baselinePrev = path.join(dataPath, 'baseline.prev.json');
+    console.log(formatSuccess(`\n✓ Using custom data directory: ${dataPath}`));
   }
 
   // Use detection results for build configuration

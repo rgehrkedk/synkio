@@ -5,6 +5,12 @@ All notable changes to @synkio/core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-12-07
+
+### Fixed
+- Init wizard now shows explicit messages when no token/styles directories are detected, so users know defaults will be used.
+- Accepting the default data directory no longer asks for an extra input and prints a confirmation for both default and custom choices.
+
 ## [1.0.0] - 2025-12-07
 
 ### Added - Enhanced Init Command & Production Ready
