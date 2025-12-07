@@ -244,90 +244,41 @@ function generateStripSegments(collectionsInfo: any[]): string[] {
 // ============================================================================
 
 /**
- * Determine available split strategies for a collection
- * 
- * Rules:
- * - If collection has multiple modes (>1): Only 'byMode' strategy
- * - If collection has single mode: 'byGroup', 'flat', or 'skip'
- * 
- * @param info - Collection information
- * @returns Array of available strategy choices
+ * Get split strategy choices for a collection
  */
-function determineAvailableStrategies(info: any): Array<{value: string; label: string; description: string}> {
-  if (info.modes.length > 1) {
-    // Multiple modes: must split by mode
-    return [
-      {
-        value: 'byMode',
-        label: 'Split by mode',
-        description: `Create separate files for each mode (${info.modes.length} files)`
-      }
-    ];
-  } else {
-    // Single mode: offer group split, flat, or skip options
-    const firstMode = info.modes[0];
-    const groups = Object.keys(info.groups[firstMode] || {});
-    
-    return [
-      {
-        value: 'byGroup',
-        label: 'Split by group',
-        description: `Create separate files for each group (${groups.length} files)`
-      },
-      {
-        value: 'flat',
-        label: 'Single file',
-        description: 'All tokens in one file'
-      },
-      {
-        value: 'skip',
-        label: 'Skip this collection',
-        description: 'Don\'t include in configuration'
-      }
-    ];
-  }
+function getSplitStrategyChoices(): Array<{value: string; label: string; description: string}> {
+  return [
+    {
+      value: 'byMode',
+      label: 'Split by mode',
+      description: 'One file per mode (e.g., light.json, dark.json)'
+    },
+    {
+      value: 'byGroup',
+      label: 'Split by group',
+      description: 'One file per token group (e.g., color.json, spacing.json)'
+    },
+    {
+      value: 'flat',
+      label: 'Single file',
+      description: 'All tokens in one file'
+    },
+    {
+      value: 'skip',
+      label: 'Skip this collection',
+      description: 'Don\'t include in output'
+    }
+  ];
 }
 
 /**
- * Generate file paths for a collection using conventions
+ * Configure a single collection interactively (simplified)
  * 
- * Convention: tokens/{sanitized-collection}/{sanitized-key}.json
+ * User explicitly chooses:
+ * 1. Output directory path
+ * 2. Split strategy (byMode, byGroup, flat, skip)
  * 
- * @param collectionName - Name of the collection
- * @param strategy - Split strategy ('byMode', 'byGroup', or 'flat')
- * @param keys - Array of mode or group names to generate paths for
- * @returns Object with output directory and file mapping
- */
-function generateFilePaths(
-  collectionName: string,
-  strategy: 'byMode' | 'byGroup' | 'flat',
-  keys: string[]
-): { output: string; files: Record<string, string> } {
-  const sanitizedCollection = sanitizeForFilename(collectionName);
-  const baseDir = `tokens/${sanitizedCollection}`;
-  const files: Record<string, string> = {};
-
-  if (strategy === 'flat') {
-    // All keys map to a single file
-    for (const key of keys) {
-      files[key] = `${baseDir}/tokens.json`;
-    }
-  } else {
-    // Each key gets its own file
-    for (const key of keys) {
-      const sanitizedKey = sanitizeForFilename(key);
-      files[key] = `${baseDir}/${sanitizedKey}.json`;
-    }
-  }
-
-  return {
-    output: baseDir,
-    files
-  };
-}
-
-/**
- * Configure a single collection interactively
+ * No auto-detection or guessing - user is in full control.
  * 
  * @param rl - Readline interface
  * @param info - Collection information with modes and groups
@@ -338,36 +289,23 @@ async function configureCollection(rl: readline.Interface, info: any): Promise<a
   console.log(`Collection: ${info.name}`);
   console.log('─'.repeat(60));
   
-  // Show modes with token counts
-  console.log(`\nModes (${info.modes.length}):`);
-  for (const mode of info.modes) {
-    const tokenCount = Object.values(info.groups[mode] || {}).reduce((sum: number, count) => sum + (count as number), 0);
-    console.log(`  - ${mode} (${tokenCount} tokens)`);
-  }
-  
-  // Show groups from first mode
+  // Show summary
   const firstMode = info.modes[0];
   const groups = Object.keys(info.groups[firstMode] || {});
-  if (groups.length > 0) {
-    console.log(`\nGroups in "${firstMode}" (${groups.length}):`);
-    for (const group of groups.slice(0, 5)) { // Show first 5 groups
-      console.log(`  - ${group} (${info.groups[firstMode][group]} tokens)`);
-    }
-    if (groups.length > 5) {
-      console.log(`  ... and ${groups.length - 5} more`);
-    }
-  }
+  const totalTokens = Object.values(info.groups[firstMode] || {}).reduce((sum: number, count) => sum + (count as number), 0);
   
-  // Get available strategies
-  const strategies = determineAvailableStrategies(info);
+  console.log(`\n  Modes: ${info.modes.join(', ')} (${info.modes.length})`);
+  console.log(`  Groups: ${groups.slice(0, 5).join(', ')}${groups.length > 5 ? ` (+${groups.length - 5} more)` : ''}`);
+  console.log(`  Total tokens: ${totalTokens}`);
   
-  // Always ask user to choose (with smart default)
-  console.log('\nHow should this collection be organized?');
+  // Step 1: Choose split strategy
+  const strategies = getSplitStrategyChoices();
+  console.log('\n1. How should this collection be split?');
   for (let i = 0; i < strategies.length; i++) {
-    console.log(`  ${i + 1}. ${strategies[i].label} - ${strategies[i].description}`);
+    console.log(`   ${i + 1}. ${strategies[i].label} - ${strategies[i].description}`);
   }
   
-  const choiceStr = await askText(rl, 'Choose strategy (1-' + strategies.length + ')', '1');
+  const choiceStr = await askText(rl, 'Choose (1-4)', '1');
   const choiceIndex = parseInt(choiceStr) - 1;
   
   let selectedStrategy: string;
@@ -379,25 +317,65 @@ async function configureCollection(rl: readline.Interface, info: any): Promise<a
   
   // Handle skip
   if (selectedStrategy === 'skip') {
-    console.log('  Skipped.');
+    console.log('  → Skipped');
     return null;
   }
   
-  // Generate file paths
-  const keys = selectedStrategy === 'byMode' ? info.modes : groups;
-  const { output, files } = generateFilePaths(info.name, selectedStrategy as 'byMode' | 'byGroup' | 'flat', keys);
+  // Step 2: User specifies output directory
+  const defaultDir = `tokens/${sanitizeForFilename(info.name)}`;
+  console.log('\n2. Where should the files be saved?');
+  const outputDir = await askText(rl, 'Output directory', defaultDir);
   
-  // Show preview of files that will be created
-  console.log('\nFiles to be created:');
-  const uniqueFiles = Array.from(new Set(Object.values(files)));
-  for (const file of uniqueFiles) {
-    console.log(`  - ${file}`);
+  // Step 3: Generate file mapping based on strategy
+  const files: Record<string, string> = {};
+  const keys = selectedStrategy === 'byMode' ? info.modes : groups;
+  
+  if (selectedStrategy === 'flat') {
+    // All keys map to single file - user chooses filename
+    const defaultFile = `${outputDir}/tokens.json`;
+    console.log('\n3. What should the file be named?');
+    const filename = await askText(rl, 'Filename', defaultFile);
+    for (const key of keys) {
+      files[key] = filename;
+    }
+  } else {
+    // Each key gets its own file
+    console.log(`\n3. Files will be created in: ${outputDir}/`);
+    console.log('   File naming: Each ' + (selectedStrategy === 'byMode' ? 'mode' : 'group') + ' becomes a file');
+    
+    for (const key of keys) {
+      const sanitizedKey = sanitizeForFilename(key);
+      files[key] = `${outputDir}/${sanitizedKey}.json`;
+    }
+    
+    // Show preview
+    const uniqueFiles = Array.from(new Set(Object.values(files)));
+    console.log('\n   Files to be created:');
+    for (const file of uniqueFiles.slice(0, 5)) {
+      console.log(`   - ${file}`);
+    }
+    if (uniqueFiles.length > 5) {
+      console.log(`   ... and ${uniqueFiles.length - 5} more`);
+    }
+    
+    // Confirm or let user rename
+    const confirmFiles = await askYesNo(rl, 'Accept these file names?', true);
+    if (!confirmFiles) {
+      console.log('\n   Enter custom filenames (or press Enter to keep default):');
+      for (const key of keys) {
+        const defaultName = files[key];
+        const customName = await askText(rl, `   ${key}`, defaultName);
+        files[key] = customName;
+      }
+    }
   }
+  
+  console.log(`  → Configured: ${selectedStrategy} → ${outputDir}`);
   
   return {
     collection: info.name,
     strategy: selectedStrategy,
-    output,
+    output: outputDir,
     files
   };
 }
