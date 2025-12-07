@@ -128,7 +128,7 @@ function showStatus(config: TokensConfig): void {
   if (plan.status === 'PENDING_APPROVAL') {
     console.log('To apply this plan:');
     console.log('  1. Review the plan file');
-    console.log('  2. Uncomment the APPROVED line');
+    console.log('  2. Change <!-- APPROVED --> to APPROVED');
     console.log('  3. Run `synkio migrate --apply`\n');
   } else if (plan.status === 'APPROVED') {
     console.log('Plan is approved! Run `synkio migrate --apply` to execute.\n');
@@ -259,7 +259,7 @@ async function generatePlan(config: TokensConfig, patterns: DetectedPattern[]): 
   console.log('');
   console.log('Next steps:');
   console.log('  1. Review the plan file');
-  console.log('  2. Uncomment the APPROVED line when ready');
+  console.log('  2. Change <!-- APPROVED --> to APPROVED');
   console.log('  3. Run `synkio migrate --apply`\n');
 
   return plan;
@@ -288,7 +288,7 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
     console.log('');
     console.log('To approve:');
     console.log(`  1. Open ${planPath}`);
-    console.log('  2. Uncomment the APPROVED line');
+    console.log('  2. Change <!-- APPROVED --> to APPROVED');
     console.log('  3. Run `synkio migrate --apply` again\n');
     return false;
   }

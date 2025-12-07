@@ -376,11 +376,12 @@ export function planToMarkdown(plan: MigrationPlan): string {
   lines.push('');
   lines.push('## Approval');
   lines.push('');
-  lines.push('To apply these changes, uncomment the approval line below and run `synkio migrate --apply`:');
+  lines.push('To apply these changes:');
+  lines.push('1. Review the changes above');
+  lines.push('2. Remove the `<!-- -->` around APPROVED below');
+  lines.push('3. Run `synkio migrate --apply`');
   lines.push('');
-  lines.push('```');
   lines.push('<!-- APPROVED -->');
-  lines.push('```');
   lines.push('');
   lines.push('To exclude specific changes, add `~~` around the file path in the table above.');
   lines.push('');
