@@ -167,8 +167,13 @@ async function findChangesForRename(
   // Build regex to find old token
   const searchRegex = buildSearchRegex(oldToken, pattern);
 
+  // Get include paths - use fallback if empty
+  const includePaths = pattern.includePaths.length > 0 
+    ? pattern.includePaths 
+    : ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.css', '**/*.scss'];
+
   // Search in files matching the pattern's include paths
-  for (const includePath of pattern.includePaths) {
+  for (const includePath of includePaths) {
     const files = await glob(includePath, {
       cwd: rootDir,
       ignore: exclude,
@@ -240,12 +245,17 @@ function tokenPathToPlatformFormat(
       // SCSS: kebab-case with $ prefix (handled in regex)
       return filtered.map(p => p.toLowerCase()).join('-');
     case 'typescript':
-      // TypeScript: camelCase or dot notation
+      // TypeScript: For theme.{token} pattern, keep dot notation as-is
+      // For tokens.{token} pattern, use camelCase
+      if (pattern.format.includes('theme.')) {
+        // Theme object: keep dots, lowercase
+        return filtered.map(p => p.toLowerCase()).join('.');
+      }
       if (pattern.format.includes('[')) {
         // Bracket notation: keep dots
         return filtered.join('.');
       }
-      // Dot notation: camelCase
+      // Dot notation with tokens object: camelCase
       return filtered
         .map((p, i) => i === 0 ? p.toLowerCase() : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
         .join('.');
