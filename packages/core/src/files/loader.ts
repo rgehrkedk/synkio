@@ -7,7 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { BaselineData, MigrationManifest } from '../types/index.js';
+import type { BaselineData, MigrationManifest, TokenMap } from '../types/index.js';
 import type { TokensConfig, LegacyTokenSplitConfig, LegacyMigrationConfig } from '../types/config.js';
 import { getContext, type Context } from '../context.js';
 import {
@@ -398,6 +398,37 @@ export function restoreBaseline(ctx?: Context): boolean {
     return true;
   } catch {
     return false;
+  }
+}
+
+// ============================================================================
+// Token Map Loading
+// ============================================================================
+
+/**
+ * Load token map for migration
+ *
+ * @param config - The tokens configuration (for paths.tokenMap)
+ * @param ctx - Optional context (uses global if not provided)
+ * @returns TokenMap or null if not found
+ */
+export function loadTokenMap(config: TokensConfig, ctx?: Context): TokenMap | null {
+  const context = ctx || getContext();
+
+  // Use configured path or default
+  const tokenMapPath = config.paths.tokenMap
+    ? path.resolve(context.rootDir, config.paths.tokenMap)
+    : path.resolve(context.rootDir, getDataDir(context), 'token-map.json');
+
+  if (!fs.existsSync(tokenMapPath)) {
+    return null;
+  }
+
+  try {
+    const content = fs.readFileSync(tokenMapPath, 'utf-8');
+    return JSON.parse(content);
+  } catch {
+    return null;
   }
 }
 

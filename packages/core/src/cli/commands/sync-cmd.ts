@@ -22,13 +22,17 @@ import {
   ensureFigmaDir,
   getBaselinePath,
   getDiffReportPath,
+  loadTokenMap,
 } from '../../files/index.js';
 import { fetchFigmaData } from '../../figma/index.js';
 import {
   splitTokens,
   scanAllPlatforms,
+  scanAllPlatformsWithMap,
   generateMultiPlatformDiffReport,
   applyAllPlatformReplacements,
+  generateTokenMap,
+  getTokenMapPath,
 } from '../../tokens/index.js';
 import type { PlatformScanResult } from '../../tokens/index.js';
 import type { PlatformConfig } from '../../types/index.js';
@@ -216,6 +220,14 @@ async function handleFirstSync(
   const splitResult = splitTokens(fetchedData, config);
   spinner.succeed(`Processed ${splitResult.filesWritten} token files`);
 
+  // Generate token map for migration support
+  const mapSpinner = createSpinner('Generating token map...');
+  mapSpinner.start();
+  const tokenMap = generateTokenMap(fetchedData, config);
+  const tokenMapPath = getTokenMapPath(config);
+  saveJsonFile(tokenMapPath, tokenMap);
+  mapSpinner.succeed(`Token map saved: ${tokenMapPath}`);
+
   runBuildCommand(config, false);
 
   console.log(formatSuccess('Initial sync complete!\n\nTokens have been saved to your project.'));
@@ -264,13 +276,29 @@ async function handleBreakingChanges(
     const scanSpinner = createSpinner(`Scanning ${enabledPlatforms.length} platform(s) for impact...`);
     scanSpinner.start();
 
-    platformResults = await scanAllPlatforms(
-      result,
-      platforms as { [key: string]: PlatformConfig },
-      config.migration?.stripSegments
-    );
+    // Try to use token map for precise migration (preferred)
+    const oldTokenMap = loadTokenMap(config);
+    const newTokenMap = generateTokenMap(fetchedData, config);
 
-    scanSpinner.succeed(`Scanned ${enabledPlatforms.length} platform(s)`);
+    if (oldTokenMap) {
+      // Use token map for precise matching (recommended)
+      platformResults = await scanAllPlatformsWithMap(
+        oldTokenMap,
+        newTokenMap,
+        platforms as { [key: string]: PlatformConfig }
+      );
+      scanSpinner.succeed(`Scanned ${enabledPlatforms.length} platform(s) using token map`);
+    } else {
+      // Fallback to path-based matching
+      console.log(formatWarning('\nNo token map found. Using path-based matching (less precise).'));
+      console.log(formatInfo('Token map will be generated after this sync for future migrations.\n'));
+      platformResults = await scanAllPlatforms(
+        result,
+        platforms as { [key: string]: PlatformConfig },
+        config.migration?.stripSegments
+      );
+      scanSpinner.succeed(`Scanned ${enabledPlatforms.length} platform(s)`);
+    }
 
     // Print per-platform summary
     console.log('');
@@ -361,6 +389,14 @@ async function handleBreakingChanges(
   const splitResult = splitTokens(fetchedData, config);
   spinner.succeed(`Applied changes to ${splitResult.filesWritten} files`);
 
+  // Generate token map for migration support
+  const mapSpinner = createSpinner('Generating token map...');
+  mapSpinner.start();
+  const tokenMap = generateTokenMap(fetchedData, config);
+  const tokenMapPath = getTokenMapPath(config);
+  saveJsonFile(tokenMapPath, tokenMap);
+  mapSpinner.succeed(`Token map saved: ${tokenMapPath}`);
+
   // Apply migrations if user chose apply-all
   if (choice === 'apply-all' && hasUsages()) {
     const migrateSpinner = createSpinner('Applying migrations...');
@@ -437,6 +473,14 @@ async function handleChanges(
 
   const splitResult = splitTokens(fetchedData, config);
   spinner.succeed(`Applied changes to ${splitResult.filesWritten} files`);
+
+  // Generate token map for migration support
+  const mapSpinner = createSpinner('Generating token map...');
+  mapSpinner.start();
+  const tokenMap = generateTokenMap(fetchedData, config);
+  const tokenMapPath = getTokenMapPath(config);
+  saveJsonFile(tokenMapPath, tokenMap);
+  mapSpinner.succeed(`Token map saved: ${tokenMapPath}`);
 
   // Save the new baseline as current (already done on line 338, but baselinePrev needs update)
   // The backup we made earlier becomes the new baselinePrev automatically via backupBaseline()

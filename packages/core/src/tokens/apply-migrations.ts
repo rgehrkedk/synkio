@@ -11,22 +11,7 @@ import path from 'path';
 import type { PlatformConfig } from '../types/index.js';
 import type { TokenReplacement, FileMatch } from './migrate.js';
 import { findPlatformFiles } from './migrate.js';
-
-/**
- * Escape special regex characters
- */
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Create a regex that matches a token with word boundaries.
- * Uses negative lookahead to ensure the token isn't followed by more segments.
- */
-function createTokenBoundaryRegex(token: string): RegExp {
-  const escaped = escapeRegex(token);
-  return new RegExp(`${escaped}(?!-[a-zA-Z0-9])`, 'g');
-}
+import { createTokenBoundaryRegex } from './transform.js';
 
 /** Result of applying migrations to a platform */
 export interface PlatformMigrationResult {

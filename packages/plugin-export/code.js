@@ -207,7 +207,6 @@
     switch (type) {
       case "COLOR":
         return { r: 0, g: 0, b: 0 };
-      // Black
       case "FLOAT":
         return 0;
       case "STRING":
@@ -273,7 +272,8 @@
     }
   }
   function parseColor(value) {
-    if (!value || typeof value !== "string") return null;
+    if (!value || typeof value !== "string")
+      return null;
     if (value.startsWith("#")) {
       const hex = value.replace("#", "");
       if (hex.length === 6) {
@@ -296,7 +296,8 @@
     return null;
   }
   function parseNumber(value) {
-    if (typeof value === "number") return value;
+    if (typeof value === "number")
+      return value;
     if (typeof value === "string") {
       const num = parseFloat(value.replace(/[a-z%]+$/i, ""));
       return isNaN(num) ? null : num;

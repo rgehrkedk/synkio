@@ -144,6 +144,9 @@ export interface PathsConfig {
 
   /** Styles output directory (default: "styles/tokens") */
   styles: string;
+
+  /** Token map file path for precise migration (default: ".figma/data/token-map.json") */
+  tokenMap?: string;
 }
 
 // ============================================================================

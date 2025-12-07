@@ -5,6 +5,22 @@ All notable changes to @synkio/core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2025-12-07
+
+### Added
+- **Token Map System**: New Variable ID-based token mapping for precise migration.
+  - `generateTokenMap()` - Creates Variable ID → platform output name mappings.
+  - `loadTokenMap()` - Loads previously saved token map for migration.
+  - `buildReplacementsFromMap()` - Builds exact replacements from token map.
+  - `scanAllPlatformsWithMap()` - Scans using precise token names from map.
+- Token map is automatically generated and saved after each sync.
+- When token map exists, sync uses it for precise migration instead of path-based matching.
+- Fallback warning displayed when no token map is found (first sync).
+
+### Changed
+- Sync command now prefers token map for migration scanning when available.
+- Added platform name transformers for CSS, SCSS, JS, Swift, and Kotlin.
+
 ## [1.0.4] - 2025-12-07
 
 ### Fixed

@@ -41,6 +41,8 @@ export {
   loadBaselinePrev,
   backupBaseline,
   restoreBaseline,
+  // Token map
+  loadTokenMap,
   // Legacy config
   loadLegacyTokenSplitConfig,
   loadLegacyMigrationConfig,

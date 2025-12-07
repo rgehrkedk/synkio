@@ -13,12 +13,10 @@ import type {
   ComparisonResult,
   PathChange,
   PlatformConfig,
+  TokenMap,
 } from '../types/index.js';
 
-export interface CssReplacement {
-  from: string;  // e.g., "--text-primary"
-  to: string;    // e.g., "--fg-primary"
-}
+import { escapeRegex, createTokenBoundaryRegex } from './transform.js';
 
 /** Platform-agnostic token replacement */
 export interface TokenReplacement {
@@ -26,11 +24,11 @@ export interface TokenReplacement {
   to: string;    // New token reference (platform-specific format)
 }
 
-export interface CssFileMatch {
-  path: string;
-  count: number;
-  lines: { line: number; content: string }[];
-}
+/**
+ * CSS-specific replacement type
+ * @deprecated Use TokenReplacement instead
+ */
+export type CssReplacement = TokenReplacement;
 
 /** Platform-agnostic file match */
 export interface FileMatch {
@@ -39,10 +37,16 @@ export interface FileMatch {
   lines: { line: number; content: string }[];
 }
 
+/**
+ * CSS-specific file match type
+ * @deprecated Use FileMatch instead
+ */
+export type CssFileMatch = FileMatch;
+
 export interface MigrationResult {
   filesModified: number;
   totalReplacements: number;
-  files: CssFileMatch[];
+  files: FileMatch[];
 }
 
 /** Platform scan result */
@@ -56,6 +60,7 @@ export interface PlatformScanResult {
 
 /**
  * Convert path change to CSS token replacement
+ * @deprecated Use pathChangeToTokenReplacement instead for platform-agnostic support
  */
 export function pathChangeToReplacement(change: PathChange, stripSegments: string[]): CssReplacement | null {
   // Extract token name from path, stripping collection/mode prefixes
@@ -81,6 +86,7 @@ export function pathChangeToReplacement(change: PathChange, stripSegments: strin
 
 /**
  * Build replacement map from comparison result
+ * @deprecated Use buildPlatformReplacements instead for platform-agnostic support
  */
 export function buildReplacements(
   result: ComparisonResult,
@@ -102,6 +108,7 @@ export function buildReplacements(
 
 /**
  * Find CSS files matching include/exclude patterns
+ * @deprecated Use findPlatformFiles instead for platform-agnostic support
  */
 export async function findCssFiles(config: PlatformConfig): Promise<string[]> {
   const files: string[] = [];
@@ -120,6 +127,7 @@ export async function findCssFiles(config: PlatformConfig): Promise<string[]> {
 
 /**
  * Scan CSS files for token usages without modifying
+ * @deprecated Use scanPlatformUsages instead for platform-agnostic support
  */
 export async function scanCssUsages(
   replacements: CssReplacement[],
@@ -166,6 +174,7 @@ export async function scanCssUsages(
 
 /**
  * Apply CSS replacements to files
+ * @deprecated Use applyPlatformReplacements from apply-migrations.ts instead
  */
 export async function applyCssReplacements(
   replacements: CssReplacement[],
@@ -229,29 +238,6 @@ export async function applyCssReplacements(
   }
 
   return result;
-}
-
-/**
- * Escape special regex characters
- */
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Create a regex that matches a token with word boundaries.
- * For CSS tokens like --color-brand-primary:
- * - Matches: var(--color-brand-primary), --color-brand-primary:
- * - Does NOT match: --color-brand-primary-hover (token is extended)
- * 
- * Uses negative lookahead to ensure the token isn't followed by more segments.
- */
-function createTokenBoundaryRegex(token: string): RegExp {
-  // Escape the token for regex
-  const escaped = escapeRegex(token);
-  // Negative lookahead: not followed by hyphen + word char (which would extend the token)
-  // This ensures --color-brand-primary doesn't match --color-brand-primary-hover
-  return new RegExp(`${escaped}(?!-[a-zA-Z0-9])`, 'g');
 }
 
 /**
@@ -386,6 +372,49 @@ export function buildPlatformReplacements(
 }
 
 /**
+ * Build replacements from token map (precise migration using Variable ID)
+ *
+ * This is the preferred method for building replacements as it uses
+ * exact platform output names from the token map instead of transforming paths.
+ *
+ * @param oldMap - The previous token map (before rename)
+ * @param newMap - The current token map (after rename)
+ * @param platform - The target platform ('css' | 'scss' | 'js' | 'swift' | 'kotlin')
+ * @returns Array of replacements with exact from/to token names
+ */
+export function buildReplacementsFromMap(
+  oldMap: TokenMap,
+  newMap: TokenMap,
+  platform: 'css' | 'scss' | 'js' | 'swift' | 'kotlin'
+): TokenReplacement[] {
+  const replacements: TokenReplacement[] = [];
+  const seen = new Set<string>();
+
+  // Find tokens that exist in both maps (same Variable ID) but with different paths
+  for (const [variableId, oldEntry] of Object.entries(oldMap.tokens)) {
+    const newEntry = newMap.tokens[variableId];
+    if (!newEntry) continue; // Token was deleted, not renamed
+
+    // Check if path changed (rename)
+    if (oldEntry.path !== newEntry.path) {
+      const oldOutput = oldEntry.outputs[platform];
+      const newOutput = newEntry.outputs[platform];
+
+      // Only add if both have output for this platform and they differ
+      if (oldOutput && newOutput && oldOutput !== newOutput && !seen.has(oldOutput)) {
+        seen.add(oldOutput);
+        replacements.push({
+          from: oldOutput,
+          to: newOutput,
+        });
+      }
+    }
+  }
+
+  return replacements;
+}
+
+/**
  * Find files matching platform include/exclude patterns
  */
 export async function findPlatformFiles(config: PlatformConfig): Promise<string[]> {
@@ -470,6 +499,79 @@ export async function scanAllPlatforms(
     if (!config.enabled) continue;
 
     const replacements = buildPlatformReplacements(result, config, globalStripSegments);
+
+    if (replacements.length === 0) {
+      results.push({
+        platform: platformName,
+        replacements: [],
+        usages: [],
+        totalUsages: 0,
+        filesAffected: 0,
+      });
+      continue;
+    }
+
+    const usages = await scanPlatformUsages(replacements, config);
+    const totalUsages = usages.reduce((sum, f) => sum + f.count, 0);
+
+    results.push({
+      platform: platformName,
+      replacements,
+      usages,
+      totalUsages,
+      filesAffected: usages.length,
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Scan all enabled platforms using token map for precise matching
+ *
+ * This is the preferred method as it uses exact platform output names
+ * from the token map instead of transforming paths.
+ *
+ * @param oldMap - The previous token map (before rename)
+ * @param newMap - The current token map (after rename)
+ * @param platforms - Platform configurations
+ * @returns Array of platform scan results
+ */
+export async function scanAllPlatformsWithMap(
+  oldMap: TokenMap,
+  newMap: TokenMap,
+  platforms: { [name: string]: PlatformConfig }
+): Promise<PlatformScanResult[]> {
+  const results: PlatformScanResult[] = [];
+
+  const platformNameMap: Record<string, 'css' | 'scss' | 'js' | 'swift' | 'kotlin'> = {
+    css: 'css',
+    scss: 'scss',
+    typescript: 'js',
+    ts: 'js',
+    javascript: 'js',
+    js: 'js',
+    swift: 'swift',
+    kotlin: 'kotlin',
+  };
+
+  for (const [platformName, config] of Object.entries(platforms)) {
+    if (!config.enabled) continue;
+
+    const mapPlatform = platformNameMap[platformName];
+    if (!mapPlatform) {
+      // Unknown platform, skip
+      results.push({
+        platform: platformName,
+        replacements: [],
+        usages: [],
+        totalUsages: 0,
+        filesAffected: 0,
+      });
+      continue;
+    }
+
+    const replacements = buildReplacementsFromMap(oldMap, newMap, mapPlatform);
 
     if (replacements.length === 0) {
       results.push({

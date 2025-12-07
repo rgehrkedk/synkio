@@ -55,6 +55,20 @@ export function escapeRegex(str: string): string {
 }
 
 /**
+ * Create a regex that matches a token with word boundaries.
+ * For CSS tokens like --color-brand-primary:
+ * - Matches: var(--color-brand-primary), --color-brand-primary:
+ * - Does NOT match: --color-brand-primary-hover (token is extended)
+ * 
+ * Uses negative lookahead to ensure the token isn't followed by more segments.
+ */
+export function createTokenBoundaryRegex(token: string): RegExp {
+  const escaped = escapeRegex(token);
+  // Negative lookahead: not followed by hyphen + word char (which would extend the token)
+  return new RegExp(`${escaped}(?!-[a-zA-Z0-9])`, 'g');
+}
+
+/**
  * Determine which JSON file a token belongs to based on collection and path
  */
 export function getJsonFile(collection: string, pathArray: string[]): string {

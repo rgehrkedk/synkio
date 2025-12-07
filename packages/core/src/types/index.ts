@@ -61,3 +61,12 @@ export type {
   TransformOptions,
   Adapter,
 } from './config.js';
+
+// Token map types
+export type {
+  TokenOutputs,
+  TokenMapEntry,
+  TokenMapMetadata,
+  TokenMap,
+  TokenMapDiff,
+} from './token-map.js';

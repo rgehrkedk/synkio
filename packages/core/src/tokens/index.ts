@@ -18,6 +18,7 @@ export {
   transformCase,
   pathToTokenName,
   escapeRegex,
+  createTokenBoundaryRegex,
   getJsonFile,
   getJsonPath,
   transformToken,
@@ -65,6 +66,9 @@ export {
   findPlatformFiles,
   scanPlatformUsages,
   scanAllPlatforms,
+  // Token map based migration
+  buildReplacementsFromMap,
+  scanAllPlatformsWithMap,
 } from './migrate.js';
 
 // Report generation (isolated)
@@ -92,3 +96,14 @@ export type {
   PlatformMigrationResult,
   ApplyOptions,
 } from './apply-migrations.js';
+
+// Token map generation
+export {
+  getCssVariableName,
+  getScssVariableName,
+  getJsPropertyName,
+  getSwiftPropertyName,
+  getKotlinPropertyName,
+  generateTokenMap,
+  getTokenMapPath,
+} from './token-map.js';
