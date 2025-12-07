@@ -24,10 +24,18 @@ import {
   getDiffReportPath,
 } from '../../files/index.js';
 import { fetchFigmaData } from '../../figma/index.js';
-import { splitTokens } from '../../tokens/index.js';
+import {
+  splitTokens,
+  scanAllPlatforms,
+  generateMultiPlatformDiffReport,
+  applyAllPlatformReplacements,
+} from '../../tokens/index.js';
+import type { PlatformScanResult } from '../../tokens/index.js';
+import type { PlatformConfig } from '../../types/index.js';
 import {
   compareBaselines,
   hasChanges,
+  hasBreakingChanges,
   getChangeCounts,
   generateDiffReport,
 } from '../../compare/index.js';
@@ -39,7 +47,8 @@ import {
   createTable,
   logInfo,
 } from '../utils.js';
-import { askYesNo, createPrompt } from '../prompt.js';
+import { askYesNo, askChoice, createPrompt } from '../prompt.js';
+import { getMigrationReportPath } from '../../files/index.js';
 
 // ============================================================================
 // Types
@@ -220,7 +229,175 @@ async function handleNoChanges(): Promise<void> {
 }
 
 /**
- * Handle sync with changes
+ * Handle sync with breaking changes (renames, deletions)
+ * Scans platforms for impact, offers choice to apply migrations or just get report
+ */
+async function handleBreakingChanges(
+  config: TokensConfig,
+  fetchedData: any,
+  result: ComparisonResult,
+  options: SyncOptions
+): Promise<void> {
+  const counts = getChangeCounts(result);
+
+  // Display changes
+  displaySummary(result);
+  displayChangesTable(result);
+
+  // If dry run, stop here
+  if (options.dryRun) {
+    console.log(formatInfo('Dry run mode - no changes applied.\n\nRun without --dry-run to apply these changes.'));
+    restoreBaseline();
+    return;
+  }
+
+  // Get enabled platforms and scan for impact
+  const platforms = (config.migration?.platforms && typeof config.migration.platforms === 'object' && !Array.isArray(config.migration.platforms)) ? config.migration.platforms : {};
+  const enabledPlatforms = Object.entries(platforms)
+    .filter(([_, cfg]) => (cfg as PlatformConfig).enabled)
+    .map(([name]) => name);
+
+  let platformResults: PlatformScanResult[] = [];
+  const hasUsages = () => platformResults.some(p => p.totalUsages > 0);
+
+  if (enabledPlatforms.length > 0) {
+    const scanSpinner = createSpinner(`Scanning ${enabledPlatforms.length} platform(s) for impact...`);
+    scanSpinner.start();
+
+    platformResults = await scanAllPlatforms(
+      result,
+      platforms as { [key: string]: PlatformConfig },
+      config.migration?.stripSegments
+    );
+
+    scanSpinner.succeed(`Scanned ${enabledPlatforms.length} platform(s)`);
+
+    // Print per-platform summary
+    console.log('');
+    for (const platformResult of platformResults) {
+      if (!platformResult.replacements.length) continue;
+
+      const platformTitle = platformResult.platform.charAt(0).toUpperCase() + platformResult.platform.slice(1);
+
+      if (platformResult.totalUsages > 0) {
+        console.log(chalk.yellow(`${platformTitle}: ${platformResult.totalUsages} usage(s) in ${platformResult.filesAffected} file(s)`));
+        for (const file of platformResult.usages.slice(0, 3)) {
+          console.log(chalk.gray(`  - ${file.path} (${file.count})`));
+        }
+        if (platformResult.usages.length > 3) {
+          console.log(chalk.gray(`  ... and ${platformResult.usages.length - 3} more files`));
+        }
+      } else {
+        console.log(chalk.gray(`${platformTitle}: No usages found`));
+      }
+    }
+    console.log('');
+  } else {
+    console.log(formatWarning('\nNo migration platforms configured. Token references won\'t be auto-updated.\nRun "synkio init" and enable migration to set up auto-migration.\n'));
+  }
+
+  // Build choice options based on what was found
+  type SyncChoice = 'apply-all' | 'tokens-only' | 'report-only' | 'abort';
+
+  const choices: Array<{ value: SyncChoice; label: string; description?: string }> = [];
+
+  if (hasUsages()) {
+    choices.push({
+      value: 'apply-all',
+      label: 'Apply all changes',
+      description: 'Update tokens + auto-migrate affected files',
+    });
+  }
+
+  choices.push({
+    value: 'tokens-only',
+    label: 'Tokens only',
+    description: 'Update tokens, generate migration report for manual updates',
+  });
+
+  choices.push({
+    value: 'report-only',
+    label: 'Report only',
+    description: 'Generate migration report without applying any changes',
+  });
+
+  choices.push({
+    value: 'abort',
+    label: 'Abort',
+    description: 'Cancel sync, no changes made',
+  });
+
+  const rl = createPrompt();
+  let choice: SyncChoice;
+  try {
+    choice = await askChoice<SyncChoice>(rl, 'How do you want to proceed?', choices, hasUsages() ? 0 : 0);
+  } finally {
+    rl.close();
+  }
+
+  if (choice === 'abort') {
+    restoreBaseline();
+    console.log(formatWarning('Sync aborted. No changes made.'));
+    return;
+  }
+
+  // Generate and save migration report (for all non-abort choices)
+  if (platformResults.length > 0) {
+    const migrationReport = generateMultiPlatformDiffReport(platformResults, fetchedData.$metadata);
+    saveTextFile(getMigrationReportPath(), migrationReport);
+    logInfo(`Migration report saved: ${getMigrationReportPath()}`);
+  }
+
+  if (choice === 'report-only') {
+    restoreBaseline();
+    console.log(formatInfo('No token changes applied. Review the migration report.'));
+    return;
+  }
+
+  // Apply token changes (tokens-only or apply-all)
+  const spinner = createSpinner('Applying token changes...');
+  spinner.start();
+
+  const splitResult = splitTokens(fetchedData, config);
+  spinner.succeed(`Applied changes to ${splitResult.filesWritten} files`);
+
+  // Apply migrations if user chose apply-all
+  if (choice === 'apply-all' && hasUsages()) {
+    const migrateSpinner = createSpinner('Applying migrations...');
+    migrateSpinner.start();
+
+    // Build the data structure expected by applyAllPlatformReplacements
+    const platformReplacementsData = platformResults
+      .filter(p => p.totalUsages > 0)
+      .map(p => ({
+        platform: p.platform,
+        replacements: p.replacements,
+        config: platforms[p.platform] as PlatformConfig,
+      }));
+
+    const migrationResults = await applyAllPlatformReplacements(platformReplacementsData);
+
+    const totalModified = migrationResults.reduce((sum, r) => sum + r.filesModified, 0);
+    const totalReplacements = migrationResults.reduce((sum, r) => sum + r.totalReplacements, 0);
+
+    migrateSpinner.succeed(`Migrated ${totalReplacements} token reference(s) in ${totalModified} file(s)`);
+  } else if (choice === 'tokens-only') {
+    console.log(formatInfo('Review the migration report and update affected files manually.'));
+  }
+
+  // Save diff report
+  const report = generateDiffReport(result, fetchedData.$metadata);
+  saveTextFile(getDiffReportPath(), report);
+  logInfo(`Diff report saved: ${getDiffReportPath()}`);
+
+  // Run build
+  runBuildCommand(config, options.build === false);
+
+  console.log(formatSuccess(`Sync complete!\n\nApplied ${counts.total} change(s) (${counts.breaking} breaking) to your tokens.`));
+}
+
+/**
+ * Handle sync with non-breaking changes only
  */
 async function handleChanges(
   config: TokensConfig,
@@ -367,7 +544,11 @@ export async function syncCommand(options: SyncOptions = {}): Promise<void> {
   // Handle based on changes
   if (!hasChanges(result)) {
     await handleNoChanges();
+  } else if (hasBreakingChanges(result)) {
+    // Breaking changes: offer migration options
+    await handleBreakingChanges(config, fetchedData, result, options);
   } else {
+    // Non-breaking changes only
     await handleChanges(config, fetchedData, result, options);
   }
 }

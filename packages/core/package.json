@@ -1,6 +1,6 @@
 {
   "name": "@synkio/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Sync Figma design tokens to code - CLI and programmatic API",
   "type": "module",
   "publishConfig": {

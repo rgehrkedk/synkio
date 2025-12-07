@@ -5,6 +5,13 @@ All notable changes to @synkio/core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-12-07
+
+### Fixed
+- Sync command now properly routes breaking changes (renames, deletions) to migration flow.
+- When breaking changes are detected, users see platform scan results and get options: apply all (auto-migrate), tokens only, report only, or abort.
+- Migration report is generated and saved when breaking changes are found.
+
 ## [1.0.1] - 2025-12-07
 
 ### Fixed
