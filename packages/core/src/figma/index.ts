@@ -18,8 +18,11 @@ export {
 } from './parser.js';
 
 export {
-  fetchFromNode,
-  fetchFromFile,
   fetchFigmaData,
   type FetchOptions,
 } from './api.js';
+
+export {
+  FigmaClient,
+  type FigmaClientOptions,
+} from './client.js';
