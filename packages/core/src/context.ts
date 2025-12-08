@@ -32,8 +32,8 @@ import { createLogger } from './logger.js';
 export interface Context {
   /** Project root directory (typically process.cwd()) */
   rootDir: string;
-  /** Logger instance for structured output (optional, auto-created if not provided) */
-  logger?: Logger;
+  /** Logger instance for structured output (required, auto-created if not provided) */
+  logger: Logger;
 }
 
 /**

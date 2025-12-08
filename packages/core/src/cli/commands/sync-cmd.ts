@@ -9,7 +9,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
-import { initContext } from '../../context.js';
+import { initContext, getContext } from '../../context.js';
 import { loadEnv } from '../../env.js';
 import type { ResolvedConfig, ComparisonResult } from '../../types/index.js';
 import {
@@ -72,6 +72,8 @@ interface SyncOptions {
  * Run build command if configured
  */
 function runBuildCommand(config: ResolvedConfig, skipBuild: boolean): void {
+  const ctx = getContext();
+
   if (skipBuild) {
     logInfo('Skipping build command (--no-build flag)');
     return;
@@ -89,7 +91,7 @@ function runBuildCommand(config: ResolvedConfig, skipBuild: boolean): void {
     spinner.succeed('Build completed successfully');
   } catch (error) {
     spinner.warn('Build command failed');
-    console.log(formatWarning(`Build command failed. You can run it manually:\n${config.build.command}`));
+    ctx.logger.info(formatWarning(`Build command failed. You can run it manually:\n${config.build.command}`));
   }
 }
 
@@ -101,6 +103,7 @@ function runBuildCommand(config: ResolvedConfig, skipBuild: boolean): void {
  * Display changes in a formatted table
  */
 function displayChangesTable(result: ComparisonResult): void {
+  const ctx = getContext();
   const changes: Array<{ path: string; oldValue: any; newValue: any; type: string }> = [];
 
   // Collect all changes
@@ -168,10 +171,10 @@ function displayChangesTable(result: ComparisonResult): void {
     rows
   );
 
-  console.log('\n' + table.toString());
+  ctx.logger.info('\n' + table.toString());
 
   if (changes.length > displayCount) {
-    console.log(chalk.gray(`\n... and ${changes.length - displayCount} more changes`));
+    ctx.logger.info(chalk.gray(`\n... and ${changes.length - displayCount} more changes`));
   }
 }
 
@@ -179,25 +182,26 @@ function displayChangesTable(result: ComparisonResult): void {
  * Display change summary
  */
 function displaySummary(result: ComparisonResult): void {
+  const ctx = getContext();
   const counts = getChangeCounts(result);
 
-  console.log('\nChanges detected:');
+  ctx.logger.info('\nChanges detected:');
   if (result.newVariables.length > 0) {
-    console.log(chalk.green(`  + ${result.newVariables.length} added`));
+    ctx.logger.info(chalk.green(`  + ${result.newVariables.length} added`));
   }
   if (result.deletedVariables.length > 0) {
-    console.log(chalk.red(`  - ${result.deletedVariables.length} removed`));
+    ctx.logger.info(chalk.red(`  - ${result.deletedVariables.length} removed`));
   }
   if (result.valueChanges.length > 0) {
-    console.log(chalk.yellow(`  ~ ${result.valueChanges.length} modified`));
+    ctx.logger.info(chalk.yellow(`  ~ ${result.valueChanges.length} modified`));
   }
   if (result.pathChanges.length > 0) {
-    console.log(chalk.cyan(`  → ${result.pathChanges.length} renamed`));
+    ctx.logger.info(chalk.cyan(`  → ${result.pathChanges.length} renamed`));
   }
-  console.log(chalk.bold(`  = ${counts.total} total changes`));
+  ctx.logger.info(chalk.bold(`  = ${counts.total} total changes`));
 
   if (counts.breaking > 0) {
-    console.log(chalk.red.bold(`\n⚠ ${counts.breaking} breaking changes detected!`));
+    ctx.logger.info(chalk.red.bold(`\n⚠ ${counts.breaking} breaking changes detected!`));
   }
 }
 
@@ -212,7 +216,8 @@ async function handleFirstSync(
   config: ResolvedConfig,
   fetchedData: any
 ): Promise<void> {
-  console.log(formatInfo('First sync - no previous baseline found'));
+  const ctx = getContext();
+  ctx.logger.info(formatInfo('First sync - no previous baseline found'));
 
   const spinner = createSpinner('Processing tokens...');
   spinner.start();
@@ -230,14 +235,15 @@ async function handleFirstSync(
 
   runBuildCommand(config, false);
 
-  console.log(formatSuccess('Initial sync complete!\n\nTokens have been saved to your project.'));
+  ctx.logger.info(formatSuccess('Initial sync complete!\n\nTokens have been saved to your project.'));
 }
 
 /**
  * Handle sync with no changes
  */
 async function handleNoChanges(): Promise<void> {
-  console.log(formatInfo('No changes detected. Your tokens are up to date.'));
+  const ctx = getContext();
+  ctx.logger.info(formatInfo('No changes detected. Your tokens are up to date.'));
 }
 
 /**
@@ -250,6 +256,7 @@ async function handleBreakingChanges(
   result: ComparisonResult,
   options: SyncOptions
 ): Promise<void> {
+  const ctx = getContext();
   const counts = getChangeCounts(result);
 
   // Display changes
@@ -258,7 +265,7 @@ async function handleBreakingChanges(
 
   // If dry run, stop here
   if (options.dryRun) {
-    console.log(formatInfo('Dry run mode - no changes applied.\n\nRun without --dry-run to apply these changes.'));
+    ctx.logger.info(formatInfo('Dry run mode - no changes applied.\n\nRun without --dry-run to apply these changes.'));
     restoreBaseline();
     return;
   }
@@ -290,8 +297,8 @@ async function handleBreakingChanges(
       scanSpinner.succeed(`Scanned ${enabledPlatforms.length} platform(s) using token map`);
     } else {
       // Fallback to path-based matching
-      console.log(formatWarning('\nNo token map found. Using path-based matching (less precise).'));
-      console.log(formatInfo('Token map will be generated after this sync for future migrations.\n'));
+      ctx.logger.info(formatWarning('\nNo token map found. Using path-based matching (less precise).'));
+      ctx.logger.info(formatInfo('Token map will be generated after this sync for future migrations.\n'));
       platformResults = await scanAllPlatforms(
         result,
         platforms as { [key: string]: PlatformConfig },
@@ -301,27 +308,27 @@ async function handleBreakingChanges(
     }
 
     // Print per-platform summary
-    console.log('');
+    ctx.logger.info('');
     for (const platformResult of platformResults) {
       if (!platformResult.replacements.length) continue;
 
       const platformTitle = platformResult.platform.charAt(0).toUpperCase() + platformResult.platform.slice(1);
 
       if (platformResult.totalUsages > 0) {
-        console.log(chalk.yellow(`${platformTitle}: ${platformResult.totalUsages} usage(s) in ${platformResult.filesAffected} file(s)`));
+        ctx.logger.info(chalk.yellow(`${platformTitle}: ${platformResult.totalUsages} usage(s) in ${platformResult.filesAffected} file(s)`));
         for (const file of platformResult.usages.slice(0, 3)) {
-          console.log(chalk.gray(`  - ${file.path} (${file.count})`));
+          ctx.logger.info(chalk.gray(`  - ${file.path} (${file.count})`));
         }
         if (platformResult.usages.length > 3) {
-          console.log(chalk.gray(`  ... and ${platformResult.usages.length - 3} more files`));
+          ctx.logger.info(chalk.gray(`  ... and ${platformResult.usages.length - 3} more files`));
         }
       } else {
-        console.log(chalk.gray(`${platformTitle}: No usages found`));
+        ctx.logger.info(chalk.gray(`${platformTitle}: No usages found`));
       }
     }
-    console.log('');
+    ctx.logger.info('');
   } else {
-    console.log(formatWarning('\nNo migration platforms configured. Token references won\'t be auto-updated.\nRun "synkio init" and enable migration to set up auto-migration.\n'));
+    ctx.logger.info(formatWarning('\nNo migration platforms configured. Token references won\'t be auto-updated.\nRun "synkio init" and enable migration to set up auto-migration.\n'));
   }
 
   // Build choice options based on what was found
@@ -365,7 +372,7 @@ async function handleBreakingChanges(
 
   if (choice === 'abort') {
     restoreBaseline();
-    console.log(formatWarning('Sync aborted. No changes made.'));
+    ctx.logger.info(formatWarning('Sync aborted. No changes made.'));
     return;
   }
 
@@ -378,7 +385,7 @@ async function handleBreakingChanges(
 
   if (choice === 'report-only') {
     restoreBaseline();
-    console.log(formatInfo('No token changes applied. Review the migration report.'));
+    ctx.logger.info(formatInfo('No token changes applied. Review the migration report.'));
     return;
   }
 
@@ -418,7 +425,7 @@ async function handleBreakingChanges(
 
     migrateSpinner.succeed(`Migrated ${totalReplacements} token reference(s) in ${totalModified} file(s)`);
   } else if (choice === 'tokens-only') {
-    console.log(formatInfo('Review the migration report and update affected files manually.'));
+    ctx.logger.info(formatInfo('Review the migration report and update affected files manually.'));
   }
 
   // Save diff report
@@ -429,7 +436,7 @@ async function handleBreakingChanges(
   // Run build
   runBuildCommand(config, options.build === false);
 
-  console.log(formatSuccess(`Sync complete!\n\nApplied ${counts.total} change(s) (${counts.breaking} breaking) to your tokens.`));
+  ctx.logger.info(formatSuccess(`Sync complete!\n\nApplied ${counts.total} change(s) (${counts.breaking} breaking) to your tokens.`));
 }
 
 /**
@@ -441,13 +448,15 @@ async function handleChanges(
   result: ComparisonResult,
   options: SyncOptions
 ): Promise<void> {
+  const ctx = getContext();
+
   // Display changes
   displaySummary(result);
   displayChangesTable(result);
 
   // If dry run, stop here
   if (options.dryRun) {
-    console.log(formatInfo('Dry run mode - no changes applied.\n\nRun without --dry-run to apply these changes.'));
+    ctx.logger.info(formatInfo('Dry run mode - no changes applied.\n\nRun without --dry-run to apply these changes.'));
     // Restore backup since we're not applying
     restoreBaseline();
     return;
@@ -460,7 +469,7 @@ async function handleChanges(
     const proceed = await askYesNo(rl, '\nApply these changes?', true);
     if (!proceed) {
       restoreBaseline();
-      console.log(formatWarning('Sync cancelled. No changes applied.'));
+      ctx.logger.info(formatWarning('Sync cancelled. No changes applied.'));
       return;
     }
   } finally {
@@ -494,7 +503,7 @@ async function handleChanges(
   // Run build
   runBuildCommand(config, options.build === false);
 
-  console.log(formatSuccess(`Sync complete!\n\nApplied ${counts.total} change(s) to your tokens.`));
+  ctx.logger.info(formatSuccess(`Sync complete!\n\nApplied ${counts.total} change(s) to your tokens.`));
 }
 
 // ============================================================================
@@ -507,11 +516,12 @@ async function handleChanges(
 export async function syncCommand(options: SyncOptions = {}): Promise<void> {
   // Initialize context
   initContext({ rootDir: process.cwd() });
+  const ctx = getContext();
 
   // Load environment variables from .env files
   loadEnv();
 
-  console.log(chalk.bold.cyan('\nSynkio Token Sync\n'));
+  ctx.logger.info(chalk.bold.cyan('\nSynkio Token Sync\n'));
 
   // Load config
   let config: ResolvedConfig;
@@ -548,6 +558,7 @@ export async function syncCommand(options: SyncOptions = {}): Promise<void> {
     fetchedData = await fetchFigmaData({
       fileId: config.figma.fileId,
       nodeId: config.figma.nodeId,
+      logger: ctx.logger,
     });
     fetchSpinner.succeed('Fetched tokens from Figma');
   } catch (error) {
