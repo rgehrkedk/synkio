@@ -254,7 +254,7 @@ describe('Config Schema & Loading', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      const errors = result.error.errors;
+      const errors = result.error.issues;
       expect(errors.length).toBeGreaterThan(0);
       // Check that error mentions figma.fileId
       const hasFileIdError = errors.some(err => {
