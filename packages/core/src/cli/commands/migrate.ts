@@ -105,7 +105,7 @@ export interface MigrateOptions {
  * Show migration status
  */
 function showStatus(config: TokensConfig): void {
-  const planPath = getPlanPath(process.cwd(), config.paths?.reports);
+  const planPath = getPlanPath(process.cwd(), config.paths.reports);
 
   console.log('\n' + '━'.repeat(60));
   console.log('Migration Status');
@@ -227,7 +227,7 @@ async function generatePlan(config: TokensConfig, patterns: DetectedPattern[]): 
   }
 
   // Load previous baseline
-  const prevPath = config.paths?.baselinePrev || '.figma/data/baseline.prev.json';
+  const prevPath = config.paths.baselinePrev;
   if (!fs.existsSync(prevPath)) {
     console.log('No previous baseline found. Run `synkio sync` after making changes in Figma.\n');
     return null;
@@ -254,7 +254,7 @@ async function generatePlan(config: TokensConfig, patterns: DetectedPattern[]): 
   });
 
   // Save plan
-  const planPath = getPlanPath(process.cwd(), config.paths?.reports);
+  const planPath = getPlanPath(process.cwd(), config.paths.reports);
   savePlan(plan, planPath);
 
   console.log(`Plan saved: ${planPath}`);
@@ -280,7 +280,7 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
   console.log('Applying Migrations');
   console.log('━'.repeat(60) + '\n');
 
-  const planPath = getPlanPath(process.cwd(), config.paths?.reports);
+  const planPath = getPlanPath(process.cwd(), config.paths.reports);
 
   // Check plan exists
   if (!fs.existsSync(planPath)) {
@@ -440,7 +440,7 @@ export async function migrateCommand(options: MigrateOptions = {}): Promise<void
 
   // Load config (with silent=true - migrate doesn't need Figma token warning)
   const config = loadConfig(undefined, undefined, { silent: true });
-  
+
   if (!config) {
     console.error('No tokensrc.json found. Run \'synkio init\' first.');
     process.exit(1);

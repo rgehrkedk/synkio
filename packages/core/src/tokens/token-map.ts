@@ -212,6 +212,6 @@ export function getTokenMapPath(config: TokensConfig): string {
     return config.paths.tokenMap;
   }
   // Default: same directory as baseline, named token-map.json
-  const dataDir = config.paths.data || '.figma/data';
+  const dataDir = config.paths.data;
   return `${dataDir}/token-map.json`;
 }
