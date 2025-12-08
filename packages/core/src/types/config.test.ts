@@ -11,10 +11,10 @@ import { createContext, resetContext } from '../context.js';
 import {
   loadConfig,
   findConfigFile,
-  validateConfig,
   getDefaultConfig,
   interpolateEnvVars,
 } from '../files/loader.js';
+import { tokensConfigSchema } from '../files/config-schema.js';
 import type { TokensConfig } from './config.js';
 
 describe('Config Schema & Loading', () => {
@@ -232,8 +232,9 @@ describe('Config Schema & Loading', () => {
   it('should provide helpful validation errors', () => {
     const invalidConfig = {
       version: '2.0.0',
-      // Missing figma.fileId
+      // Missing figma.fileId (and providing empty fileId)
       figma: {
+        fileId: '', // Empty string should fail min(1) validation
         accessToken: 'token',
       },
       paths: {
@@ -248,11 +249,19 @@ describe('Config Schema & Loading', () => {
       collections: {},
     };
 
-    const errors = validateConfig(invalidConfig as any);
+    // Use Zod schema to validate
+    const result = tokensConfigSchema.safeParse(invalidConfig);
 
-    expect(errors).toBeDefined();
-    expect(errors.length).toBeGreaterThan(0);
-    expect(errors[0]).toContain('figma.fileId');
-    expect(errors[0]).toContain('required');
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const errors = result.error.errors;
+      expect(errors.length).toBeGreaterThan(0);
+      // Check that error mentions figma.fileId
+      const hasFileIdError = errors.some(err => {
+        const pathStr = err.path.join('.');
+        return pathStr.includes('figma') && pathStr.includes('fileId');
+      });
+      expect(hasFileIdError).toBe(true);
+    }
   });
 });
