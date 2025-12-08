@@ -18,18 +18,22 @@
  */
 
 import path from 'path';
+import type { Logger } from './logger.js';
+import { createLogger } from './logger.js';
 
 // ============================================================================
 // Context Interface
 // ============================================================================
 
 /**
- * Context holds all path configuration for a project.
+ * Context holds all path configuration and dependencies for a project.
  * All paths are resolved relative to rootDir.
  */
 export interface Context {
   /** Project root directory (typically process.cwd()) */
   rootDir: string;
+  /** Logger instance for structured output (optional, auto-created if not provided) */
+  logger?: Logger;
 }
 
 /**
@@ -38,6 +42,8 @@ export interface Context {
 export interface ContextOptions {
   /** Project root directory */
   rootDir: string;
+  /** Optional logger instance (auto-created if not provided) */
+  logger?: Logger;
 }
 
 // ============================================================================
@@ -110,10 +116,11 @@ export function resetContext(): void {
  * ```
  */
 export function createContext(options: ContextOptions): Context {
-  const { rootDir } = options;
+  const { rootDir, logger } = options;
 
   return {
     rootDir: path.resolve(rootDir),
+    logger: logger ?? createLogger(), // Auto-create logger if not provided
   };
 }
 
