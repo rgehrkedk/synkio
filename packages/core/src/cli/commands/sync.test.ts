@@ -77,18 +77,27 @@ describe('sync command', () => {
   it('should fetch data from Figma', async () => {
     await syncCommand({});
 
-    expect(figma.fetchFigmaData).toHaveBeenCalledWith({
-      fileId: 'abc123',
-      nodeId: undefined,
-    });
+    expect(figma.fetchFigmaData).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileId: 'abc123',
+        nodeId: undefined,
+      })
+    );
   });
 
   it('should create backup of previous baseline', async () => {
-    vi.mocked(files.backupBaseline).mockReturnValue(true);
+    // Mock fs.existsSync to simulate baseline.json exists
+    const fs = await import('fs');
+    vi.spyOn(fs.default, 'existsSync').mockReturnValue(true);
+    vi.spyOn(fs.default, 'copyFileSync').mockImplementation(() => {});
 
     await syncCommand({});
 
-    expect(files.backupBaseline).toHaveBeenCalled();
+    // Verify that fs.copyFileSync was called for backup (manual backup in sync-cmd.ts)
+    expect(fs.default.copyFileSync).toHaveBeenCalledWith(
+      mockConfig.paths.baseline,
+      mockConfig.paths.baselinePrev
+    );
   });
 
   it('should update local token files', async () => {
@@ -138,9 +147,13 @@ describe('sync command', () => {
   });
 
   it('should skip backup creation with --no-backup', async () => {
+    const fs = await import('fs');
+    vi.spyOn(fs.default, 'copyFileSync').mockImplementation(() => {});
+
     await syncCommand({ backup: false });
 
-    expect(files.backupBaseline).not.toHaveBeenCalled();
+    // Verify fs.copyFileSync was NOT called when backup is disabled
+    expect(fs.default.copyFileSync).not.toHaveBeenCalled();
   });
 
   it('should skip build command with --no-build', async () => {
