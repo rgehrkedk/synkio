@@ -31,6 +31,9 @@ describe('init command', () => {
     } as any);
 
     vi.mocked(loader.findConfigFile).mockReturnValue(null);
+
+    // Mock fs.readdirSync to return an empty array by default
+    vi.mocked(fs.readdirSync).mockReturnValue([] as any);
   });
 
   afterEach(() => {
@@ -38,27 +41,27 @@ describe('init command', () => {
   });
 
   it('should create tokensrc.json with provided values', async () => {
-    // Mock user inputs
+    // Mock user inputs - need enough for all prompts
     vi.mocked(prompt.askText)
       .mockResolvedValueOnce('https://www.figma.com/file/abc123/Test-File')
       .mockResolvedValueOnce('test-access-token')
-      .mockResolvedValueOnce(''); // Optional node ID
+      .mockResolvedValueOnce('') // Optional node ID
+      // First collection (Core)
+      .mockResolvedValueOnce('1') // Strategy choice (1 = byMode)
+      .mockResolvedValueOnce('tokens/core') // Output directory
+      .mockResolvedValue(''); // Any other prompts
 
     vi.mocked(prompt.askYesNo)
-      .mockResolvedValueOnce(true) // use default paths
-      .mockResolvedValueOnce(false); // Skip build command
+      .mockResolvedValueOnce(true) // Confirm file paths for first collection
+      .mockResolvedValueOnce(true) // use default data paths
+      .mockResolvedValueOnce(false) // Skip build command
+      .mockResolvedValue(false); // Any other yes/no prompts
 
-    // Mock Figma API response
+    // Mock Figma API response with ONE collection
+    // Only 'baseline' and '$metadata' keys are ignored by extractCollections
+    // Everything else becomes a collection
     vi.mocked(figma.fetchFigmaData).mockResolvedValueOnce({
       baseline: {},
-      collections: {
-        'collection-1': {
-          name: 'Core',
-          modes: [{ modeId: 'mode-1', name: 'Light' }],
-          variableIds: ['var-1'],
-        },
-      },
-      variables: {},
       $metadata: {
         version: '1.0.0',
         exportedAt: new Date().toISOString(),
@@ -66,7 +69,11 @@ describe('init command', () => {
         fileKey: 'abc123',
         fileName: 'Test File',
       },
-    });
+      // Collection data at top level - only 'Core' collection
+      'Core': {
+        'Light': {},
+      },
+    } as any);
 
     // Mock file operations
     vi.mocked(fs.existsSync).mockReturnValue(false);
@@ -91,13 +98,18 @@ describe('init command', () => {
   it('should validate Figma connection before proceeding', async () => {
     vi.mocked(prompt.askText)
       .mockResolvedValueOnce('https://www.figma.com/file/abc123/Test-File')
-      .mockResolvedValueOnce('invalid-token');
+      .mockResolvedValueOnce('invalid-token')
+      .mockResolvedValueOnce(''); // node ID
+
+    vi.mocked(prompt.askYesNo)
+      .mockResolvedValueOnce(false); // Don't retry after failure
 
     // Mock failed Figma API call
     vi.mocked(figma.fetchFigmaData).mockRejectedValueOnce(new Error('Invalid access token'));
 
     // Run init command and expect it to throw
-    await expect(initCommand({ yes: false })).rejects.toThrow(/Invalid access token|Could not fetch/);
+    // The error message changed - it now says "Setup cancelled by user" when user declines retry
+    await expect(initCommand({ yes: false })).rejects.toThrow(/Setup cancelled/);
 
     // Verify config was not saved
     expect(loader.saveConfig).not.toHaveBeenCalled();
@@ -108,16 +120,17 @@ describe('init command', () => {
       .mockResolvedValueOnce('not-a-valid-url') // Invalid URL
       .mockResolvedValueOnce('https://www.figma.com/file/abc123/Test-File') // Valid URL
       .mockResolvedValueOnce('test-token')
-      .mockResolvedValueOnce(''); // node ID
+      .mockResolvedValueOnce('') // node ID
+      .mockResolvedValue(''); // Any other prompts
 
     vi.mocked(prompt.askYesNo)
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false);
+      .mockResolvedValueOnce(true) // use default data paths
+      .mockResolvedValueOnce(false) // Skip build
+      .mockResolvedValue(false); // Any other yes/no prompts
 
+    // Return baseline with NO collections (only baseline and $metadata keys)
     vi.mocked(figma.fetchFigmaData).mockResolvedValueOnce({
       baseline: {},
-      collections: {},
-      variables: {},
       $metadata: {
         version: '1.0.0',
         exportedAt: new Date().toISOString(),
@@ -125,7 +138,7 @@ describe('init command', () => {
         fileKey: 'abc123',
         fileName: 'Test',
       },
-    });
+    } as any);
 
     vi.mocked(fs.existsSync).mockReturnValue(false);
     vi.mocked(loader.saveConfig).mockResolvedValueOnce(undefined);
@@ -137,8 +150,17 @@ describe('init command', () => {
   });
 
   it('should use template when --template flag provided', async () => {
-    // Mock template file
-    vi.mocked(fs.existsSync).mockReturnValue(true);
+    // Mock template file EXISTS and readFileSync returns template config
+    vi.mocked(fs.existsSync).mockImplementation((path: any) => {
+      const pathStr = String(path);
+      // Template file exists
+      if (pathStr.includes('tokensrc.nextjs.json')) {
+        return true;
+      }
+      // All other paths (token directories during detection) don't exist
+      return false;
+    });
+
     vi.mocked(fs.readFileSync).mockReturnValueOnce(
       JSON.stringify({
         version: '1.0.0',
@@ -148,19 +170,21 @@ describe('init command', () => {
       }) as any
     );
 
+    // Mock readdirSync to return empty array (no token directories found)
+    vi.mocked(fs.readdirSync).mockReturnValue([] as any);
+
     vi.mocked(prompt.askText)
       .mockResolvedValueOnce('https://www.figma.com/file/abc123/Test-File')
       .mockResolvedValueOnce('test-token')
-      .mockResolvedValueOnce('');
+      .mockResolvedValueOnce(''); // node ID
 
     vi.mocked(prompt.askYesNo)
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false);
+      .mockResolvedValueOnce(true) // use default data paths
+      .mockResolvedValueOnce(false); // Skip build
 
+    // Return baseline with NO collections (only baseline and $metadata keys)
     vi.mocked(figma.fetchFigmaData).mockResolvedValueOnce({
       baseline: {},
-      collections: {},
-      variables: {},
       $metadata: {
         version: '1.0.0',
         exportedAt: new Date().toISOString(),
@@ -168,7 +192,7 @@ describe('init command', () => {
         fileKey: 'abc123',
         fileName: 'Test',
       },
-    });
+    } as any);
 
     vi.mocked(loader.saveConfig).mockResolvedValueOnce(undefined);
 
@@ -192,8 +216,6 @@ describe('init command', () => {
 
     vi.mocked(figma.fetchFigmaData).mockResolvedValueOnce({
       baseline: {},
-      collections: {},
-      variables: {},
       $metadata: {
         version: '1.0.0',
         exportedAt: new Date().toISOString(),
@@ -201,7 +223,7 @@ describe('init command', () => {
         fileKey: 'abc123',
         fileName: 'Test',
       },
-    });
+    } as any);
 
     vi.mocked(fs.existsSync).mockReturnValue(false);
     vi.mocked(loader.saveConfig).mockResolvedValueOnce(undefined);
