@@ -8,7 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import * as readline from 'readline';
-import { initContext } from '../../context.js';
+import { initContext, getContext } from '../../context.js';
 import { fetchFigmaData } from '../../figma/index.js';
 import { extractCollections, analyzeCollections } from '../../tokens/index.js';
 import { saveConfig, findConfigFile } from '../../files/loader.js';
@@ -44,11 +44,12 @@ interface InitOptions {
  * Load a template configuration
  */
 function loadTemplate(templateName: string): Partial<TokensConfig> | null {
+  const ctx = getContext();
   const templatesDir = path.join(process.cwd(), 'packages', 'core', 'templates');
   const templatePath = path.join(templatesDir, `tokensrc.${templateName}.json`);
 
   if (!fs.existsSync(templatePath)) {
-    console.warn(formatWarning(`Template "${templateName}" not found. Using defaults.`));
+    ctx.logger.warn(formatWarning(`Template "${templateName}" not found. Using defaults.`));
     return null;
   }
 
@@ -56,7 +57,7 @@ function loadTemplate(templateName: string): Partial<TokensConfig> | null {
     const templateContent = fs.readFileSync(templatePath, 'utf-8');
     return JSON.parse(templateContent);
   } catch (error) {
-    console.warn(formatWarning(`Failed to load template "${templateName}". Using defaults.`));
+    ctx.logger.warn(formatWarning(`Failed to load template "${templateName}". Using defaults.`));
     return null;
   }
 }
@@ -67,12 +68,12 @@ function loadTemplate(templateName: string): Partial<TokensConfig> | null {
 
 /**
  * Sanitize mode/group name for use in filename
- * 
+ *
  * Handles special characters, spaces, path traversal, and Windows reserved names.
- * 
+ *
  * @param name - The name to sanitize
  * @returns A safe filename string
- * 
+ *
  * @example
  * sanitizeForFilename('Dark / High Contrast') // => 'dark-high-contrast'
  * sanitizeForFilename('con') // => '_con' (Windows reserved)
@@ -124,10 +125,10 @@ function sanitizeForFilename(name: string): string {
 
 /**
  * Get user-friendly error message with actionable steps
- * 
+ *
  * Maps common Figma API errors to helpful messages that guide users
  * toward resolving the issue.
- * 
+ *
  * @param error - Error object from Figma API or network request
  * @returns User-friendly error message with actionable steps
  */
@@ -165,15 +166,15 @@ function getHelpfulErrorMessage(error: any): string {
 
 /**
  * Extract file ID from Figma URL
- * 
+ *
  * Supports multiple URL formats:
  * - https://www.figma.com/file/ABC123/...
  * - https://figma.com/design/ABC123/...
  * - ABC123 (just the ID)
- * 
+ *
  * @param url - Figma URL or file ID
  * @returns File ID string or null if invalid
- * 
+ *
  * @example
  * extractFileIdFromUrl('https://figma.com/file/abc123/My-Design')
  * // => 'abc123'
@@ -209,11 +210,11 @@ function validateFigmaUrl(url: string): boolean {
 
 /**
  * Generate strip segments from collection information
- * 
+ *
  * Extracts sanitized collection names, mode names, and common segments
  * to be used in migration configuration for removing path segments
  * from token names.
- * 
+ *
  * @param collectionsInfo - Array of collection information
  * @returns Array of unique strip segment strings
  */
@@ -270,65 +271,67 @@ function getSplitStrategyChoices(): Array<{value: string; label: string; descrip
 
 /**
  * Configure a single collection interactively (simplified)
- * 
+ *
  * User explicitly chooses:
  * 1. Output directory path
  * 2. Split strategy (byMode, byGroup, flat, skip)
- * 
+ *
  * No auto-detection or guessing - user is in full control.
- * 
+ *
  * @param rl - Readline interface
  * @param info - Collection information with modes and groups
  * @returns Collection split configuration or null if skipped
  */
 async function configureCollection(rl: readline.Interface, info: any): Promise<any | null> {
-  console.log('\n' + '─'.repeat(60));
-  console.log(`📦  ${info.name}`);
-  console.log('─'.repeat(60));
-  
+  const ctx = getContext();
+
+  ctx.logger.info('\n' + '─'.repeat(60));
+  ctx.logger.info(`📦  ${info.name}`);
+  ctx.logger.info('─'.repeat(60));
+
   // Show summary
   const firstMode = info.modes[0];
   const groups = Object.keys(info.groups[firstMode] || {});
   const totalTokens = Object.values(info.groups[firstMode] || {}).reduce((sum: number, count) => sum + (count as number), 0);
-  
-  console.log(`\n    Found in Figma:`);
-  console.log(`    • ${info.modes.length} mode${info.modes.length !== 1 ? 's' : ''}: ${info.modes.join(', ')}`);
-  console.log(`    • ${groups.length} group${groups.length !== 1 ? 's' : ''}: ${groups.slice(0, 4).join(', ')}${groups.length > 4 ? '...' : ''}`);
-  console.log(`    • ${totalTokens} tokens`);
-  
+
+  ctx.logger.info(`\n    Found in Figma:`);
+  ctx.logger.info(`    • ${info.modes.length} mode${info.modes.length !== 1 ? 's' : ''}: ${info.modes.join(', ')}`);
+  ctx.logger.info(`    • ${groups.length} group${groups.length !== 1 ? 's' : ''}: ${groups.slice(0, 4).join(', ')}${groups.length > 4 ? '...' : ''}`);
+  ctx.logger.info(`    • ${totalTokens} tokens`);
+
   // Step 1: Choose split strategy
   const strategies = getSplitStrategyChoices();
-  console.log('\n    How do you want to organize the output files?\n');
+  ctx.logger.info('\n    How do you want to organize the output files?\n');
   for (let i = 0; i < strategies.length; i++) {
-    console.log(`    ${i + 1}) ${strategies[i].label}`);
-    console.log(`       ${strategies[i].description}\n`);
+    ctx.logger.info(`    ${i + 1}) ${strategies[i].label}`);
+    ctx.logger.info(`       ${strategies[i].description}\n`);
   }
-  
+
   const choiceStr = await askText(rl, '    Choose [1-4]', '1');
   const choiceIndex = parseInt(choiceStr) - 1;
-  
+
   let selectedStrategy: string;
   if (choiceIndex < 0 || choiceIndex >= strategies.length) {
     selectedStrategy = strategies[0].value;
   } else {
     selectedStrategy = strategies[choiceIndex].value;
   }
-  
+
   // Handle skip
   if (selectedStrategy === 'skip') {
-    console.log('\n    → Skipped (will not be exported)');
+    ctx.logger.info('\n    → Skipped (will not be exported)');
     return null;
   }
-  
+
   // Step 2: User specifies output directory
   const defaultDir = `tokens/${sanitizeForFilename(info.name)}`;
-  console.log(`\n    Where should the files go?`);
+  ctx.logger.info(`\n    Where should the files go?`);
   const outputDir = await askText(rl, `    Directory [${defaultDir}]`, defaultDir);
-  
+
   // Step 3: Generate file mapping based on strategy
   const files: Record<string, string> = {};
   const keys = selectedStrategy === 'byMode' ? info.modes : groups;
-  
+
   if (selectedStrategy === 'flat') {
     // All keys map to single file - user chooses filename
     const defaultFile = `${outputDir}/tokens.json`;
@@ -342,21 +345,21 @@ async function configureCollection(rl: readline.Interface, info: any): Promise<a
       const sanitizedKey = sanitizeForFilename(key);
       files[key] = `${outputDir}/${sanitizedKey}.json`;
     }
-    
+
     // Show preview
     const uniqueFiles = Array.from(new Set(Object.values(files)));
-    console.log(`\n    Files that will be created:`);
+    ctx.logger.info(`\n    Files that will be created:`);
     for (const file of uniqueFiles.slice(0, 6)) {
-      console.log(`    • ${file}`);
+      ctx.logger.info(`    • ${file}`);
     }
     if (uniqueFiles.length > 6) {
-      console.log(`    • ... and ${uniqueFiles.length - 6} more`);
+      ctx.logger.info(`    • ... and ${uniqueFiles.length - 6} more`);
     }
-    
+
     // Confirm or let user rename
     const confirmFiles = await askYesNo(rl, '\n    OK?', true);
     if (!confirmFiles) {
-      console.log('\n    Enter path for each:');
+      ctx.logger.info('\n    Enter path for each:');
       for (const key of keys) {
         const defaultName = files[key];
         const customName = await askText(rl, `    ${key} [${defaultName}]`, defaultName);
@@ -364,11 +367,11 @@ async function configureCollection(rl: readline.Interface, info: any): Promise<a
       }
     }
   }
-  
+
   // Brief confirmation
   const uniqueFiles = Array.from(new Set(Object.values(files)));
-  console.log(`\n    ✓ ${info.name}: ${selectedStrategy} → ${uniqueFiles.length} file${uniqueFiles.length !== 1 ? 's' : ''} in ${outputDir}/`);
-  
+  ctx.logger.info(`\n    ✓ ${info.name}: ${selectedStrategy} → ${uniqueFiles.length} file${uniqueFiles.length !== 1 ? 's' : ''} in ${outputDir}/`);
+
   return {
     collection: info.name,
     strategy: selectedStrategy,
@@ -415,8 +418,10 @@ function createDefaultConfig(): TokensConfig {
  * Returns config and raw access token for .env creation
  */
 async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; accessToken: string }> {
+  const ctx = getContext();
+
   // Opening welcome message with realistic expectations
-  console.log(formatInfo(
+  ctx.logger.info(formatInfo(
     'Welcome to Synkio!\n\n' +
     'You\'ll need:\n' +
     '  • Figma file URL\n' +
@@ -426,34 +431,34 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 1: Project Detection
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  console.log('━'.repeat(60));
-  console.log('Scanning project...');
-  console.log('━'.repeat(60));
+  ctx.logger.info('━'.repeat(60));
+  ctx.logger.info('Scanning project...');
+  ctx.logger.info('━'.repeat(60));
 
   const detection = detectProject();
 
   // Display detection results clearly
   if (detection.styleDictionary.found) {
-    console.log(`\n✓ Found Style Dictionary (${detection.styleDictionary.version || '?'})`);
+    ctx.logger.info(`\n✓ Found Style Dictionary (${detection.styleDictionary.version || '?'})`);
     if (detection.build.command) {
-      console.log(`  Build script: ${detection.build.command}`);
+      ctx.logger.info(`  Build script: ${detection.build.command}`);
     }
   }
 
   if (detection.paths.tokens) {
-    console.log(`✓ Found token directory: ${detection.paths.tokens}`);
+    ctx.logger.info(`✓ Found token directory: ${detection.paths.tokens}`);
   }
 
   if (!detection.styleDictionary.found && !detection.paths.tokens) {
-    console.log('\n  No existing token setup detected. Starting fresh.');
+    ctx.logger.info('\n  No existing token setup detected. Starting fresh.');
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 2: Figma Connection
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  console.log('\n' + '━'.repeat(60));
-  console.log('Figma Connection');
-  console.log('━'.repeat(60) + '\n');
+  ctx.logger.info('\n' + '━'.repeat(60));
+  ctx.logger.info('Figma Connection');
+  ctx.logger.info('━'.repeat(60) + '\n');
 
   // Get Figma file URL
   let figmaUrl = '';
@@ -462,7 +467,7 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
     figmaUrl = await askText(rl, 'Figma file URL or file ID:');
 
     if (!validateFigmaUrl(figmaUrl)) {
-      console.log(formatWarning('Invalid Figma URL. Please provide a valid URL like:\nhttps://www.figma.com/file/ABC123/...'));
+      ctx.logger.info(formatWarning('Invalid Figma URL. Please provide a valid URL like:\nhttps://www.figma.com/file/ABC123/...'));
       continue;
     }
 
@@ -496,9 +501,9 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
       success = true;
     } catch (error) {
       spinner.fail('Connection failed');
-      
+
       const helpfulMessage = getHelpfulErrorMessage(error);
-      console.log(formatWarning(`\\n${helpfulMessage}`));
+      ctx.logger.info(formatWarning(`\\n${helpfulMessage}`));
 
       if (attempt < maxAttempts) {
         // Close and recreate readline after spinner to avoid ora/readline conflict
@@ -523,16 +528,16 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // Step 3: Collection Analysis
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  console.log('\n' + '━'.repeat(60));
-  console.log('Analyzing Figma data...');
-  console.log('━'.repeat(60) + '\n');
+  ctx.logger.info('\n' + '━'.repeat(60));
+  ctx.logger.info('Analyzing Figma data...');
+  ctx.logger.info('━'.repeat(60) + '\n');
 
   // Show found collections (fetchedData is guaranteed to be defined after successful fetch)
   const collections = extractCollections(fetchedData!);
   const collectionsInfo = analyzeCollections(collections);
 
   if (collectionsInfo.length > 0) {
-    console.log(`Found ${collectionsInfo.length} collection(s):`);
+    ctx.logger.info(`Found ${collectionsInfo.length} collection(s):`);
     for (const info of collectionsInfo) {
       // Get unique group names across all modes
       const allGroups = new Set<string>();
@@ -542,13 +547,13 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
         }
       }
       const groupList = Array.from(allGroups);
-      
-      console.log(`  • ${info.name}`);
-      console.log(`    ${info.modes.length} mode${info.modes.length !== 1 ? 's' : ''}: ${info.modes.join(', ')}`);
-      console.log(`    ${groupList.length} group${groupList.length !== 1 ? 's' : ''}: ${groupList.slice(0, 5).join(', ')}${groupList.length > 5 ? '...' : ''}`);
+
+      ctx.logger.info(`  • ${info.name}`);
+      ctx.logger.info(`    ${info.modes.length} mode${info.modes.length !== 1 ? 's' : ''}: ${info.modes.join(', ')}`);
+      ctx.logger.info(`    ${groupList.length} group${groupList.length !== 1 ? 's' : ''}: ${groupList.slice(0, 5).join(', ')}${groupList.length > 5 ? '...' : ''}`);
     }
   } else {
-    console.log(formatWarning('No collections found in this file.'));
+    ctx.logger.warn(formatWarning('No collections found in this file.'));
   }
 
   // Create config
@@ -563,9 +568,9 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
   // Step 4: Configure Output
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   if (collectionsInfo.length > 0) {
-    console.log('\n' + '━'.repeat(60));
-    console.log('Configure output for each collection');
-    console.log('━'.repeat(60));
+    ctx.logger.info('\n' + '━'.repeat(60));
+    ctx.logger.info('Configure output for each collection');
+    ctx.logger.info('━'.repeat(60));
 
     // Initialize split config
     config.split = {};
@@ -580,7 +585,7 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
 
     // Validate at least one collection configured
     if (Object.keys(config.split).length === 0) {
-      console.log(formatWarning('\nNo collections configured. At least one collection is required.'));
+      ctx.logger.warn(formatWarning('\nNo collections configured. At least one collection is required.'));
       const restart = await askYesNo(rl, 'Would you like to restart configuration?', true);
       if (restart) {
         throw new Error('Restart requested - please run synkio init again');
@@ -603,19 +608,19 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
     }
 
     if (conflicts.length > 0) {
-      console.log(formatWarning(`\n⚠ Warning: Path conflicts detected:\n${conflicts.map(p => `  - ${p}`).join('\n')}`));
-      console.log(formatInfo('Multiple collections will write to the same file. This may cause data loss.'));
+      ctx.logger.warn(formatWarning(`\n⚠ Warning: Path conflicts detected:\n${conflicts.map(p => `  - ${p}`).join('\n')}`));
+      ctx.logger.info(formatInfo('Multiple collections will write to the same file. This may cause data loss.'));
     }
 
-    console.log(formatSuccess(`\n✓ Configured ${Object.keys(config.split).length} collection(s)`));
+    ctx.logger.info(formatSuccess(`\n✓ Configured ${Object.keys(config.split).length} collection(s)`));
   }
 
   // Ask about output paths
-  console.log('\n  ┌─────────────────────────────────────────────────────────');
-  console.log('  │ DATA STORAGE');
-  console.log('  └─────────────────────────────────────────────────────────');
-  console.log('     Synkio stores baseline and migration data locally.\n');
-  
+  ctx.logger.info('\n  ┌─────────────────────────────────────────────────────────');
+  ctx.logger.info('  │ DATA STORAGE');
+  ctx.logger.info('  └─────────────────────────────────────────────────────────');
+  ctx.logger.info('     Synkio stores baseline and migration data locally.\n');
+
   const defaultDataPath = config.paths.data || '.figma/data';
   const useDefaults = await askYesNo(rl, `  Use ${defaultDataPath}?`, true);
 
@@ -631,22 +636,22 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
     config.paths.baselinePrev = path.join(dataPath, 'baseline.prev.json');
     config.paths.tokenMap = path.join(dataPath, 'token-map.json');
   }
-  
-  console.log(`\n  ✓ ${config.paths.data}`);
-  console.log(`    Will create: baseline.json, token-map.json`);
+
+  ctx.logger.info(`\n  ✓ ${config.paths.data}`);
+  ctx.logger.info(`    Will create: baseline.json, token-map.json`);
 
   // Ask about build command
-  console.log('\n  ┌─────────────────────────────────────────────────────────');
-  console.log('  │ BUILD COMMAND (optional)');
-  console.log('  └─────────────────────────────────────────────────────────');
-  console.log('     Run after each sync (e.g., Style Dictionary).\n');
-  
+  ctx.logger.info('\n  ┌─────────────────────────────────────────────────────────');
+  ctx.logger.info('  │ BUILD COMMAND (optional)');
+  ctx.logger.info('  └─────────────────────────────────────────────────────────');
+  ctx.logger.info('     Run after each sync (e.g., Style Dictionary).\n');
+
   let wantsBuild = false;
-  
+
   if (detection.styleDictionary.found) {
-    console.log(`     Detected: Style Dictionary ${detection.styleDictionary.version || ''}`);
+    ctx.logger.info(`     Detected: Style Dictionary ${detection.styleDictionary.version || ''}`);
     if (detection.build.command) {
-      console.log(`     Build script: ${detection.build.command}`);
+      ctx.logger.info(`     Build script: ${detection.build.command}`);
     }
     wantsBuild = await askYesNo(rl, '\n  Configure build?', true);
   } else {
@@ -656,25 +661,25 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
   if (wantsBuild) {
     const defaultCommand = detection.build.command || 'npm run tokens:build';
     const buildCommand = await askText(rl, '  Command', defaultCommand);
-    
+
     config.build = {
       command: buildCommand,
     };
-    
+
     if (detection.styleDictionary.found) {
       const defaultConfig = detection.styleDictionary.configPath || 'style-dictionary.config.js';
       const sdConfig = await askText(rl, '  Config path', defaultConfig);
-      
+
       config.build.styleDictionary = {
         enabled: true,
         config: sdConfig,
         version: detection.styleDictionary.version || 'v4',
       };
     }
-    
-    console.log(`\n  ✓ Build: ${config.build.command}`);
+
+    ctx.logger.info(`\n  ✓ Build: ${config.build.command}`);
   } else {
-    console.log('\n  ○ No build command');
+    ctx.logger.info('\n  ○ No build command');
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -683,26 +688,26 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
   const wantsMigration = await askYesNo(rl, '\n\n  Configure migration for breaking token changes?', false);
 
   if (wantsMigration) {
-    console.log('\n  ┌─────────────────────────────────────────────────────────');
-    console.log('  │ MIGRATION');
-    console.log('  └─────────────────────────────────────────────────────────');
-    console.log('     Auto-update code when token names change.');
-    console.log('     Synkio will scan your code to detect actual usage patterns.\n');
+    ctx.logger.info('\n  ┌─────────────────────────────────────────────────────────');
+    ctx.logger.info('  │ MIGRATION');
+    ctx.logger.info('  └─────────────────────────────────────────────────────────');
+    ctx.logger.info('     Auto-update code when token names change.');
+    ctx.logger.info('     Synkio will scan your code to detect actual usage patterns.\n');
 
     // Ask for scan directory
     const scanDir = await askText(rl, '     Directory to scan', 'src');
 
-    console.log(`\n     Scanning ${scanDir}/ for token patterns...`);
+    ctx.logger.info(`\n     Scanning ${scanDir}/ for token patterns...`);
 
     // Import and run pattern scanner
     const { scanForPatterns, formatPatternsForDisplay } = await import('../../detect/patterns.js');
     const scanResult = await scanForPatterns(scanDir);
 
     if (scanResult.patterns.length === 0) {
-      console.log('     No token usage patterns detected.');
-      console.log('     You can run `synkio migrate --scan` later.\n');
+      ctx.logger.info('     No token usage patterns detected.');
+      ctx.logger.info('     You can run `synkio migrate --scan` later.\n');
     } else {
-      console.log(`\n     Found ${scanResult.patterns.length} pattern(s):\n`);
+      ctx.logger.info(`\n     Found ${scanResult.patterns.length} pattern(s):\n`);
 
       // Group by platform
       const byPlatform = new Map<string, typeof scanResult.patterns>();
@@ -720,9 +725,9 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
         const totalMatches = patterns.reduce((sum, p) => sum + p.matchCount, 0);
         const totalFiles = new Set(patterns.flatMap(p => p.files)).size;
 
-        console.log(`     ${platform.toUpperCase()}: ${totalMatches} matches in ${totalFiles} files`);
+        ctx.logger.info(`     ${platform.toUpperCase()}: ${totalMatches} matches in ${totalFiles} files`);
         for (const pattern of patterns.slice(0, 2)) {
-          console.log(`       Example: ${pattern.example}`);
+          ctx.logger.info(`       Example: ${pattern.example}`);
         }
 
         const include = await askYesNo(rl, `     Include ${platform}?`, true);
@@ -735,7 +740,7 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
             patterns: patterns.map(p => p.pattern),
           };
         }
-        console.log('');
+        ctx.logger.info('');
       }
 
       if (Object.keys(enabledPlatforms).length > 0) {
@@ -748,10 +753,10 @@ async function runInteractiveSetup(rl: any): Promise<{ config: TokensConfig; acc
           platforms: enabledPlatforms
         };
 
-        console.log(formatSuccess(`     ✓ Migration configured for ${Object.keys(enabledPlatforms).length} platform(s)`));
-        console.log('     Patterns detected from actual code usage.\n');
+        ctx.logger.info(formatSuccess(`     ✓ Migration configured for ${Object.keys(enabledPlatforms).length} platform(s)`));
+        ctx.logger.info('     Patterns detected from actual code usage.\n');
       } else {
-        console.log('     No platforms selected for migration.\n');
+        ctx.logger.info('     No platforms selected for migration.\n');
       }
     }
   }
@@ -804,11 +809,12 @@ function runNonInteractiveSetup(): TokensConfig {
 export async function initCommand(options: InitOptions = {}): Promise<void> {
   // Initialize context
   initContext({ rootDir: process.cwd() });
+  const ctx = getContext();
 
   // Check if config already exists
   const existingConfig = findConfigFile(process.cwd());
   if (existingConfig) {
-    console.log(formatWarning(`Configuration already exists at: ${existingConfig}\n\nTo reconfigure, delete this file and run 'synkio init' again.`));
+    ctx.logger.warn(formatWarning(`Configuration already exists at: ${existingConfig}\n\nTo reconfigure, delete this file and run 'synkio init' again.`));
     return;
   }
 
@@ -825,7 +831,7 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
   if (options.yes) {
     // Non-interactive mode
     config = runNonInteractiveSetup();
-    console.log(formatInfo('Running in non-interactive mode...'));
+    ctx.logger.info(formatInfo('Running in non-interactive mode...'));
   } else {
     // Interactive mode
     const rl = createPrompt();
@@ -861,12 +867,12 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
   if (rawAccessToken) {
     const envPath = path.join(process.cwd(), '.env');
     const envExists = fs.existsSync(envPath);
-    
+
     if (envExists) {
       // Read existing .env and update/add FIGMA_ACCESS_TOKEN
       let envContent = fs.readFileSync(envPath, 'utf-8');
       const tokenLine = `FIGMA_ACCESS_TOKEN=${rawAccessToken}`;
-      
+
       if (envContent.includes('FIGMA_ACCESS_TOKEN=')) {
         // Replace existing token
         envContent = envContent.replace(/FIGMA_ACCESS_TOKEN=.*/g, tokenLine);
@@ -874,25 +880,25 @@ export async function initCommand(options: InitOptions = {}): Promise<void> {
         // Append new token
         envContent += `\n${tokenLine}\n`;
       }
-      
+
       fs.writeFileSync(envPath, envContent, 'utf-8');
-      console.log(formatInfo('Updated FIGMA_ACCESS_TOKEN in existing .env file'));
+      ctx.logger.info(formatInfo('Updated FIGMA_ACCESS_TOKEN in existing .env file'));
     } else {
       // Create new .env file
       fs.writeFileSync(envPath, `FIGMA_ACCESS_TOKEN=${rawAccessToken}\n`, 'utf-8');
-      console.log(formatSuccess('Created .env file with FIGMA_ACCESS_TOKEN'));
+      ctx.logger.info(formatSuccess('Created .env file with FIGMA_ACCESS_TOKEN'));
     }
   }
 
   // Show success message
-  console.log('\n' + '━'.repeat(60));
-  console.log('Setup complete!');
-  console.log('━'.repeat(60));
-  console.log(`\nSaved: ${configPath}`);
-  
-  const nextSteps = rawAccessToken 
+  ctx.logger.info('\n' + '━'.repeat(60));
+  ctx.logger.info('Setup complete!');
+  ctx.logger.info('━'.repeat(60));
+  ctx.logger.info(`\nSaved: ${configPath}`);
+
+  const nextSteps = rawAccessToken
     ? '\nRun \'synkio sync\' to fetch tokens.'
     : '\nNext:\n  1. Add FIGMA_ACCESS_TOKEN to .env\n  2. Run \'synkio sync\'';
-  
-  console.log(nextSteps);
+
+  ctx.logger.info(nextSteps);
 }

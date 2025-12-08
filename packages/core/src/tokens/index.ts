@@ -65,8 +65,8 @@ export {
   buildPlatformReplacements,
   findPlatformFiles,
   scanPlatformUsages,
+  // Multi-platform scanning
   scanAllPlatforms,
-  // Token map based migration
   buildReplacementsFromMap,
   scanAllPlatformsWithMap,
 } from './migrate.js';
@@ -99,31 +99,8 @@ export type {
 
 // Token map generation
 export {
-  getCssVariableName,
-  getScssVariableName,
-  getJsPropertyName,
-  getSwiftPropertyName,
-  getKotlinPropertyName,
   generateTokenMap,
   getTokenMapPath,
 } from './token-map.js';
 
-// Migration plan (review & approve workflow)
-export {
-  generateMigrationPlan,
-  savePlan,
-  loadPlan,
-  getPlanPath,
-  isPlanApproved,
-  archivePlan,
-  planToMarkdown,
-  parsePlanFromMarkdown,
-} from './migration-plan.js';
-
-export type {
-  MigrationPlan,
-  PlannedChange,
-  TokenRename,
-  PlanStatus,
-  GeneratePlanOptions,
-} from './migration-plan.js';
+export type { TokenMap } from '../types/index.js';

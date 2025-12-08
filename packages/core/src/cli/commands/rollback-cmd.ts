@@ -6,7 +6,7 @@
  */
 
 import chalk from 'chalk';
-import { initContext } from '../../context.js';
+import { initContext, getContext } from '../../context.js';
 import type { TokensConfig } from '../../types/index.js';
 import {
   loadConfigOrThrow,
@@ -46,16 +46,10 @@ interface RollbackOptions {
 export async function rollbackCommand(options: RollbackOptions = {}): Promise<void> {
   // Initialize context
   initContext({ rootDir: process.cwd() });
+  const ctx = getContext();
 
-  // Load config
-  let config: TokensConfig;
-  try {
-    config = loadConfigOrThrow();
-  } catch (error) {
-    throw new Error(
-      `Configuration not found.\n\nRun 'synkio init' to create a configuration file.`
-    );
-  }
+  // Load config (Zod validates all required fields)
+  const config = loadConfigOrThrow();
 
   // Check if previous baseline exists
   const previousBaseline = loadBaseline(config.paths.baselinePrev);
@@ -68,7 +62,7 @@ export async function rollbackCommand(options: RollbackOptions = {}): Promise<vo
   // Load current baseline
   const currentBaseline = loadBaseline(getBaselinePath());
   if (!currentBaseline) {
-    console.log(formatWarning('No current baseline found. Nothing to rollback.'));
+    ctx.logger.warn(formatWarning('No current baseline found. Nothing to rollback.'));
     return;
   }
 
@@ -81,25 +75,25 @@ export async function rollbackCommand(options: RollbackOptions = {}): Promise<vo
 
   // Show changes
   if (!hasChanges(result)) {
-    console.log(formatInfo('Current and previous baselines are identical. No rollback needed.'));
+    ctx.logger.info(formatInfo('Current and previous baselines are identical. No rollback needed.'));
     return;
   }
 
   const counts = getChangeCounts(result);
-  console.log('\nRolling back will:');
+  ctx.logger.info('\nRolling back will:');
   if (result.newVariables.length > 0) {
-    console.log(chalk.red(`  - Remove ${result.newVariables.length} token(s)`));
+    ctx.logger.info(chalk.red(`  - Remove ${result.newVariables.length} token(s)`));
   }
   if (result.deletedVariables.length > 0) {
-    console.log(chalk.green(`  + Restore ${result.deletedVariables.length} token(s)`));
+    ctx.logger.info(chalk.green(`  + Restore ${result.deletedVariables.length} token(s)`));
   }
   if (result.valueChanges.length > 0) {
-    console.log(chalk.yellow(`  ~ Revert ${result.valueChanges.length} modification(s)`));
+    ctx.logger.info(chalk.yellow(`  ~ Revert ${result.valueChanges.length} modification(s)`));
   }
   if (result.pathChanges.length > 0) {
-    console.log(chalk.cyan(`  → Reverse ${result.pathChanges.length} rename(s)`));
+    ctx.logger.info(chalk.cyan(`  → Reverse ${result.pathChanges.length} rename(s)`));
   }
-  console.log(chalk.bold(`  = ${counts.total} total changes\n`));
+  ctx.logger.info(chalk.bold(`  = ${counts.total} total changes\n`));
 
   // Show details in table
   const changes: Array<{ path: string; currentValue: any; previousValue: any; type: string }> = [];
@@ -152,10 +146,10 @@ export async function rollbackCommand(options: RollbackOptions = {}): Promise<vo
     rows
   );
 
-  console.log(table.toString());
+  ctx.logger.info(table.toString());
 
   if (changes.length > displayCount) {
-    console.log(chalk.gray(`\n... and ${changes.length - displayCount} more changes`));
+    ctx.logger.info(chalk.gray(`\n... and ${changes.length - displayCount} more changes`));
   }
 
   // Confirm unless --force
@@ -164,7 +158,7 @@ export async function rollbackCommand(options: RollbackOptions = {}): Promise<vo
     try {
       const proceed = await askYesNo(rl, '\nProceed with rollback?', false);
       if (!proceed) {
-        console.log(formatWarning('Rollback cancelled. No changes made.'));
+        ctx.logger.warn(formatWarning('Rollback cancelled. No changes made.'));
         return;
       }
     } finally {
@@ -186,5 +180,5 @@ export async function rollbackCommand(options: RollbackOptions = {}): Promise<vo
     );
   }
 
-  console.log(formatSuccess(`Rollback successful!\n\nRestored previous baseline with ${counts.total} change(s).\n\nRun 'synkio sync' to rebuild token files from the restored baseline.`));
+  ctx.logger.info(formatSuccess(`Rollback successful!\n\nRestored previous baseline with ${counts.total} change(s).\n\nRun 'synkio sync' to rebuild token files from the restored baseline.`));
 }

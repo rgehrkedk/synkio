@@ -6,7 +6,7 @@
  */
 
 import chalk from 'chalk';
-import { initContext } from '../../context.js';
+import { initContext, getContext } from '../../context.js';
 import type { TokensConfig, ComparisonResult } from '../../types/index.js';
 import {
   loadConfigOrThrow,
@@ -223,21 +223,15 @@ function formatAsMarkdown(result: ComparisonResult): string {
 export async function diffCommand(options: DiffOptions = {}): Promise<void> {
   // Initialize context
   initContext({ rootDir: process.cwd() });
+  const ctx = getContext();
 
-  // Load config
-  let config: TokensConfig;
-  try {
-    config = loadConfigOrThrow();
-  } catch (error) {
-    throw new Error(
-      `Configuration not found.\n\nRun 'synkio init' to create a configuration file.`
-    );
-  }
+  // Load config (Zod validates all required fields)
+  const config = loadConfigOrThrow();
 
   // Load current baseline
   const currentBaseline = loadBaseline(getBaselinePath());
   if (!currentBaseline) {
-    console.log(formatWarning('No baseline found. Run \'synkio sync\' first.'));
+    ctx.logger.warn(formatWarning('No baseline found. Run \'synkio sync\' first.'));
     return;
   }
 
@@ -248,10 +242,10 @@ export async function diffCommand(options: DiffOptions = {}): Promise<void> {
     // Compare with previous local baseline
     comparisonBaseline = loadBaseline(config.paths.baselinePrev);
     if (!comparisonBaseline) {
-      console.log(formatWarning('No previous baseline found for comparison.'));
+      ctx.logger.warn(formatWarning('No previous baseline found for comparison.'));
       return;
     }
-    console.log(formatInfo('Comparing current baseline with previous baseline'));
+    ctx.logger.info(formatInfo('Comparing current baseline with previous baseline'));
   } else {
     // Fetch from Figma
     const spinner = createSpinner('Fetching tokens from Figma...');
@@ -270,7 +264,7 @@ export async function diffCommand(options: DiffOptions = {}): Promise<void> {
       );
     }
 
-    console.log(formatInfo('Comparing local baseline with Figma'));
+    ctx.logger.info(formatInfo('Comparing local baseline with Figma'));
   }
 
   // Compare baselines
@@ -282,26 +276,26 @@ export async function diffCommand(options: DiffOptions = {}): Promise<void> {
 
   // Check for changes
   if (!hasChanges(result)) {
-    console.log(formatInfo('No changes detected. Your tokens are up to date.'));
+    ctx.logger.info(formatInfo('No changes detected. Your tokens are up to date.'));
     return;
   }
 
   // Display summary
   const counts = getChangeCounts(result);
-  console.log('\nChanges detected:');
+  ctx.logger.info('\nChanges detected:');
   if (result.newVariables.length > 0) {
-    console.log(chalk.green(`  + ${result.newVariables.length} added`));
+    ctx.logger.info(chalk.green(`  + ${result.newVariables.length} added`));
   }
   if (result.deletedVariables.length > 0) {
-    console.log(chalk.red(`  - ${result.deletedVariables.length} removed`));
+    ctx.logger.info(chalk.red(`  - ${result.deletedVariables.length} removed`));
   }
   if (result.valueChanges.length > 0) {
-    console.log(chalk.yellow(`  ~ ${result.valueChanges.length} modified`));
+    ctx.logger.info(chalk.yellow(`  ~ ${result.valueChanges.length} modified`));
   }
   if (result.pathChanges.length > 0) {
-    console.log(chalk.cyan(`  → ${result.pathChanges.length} renamed`));
+    ctx.logger.info(chalk.cyan(`  → ${result.pathChanges.length} renamed`));
   }
-  console.log(chalk.bold(`  = ${counts.total} total changes\n`));
+  ctx.logger.info(chalk.bold(`  = ${counts.total} total changes\n`));
 
   // Format output based on requested format
   const format = options.format || 'table';
@@ -320,5 +314,5 @@ export async function diffCommand(options: DiffOptions = {}): Promise<void> {
       break;
   }
 
-  console.log(output);
+  ctx.logger.info(output);
 }

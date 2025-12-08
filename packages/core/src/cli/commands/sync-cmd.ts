@@ -523,15 +523,8 @@ export async function syncCommand(options: SyncOptions = {}): Promise<void> {
 
   ctx.logger.info(chalk.bold.cyan('\nSynkio Token Sync\n'));
 
-  // Load config
-  let config: ResolvedConfig;
-  try {
-    config = loadConfigOrThrow();
-  } catch (error) {
-    throw new Error(
-      `Configuration not found.\n\nRun 'synkio init' to create a configuration file.`
-    );
-  }
+  // Load config (Zod validates all required fields)
+  const config = loadConfigOrThrow();
 
   // Ensure directories exist
   ensureFigmaDir();
@@ -600,10 +593,8 @@ export async function syncCommand(options: SyncOptions = {}): Promise<void> {
   if (!hasChanges(result)) {
     await handleNoChanges();
   } else if (hasBreakingChanges(result)) {
-    // Breaking changes: offer migration options
     await handleBreakingChanges(config, fetchedData, result, options);
   } else {
-    // Non-breaking changes only
     await handleChanges(config, fetchedData, result, options);
   }
 }

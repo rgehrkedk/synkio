@@ -38,6 +38,16 @@ export default [
     exact: true
   },
   {
+    path: '/markdown-page',
+    component: ComponentCreator('/markdown-page', '3d7'),
+    exact: true
+  },
+  {
+    path: '/',
+    component: ComponentCreator('/', 'e5f'),
+    exact: true
+  },
+  {
     path: '/',
     component: ComponentCreator('/', 'f0e'),
     routes: [

@@ -10,7 +10,7 @@
 
 import { execSync } from 'child_process';
 
-import { initContext } from '../../context.js';
+import { initContext, getContext } from '../../context.js';
 import {
   loadConfigOrThrow,
   loadBaseline,
@@ -29,12 +29,13 @@ import { createPrompt, askYesNo } from '../prompt.js';
  * Build CSS from token files
  */
 function buildCss(): boolean {
+  const ctx = getContext();
   try {
-    console.log('\nBuilding CSS...');
+    ctx.logger.info('\nBuilding CSS...');
     execSync('npm run tokens:build', { stdio: 'inherit' });
     return true;
   } catch {
-    console.log('\nWarning: CSS build failed. Run "npm run tokens:build" manually.');
+    ctx.logger.warn('\nWarning: CSS build failed. Run "npm run tokens:build" manually.');
     return false;
   }
 }
@@ -45,16 +46,17 @@ function buildCss(): boolean {
 async function main() {
   // Initialize context
   initContext({ rootDir: process.cwd() });
+  const ctx = getContext();
 
-  console.log('\n' + '='.repeat(60));
-  console.log('  Figma Token Rollback');
-  console.log('='.repeat(60) + '\n');
+  ctx.logger.info('\n' + '='.repeat(60));
+  ctx.logger.info('  Figma Token Rollback');
+  ctx.logger.info('='.repeat(60) + '\n');
 
   // Check for previous baseline
   if (!fileExists(getBaselinePrevPath())) {
-    console.log('No previous baseline found.');
-    console.log(`Expected: ${getBaselinePrevPath()}\n`);
-    console.log('Nothing to rollback. Run "npm run figma:sync" first.\n');
+    ctx.logger.info('No previous baseline found.');
+    ctx.logger.info(`Expected: ${getBaselinePrevPath()}\n`);
+    ctx.logger.info('Nothing to rollback. Run "npm run figma:sync" first.\n');
     process.exit(0);
   }
 
@@ -66,40 +68,40 @@ async function main() {
   const previousBaseline = loadBaselinePrev();
 
   if (!currentBaseline || !previousBaseline) {
-    console.log('Failed to load baseline files.\n');
+    ctx.logger.error('Failed to load baseline files.\n');
     process.exit(1);
   }
 
   // Show what will be restored
-  console.log('Current baseline:');
+  ctx.logger.info('Current baseline:');
   if (currentBaseline.$metadata) {
-    console.log(`  File: ${currentBaseline.$metadata.fileName}`);
-    console.log(`  Date: ${currentBaseline.$metadata.exportedAt}`);
+    ctx.logger.info(`  File: ${currentBaseline.$metadata.fileName}`);
+    ctx.logger.info(`  Date: ${currentBaseline.$metadata.exportedAt}`);
   }
-  console.log();
+  ctx.logger.info('');
 
-  console.log('Previous baseline (will be restored):');
+  ctx.logger.info('Previous baseline (will be restored):');
   if (previousBaseline.$metadata) {
-    console.log(`  File: ${previousBaseline.$metadata.fileName}`);
-    console.log(`  Date: ${previousBaseline.$metadata.exportedAt}`);
+    ctx.logger.info(`  File: ${previousBaseline.$metadata.fileName}`);
+    ctx.logger.info(`  Date: ${previousBaseline.$metadata.exportedAt}`);
   }
-  console.log();
+  ctx.logger.info('');
 
   // Compare to show what will change
   const result = compareBaselines(currentBaseline, previousBaseline);
   const counts = getChangeCounts(result);
 
   if (counts.total === 0) {
-    console.log('Baselines are identical. Nothing to rollback.\n');
+    ctx.logger.info('Baselines are identical. Nothing to rollback.\n');
     process.exit(0);
   }
 
-  console.log('Rolling back will:');
+  ctx.logger.info('Rolling back will:');
   printDiffSummary(result);
 
   // Warn about CSS
-  console.log('Note: CSS file replacements (if any were made) cannot be');
-  console.log('      automatically rolled back. Use "git restore" if needed.\n');
+  ctx.logger.info('Note: CSS file replacements (if any were made) cannot be');
+  ctx.logger.info('      automatically rolled back. Use "git restore" if needed.\n');
 
   // Confirm
   const rl = createPrompt();
@@ -112,37 +114,37 @@ async function main() {
     );
 
     if (!proceed) {
-      console.log('\nRollback cancelled.\n');
+      ctx.logger.info('\nRollback cancelled.\n');
       process.exit(0);
     }
 
     // Restore baseline
-    console.log('\nRestoring baseline...');
+    ctx.logger.info('\nRestoring baseline...');
     const restored = restoreBaseline();
 
     if (!restored) {
-      console.log('Failed to restore baseline.\n');
+      ctx.logger.error('Failed to restore baseline.\n');
       process.exit(1);
     }
 
-    console.log(`  ${getBaselinePrevPath()} → ${getBaselinePath()}`);
+    ctx.logger.info(`  ${getBaselinePrevPath()} → ${getBaselinePath()}`);
 
     // Re-split tokens
-    console.log('\nRe-splitting tokens...');
+    ctx.logger.info('\nRe-splitting tokens...');
     const splitResult = splitTokens(previousBaseline, config);
-    console.log(`  ${splitResult.filesWritten} files written`);
+    ctx.logger.info(`  ${splitResult.filesWritten} files written`);
 
     // Build CSS
     buildCss();
 
-    console.log('\n' + '='.repeat(60));
-    console.log('  Rollback Complete!');
-    console.log('='.repeat(60) + '\n');
+    ctx.logger.info('\n' + '='.repeat(60));
+    ctx.logger.info('  Rollback Complete!');
+    ctx.logger.info('='.repeat(60) + '\n');
 
-    console.log(`Restored to baseline from: ${previousBaseline.$metadata?.exportedAt || 'unknown'}`);
-    console.log('\nIf CSS replacements were made during sync, use:');
-    console.log('  git restore <file>  # restore specific files');
-    console.log('  git checkout -- .   # restore all changes\n');
+    ctx.logger.info(`Restored to baseline from: ${previousBaseline.$metadata?.exportedAt || 'unknown'}`);
+    ctx.logger.info('\nIf CSS replacements were made during sync, use:');
+    ctx.logger.info('  git restore <file>  # restore specific files');
+    ctx.logger.info('  git checkout -- .   # restore all changes\n');
 
   } finally {
     rl.close();

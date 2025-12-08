@@ -11,7 +11,7 @@ import readline from 'readline';
 import fs from 'fs';
 import path from 'path';
 
-import { initContext } from '../../context.js';
+import { initContext, getContext } from '../../context.js';
 import type { TokensConfig } from '../../types/index.js';
 
 import {
@@ -105,42 +105,43 @@ export interface MigrateOptions {
  * Show migration status
  */
 function showStatus(config: TokensConfig): void {
+  const ctx = getContext();
   const planPath = getPlanPath(process.cwd(), config.paths.reports);
 
-  console.log('\n' + '━'.repeat(60));
-  console.log('Migration Status');
-  console.log('━'.repeat(60) + '\n');
+  ctx.logger.info('\n' + '━'.repeat(60));
+  ctx.logger.info('Migration Status');
+  ctx.logger.info('━'.repeat(60) + '\n');
 
   // Check for existing plan
   const plan = loadPlan(planPath);
 
   if (!plan) {
-    console.log('No migration plan found.\n');
-    console.log('To create a plan:');
-    console.log('  1. Run `synkio sync` to detect changes');
-    console.log('  2. Or run `synkio migrate --plan` if you have a comparison\n');
+    ctx.logger.info('No migration plan found.\n');
+    ctx.logger.info('To create a plan:');
+    ctx.logger.info('  1. Run `synkio sync` to detect changes');
+    ctx.logger.info('  2. Or run `synkio migrate --plan` if you have a comparison\n');
     return;
   }
 
-  console.log(`Plan: ${planPath}`);
-  console.log(`Status: ${plan.status}`);
-  console.log(`Generated: ${plan.generatedAt}`);
-  console.log('');
-  console.log('Summary:');
-  console.log(`  • ${plan.summary.tokensRenamed} token(s) renamed`);
-  console.log(`  • ${plan.summary.filesAffected} file(s) affected`);
-  console.log(`  • ${plan.summary.totalChanges} change(s) to apply`);
-  console.log('');
+  ctx.logger.info(`Plan: ${planPath}`);
+  ctx.logger.info(`Status: ${plan.status}`);
+  ctx.logger.info(`Generated: ${plan.generatedAt}`);
+  ctx.logger.info('');
+  ctx.logger.info('Summary:');
+  ctx.logger.info(`  • ${plan.summary.tokensRenamed} token(s) renamed`);
+  ctx.logger.info(`  • ${plan.summary.filesAffected} file(s) affected`);
+  ctx.logger.info(`  • ${plan.summary.totalChanges} change(s) to apply`);
+  ctx.logger.info('');
 
   if (plan.status === 'PENDING_APPROVAL') {
-    console.log('To apply this plan:');
-    console.log('  1. Review the plan file');
-    console.log('  2. Change <!-- APPROVED --> to APPROVED');
-    console.log('  3. Run `synkio migrate --apply`\n');
+    ctx.logger.info('To apply this plan:');
+    ctx.logger.info('  1. Review the plan file');
+    ctx.logger.info('  2. Change <!-- APPROVED --> to APPROVED');
+    ctx.logger.info('  3. Run `synkio migrate --apply`\n');
   } else if (plan.status === 'APPROVED') {
-    console.log('Plan is approved! Run `synkio migrate --apply` to execute.\n');
+    ctx.logger.info('Plan is approved! Run `synkio migrate --apply` to execute.\n');
   } else if (plan.status === 'APPLIED') {
-    console.log('This plan has already been applied.\n');
+    ctx.logger.info('This plan has already been applied.\n');
   }
 }
 
@@ -148,9 +149,11 @@ function showStatus(config: TokensConfig): void {
  * Scan codebase for token usage patterns
  */
 async function scanPatterns(config: TokensConfig, scanDir: string): Promise<DetectedPattern[]> {
-  console.log('\n' + '━'.repeat(60));
-  console.log('Scanning for Token Usage Patterns');
-  console.log('━'.repeat(60) + '\n');
+  const ctx = getContext();
+
+  ctx.logger.info('\n' + '━'.repeat(60));
+  ctx.logger.info('Scanning for Token Usage Patterns');
+  ctx.logger.info('━'.repeat(60) + '\n');
 
   // Use current directory if 'src' doesn't exist
   let actualScanDir = scanDir;
@@ -165,8 +168,8 @@ async function scanPatterns(config: TokensConfig, scanDir: string): Promise<Dete
     }
   }
 
-  console.log(`Scanning: ${actualScanDir}`);
-  console.log('Looking for CSS, SCSS, TypeScript, Swift, Kotlin patterns...\n');
+  ctx.logger.info(`Scanning: ${actualScanDir}`);
+  ctx.logger.info('Looking for CSS, SCSS, TypeScript, Swift, Kotlin patterns...\n');
 
   // Get known tokens from baseline if available
   let knownTokens: string[] = [];
@@ -174,15 +177,15 @@ async function scanPatterns(config: TokensConfig, scanDir: string): Promise<Dete
     const baseline = loadBaseline();
     if (baseline) {
       knownTokens = extractTokenNames(baseline);
-      console.log(`Using ${knownTokens.length} known tokens from baseline\n`);
+      ctx.logger.info(`Using ${knownTokens.length} known tokens from baseline\n`);
     }
   } catch {
-    console.log('No baseline found, scanning without token validation\n');
+    ctx.logger.info('No baseline found, scanning without token validation\n');
   }
 
   const result = await scanForPatterns(actualScanDir, knownTokens);
 
-  console.log(formatPatternsForDisplay(result));
+  ctx.logger.info(formatPatternsForDisplay(result));
 
   return result.patterns;
 }
@@ -215,21 +218,23 @@ function extractTokenNames(baseline: any): string[] {
  * Generate migration plan
  */
 async function generatePlan(config: TokensConfig, patterns: DetectedPattern[]): Promise<MigrationPlan | null> {
-  console.log('\n' + '━'.repeat(60));
-  console.log('Generating Migration Plan');
-  console.log('━'.repeat(60) + '\n');
+  const ctx = getContext();
+
+  ctx.logger.info('\n' + '━'.repeat(60));
+  ctx.logger.info('Generating Migration Plan');
+  ctx.logger.info('━'.repeat(60) + '\n');
 
   // Load baseline and previous baseline to compare
   const baseline = loadBaseline();
   if (!baseline) {
-    console.log('No baseline found. Run `synkio sync` first.\n');
+    ctx.logger.info('No baseline found. Run `synkio sync` first.\n');
     return null;
   }
 
   // Load previous baseline
   const prevPath = config.paths.baselinePrev;
   if (!fs.existsSync(prevPath)) {
-    console.log('No previous baseline found. Run `synkio sync` after making changes in Figma.\n');
+    ctx.logger.info('No previous baseline found. Run `synkio sync` after making changes in Figma.\n');
     return null;
   }
 
@@ -239,12 +244,12 @@ async function generatePlan(config: TokensConfig, patterns: DetectedPattern[]): 
   const comparison = compareBaselines(prevBaseline, baseline);
 
   if (comparison.pathChanges.length === 0) {
-    console.log('No token renames detected.\n');
+    ctx.logger.info('No token renames detected.\n');
     return null;
   }
 
-  console.log(`Found ${comparison.pathChanges.length} token rename(s)`);
-  console.log('Analyzing impact...\n');
+  ctx.logger.info(`Found ${comparison.pathChanges.length} token rename(s)`);
+  ctx.logger.info('Analyzing impact...\n');
 
   const plan = await generateMigrationPlan({
     rootDir: process.cwd(),
@@ -257,17 +262,17 @@ async function generatePlan(config: TokensConfig, patterns: DetectedPattern[]): 
   const planPath = getPlanPath(process.cwd(), config.paths.reports);
   savePlan(plan, planPath);
 
-  console.log(`Plan saved: ${planPath}`);
-  console.log('');
-  console.log('Summary:');
-  console.log(`  • ${plan.summary.tokensRenamed} token(s) renamed`);
-  console.log(`  • ${plan.summary.filesAffected} file(s) affected`);
-  console.log(`  • ${plan.summary.totalChanges} change(s) to apply`);
-  console.log('');
-  console.log('Next steps:');
-  console.log('  1. Review the plan file');
-  console.log('  2. Change <!-- APPROVED --> to APPROVED');
-  console.log('  3. Run `synkio migrate --apply`\n');
+  ctx.logger.info(`Plan saved: ${planPath}`);
+  ctx.logger.info('');
+  ctx.logger.info('Summary:');
+  ctx.logger.info(`  • ${plan.summary.tokensRenamed} token(s) renamed`);
+  ctx.logger.info(`  • ${plan.summary.filesAffected} file(s) affected`);
+  ctx.logger.info(`  • ${plan.summary.totalChanges} change(s) to apply`);
+  ctx.logger.info('');
+  ctx.logger.info('Next steps:');
+  ctx.logger.info('  1. Review the plan file');
+  ctx.logger.info('  2. Change <!-- APPROVED --> to APPROVED');
+  ctx.logger.info('  3. Run `synkio migrate --apply`\n');
 
   return plan;
 }
@@ -276,27 +281,29 @@ async function generatePlan(config: TokensConfig, patterns: DetectedPattern[]): 
  * Apply approved migrations
  */
 async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Promise<boolean> {
-  console.log('\n' + '━'.repeat(60));
-  console.log('Applying Migrations');
-  console.log('━'.repeat(60) + '\n');
+  const ctx = getContext();
+
+  ctx.logger.info('\n' + '━'.repeat(60));
+  ctx.logger.info('Applying Migrations');
+  ctx.logger.info('━'.repeat(60) + '\n');
 
   const planPath = getPlanPath(process.cwd(), config.paths.reports);
 
   // Check plan exists
   if (!fs.existsSync(planPath)) {
-    console.log('No migration plan found.');
-    console.log('Run `synkio migrate --plan` to create one.\n');
+    ctx.logger.info('No migration plan found.');
+    ctx.logger.info('Run `synkio migrate --plan` to create one.\n');
     return false;
   }
 
   // Check approval
   if (!isPlanApproved(planPath)) {
-    console.log('Migration plan has not been approved.');
-    console.log('');
-    console.log('To approve:');
-    console.log(`  1. Open ${planPath}`);
-    console.log('  2. Change <!-- APPROVED --> to APPROVED');
-    console.log('  3. Run `synkio migrate --apply` again\n');
+    ctx.logger.info('Migration plan has not been approved.');
+    ctx.logger.info('');
+    ctx.logger.info('To approve:');
+    ctx.logger.info(`  1. Open ${planPath}`);
+    ctx.logger.info('  2. Change <!-- APPROVED --> to APPROVED');
+    ctx.logger.info('  3. Run `synkio migrate --apply` again\n');
     return false;
   }
 
@@ -305,15 +312,15 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
   const plan = loadPlan(planPath);
 
   if (!plan) {
-    console.log('Failed to parse migration plan.\n');
+    ctx.logger.info('Failed to parse migration plan.\n');
     return false;
   }
 
-  console.log('Plan is approved!');
-  console.log(`  • ${plan.summary.tokensRenamed} token(s) renamed`);
-  console.log(`  • ${plan.summary.filesAffected} file(s) to modify`);
-  console.log(`  • ${plan.summary.totalChanges} change(s) to apply`);
-  console.log('');
+  ctx.logger.info('Plan is approved!');
+  ctx.logger.info(`  • ${plan.summary.tokensRenamed} token(s) renamed`);
+  ctx.logger.info(`  • ${plan.summary.filesAffected} file(s) to modify`);
+  ctx.logger.info(`  • ${plan.summary.totalChanges} change(s) to apply`);
+  ctx.logger.info('');
 
   // Confirm unless --yes
   if (!skipConfirm) {
@@ -322,7 +329,7 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
     rl.close();
 
     if (!confirm) {
-      console.log('\nMigration cancelled.\n');
+      ctx.logger.info('\nMigration cancelled.\n');
       return false;
     }
   }
@@ -331,13 +338,13 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
   // For now, we need to re-generate the full plan to get change details
   // In production, we'd parse the markdown table or use JSON
 
-  console.log('\nApplying changes...');
+  ctx.logger.info('\nApplying changes...');
 
   // Read the plan and extract changes from markdown tables
   const changes = parseChangesFromMarkdown(planContent);
 
   if (changes.length === 0) {
-    console.log('No changes to apply (could not parse plan).\n');
+    ctx.logger.info('No changes to apply (could not parse plan).\n');
     return false;
   }
 
@@ -358,7 +365,7 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
     const fullPath = path.join(process.cwd(), filePath);
 
     if (!fs.existsSync(fullPath)) {
-      console.log(`  Skipped: ${filePath} (file not found)`);
+      ctx.logger.info(`  Skipped: ${filePath} (file not found)`);
       continue;
     }
 
@@ -381,16 +388,16 @@ async function applyMigrations(config: TokensConfig, skipConfirm: boolean): Prom
     if (modified) {
       fs.writeFileSync(fullPath, content, 'utf-8');
       filesModified++;
-      console.log(`  ✓ ${filePath}`);
+      ctx.logger.info(`  ✓ ${filePath}`);
     }
   }
 
-  console.log('');
-  console.log(`Applied ${totalChanges} change(s) in ${filesModified} file(s)`);
+  ctx.logger.info('');
+  ctx.logger.info(`Applied ${totalChanges} change(s) in ${filesModified} file(s)`);
 
   // Archive the plan
   const archivePath = archivePlan(planPath);
-  console.log(`Plan archived: ${archivePath}\n`);
+  ctx.logger.info(`Plan archived: ${archivePath}\n`);
 
   return true;
 }
@@ -437,12 +444,13 @@ function parseChangesFromMarkdown(markdown: string): PlannedChange[] {
 export async function migrateCommand(options: MigrateOptions = {}): Promise<void> {
   // Initialize context
   initContext({ rootDir: process.cwd() });
+  const ctx = getContext();
 
   // Load config (with silent=true - migrate doesn't need Figma token warning)
   const config = loadConfig(undefined, undefined, { silent: true });
 
   if (!config) {
-    console.error('No tokensrc.json found. Run \'synkio init\' first.');
+    ctx.logger.error('No tokensrc.json found. Run \'synkio init\' first.');
     process.exit(1);
   }
 
@@ -460,7 +468,7 @@ export async function migrateCommand(options: MigrateOptions = {}): Promise<void
     if (patterns.length > 0) {
       await generatePlan(config, patterns);
     } else {
-      console.log('No patterns found. Cannot generate plan.\n');
+      ctx.logger.info('No patterns found. Cannot generate plan.\n');
     }
   } else {
     // Default: show status

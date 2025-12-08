@@ -314,7 +314,8 @@ export function buildPlatformTokenName(
   globalStripSegments?: string[]
 ): string {
   const { prefix, separator, case: caseType } = config.transform;
-  const stripSegments = globalStripSegments || config.transform.stripSegments || [];
+  // Zod ensures config.transform.stripSegments exists with defaults, but globalStripSegments takes precedence
+  const stripSegments = globalStripSegments ?? config.transform.stripSegments ?? [];
 
   // Filter out segments that should be stripped
   const filteredParts = pathParts.filter(p => !stripSegments.includes(p.toLowerCase()));
@@ -350,7 +351,7 @@ export function pathChangeToTokenReplacement(
 }
 
 /**
- * Build replacement map for a specific platform
+ * Build platform-specific replacements from comparison result
  */
 export function buildPlatformReplacements(
   result: ComparisonResult,
@@ -372,50 +373,7 @@ export function buildPlatformReplacements(
 }
 
 /**
- * Build replacements from token map (precise migration using Variable ID)
- *
- * This is the preferred method for building replacements as it uses
- * exact platform output names from the token map instead of transforming paths.
- *
- * @param oldMap - The previous token map (before rename)
- * @param newMap - The current token map (after rename)
- * @param platform - The target platform ('css' | 'scss' | 'js' | 'swift' | 'kotlin')
- * @returns Array of replacements with exact from/to token names
- */
-export function buildReplacementsFromMap(
-  oldMap: TokenMap,
-  newMap: TokenMap,
-  platform: 'css' | 'scss' | 'js' | 'swift' | 'kotlin'
-): TokenReplacement[] {
-  const replacements: TokenReplacement[] = [];
-  const seen = new Set<string>();
-
-  // Find tokens that exist in both maps (same Variable ID) but with different paths
-  for (const [variableId, oldEntry] of Object.entries(oldMap.tokens)) {
-    const newEntry = newMap.tokens[variableId];
-    if (!newEntry) continue; // Token was deleted, not renamed
-
-    // Check if path changed (rename)
-    if (oldEntry.path !== newEntry.path) {
-      const oldOutput = oldEntry.outputs[platform];
-      const newOutput = newEntry.outputs[platform];
-
-      // Only add if both have output for this platform and they differ
-      if (oldOutput && newOutput && oldOutput !== newOutput && !seen.has(oldOutput)) {
-        seen.add(oldOutput);
-        replacements.push({
-          from: oldOutput,
-          to: newOutput,
-        });
-      }
-    }
-  }
-
-  return replacements;
-}
-
-/**
- * Find files matching platform include/exclude patterns
+ * Find platform files matching include/exclude patterns
  */
 export async function findPlatformFiles(config: PlatformConfig): Promise<string[]> {
   const files: string[] = [];
@@ -439,46 +397,37 @@ export async function scanPlatformUsages(
   replacements: TokenReplacement[],
   config: PlatformConfig
 ): Promise<FileMatch[]> {
-  const files = await findPlatformFiles(config);
+  const platformFiles = await findPlatformFiles(config);
   const matches: FileMatch[] = [];
 
-  for (const filePath of files) {
+  for (const filePath of platformFiles) {
     const fullPath = path.join(process.cwd(), filePath);
+    const content = fs.readFileSync(fullPath, 'utf-8');
+    const lines = content.split('\n');
 
-    try {
-      const content = fs.readFileSync(fullPath, 'utf-8');
-      const lines = content.split('\n');
+    const fileMatch: FileMatch = {
+      path: filePath,
+      count: 0,
+      lines: [],
+    };
 
-      const fileMatch: FileMatch = {
-        path: filePath,
-        count: 0,
-        lines: [],
-      };
+    for (const { from } of replacements) {
+      const regex = createTokenBoundaryRegex(from);
 
-      for (const { from } of replacements) {
-        // Use word boundary to avoid matching extended tokens (e.g., --token-hover when searching --token)
-        const regex = createTokenBoundaryRegex(from);
+      lines.forEach((line, index) => {
+        const lineMatches = line.match(regex);
+        if (lineMatches) {
+          fileMatch.count += lineMatches.length;
+          fileMatch.lines.push({
+            line: index + 1,
+            content: line.trim(),
+          });
+        }
+      });
+    }
 
-        lines.forEach((line, index) => {
-          const lineMatches = line.match(regex);
-          if (lineMatches) {
-            fileMatch.count += lineMatches.length;
-            // Avoid duplicate line entries
-            if (!fileMatch.lines.some(l => l.line === index + 1)) {
-              fileMatch.lines.push({
-                line: index + 1,
-                content: line.trim(),
-              });
-            }
-          }
-        });
-      }
-
-      if (fileMatch.count > 0) {
-        matches.push(fileMatch);
-      }
-    } catch {
-      // Skip files that can't be read
+    if (fileMatch.count > 0) {
+      matches.push(fileMatch);
     }
   }
 
@@ -486,39 +435,99 @@ export async function scanPlatformUsages(
 }
 
 /**
- * Scan all enabled platforms for impact
+ * Apply platform-specific replacements to files
+ */
+export async function applyPlatformReplacements(
+  replacements: TokenReplacement[],
+  config: PlatformConfig,
+  options?: { dryRun?: boolean; silent?: boolean }
+): Promise<MigrationResult> {
+  const result: MigrationResult = {
+    filesModified: 0,
+    totalReplacements: 0,
+    files: [],
+  };
+
+  if (replacements.length === 0) {
+    return result;
+  }
+
+  const platformFiles = await findPlatformFiles(config);
+
+  for (const filePath of platformFiles) {
+    const fullPath = path.join(process.cwd(), filePath);
+    let content = fs.readFileSync(fullPath, 'utf-8');
+    let modified = false;
+    let count = 0;
+    const matchedLines: { line: number; content: string }[] = [];
+
+    for (const { from, to } of replacements) {
+      const regex = createTokenBoundaryRegex(from);
+      const matches = content.match(regex);
+
+      if (matches) {
+        count += matches.length;
+
+        // Track which lines were modified
+        const lines = content.split('\n');
+        lines.forEach((line, index) => {
+          if (line.includes(from)) {
+            matchedLines.push({ line: index + 1, content: line.trim() });
+          }
+        });
+
+        content = content.replace(regex, to);
+        modified = true;
+      }
+    }
+
+    if (modified) {
+      result.filesModified++;
+      result.totalReplacements += count;
+      result.files.push({ path: filePath, count, lines: matchedLines });
+
+      if (!options?.dryRun) {
+        fs.writeFileSync(fullPath, content, 'utf-8');
+      }
+
+      if (!options?.silent) {
+        const status = options?.dryRun ? '[DRY RUN]' : '✓';
+        console.log(`  ${status} ${filePath} (${count} replacements)`);
+      }
+    }
+  }
+
+  return result;
+}
+
+// ============================================================================
+// Multi-Platform Scanning
+// ============================================================================
+
+/**
+ * Scan all configured platforms for token usage (path-based matching)
  */
 export async function scanAllPlatforms(
-  result: ComparisonResult,
-  platforms: { [name: string]: PlatformConfig },
+  comparisonResult: ComparisonResult,
+  platforms: { [platformName: string]: PlatformConfig },
   globalStripSegments?: string[]
 ): Promise<PlatformScanResult[]> {
   const results: PlatformScanResult[] = [];
 
-  for (const [platformName, config] of Object.entries(platforms)) {
-    if (!config.enabled) continue;
+  for (const [platformName, platformConfig] of Object.entries(platforms)) {
+    if (!platformConfig.enabled) continue;
 
-    const replacements = buildPlatformReplacements(result, config, globalStripSegments);
+    // Build replacements for this platform
+    const replacements = buildPlatformReplacements(comparisonResult, platformConfig, globalStripSegments);
 
-    if (replacements.length === 0) {
-      results.push({
-        platform: platformName,
-        replacements: [],
-        usages: [],
-        totalUsages: 0,
-        filesAffected: 0,
-      });
-      continue;
-    }
-
-    const usages = await scanPlatformUsages(replacements, config);
-    const totalUsages = usages.reduce((sum, f) => sum + f.count, 0);
+    // Scan for usages
+    const usages = await scanPlatformUsages(replacements, platformConfig);
 
     results.push({
       platform: platformName,
       replacements,
       usages,
-      totalUsages,
+      totalUsages: usages.reduce((sum, f) => sum + f.count, 0),
       filesAffected: usages.length,
     });
   }
@@ -527,75 +536,72 @@ export async function scanAllPlatforms(
 }
 
 /**
- * Scan all enabled platforms using token map for precise matching
- *
- * This is the preferred method as it uses exact platform output names
- * from the token map instead of transforming paths.
- *
- * @param oldMap - The previous token map (before rename)
- * @param newMap - The current token map (after rename)
- * @param platforms - Platform configurations
- * @returns Array of platform scan results
+ * Build replacements from token map (for precise migration)
+ */
+export function buildReplacementsFromMap(
+  oldMap: TokenMap,
+  newMap: TokenMap,
+  config: PlatformConfig,
+  platform: string
+): TokenReplacement[] {
+  const replacements: TokenReplacement[] = [];
+  const seen = new Set<string>();
+
+  // Find tokens that exist in old map but not in new map (deleted)
+  // or tokens that exist in both but have different output paths (renamed)
+  for (const [variableId, oldInfo] of Object.entries(oldMap.tokens)) {
+    const newInfo = newMap.tokens[variableId];
+    const oldOutput = oldInfo.outputs?.[platform as keyof typeof oldInfo.outputs];
+    const newOutput = newInfo?.outputs?.[platform as keyof typeof newInfo.outputs];
+
+    if (oldOutput && !newOutput) {
+      // Token was deleted or moved out of this platform
+      // Skip for now - we'd need to handle deletions separately
+      continue;
+    }
+
+    if (oldOutput && newOutput && oldOutput !== newOutput) {
+      // Token was renamed in this platform
+      if (!seen.has(oldOutput)) {
+        replacements.push({
+          from: oldOutput,
+          to: newOutput,
+        });
+        seen.add(oldOutput);
+      }
+    }
+  }
+
+  return replacements;
+}
+
+/**
+ * Scan all configured platforms using token map (recommended for precision)
  */
 export async function scanAllPlatformsWithMap(
   oldMap: TokenMap,
   newMap: TokenMap,
-  platforms: { [name: string]: PlatformConfig }
+  platforms: { [platformName: string]: PlatformConfig }
 ): Promise<PlatformScanResult[]> {
   const results: PlatformScanResult[] = [];
 
-  const platformNameMap: Record<string, 'css' | 'scss' | 'js' | 'swift' | 'kotlin'> = {
-    css: 'css',
-    scss: 'scss',
-    typescript: 'js',
-    ts: 'js',
-    javascript: 'js',
-    js: 'js',
-    swift: 'swift',
-    kotlin: 'kotlin',
-  };
+  for (const [platformName, platformConfig] of Object.entries(platforms)) {
+    if (!platformConfig.enabled) continue;
 
-  for (const [platformName, config] of Object.entries(platforms)) {
-    if (!config.enabled) continue;
+    // Build replacements using token map
+    const replacements = buildReplacementsFromMap(oldMap, newMap, platformConfig, platformName);
 
-    const mapPlatform = platformNameMap[platformName];
-    if (!mapPlatform) {
-      // Unknown platform, skip
-      results.push({
-        platform: platformName,
-        replacements: [],
-        usages: [],
-        totalUsages: 0,
-        filesAffected: 0,
-      });
-      continue;
-    }
-
-    const replacements = buildReplacementsFromMap(oldMap, newMap, mapPlatform);
-
-    if (replacements.length === 0) {
-      results.push({
-        platform: platformName,
-        replacements: [],
-        usages: [],
-        totalUsages: 0,
-        filesAffected: 0,
-      });
-      continue;
-    }
-
-    const usages = await scanPlatformUsages(replacements, config);
-    const totalUsages = usages.reduce((sum, f) => sum + f.count, 0);
+    // Scan for usages
+    const usages = await scanPlatformUsages(replacements, platformConfig);
 
     results.push({
       platform: platformName,
       replacements,
       usages,
-      totalUsages,
+      totalUsages: usages.reduce((sum, f) => sum + f.count, 0),
       filesAffected: usages.length,
     });
   }
 
   return results;
 }
-
