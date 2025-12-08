@@ -5,6 +5,9 @@
  * Replaces both .tokensplitrc.json and .migrationrc.json
  */
 
+// Re-export ResolvedConfig from config-schema (Zod-inferred type)
+export type { ResolvedConfig } from '../files/config-schema.js';
+
 // ============================================================================
 // Main Config
 // ============================================================================

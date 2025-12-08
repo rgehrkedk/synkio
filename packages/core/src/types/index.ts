@@ -34,6 +34,7 @@ export type {
 // Config types (new unified config)
 export type {
   TokensConfig,
+  ResolvedConfig,
   FigmaConfig,
   PathsConfig,
   BuildConfig,

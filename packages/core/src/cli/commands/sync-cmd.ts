@@ -11,7 +11,7 @@ import path from 'path';
 import chalk from 'chalk';
 import { initContext } from '../../context.js';
 import { loadEnv } from '../../env.js';
-import type { TokensConfig, ComparisonResult } from '../../types/index.js';
+import type { ResolvedConfig, ComparisonResult } from '../../types/index.js';
 import {
   loadConfigOrThrow,
   loadBaseline,
@@ -71,7 +71,7 @@ interface SyncOptions {
 /**
  * Run build command if configured
  */
-function runBuildCommand(config: TokensConfig, skipBuild: boolean): void {
+function runBuildCommand(config: ResolvedConfig, skipBuild: boolean): void {
   if (skipBuild) {
     logInfo('Skipping build command (--no-build flag)');
     return;
@@ -209,7 +209,7 @@ function displaySummary(result: ComparisonResult): void {
  * Handle first-time sync (no previous baseline)
  */
 async function handleFirstSync(
-  config: TokensConfig,
+  config: ResolvedConfig,
   fetchedData: any
 ): Promise<void> {
   console.log(formatInfo('First sync - no previous baseline found'));
@@ -245,7 +245,7 @@ async function handleNoChanges(): Promise<void> {
  * Scans platforms for impact, offers choice to apply migrations or just get report
  */
 async function handleBreakingChanges(
-  config: TokensConfig,
+  config: ResolvedConfig,
   fetchedData: any,
   result: ComparisonResult,
   options: SyncOptions
@@ -436,7 +436,7 @@ async function handleBreakingChanges(
  * Handle sync with non-breaking changes only
  */
 async function handleChanges(
-  config: TokensConfig,
+  config: ResolvedConfig,
   fetchedData: any,
   result: ComparisonResult,
   options: SyncOptions
@@ -514,7 +514,7 @@ export async function syncCommand(options: SyncOptions = {}): Promise<void> {
   console.log(chalk.bold.cyan('\nSynkio Token Sync\n'));
 
   // Load config
-  let config: TokensConfig;
+  let config: ResolvedConfig;
   try {
     config = loadConfigOrThrow();
   } catch (error) {

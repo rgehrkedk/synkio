@@ -5,6 +5,8 @@ import { z } from 'zod';
  * Serves as single source of truth for config validation
  */
 export const tokensConfigSchema = z.object({
+  $schema: z.string().optional(),
+
   version: z.string().regex(/^\d+\.\d+\.\d+$/, 'version must be in semver format (e.g., 2.0.0)'),
 
   figma: z.object({
@@ -14,7 +16,7 @@ export const tokensConfigSchema = z.object({
   }),
 
   paths: z.object({
-    root: z.string(),
+    root: z.string().default('.'),
     data: z.string().min(1, { message: 'paths.data is required' }),
     baseline: z.string().min(1, { message: 'paths.baseline is required' }),
     baselinePrev: z.string().min(1, { message: 'paths.baselinePrev is required' }),
@@ -22,24 +24,37 @@ export const tokensConfigSchema = z.object({
     tokens: z.string().min(1, { message: 'paths.tokens is required' }),
     styles: z.string().min(1, { message: 'paths.styles is required' }),
     tokenMap: z.string().optional(),
-  }).strict(),
+  }),
 
   collections: z.record(z.string(), z.any()).optional(),
 
   split: z.record(z.string(), z.object({
+    collection: z.string(),
     strategy: z.enum(['byMode', 'byGroup']),
+    output: z.string(),
     files: z.record(z.string(), z.string()),
   })).optional(),
 
   migration: z.object({
+    enabled: z.boolean().optional(),
+    platforms: z.union([
+      z.array(z.string()),
+      z.record(z.string(), z.any())
+    ]).optional(),
+    exclude: z.array(z.string()).optional(),
+    autoApply: z.boolean().optional(),
     stripSegments: z.array(z.string()).optional(),
-    platforms: z.record(z.string(), z.any()).optional(),
   }).optional(),
 
   build: z.object({
     command: z.string().optional(),
+    styleDictionary: z.object({
+      enabled: z.boolean().optional(),
+      config: z.string().optional(),
+      version: z.enum(['v3', 'v4']).optional(),
+    }).optional(),
   }).optional(),
-}).strict();
+});
 
 /**
  * Type representing a validated configuration

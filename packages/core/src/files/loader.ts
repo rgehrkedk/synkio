@@ -7,8 +7,10 @@
 
 import fs from 'fs';
 import path from 'path';
+import { z } from 'zod';
 import type { BaselineData, MigrationManifest, TokenMap } from '../types/index.js';
 import type { TokensConfig, LegacyTokenSplitConfig, LegacyMigrationConfig } from '../types/config.js';
+import { tokensConfigSchema, transformZodError, type ResolvedConfig } from './config-schema.js';
 import { getContext, type Context } from '../context.js';
 import {
   getBaselinePath,
@@ -101,57 +103,6 @@ export function interpolateEnvVars<T extends Record<string, any>>(
 }
 
 // ============================================================================
-// Config Validation
-// ============================================================================
-
-/**
- * Validate config and return list of errors
- *
- * @param config - Config to validate
- * @returns Array of error messages (empty if valid)
- */
-export function validateConfig(config: Partial<TokensConfig>): string[] {
-  const errors: string[] = [];
-
-  // Check version
-  if (!config.version) {
-    errors.push('Missing required field: version');
-  }
-
-  // Check figma config
-  if (!config.figma) {
-    errors.push('Missing required section: figma');
-  } else {
-    if (!config.figma.fileId) {
-      errors.push('Missing required field: figma.fileId - Run \'synkio init\' to configure');
-    }
-    if (!config.figma.accessToken) {
-      errors.push('Missing required field: figma.accessToken - Set FIGMA_ACCESS_TOKEN environment variable');
-    }
-  }
-
-  // Check paths config
-  if (!config.paths) {
-    errors.push('Missing required section: paths');
-  } else {
-    const requiredPaths = ['data', 'baseline', 'baselinePrev', 'reports', 'tokens', 'styles'];
-    for (const pathKey of requiredPaths) {
-      if (!(config.paths as any)[pathKey]) {
-        errors.push(`Missing required field: paths.${pathKey}`);
-      }
-    }
-  }
-
-  // Check collections config
-  // Collections are optional in Phase 1B
-  if (false && !config.collections) {
-    errors.push('Missing required section: collections - Can be empty {} for default behavior');
-  }
-
-  return errors;
-}
-
-// ============================================================================
 // Default Config
 // ============================================================================
 
@@ -184,13 +135,14 @@ export function getDefaultConfig(ctx?: Context): TokensConfig {
 }
 
 // ============================================================================
-// Config Loading (Updated with new features)
+// Config Loading with Zod Validation
 // ============================================================================
 
 /**
  * Load unified config from tokensrc.json
  * - Discovers config file if not specified
  * - Resolves environment variables like ${FIGMA_TOKEN}
+ * - Validates with Zod schema
  * - Resolves relative paths from config directory
  *
  * @param filePath - Optional custom config file path
@@ -201,7 +153,7 @@ export function loadConfig(
   filePath?: string,
   ctx?: Context,
   options: { silent?: boolean } = {}
-): TokensConfig | null {
+): ResolvedConfig | null {
   const context = ctx || getContext();
 
   // Discover config file if not specified
@@ -220,16 +172,27 @@ export function loadConfig(
 
   try {
     const content = fs.readFileSync(targetPath, 'utf-8');
+    let config = JSON.parse(content);
 
-    let config = JSON.parse(content) as TokensConfig;
-
-    // Interpolate environment variables
+    // Interpolate environment variables BEFORE validation
     config = interpolateEnvVars(config, { silent: options.silent });
+
+    // Validate with Zod schema
+    const parsed = tokensConfigSchema.safeParse(config);
+    if (!parsed.success) {
+      const errors = transformZodError(parsed.error);
+      throw new Error(
+        `Invalid configuration in ${targetPath}:\n${errors.map(e => `  • ${e}`).join('\n')}\n\n` +
+        'Run "synkio init" to fix or check https://synkio.io/docs/config'
+      );
+    }
+
+    const validatedConfig = parsed.data;
 
     // Resolve relative paths from config directory
     const configDir = path.dirname(targetPath);
-    if (config.paths) {
-      const paths = config.paths;
+    if (validatedConfig.paths) {
+      const paths = validatedConfig.paths;
       for (const [key, value] of Object.entries(paths)) {
         if (value && typeof value === 'string' && !path.isAbsolute(value)) {
           (paths as any)[key] = path.resolve(configDir, value);
@@ -237,8 +200,11 @@ export function loadConfig(
       }
     }
 
-    return config;
+    return validatedConfig;
   } catch (error) {
+    if (error instanceof Error && error.message.includes('Invalid configuration')) {
+      throw error;
+    }
     return null;
   }
 }
@@ -248,9 +214,9 @@ export function loadConfig(
  *
  * @param filePath - Optional custom config file path
  * @param ctx - Optional context (uses global if not provided)
- * @throws Error if config file not found
+ * @throws Error if config file not found or invalid
  */
-export function loadConfigOrThrow(filePath?: string, ctx?: Context): TokensConfig {
+export function loadConfigOrThrow(filePath?: string, ctx?: Context): ResolvedConfig {
   const context = ctx || getContext();
   const config = loadConfig(filePath, context);
 
@@ -259,15 +225,6 @@ export function loadConfigOrThrow(filePath?: string, ctx?: Context): TokensConfi
     throw new Error(
       `Config file not found: ${configPath}\n` +
       "Run 'synkio init' to create one."
-    );
-  }
-
-  // Validate config
-  const errors = validateConfig(config);
-  if (errors.length > 0) {
-    throw new Error(
-      `Invalid configuration:\n${errors.map(e => `  - ${e}`).join('\n')}\n` +
-      "Run 'synkio init' to reconfigure."
     );
   }
 
@@ -302,70 +259,57 @@ export function loadBaseline(filePath?: string, ctx?: Context): BaselineData | n
   const targetPath = filePath || getBaselinePath(context);
 
   if (!fs.existsSync(targetPath)) {
-    // Try legacy path
-    const legacyPath = path.join(context.rootDir, LEGACY_BASELINE_FILE);
-    if (fs.existsSync(legacyPath)) {
-      const content = fs.readFileSync(legacyPath, 'utf-8');
-      return JSON.parse(content);
-    }
     return null;
   }
 
   try {
     const content = fs.readFileSync(targetPath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
+    return JSON.parse(content) as BaselineData;
+  } catch (error) {
     return null;
   }
 }
 
 /**
- * Load baseline data, throw if not found
+ * Load baseline or throw if not found
  *
  * @param filePath - Optional custom baseline file path
  * @param ctx - Optional context (uses global if not provided)
- * @throws Error if baseline file not found
+ * @throws Error if baseline not found
  */
 export function loadBaselineOrThrow(filePath?: string, ctx?: Context): BaselineData {
-  const context = ctx || getContext();
-  const data = loadBaseline(filePath, context);
-  const baselinePath = filePath || getBaselinePath(context);
+  const baseline = loadBaseline(filePath, ctx);
 
-  if (!data) {
+  if (!baseline) {
+    const context = ctx || getContext();
+    const targetPath = filePath || getBaselinePath(context);
     throw new Error(
-      `Baseline file not found: ${baselinePath}\n` +
-      "Run 'synkio sync' to fetch from Figma."
+      `Baseline not found: ${targetPath}\n` +
+      "Run 'synkio sync' first to fetch baseline from Figma."
     );
   }
-  return data;
+
+  return baseline;
 }
 
 /**
- * Load previous baseline (for comparison/rollback)
+ * Save baseline data to file
  *
- * @param filePath - Optional custom baseline prev file path
+ * @param baseline - Baseline data to save
+ * @param filePath - Optional custom baseline file path
  * @param ctx - Optional context (uses global if not provided)
  */
-export function loadBaselinePrev(filePath?: string, ctx?: Context): BaselineData | null {
+export function saveBaseline(baseline: BaselineData, filePath?: string, ctx?: Context): void {
   const context = ctx || getContext();
-  const targetPath = filePath || getBaselinePrevPath(context);
-
-  if (!fs.existsSync(targetPath)) {
-    return null;
-  }
-
-  try {
-    const content = fs.readFileSync(targetPath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return null;
-  }
+  const targetPath = filePath || getBaselinePath(context);
+  saveJsonFile(targetPath, baseline, context);
 }
 
 /**
- * Backup current baseline to prev
+ * Backup current baseline to baseline-prev.json
  *
  * @param ctx - Optional context (uses global if not provided)
+ * @returns True if backup was created, false if no baseline existed
  */
 export function backupBaseline(ctx?: Context): boolean {
   const context = ctx || getContext();
@@ -376,40 +320,8 @@ export function backupBaseline(ctx?: Context): boolean {
     return false;
   }
 
-  try {
-    // Ensure data directory exists
-    const dataDir = getDataDir(context);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-
-    fs.copyFileSync(baselinePath, prevPath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Restore previous baseline
- *
- * @param ctx - Optional context (uses global if not provided)
- */
-export function restoreBaseline(ctx?: Context): boolean {
-  const context = ctx || getContext();
-  const baselinePath = getBaselinePath(context);
-  const prevPath = getBaselinePrevPath(context);
-
-  if (!fs.existsSync(prevPath)) {
-    return false;
-  }
-
-  try {
-    fs.copyFileSync(prevPath, baselinePath);
-    return true;
-  } catch {
-    return false;
-  }
+  fs.copyFileSync(baselinePath, prevPath);
+  return true;
 }
 
 // ============================================================================
@@ -417,13 +329,11 @@ export function restoreBaseline(ctx?: Context): boolean {
 // ============================================================================
 
 /**
- * Load token map for migration
+ * Load token map (mapping of token paths to output files)
  *
- * @param config - The tokens configuration (for paths.tokenMap)
  * @param ctx - Optional context (uses global if not provided)
- * @returns TokenMap or null if not found
  */
-export function loadTokenMap(config: TokensConfig, ctx?: Context): TokenMap | null {
+export function loadTokenMap(config: ResolvedConfig, ctx?: Context): TokenMap | null {
   const context = ctx || getContext();
 
   // Use configured path or default
@@ -443,9 +353,78 @@ export function loadTokenMap(config: TokensConfig, ctx?: Context): TokenMap | nu
   }
 }
 
+/**
+ * Save token map to file
+ *
+ * @param tokenMap - Token map to save
+ * @param config - Configuration with tokenMap path
+ * @param ctx - Optional context (uses global if not provided)
+ */
+export function saveTokenMap(tokenMap: TokenMap, config: ResolvedConfig, ctx?: Context): void {
+  const context = ctx || getContext();
+
+  const tokenMapPath = config.paths.tokenMap
+    ? path.resolve(context.rootDir, config.paths.tokenMap)
+    : path.resolve(context.rootDir, getDataDir(context), 'token-map.json');
+
+  saveJsonFile(tokenMapPath, tokenMap, context);
+}
+
 // ============================================================================
-// Legacy Config Loading (for migration)
+// Migration Manifest Loading
 // ============================================================================
+
+/**
+ * Load migration manifest (plan for migrating renamed/deleted tokens)
+ *
+ * @param filePath - Migration manifest file path
+ * @param ctx - Optional context (uses global if not provided)
+ */
+export function loadMigrationManifest(filePath: string, ctx?: Context): MigrationManifest | null {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(content) as MigrationManifest;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Save migration manifest to file
+ *
+ * @param manifest - Migration manifest to save
+ * @param filePath - Migration manifest file path
+ * @param ctx - Optional context (uses global if not provided)
+ */
+export function saveMigrationManifest(manifest: MigrationManifest, filePath: string, ctx?: Context): void {
+  const context = ctx || getContext();
+  saveJsonFile(filePath, manifest, context);
+}
+
+// ============================================================================
+// Legacy Config Migration
+// ============================================================================
+
+/**
+ * Check if legacy config files exist (pre-tokensrc.json era)
+ *
+ * @param ctx - Optional context (uses global if not provided)
+ * @returns True if any legacy files exist
+ */
+export function hasLegacyConfig(ctx?: Context): boolean {
+  const context = ctx || getContext();
+  const figmaDir = getFigmaDir(context);
+
+  return (
+    fs.existsSync(path.join(figmaDir, LEGACY_BASELINE_FILE)) ||
+    fs.existsSync(path.join(figmaDir, LEGACY_TOKEN_SPLIT_CONFIG_FILE)) ||
+    fs.existsSync(path.join(figmaDir, LEGACY_MIGRATION_CONFIG_FILE))
+  );
+}
 
 /**
  * Load legacy token split config
@@ -454,16 +433,16 @@ export function loadTokenMap(config: TokensConfig, ctx?: Context): TokenMap | nu
  */
 export function loadLegacyTokenSplitConfig(ctx?: Context): LegacyTokenSplitConfig | null {
   const context = ctx || getContext();
-  const targetPath = path.join(context.rootDir, LEGACY_TOKEN_SPLIT_CONFIG_FILE);
+  const configPath = path.join(getFigmaDir(context), LEGACY_TOKEN_SPLIT_CONFIG_FILE);
 
-  if (!fs.existsSync(targetPath)) {
+  if (!fs.existsSync(configPath)) {
     return null;
   }
 
   try {
-    const content = fs.readFileSync(targetPath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    return JSON.parse(content) as LegacyTokenSplitConfig;
+  } catch (error) {
     return null;
   }
 }
@@ -475,33 +454,80 @@ export function loadLegacyTokenSplitConfig(ctx?: Context): LegacyTokenSplitConfi
  */
 export function loadLegacyMigrationConfig(ctx?: Context): LegacyMigrationConfig | null {
   const context = ctx || getContext();
-  const targetPath = path.join(context.rootDir, LEGACY_MIGRATION_CONFIG_FILE);
+  const configPath = path.join(getFigmaDir(context), LEGACY_MIGRATION_CONFIG_FILE);
 
-  if (!fs.existsSync(targetPath)) {
+  if (!fs.existsSync(configPath)) {
     return null;
   }
 
   try {
-    const content = fs.readFileSync(targetPath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
+    const content = fs.readFileSync(configPath, 'utf-8');
+    return JSON.parse(content) as LegacyMigrationConfig;
+  } catch (error) {
     return null;
   }
 }
 
 // ============================================================================
-// Migration Manifest Loading
+// Generic JSON/Text File Operations
 // ============================================================================
 
 /**
- * Load migration manifest from file
+ * Save JSON data to file with pretty formatting
  *
- * @param filePath - Optional custom manifest file path
- * @param ctx - Optional context (uses global if not provided)
+ * @param filePath - Target file path
+ * @param data - Data to save
+ * @param ctx - Optional context (for path resolution)
  */
-export function loadMigrationManifest(filePath?: string, ctx?: Context): MigrationManifest | null {
+export function saveJsonFile(filePath: string, data: any, ctx?: Context): void {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
+}
+
+/**
+ * Save text content to file
+ *
+ * @param filePath - Target file path
+ * @param content - Text content to save
+ * @param ctx - Optional context (for path resolution)
+ */
+export function saveTextFile(filePath: string, content: string, ctx?: Context): void {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  fs.writeFileSync(filePath, content, 'utf-8');
+}
+
+/**
+ * Load text file content
+ *
+ * @param filePath - Source file path
+ * @returns File content or null if not found
+ */
+export function loadTextFile(filePath: string): string | null {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  try {
+    return fs.readFileSync(filePath, 'utf-8');
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Load the previous baseline file
+ */
+export function loadBaselinePrev(filePath?: string, ctx?: Context): BaselineData | null {
   const context = ctx || getContext();
-  const targetPath = filePath || path.join(getFigmaDir(context), 'migration.json');
+  const targetPath = filePath || getBaselinePrevPath(context);
 
   if (!fs.existsSync(targetPath)) {
     return null;
@@ -515,117 +541,91 @@ export function loadMigrationManifest(filePath?: string, ctx?: Context): Migrati
   }
 }
 
-// ============================================================================
-// Generic File Operations
-// ============================================================================
+/**
+ * Restore the previous baseline to current baseline
+ */
+export function restoreBaseline(ctx?: Context): boolean {
+  const context = ctx || getContext();
+  const currentPath = getBaselinePath(context);
+  const prevPath = getBaselinePrevPath(context);
+
+  if (!fs.existsSync(prevPath)) {
+    return false;
+  }
+
+  try {
+    const prevContent = fs.readFileSync(prevPath, 'utf-8');
+    fs.writeFileSync(currentPath, prevContent, 'utf-8');
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /**
- * Load JSON from file, returns empty object if not found
- *
- * @param filePath - File path (absolute or relative to context rootDir)
- * @param ctx - Optional context (uses global if not provided)
+ * Generic JSON file loader
  */
 export function loadJsonFile(filePath: string, ctx?: Context): Record<string, any> {
   const context = ctx || getContext();
-  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(context.rootDir, filePath);
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.join(context.rootDir, filePath);
 
-  if (!fs.existsSync(fullPath)) {
-    return {};
+  if (!fs.existsSync(absolutePath)) {
+    throw new Error(`File not found: ${absolutePath}`);
   }
 
-  try {
-    const content = fs.readFileSync(fullPath, 'utf-8');
-    return JSON.parse(content);
-  } catch {
-    return {};
-  }
+  const content = fs.readFileSync(absolutePath, 'utf-8');
+  return JSON.parse(content);
 }
 
 /**
- * Save JSON to file
- *
- * @param filePath - File path (absolute or relative to context rootDir)
- * @param data - Data to save
- * @param ctx - Optional context (uses global if not provided)
- */
-export function saveJsonFile(filePath: string, data: any, ctx?: Context): void {
-  const context = ctx || getContext();
-  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(context.rootDir, filePath);
-  const dir = path.dirname(fullPath);
-
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
-  fs.writeFileSync(fullPath, JSON.stringify(data, null, 2), 'utf-8');
-}
-
-/**
- * Save text to file
- *
- * @param filePath - File path (absolute or relative to context rootDir)
- * @param content - Text content to save
- * @param ctx - Optional context (uses global if not provided)
- */
-export function saveTextFile(filePath: string, content: string, ctx?: Context): void {
-  const context = ctx || getContext();
-  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(context.rootDir, filePath);
-  const dir = path.dirname(fullPath);
-
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
-  fs.writeFileSync(fullPath, content, 'utf-8');
-}
-
-/**
- * Check if file exists (relative to context rootDir)
- *
- * @param filePath - File path (absolute or relative to context rootDir)
- * @param ctx - Optional context (uses global if not provided)
+ * Check if file exists
  */
 export function fileExists(filePath: string, ctx?: Context): boolean {
   const context = ctx || getContext();
-  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(context.rootDir, filePath);
-  return fs.existsSync(fullPath);
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.join(context.rootDir, filePath);
+
+  return fs.existsSync(absolutePath);
 }
 
 /**
- * Get absolute path from relative
- *
- * @param filePath - Relative file path
- * @param ctx - Optional context (uses global if not provided)
+ * Get absolute path from relative path
  */
 export function getAbsolutePath(filePath: string, ctx?: Context): string {
   const context = ctx || getContext();
+
+  if (path.isAbsolute(filePath)) {
+    return filePath;
+  }
+
   return path.join(context.rootDir, filePath);
 }
 
 /**
  * Ensure directory exists
- *
- * @param dirPath - Directory path (absolute or relative to context rootDir)
- * @param ctx - Optional context (uses global if not provided)
  */
 export function ensureDir(dirPath: string, ctx?: Context): void {
   const context = ctx || getContext();
-  const fullPath = path.isAbsolute(dirPath) ? dirPath : path.join(context.rootDir, dirPath);
+  const absolutePath = path.isAbsolute(dirPath)
+    ? dirPath
+    : path.join(context.rootDir, dirPath);
 
-  if (!fs.existsSync(fullPath)) {
-    fs.mkdirSync(fullPath, { recursive: true });
+  if (!fs.existsSync(absolutePath)) {
+    fs.mkdirSync(absolutePath, { recursive: true });
   }
 }
 
 /**
- * Ensure .figma directory structure exists
- *
- * @param ctx - Optional context (uses global if not provided)
+ * Ensure .figma directory exists
  */
 export function ensureFigmaDir(ctx?: Context): void {
   const context = ctx || getContext();
-  ensureDir(getFigmaDir(context), context);
-  ensureDir(getConfigDir(context), context);
-  ensureDir(getDataDir(context), context);
-  ensureDir(getReportsDir(context), context);
+  const dataDir = getDataDir(context);
+
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
 }
