@@ -1,0 +1,42 @@
+{
+  "colors": {
+    "background": {
+      "primary": {
+        "value": "#1a1a1a",
+        "type": "color"
+      },
+      "secondary": {
+        "value": "#2a2a2a",
+        "type": "color"
+      },
+      "tertiary": {
+        "value": "#3a3a3a",
+        "type": "color"
+      }
+    },
+    "text": {
+      "primary": {
+        "value": "#ffffff",
+        "type": "color"
+      },
+      "secondary": {
+        "value": "#cccccc",
+        "type": "color"
+      },
+      "tertiary": {
+        "value": "#999999",
+        "type": "color"
+      }
+    },
+    "border": {
+      "default": {
+        "value": "#444444",
+        "type": "color"
+      },
+      "focus": {
+        "value": "#3399ff",
+        "type": "color"
+      }
+    }
+  }
+}

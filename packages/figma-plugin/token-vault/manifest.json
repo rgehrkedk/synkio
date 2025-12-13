@@ -3,7 +3,7 @@
   "id": "token-vault",
   "api": "1.0.0",
   "main": "code.js",
-  "ui": "src/ui.html",
+  "ui": "ui.html",
   "documentAccess": "dynamic-page",
   "editorType": ["figma", "dev"],
   "capabilities": ["inspect"],

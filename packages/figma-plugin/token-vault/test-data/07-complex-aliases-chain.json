@@ -1,0 +1,108 @@
+{
+  "colors": {
+    "base": {
+      "white": {
+        "value": "#ffffff",
+        "type": "color"
+      },
+      "black": {
+        "value": "#000000",
+        "type": "color"
+      },
+      "blue": {
+        "50": {
+          "value": "#e6f2ff",
+          "type": "color"
+        },
+        "100": {
+          "value": "#b3d9ff",
+          "type": "color"
+        },
+        "500": {
+          "value": "#0066cc",
+          "type": "color"
+        },
+        "900": {
+          "value": "#003366",
+          "type": "color"
+        }
+      },
+      "red": {
+        "50": {
+          "value": "#ffe6e6",
+          "type": "color"
+        },
+        "500": {
+          "value": "#cc0000",
+          "type": "color"
+        },
+        "900": {
+          "value": "#660000",
+          "type": "color"
+        }
+      },
+      "green": {
+        "500": {
+          "value": "#00cc66",
+          "type": "color"
+        }
+      }
+    },
+    "semantic": {
+      "primary": {
+        "value": "{colors.base.blue.500}",
+        "type": "color"
+      },
+      "primaryLight": {
+        "value": "{colors.base.blue.100}",
+        "type": "color"
+      },
+      "primaryDark": {
+        "value": "{colors.base.blue.900}",
+        "type": "color"
+      },
+      "danger": {
+        "value": "{colors.base.red.500}",
+        "type": "color"
+      },
+      "success": {
+        "value": "{colors.base.green.500}",
+        "type": "color"
+      }
+    },
+    "ui": {
+      "background": {
+        "value": "{colors.base.white}",
+        "type": "color"
+      },
+      "text": {
+        "value": "{colors.base.black}",
+        "type": "color"
+      },
+      "link": {
+        "default": {
+          "value": "{colors.semantic.primary}",
+          "type": "color"
+        },
+        "hover": {
+          "value": "{colors.semantic.primaryDark}",
+          "type": "color"
+        }
+      },
+      "button": {
+        "primary": {
+          "value": "{colors.semantic.primary}",
+          "type": "color"
+        },
+        "primaryHover": {
+          "value": "{colors.ui.link.hover}",
+          "type": "color"
+        },
+        "danger": {
+          "value": "{colors.semantic.danger}",
+          "type": "color"
+        }
+      }
+    }
+  }
+}

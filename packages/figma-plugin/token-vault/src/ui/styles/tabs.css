@@ -1,0 +1,60 @@
+/**
+ * Tab system styles - segmented control and tab panels
+ */
+
+/* Segmented Control */
+.segmented-control {
+  display: flex;
+  background: var(--figma-color-bg-secondary);
+  border-radius: 6px;
+  padding: 2px;
+  margin: 12px;
+}
+
+.segmented-control button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--figma-color-text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.segmented-control button:hover {
+  color: var(--figma-color-text);
+}
+
+.segmented-control button.active {
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Tab Panels */
+.tab-panel {
+  display: none;
+  padding: 0 12px 12px;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Action buttons footer */
+.action-footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--figma-color-border);
+  background: var(--figma-color-bg);
+  position: sticky;
+  bottom: 0;
+}
+
+.action-footer .button {
+  flex: 1;
+}

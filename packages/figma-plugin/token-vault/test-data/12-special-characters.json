@@ -1,0 +1,78 @@
+{
+  "colors": {
+    "with-dashes": {
+      "value": "#0066cc",
+      "type": "color"
+    },
+    "with_underscores": {
+      "value": "#ff6600",
+      "type": "color"
+    },
+    "with.dots": {
+      "value": "#00cc66",
+      "type": "color"
+    },
+    "with$dollar": {
+      "value": "#cc0066",
+      "type": "color"
+    },
+    "with numbers 123": {
+      "value": "#6600cc",
+      "type": "color"
+    },
+    "UPPERCASE": {
+      "value": "#cccc00",
+      "type": "color"
+    },
+    "camelCase": {
+      "value": "#00cccc",
+      "type": "color"
+    },
+    "PascalCase": {
+      "value": "#cc00cc",
+      "type": "color"
+    },
+    "kebab-case-long-name": {
+      "value": "#666666",
+      "type": "color"
+    },
+    "snake_case_long_name": {
+      "value": "#999999",
+      "type": "color"
+    }
+  },
+  "spacing": {
+    "2xs": {
+      "value": "2px",
+      "type": "dimension"
+    },
+    "xs": {
+      "value": "4px",
+      "type": "dimension"
+    },
+    "sm": {
+      "value": "8px",
+      "type": "dimension"
+    },
+    "md": {
+      "value": "16px",
+      "type": "dimension"
+    },
+    "lg": {
+      "value": "24px",
+      "type": "dimension"
+    },
+    "xl": {
+      "value": "32px",
+      "type": "dimension"
+    },
+    "2xl": {
+      "value": "48px",
+      "type": "dimension"
+    },
+    "3xl": {
+      "value": "64px",
+      "type": "dimension"
+    }
+  }
+}

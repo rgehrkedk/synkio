@@ -1,0 +1,84 @@
+/**
+ * Base styles - resets, typography, and global styles
+ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px;
+  color: var(--figma-color-text);
+  background: var(--figma-color-bg);
+}
+
+/* Utility classes */
+.hidden {
+  display: none !important;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--figma-color-border);
+  margin: 16px 0;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--figma-color-text-secondary);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--figma-color-border);
+  border-top-color: var(--figma-color-bg-brand);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 32px;
+  color: var(--figma-color-text-secondary);
+}
+
+.empty-state-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* Info box */
+.info-box {
+  background: var(--figma-color-bg-secondary);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+
+.info-box-title {
+  font-weight: 500;
+  color: var(--figma-color-text);
+  margin-bottom: 4px;
+}
+
+.info-box-text {
+  font-size: 10px;
+  color: var(--figma-color-text-secondary);
+  line-height: 1.4;
+}

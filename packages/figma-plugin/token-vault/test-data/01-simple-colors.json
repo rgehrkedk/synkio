@@ -1,0 +1,28 @@
+{
+  "colors": {
+    "primary": {
+      "value": "#0066cc",
+      "type": "color"
+    },
+    "secondary": {
+      "value": "#ff6600",
+      "type": "color"
+    },
+    "success": {
+      "value": "#00cc66",
+      "type": "color"
+    },
+    "error": {
+      "value": "#cc0000",
+      "type": "color"
+    },
+    "background": {
+      "value": "#ffffff",
+      "type": "color"
+    },
+    "text": {
+      "value": "#333333",
+      "type": "color"
+    }
+  }
+}
