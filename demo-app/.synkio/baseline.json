@@ -1,0 +1,363 @@
+{
+  "baseline": {
+    "$metadata": {
+      "version": "1.0.0",
+      "exportedAt": "2025-12-14T21:08:29.013Z",
+      "pluginVersion": "2.0.0",
+      "fileKey": "",
+      "fileName": "Untitled",
+      "registryNodeId": "12:100",
+      "variableCount": 12,
+      "collectionCount": 2,
+      "collections": [
+        {
+          "id": "VariableCollectionId:10:10",
+          "name": "theme",
+          "modeCount": 2,
+          "variableCount": 8,
+          "modes": [
+            {
+              "id": "10:0",
+              "name": "light"
+            },
+            {
+              "id": "10:1",
+              "name": "dark"
+            }
+          ]
+        },
+        {
+          "id": "VariableCollectionId:14:101",
+          "name": "base",
+          "modeCount": 1,
+          "variableCount": 4,
+          "modes": [
+            {
+              "id": "14:2",
+              "name": "Mode 1"
+            }
+          ]
+        }
+      ]
+    },
+    "baseline": {
+      "theme:light:VariableID:10:11": {
+        "path": "theme.light.strokeStart",
+        "value": "#a3e96a",
+        "type": "color",
+        "collection": "theme",
+        "mode": "light",
+        "variableId": "VariableID:10:11",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:0"
+      },
+      "theme:light:VariableID:10:12": {
+        "path": "theme.light.strokeFillStart",
+        "value": "#a3e96a",
+        "type": "color",
+        "collection": "theme",
+        "mode": "light",
+        "variableId": "VariableID:10:12",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:0"
+      },
+      "theme:light:VariableID:10:13": {
+        "path": "theme.light.bg",
+        "value": "#ffffff",
+        "type": "color",
+        "collection": "theme",
+        "mode": "light",
+        "variableId": "VariableID:10:13",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:0"
+      },
+      "theme:light:VariableID:10:17": {
+        "path": "theme.light.strokeFillEnd",
+        "value": "#a3e96a",
+        "type": "color",
+        "collection": "theme",
+        "mode": "light",
+        "variableId": "VariableID:10:17",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:0"
+      },
+      "theme:light:VariableID:10:18": {
+        "path": "theme.light.strokeEnd",
+        "value": "#000000",
+        "type": "color",
+        "collection": "theme",
+        "mode": "light",
+        "variableId": "VariableID:10:18",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:0"
+      },
+      "theme:light:VariableID:10:20": {
+        "path": "theme.light.shapeFillEnd",
+        "value": "#000000",
+        "type": "color",
+        "collection": "theme",
+        "mode": "light",
+        "variableId": "VariableID:10:20",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:0"
+      },
+      "theme:light:VariableID:10:21": {
+        "path": "theme.light.shapeFillStart",
+        "value": "#000000",
+        "type": "color",
+        "collection": "theme",
+        "mode": "light",
+        "variableId": "VariableID:10:21",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:0"
+      },
+      "theme:light:VariableID:11:93": {
+        "path": "theme.light.opacity",
+        "value": "#1e72bb",
+        "type": "color",
+        "collection": "theme",
+        "mode": "light",
+        "variableId": "VariableID:11:93",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:0"
+      },
+      "theme:dark:VariableID:10:11": {
+        "path": "theme.dark.strokeStart",
+        "value": "#effbe4",
+        "type": "color",
+        "collection": "theme",
+        "mode": "dark",
+        "variableId": "VariableID:10:11",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:1"
+      },
+      "theme:dark:VariableID:10:12": {
+        "path": "theme.dark.strokeFillStart",
+        "value": "#a3e96a",
+        "type": "color",
+        "collection": "theme",
+        "mode": "dark",
+        "variableId": "VariableID:10:12",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:1"
+      },
+      "theme:dark:VariableID:10:13": {
+        "path": "theme.dark.bg",
+        "value": "#000000",
+        "type": "color",
+        "collection": "theme",
+        "mode": "dark",
+        "variableId": "VariableID:10:13",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:1"
+      },
+      "theme:dark:VariableID:10:17": {
+        "path": "theme.dark.strokeFillEnd",
+        "value": "#a3e96a",
+        "type": "color",
+        "collection": "theme",
+        "mode": "dark",
+        "variableId": "VariableID:10:17",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:1"
+      },
+      "theme:dark:VariableID:10:18": {
+        "path": "theme.dark.strokeEnd",
+        "value": "#0c1603",
+        "type": "color",
+        "collection": "theme",
+        "mode": "dark",
+        "variableId": "VariableID:10:18",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:1"
+      },
+      "theme:dark:VariableID:10:20": {
+        "path": "theme.dark.shapeFillEnd",
+        "value": "#a3e96a",
+        "type": "color",
+        "collection": "theme",
+        "mode": "dark",
+        "variableId": "VariableID:10:20",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:1"
+      },
+      "theme:dark:VariableID:10:21": {
+        "path": "theme.dark.shapeFillStart",
+        "value": "#effbe4",
+        "type": "color",
+        "collection": "theme",
+        "mode": "dark",
+        "variableId": "VariableID:10:21",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:1"
+      },
+      "theme:dark:VariableID:11:93": {
+        "path": "theme.dark.opacity",
+        "value": "#1e72bb",
+        "type": "color",
+        "collection": "theme",
+        "mode": "dark",
+        "variableId": "VariableID:11:93",
+        "collectionId": "VariableCollectionId:10:10",
+        "modeId": "10:1"
+      },
+      "base:value:VariableID:14:102": {
+        "path": "base.value.colors.neutrals.75",
+        "value": "#e5e5e5",
+        "type": "color",
+        "collection": "base",
+        "mode": "value",
+        "variableId": "VariableID:14:102",
+        "collectionId": "VariableCollectionId:14:101",
+        "modeId": "14:2"
+      },
+      "base:value:VariableID:16:103": {
+        "path": "base.value.colors.neutrals.white",
+        "value": "#ffffff",
+        "type": "color",
+        "collection": "base",
+        "mode": "value",
+        "variableId": "VariableID:16:103",
+        "collectionId": "VariableCollectionId:14:101",
+        "modeId": "14:2"
+      },
+      "base:value:VariableID:16:104": {
+        "path": "base.value.colors.neutrals.50",
+        "value": "#f5f5f5",
+        "type": "color",
+        "collection": "base",
+        "mode": "value",
+        "variableId": "VariableID:16:104",
+        "collectionId": "VariableCollectionId:14:101",
+        "modeId": "14:2"
+      },
+      "base:value:VariableID:16:105": {
+        "path": "base.value.colors.neutrals.200",
+        "value": "#b7b7b7",
+        "type": "color",
+        "collection": "base",
+        "mode": "value",
+        "variableId": "VariableID:16:105",
+        "collectionId": "VariableCollectionId:14:101",
+        "modeId": "14:2"
+      }
+    },
+    "theme": {
+      "light": {
+        "strokeStart": {
+          "$type": "color",
+          "$value": "#a3e96a",
+          "$variableId": "theme:light:VariableID:10:11"
+        },
+        "strokeFillStart": {
+          "$type": "color",
+          "$value": "#a3e96a",
+          "$variableId": "theme:light:VariableID:10:12"
+        },
+        "bg": {
+          "$type": "color",
+          "$value": "#ffffff",
+          "$variableId": "theme:light:VariableID:10:13"
+        },
+        "strokeFillEnd": {
+          "$type": "color",
+          "$value": "#a3e96a",
+          "$variableId": "theme:light:VariableID:10:17"
+        },
+        "strokeEnd": {
+          "$type": "color",
+          "$value": "#000000",
+          "$variableId": "theme:light:VariableID:10:18"
+        },
+        "shapeFillEnd": {
+          "$type": "color",
+          "$value": "#000000",
+          "$variableId": "theme:light:VariableID:10:20"
+        },
+        "shapeFillStart": {
+          "$type": "color",
+          "$value": "#000000",
+          "$variableId": "theme:light:VariableID:10:21"
+        },
+        "opacity": {
+          "$type": "color",
+          "$value": "#1e72bb",
+          "$variableId": "theme:light:VariableID:11:93"
+        }
+      },
+      "dark": {
+        "strokeStart": {
+          "$type": "color",
+          "$value": "#effbe4",
+          "$variableId": "theme:dark:VariableID:10:11"
+        },
+        "strokeFillStart": {
+          "$type": "color",
+          "$value": "#a3e96a",
+          "$variableId": "theme:dark:VariableID:10:12"
+        },
+        "bg": {
+          "$type": "color",
+          "$value": "#000000",
+          "$variableId": "theme:dark:VariableID:10:13"
+        },
+        "strokeFillEnd": {
+          "$type": "color",
+          "$value": "#a3e96a",
+          "$variableId": "theme:dark:VariableID:10:17"
+        },
+        "strokeEnd": {
+          "$type": "color",
+          "$value": "#0c1603",
+          "$variableId": "theme:dark:VariableID:10:18"
+        },
+        "shapeFillEnd": {
+          "$type": "color",
+          "$value": "#a3e96a",
+          "$variableId": "theme:dark:VariableID:10:20"
+        },
+        "shapeFillStart": {
+          "$type": "color",
+          "$value": "#effbe4",
+          "$variableId": "theme:dark:VariableID:10:21"
+        },
+        "opacity": {
+          "$type": "color",
+          "$value": "#1e72bb",
+          "$variableId": "theme:dark:VariableID:11:93"
+        }
+      }
+    },
+    "base": {
+      "value": {
+        "colors": {
+          "neutrals": {
+            "50": {
+              "$type": "color",
+              "$value": "#f5f5f5",
+              "$variableId": "base:value:VariableID:16:104"
+            },
+            "75": {
+              "$type": "color",
+              "$value": "#e5e5e5",
+              "$variableId": "base:value:VariableID:14:102"
+            },
+            "200": {
+              "$type": "color",
+              "$value": "#b7b7b7",
+              "$variableId": "base:value:VariableID:16:105"
+            },
+            "white": {
+              "$type": "color",
+              "$value": "#ffffff",
+              "$variableId": "base:value:VariableID:16:103"
+            }
+          }
+        }
+      }
+    }
+  },
+  "metadata": {
+    "syncedAt": "2025-12-14T21:10:36.276Z"
+  }
+}

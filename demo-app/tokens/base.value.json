@@ -1,0 +1,18 @@
+{
+  "colors": {
+    "neutrals": {
+      "50": {
+        "value": "#f5f5f5"
+      },
+      "75": {
+        "value": "#e5e5e5"
+      },
+      "200": {
+        "value": "#b7b7b7"
+      },
+      "white": {
+        "value": "#ffffff"
+      }
+    }
+  }
+}

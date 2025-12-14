@@ -1,0 +1,6 @@
+{
+  "var1:light": { "path": "colors.primary", "value": "#4f46e5", "type": "COLOR", "collection": "Default", "mode": "light" },
+  "var2:light": { "path": "colors.secondary", "value": "#ec4899", "type": "COLOR", "collection": "Default", "mode": "light" },
+  "var3:light": { "path": "spacing.small", "value": "8px", "type": "DIMENSION", "collection": "Default", "mode": "light" },
+  "var4:light": { "path": "spacing.medium", "value": "16px", "type": "DIMENSION", "collection": "Default", "mode": "light" }
+}

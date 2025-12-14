@@ -78,23 +78,35 @@ npx synkio-v2 init
 
 ### `synkio sync`
 
-Fetches the latest tokens from Figma, saves them to your output directory, and creates a local baseline for comparison.
+Fetches the latest tokens from Figma, compares them with your local baseline, and saves them to your output directory.
+
+**Built-in breaking change protection:** If breaking changes are detected (path changes, deleted variables, or deleted modes), the sync will be blocked and you'll see a summary of what would break. This prevents accidental breakage from "small changes" that aren't small.
 
 **Usage:**
 ```bash
 npx synkio-v2 sync
 ```
 
-### `synkio diff`
-
-Compares the tokens in your local output directory with the latest tokens from Figma and shows a summary of changes.
-
-**Usage:**
-```bash
-npx synkio-v2 diff
-```
 **Options:**
-- `--output=markdown`: Generates a `diff-report.md` file in the `.figma` directory.
+- `--preview`: Show what would change without syncing. Use this to review changes before applying them (like a designer's PR).
+- `--force`: Bypass breaking change protection and sync anyway.
+- `--report`: Generate a markdown report (`.synkio/sync-report.md`) after syncing.
+- `--no-report`: Skip report generation even if enabled in config.
+
+**Examples:**
+```bash
+# Preview changes before syncing
+npx synkio-v2 sync --preview
+
+# Force sync even with breaking changes
+npx synkio-v2 sync --force
+
+# Sync and generate a report for your commit
+npx synkio-v2 sync --report
+
+# Sync without generating a report
+npx synkio-v2 sync --no-report
+```
 
 ### `synkio rollback`
 
@@ -116,7 +128,7 @@ npx synkio-v2 validate
 
 ### `synkio tokens`
 
-A debug utility that prints the contents of your current local token baseline (`.figma/baseline.json`).
+A debug utility that prints the contents of your current local token baseline (`.synkio/baseline.json`).
 
 **Usage:**
 ```bash
@@ -142,6 +154,15 @@ This file is the heart of your Synkio configuration.
   "output": {
     "dir": "tokens",
     "format": "json"
+  },
+  "sync": {
+    "report": true,
+    "reportHistory": false
+  },
+  "collections": {
+    "theme": {
+      "splitModes": false
+    }
   }
 }
 ```
@@ -150,6 +171,39 @@ This file is the heart of your Synkio configuration.
 - **`figma.nodeId`**: The ID of the node containing your token data, provided by the plugin.
 - **`figma.accessToken`**: A placeholder for your Figma token. Should be `${FIGMA_TOKEN}`.
 - **`output.dir`**: The directory where your token files will be written.
+- **`sync`**: (Optional) Sync behavior configuration.
+  - **`report`**: Auto-generate markdown reports after sync. Default is `true`.
+  - **`reportHistory`**: Keep timestamped report history (e.g., `sync-report-2025-01-15T10-30-00.md`). Default is `false`.
+- **`collections`**: (Optional) Per-collection configuration for how tokens are processed.
+  - **`splitModes`**: Controls whether multi-mode collections are split into separate files. Default is `true`.
+
+### Collection Mode Splitting
+
+By default, Figma collections with multiple modes (e.g., light/dark) are split into separate files:
+
+| Collection | Modes | Default Output |
+|------------|-------|----------------|
+| `theme` | light, dark | `theme.light.json`, `theme.dark.json` |
+
+You can disable this behavior per collection to get a single file with modes nested:
+
+```json
+{
+  "collections": {
+    "theme": {
+      "splitModes": false
+    }
+  }
+}
+```
+
+This produces a single `theme.json` with the structure:
+```json
+{
+  "light": { "bg": { "value": "#ffffff" }, ... },
+  "dark": { "bg": { "value": "#000000" }, ... }
+}
+```
 
 ### `.env`
 

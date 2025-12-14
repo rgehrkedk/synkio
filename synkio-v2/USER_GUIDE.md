@@ -101,6 +101,15 @@ The `tokensrc.json` file defines how Synkio behaves.
   "output": {
     "dir": "tokens",
     "format": "json"
+  },
+  "sync": {
+    "report": true,
+    "reportHistory": false
+  },
+  "collections": {
+    "theme": {
+      "splitModes": false
+    }
   }
 }
 ```
@@ -112,6 +121,77 @@ The `tokensrc.json` file defines how Synkio behaves.
 - `figma.baseUrl` (optional): For Figma Enterprise users, this allows you to specify a custom API endpoint.
 - `output.dir`: The destination directory for your generated token files.
 - `output.format`: The file format for the tokens. Currently, only `"json"` is supported.
+- `sync` (optional): Sync behavior configuration.
+- `collections` (optional): Per-collection configuration for how tokens are processed.
+
+### Sync Configuration
+
+Control report generation behavior with the `sync` config:
+
+```json
+{
+  "sync": {
+    "report": true,
+    "reportHistory": false
+  }
+}
+```
+
+- `report`: Whether to auto-generate markdown reports after each sync (default: `true`)
+- `reportHistory`: Whether to keep timestamped report history (default: `false`)
+
+When `reportHistory` is `true`, each sync creates a timestamped report (e.g., `sync-report-2025-01-15T10-30-00.md`) instead of overwriting the single `sync-report.md`. This is useful for auditing token changes over time.
+
+### Collection Mode Splitting
+
+Figma collections can have multiple modes (e.g., light and dark themes). By default, Synkio splits these into separate files:
+
+```
+tokens/
+├── theme.light.json
+├── theme.dark.json
+└── base.value.json
+```
+
+You can configure specific collections to merge all modes into a single file:
+
+```json
+{
+  "collections": {
+    "theme": {
+      "splitModes": false
+    }
+  }
+}
+```
+
+With `splitModes: false`, the output becomes:
+
+```
+tokens/
+├── theme.json       # Contains both light and dark modes
+└── base.value.json
+```
+
+The merged `theme.json` structure:
+
+```json
+{
+  "light": {
+    "bg": { "value": "#ffffff" },
+    "text": { "value": "#000000" }
+  },
+  "dark": {
+    "bg": { "value": "#000000" },
+    "text": { "value": "#ffffff" }
+  }
+}
+```
+
+This is useful when you want to:
+- Keep related theme data together in one file
+- Dynamically switch themes at runtime using a single import
+- Reduce the number of files in your tokens directory
 
 ## Commands
 
@@ -132,20 +212,53 @@ npx synkio-v2 init
 
 ### `sync`
 
-Fetches the latest tokens from Figma, processes them, and saves them to your output directory.
+Fetches the latest tokens from Figma, compares them with your local baseline, and saves them to your output directory.
+
+**Breaking Change Protection:**
+
+Synkio automatically detects breaking changes that could break your code:
+- **Path changes**: Token renamed (e.g., `colors.primary` → `colors.brand.primary`)
+- **Deleted variables**: Token removed entirely
+- **Deleted modes**: A mode (e.g., "dark") removed from a collection
+
+When breaking changes are detected, sync is blocked:
+
+```
+⚠️  BREAKING CHANGES DETECTED
+
+  Path changes: 1
+    colors.primary → colors.brand.primary
+
+  These changes may break your code.
+
+  Run 'synkio sync --force' to apply anyway.
+  Run 'synkio sync --preview' to see full details.
+```
 
 **Usage:**
 ```bash
 npx synkio-v2 sync
 ```
 
-### `diff`
+**Options:**
+- `--preview`: Show what would change without applying. Use this to review changes (like a designer's PR).
+- `--force`: Bypass breaking change protection and sync anyway.
+- `--report`: Force generate a markdown changelog (`.synkio/sync-report.md`) even if disabled in config.
+- `--no-report`: Skip report generation even if enabled in config.
 
-Compares your local tokens with the ones in Figma and shows a summary of the differences. This is useful for reviewing changes before syncing.
-
-**Usage:**
+**Examples:**
 ```bash
-npx synkio-v2 diff
+# Preview changes before syncing
+npx synkio-v2 sync --preview
+
+# Force sync even with breaking changes  
+npx synkio-v2 sync --force
+
+# Sync and generate a report for your git commit
+npx synkio-v2 sync --report
+
+# Sync without generating a report
+npx synkio-v2 sync --no-report
 ```
 
 ### `rollback`
