@@ -5,31 +5,7 @@
  * Provides a clean API for sending and receiving messages.
  */
 
-import type { FigmaCollection } from './state';
-
-/**
- * Messages that can be sent from UI to backend
- */
-export type UIMessage =
-  | { type: 'import-tokens'; data: { collections: unknown[] } }
-  | { type: 'export-baseline'; collectionIds: string[] }
-  | { type: 'sync-to-node'; collectionIds: string[] }
-  | { type: 'get-collections' }
-  | { type: 'get-last-sync' }
-  | { type: 'cancel' };
-
-/**
- * Messages that can be received from backend
- */
-export type PluginMessage =
-  | { type: 'collections-loaded'; collections: FigmaCollection[] }
-  | { type: 'last-sync-loaded'; exists: boolean; nodeId?: string; variableCount?: number; updatedAt?: string }
-  | { type: 'import-complete'; message: string }
-  | { type: 'import-error'; message: string }
-  | { type: 'export-complete'; data: unknown }
-  | { type: 'export-error'; message: string }
-  | { type: 'sync-complete'; nodeId: string; variableCount: number }
-  | { type: 'sync-error'; message: string };
+import type { UIMessage, PluginMessage } from '../types/message.types.js';
 
 /**
  * Message handler callback type

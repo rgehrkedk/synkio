@@ -24,11 +24,28 @@
       <div class="file-list" id="fileList"></div>
     </div>
 
-    <div class="section">
-      <div class="section-title">2. Configure Collections</div>
-      <div class="section-description">Define how your token files map to Figma variable collections and modes.</div>
-      <div id="collectionsList"></div>
-      <button class="button button-add" id="addCollection">+ Add Collection</button>
+    <!-- Baseline Confirmation Section (hidden by default) -->
+    <div id="baselineConfirmationSection" style="display: none;"></div>
+
+    <!-- NEW: Structure Preview Section (hidden by default) -->
+    <div id="structurePreviewSection" style="display: none;"></div>
+
+    <!-- NEW: File Grouping Section (hidden by default, shown for multi-file imports) -->
+    <div id="fileGroupingSection" style="display: none;">
+      <div id="fileGroupingContainer"></div>
+    </div>
+
+    <!-- NEW: Multi-Collection Configuration Section (hidden by default, for multi-file imports) -->
+    <div id="multiCollectionConfigSection" style="display: none;"></div>
+
+    <!-- NEW: Level Selector Section (hidden by default, for single-file imports) -->
+    <div id="levelSelectorSection" style="display: none;">
+      <div id="levelSelectorContainer"></div>
+    </div>
+
+    <!-- NEW: Live Preview Section (hidden by default) -->
+    <div id="livePreviewSection" style="display: none;">
+      <div id="live-preview"></div>
     </div>
   </div>
 
@@ -99,6 +116,16 @@
             <span id="lastSyncTime">--</span>
           </div>
         </div>
+      </div>
+
+      <!-- Sync Changes Section (hidden by default) -->
+      <div id="syncChangesSection" style="display: none;"></div>
+
+      <!-- Check for Changes Button -->
+      <div class="sync-actions" style="margin-bottom: 12px;">
+        <button id="checkChangesBtn" class="button button-secondary" style="width: 100%;">
+          Check for Changes
+        </button>
       </div>
 
       <div class="info-box">

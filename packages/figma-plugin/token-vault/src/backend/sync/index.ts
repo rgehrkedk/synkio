@@ -144,6 +144,7 @@ export { chunkData, unchunkData } from './chunker.js';
 export {
   findRegistryNode,
   getOrCreateRegistryNode,
-  createRegistryNode
+  createRegistryNode,
+  loadChunksFromNode
 } from './node-manager.js';
 export { readSyncMetadata, writeSyncMetadata } from './metadata.js';

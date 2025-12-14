@@ -6,6 +6,7 @@
 import { getState, setState } from '../state';
 import { updateActionButton } from './tabs';
 import { formatFileSize } from '../utils/format';
+import { sendMessage } from '../message-bridge';
 
 export interface FileData {
   name: string;
@@ -83,6 +84,22 @@ async function handleFiles(fileList: FileList, options: FileUploadOptions): Prom
           content: data,
           size: file.size
         });
+
+        // Check if file is baseline format
+        const isBaseline = data && typeof data === 'object' && '$metadata' in data && 'baseline' in data;
+
+        if (isBaseline) {
+          // Only detect format for baseline files
+          console.log('[FileUpload] Baseline file detected, sending detection request for:', fileName);
+          sendMessage({
+            type: 'detect-import-format',
+            fileName,
+            jsonData: data
+          });
+        } else {
+          console.log('[FileUpload] Regular token file, will use flexible import for:', fileName);
+        }
+
       } catch (e) {
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         options.onError?.(file.name, errorMessage);

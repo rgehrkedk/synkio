@@ -3,9 +3,38 @@
  * Builds baseline snapshot structure from Figma variables
  */
 
-import type { BaselineSnapshot, BaselineEntry, ExportToken } from '../../types/index.js';
+import type { BaselineSnapshot, BaselineEntry, ExportToken, CollectionMetadata } from '../../types/index.js';
 import { mapFigmaTypeToTokenType } from '../utils/type-mappers.js';
 import { resolveVariableValue, setNestedValue } from './transformer.js';
+import { findRegistryNode, loadChunksFromNode, unchunkData } from '../sync/index.js';
+import { PLUGIN_NAMESPACE } from '../utils/constants.js';
+
+/**
+ * Get the current baseline version from the stored registry node.
+ * Returns "1.0.0" if no previous version exists.
+ */
+async function getCurrentStoredVersion(): Promise<string> {
+  try {
+    const node = await findRegistryNode();
+    if (!node) {
+      return '1.0.0';
+    }
+
+    const chunkCountStr = node.getSharedPluginData(PLUGIN_NAMESPACE, 'chunkCount');
+    if (!chunkCountStr) {
+      return '1.0.0';
+    }
+
+    const chunkCount = parseInt(chunkCountStr, 10);
+    const chunks = loadChunksFromNode(node, PLUGIN_NAMESPACE, chunkCount);
+    const storedBaseline = unchunkData(chunks) as any;
+
+    return storedBaseline?.$metadata?.version || '1.0.0';
+  } catch (error) {
+    console.warn('Failed to read stored version, defaulting to 1.0.0:', error);
+    return '1.0.0';
+  }
+}
 
 /**
  * Build a complete baseline snapshot from Figma variables
@@ -25,14 +54,42 @@ export async function buildBaselineSnapshot(
     collections = collections.filter(c => filterCollectionIds.includes(c.id));
   }
 
-  // Initialize output structure with metadata
+  // Get registry node ID if it exists
+  const registryNode = await findRegistryNode();
+  const registryNodeId = registryNode?.id;
+
+  // Build collection metadata
+  const collectionMetadata: CollectionMetadata[] = collections.map(col => {
+    const colVariables = allVariables.filter(v => v.variableCollectionId === col.id);
+    return {
+      id: col.id,
+      name: col.name,
+      modeCount: col.modes.length,
+      variableCount: colVariables.length,
+      modes: col.modes.map(m => ({ id: m.modeId, name: m.name }))
+    };
+  });
+
+  // Count total variables
+  const totalVariableCount = collections.reduce((sum, col) => {
+    return sum + allVariables.filter(v => v.variableCollectionId === col.id).length;
+  }, 0);
+
+  // Get the current stored version (from last sync) for the export
+  const storedVersion = await getCurrentStoredVersion();
+
+  // Initialize output structure with enhanced metadata
   const output: BaselineSnapshot = {
     $metadata: {
-      version: '2.0.0',
+      version: storedVersion,
       exportedAt: new Date().toISOString(),
-      pluginVersion: '1.0.0',
+      pluginVersion: '2.0.0',
       fileKey: figma.fileKey || '',
-      fileName: figma.root.name
+      fileName: figma.root.name,
+      registryNodeId: registryNodeId,
+      variableCount: totalVariableCount,
+      collectionCount: collections.length,
+      collections: collectionMetadata
     },
     baseline: {}
   };
@@ -76,14 +133,18 @@ export async function buildBaselineSnapshot(
         // Add to nested structure
         setNestedValue(output[collectionName][modeName], pathParts, token);
 
-        // Add to baseline (flat structure)
+        // Add to baseline (flat structure) with IDs for re-import matching
         const fullPath = `${collectionName}.${modeName}.${pathParts.join('.')}`;
         output.baseline[prefixedId] = {
           path: fullPath,
           value: value,
           type: tokenType,
           collection: collectionName,
-          mode: modeName
+          mode: modeName,
+          variableId: variable.id,
+          collectionId: collection.id,
+          modeId: mode.modeId,
+          description: variable.description || undefined
         };
       }
     }

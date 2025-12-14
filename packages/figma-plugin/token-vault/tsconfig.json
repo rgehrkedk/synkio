@@ -1,15 +1,23 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["ES2017"],
+    "lib": ["ES2017", "DOM"],
     "module": "ES2020",
     "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "typeRoots": ["./node_modules/@types", "./node_modules/@figma"],
-    "ignoreDeprecations": "6.0"
+    "typeRoots": ["./node_modules/@types", "./node_modules/@figma"]
   },
-  "include": ["src/code.ts", "src/backend/**/*", "src/types/**/*"],
-  "exclude": ["src/ui/**/*", "tests/**/*"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "tests/**/*",
+    "dist/**/*",
+    "node_modules/**/*",
+    "src/ui/components/json-path-selector.ts",
+    "src/ui/components/undo-redo.ts",
+    "src/ui/components/validation-display.ts",
+    "src/ui/utils/validation.ts",
+    "src/ui/utils/virtual-file-generator.ts"
+  ]
 }

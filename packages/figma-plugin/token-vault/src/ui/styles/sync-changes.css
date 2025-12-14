@@ -1,0 +1,165 @@
+/**
+ * Sync Changes Diff Styles
+ *
+ * Styles for the changes detection and version bump UI in the sync tab.
+ */
+
+.sync-changes {
+  background: var(--figma-color-bg);
+  border: 1px solid var(--figma-color-border);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.changes-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.changes-header .icon {
+  font-size: 20px;
+}
+
+.changes-header .title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--figma-color-text);
+}
+
+.changes-content {
+  margin-bottom: 16px;
+}
+
+/* Change Sections */
+.change-section {
+  margin: 16px 0;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.change-section.breaking {
+  background: var(--figma-color-bg-danger-secondary, #fee);
+}
+
+.change-section.addition {
+  background: var(--figma-color-bg-warning-secondary, #fff4e5);
+}
+
+.change-section.patch {
+  background: var(--figma-color-bg-success-secondary, #e6f4ea);
+}
+
+.section-header {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--figma-color-text);
+  margin-bottom: 8px;
+}
+
+.section-items {
+  margin-left: 8px;
+}
+
+.change-item {
+  font-size: 11px;
+  color: var(--figma-color-text);
+  padding: 2px 0;
+  line-height: 1.4;
+}
+
+.more-changes {
+  font-size: 10px;
+  color: var(--figma-color-text-secondary);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+/* Version Bump Box */
+.version-bump-box {
+  margin: 16px 0;
+  padding: 12px;
+  border: 2px solid var(--figma-color-border);
+  border-radius: 6px;
+  background: var(--figma-color-bg-secondary);
+}
+
+.bump-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--figma-color-text);
+  margin-bottom: 8px;
+}
+
+.bump-display {
+  font-size: 16px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.version-current {
+  color: var(--figma-color-text-secondary);
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+}
+
+.version-new {
+  font-weight: 600;
+  color: var(--figma-color-text-brand);
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+}
+
+/* Version Override */
+.version-override {
+  margin-top: 12px;
+}
+
+.version-override label {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.version-inputs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.version-inputs input {
+  width: 60px;
+  padding: 4px 8px;
+  text-align: center;
+  border: 1px solid var(--figma-color-border);
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+}
+
+.version-inputs input:focus {
+  outline: none;
+  border-color: var(--figma-color-border-brand);
+  box-shadow: 0 0 0 1px var(--figma-color-border-brand);
+}
+
+/* Sync Actions */
+.sync-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.sync-actions .button {
+  flex: 1;
+}
+
+/* Hidden by default */
+#syncChangesSection {
+  display: none;
+}

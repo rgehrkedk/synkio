@@ -1,0 +1,196 @@
+/**
+ * Level Selector Component Styles
+ * Radio buttons for configuring JSON level mapping
+ */
+
+.level-selector {
+  background: var(--figma-color-bg);
+  border: 1px solid var(--figma-color-border);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.level-selector-header {
+  margin-bottom: 16px;
+}
+
+.level-selector-header .section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--figma-color-text);
+  margin-bottom: 4px;
+}
+
+.level-selector-header .section-description {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary);
+  line-height: 1.4;
+}
+
+.level-selector-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* Individual level option */
+.level-option {
+  background: var(--figma-color-bg-secondary);
+  border: 1px solid var(--figma-color-border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.level-option-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.level-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--figma-color-text);
+}
+
+.level-key-count {
+  font-size: 10px;
+  color: var(--figma-color-text-tertiary);
+  background: var(--figma-color-bg);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.level-option-keys {
+  font-size: 10px;
+  color: var(--figma-color-text-secondary);
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  background: var(--figma-color-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Radio button group */
+.level-option-radios {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--figma-color-text);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.radio-label:hover:not(.disabled) {
+  color: var(--figma-color-text-brand);
+}
+
+.radio-label.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.radio-label input[type="radio"] {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--figma-color-bg-brand);
+}
+
+.radio-label.disabled input[type="radio"] {
+  cursor: not-allowed;
+}
+
+/* Validation messages */
+.level-selector-validation {
+  margin-top: 12px;
+}
+
+.validation-error,
+.validation-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.validation-error {
+  background: var(--figma-color-bg-danger-tertiary, #fee);
+  color: var(--figma-color-text-danger, #c00);
+  border: 1px solid var(--figma-color-border-danger, #fcc);
+}
+
+.validation-error svg {
+  flex-shrink: 0;
+  color: var(--figma-color-icon-danger, #c00);
+}
+
+.validation-warning {
+  background: var(--figma-color-bg-warning-tertiary, #fffbf0);
+  color: var(--figma-color-text-warning, #b87900);
+  border: 1px solid var(--figma-color-border-warning, #ffe4a0);
+}
+
+.validation-warning svg {
+  flex-shrink: 0;
+  color: var(--figma-color-icon-warning, #b87900);
+}
+
+/* Responsive adjustments */
+@media (max-width: 400px) {
+  .level-option-radios {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Compact mode for multi-collection cards */
+.level-selector-compact {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.level-selector-compact .level-selector-levels {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.level-selector-compact .level-option {
+  padding: 8px 10px;
+}
+
+.level-selector-compact .level-option-header {
+  margin-bottom: 4px;
+}
+
+.level-selector-compact .level-option-keys {
+  margin-bottom: 6px;
+}
+
+.level-selector-compact .level-option-radios {
+  gap: 12px;
+}
+
+.level-selector-compact .level-selector-validation {
+  margin-top: 8px;
+}

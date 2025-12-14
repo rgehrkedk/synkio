@@ -238,33 +238,13 @@ Build command: [npm run tokens:build]: npm run build:tokens
 
 ### Step 6: Migration (Optional)
 ```
-Optional: Configure automatic migration for breaking token changes? (y/N): y
+Optional: Configure automatic migration for breaking token changes? (y/N): n
 ```
 
 If you choose yes:
 1. Select platforms (CSS, SCSS, TypeScript, Swift, Kotlin)
 2. Auto-generated configuration for each platform
 3. Strip segments calculated from your collections
-
-**Using Migration:**
-
-When tokens are renamed in Figma:
-
-```bash
-# 1. Sync latest tokens
-synkio sync
-
-# 2. Generate migration plan
-synkio migrate --plan
-
-# 3. Review the plan
-cat .figma/reports/migration-plan.md
-
-# 4. Approve by changing <!-- APPROVED --> to APPROVED
-
-# 5. Apply changes
-synkio migrate --apply
-```
 
 ---
 
@@ -368,35 +348,6 @@ synkio sync --dry-run
 synkio diff
 ```
 
-### Migrating Token Renames
-When a designer renames a token in Figma:
-
-```bash
-# 1. Sync to get the rename
-synkio sync
-
-# 2. Generate migration plan
-synkio migrate --plan
-# This scans your code and shows affected files
-
-# 3. Review the plan
-# Open .figma/reports/migration-plan.md
-# Check the before/after changes
-
-# 4. Approve the plan
-# Change <!-- APPROVED --> to APPROVED
-
-# 5. Apply migrations
-synkio migrate --apply
-```
-
-Supported platforms:
-- **CSS** - `var(--token-name)`
-- **SCSS** - `$token-name`
-- **TypeScript** - `theme.token.name` or `tokens['token.name']`
-- **Swift** - `DesignTokens.token.name`
-- **Kotlin** - `AppTheme.token_name`
-
 ### CI/CD Pipeline
 ```yaml
 # .github/workflows/sync-tokens.yml
@@ -495,7 +446,6 @@ npm run tokens:sync
 synkio --help
 synkio init --help
 synkio sync --help
-synkio migrate --help
 
 # Check version
 synkio --version

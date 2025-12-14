@@ -1,0 +1,36 @@
+{
+  "light": {
+    "colors": {
+      "bg": {
+        "primary": "#FFFFFF",
+        "secondary": "#F3F4F6"
+      },
+      "text": {
+        "primary": "#111827",
+        "secondary": "#6B7280"
+      }
+    },
+    "spacing": {
+      "sm": 8,
+      "md": 16,
+      "lg": 24
+    }
+  },
+  "dark": {
+    "colors": {
+      "bg": {
+        "primary": "#111827",
+        "secondary": "#1F2937"
+      },
+      "text": {
+        "primary": "#F9FAFB",
+        "secondary": "#9CA3AF"
+      }
+    },
+    "spacing": {
+      "sm": 8,
+      "md": 16,
+      "lg": 24
+    }
+  }
+}

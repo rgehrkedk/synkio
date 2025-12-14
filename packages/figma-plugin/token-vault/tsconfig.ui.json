@@ -1,5 +1,4 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["ES2017", "DOM"],
@@ -7,7 +6,8 @@
     "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "typeRoots": ["./node_modules/@types", "./node_modules/@figma"]
   },
   "include": ["src/ui/**/*", "src/types/**/*"]
 }

@@ -1,0 +1,68 @@
+{
+  "colors": {
+    "light": {
+      "bg": {
+        "primary": "#FFFFFF",
+        "secondary": "#F3F4F6",
+        "tertiary": "#E5E7EB"
+      },
+      "text": {
+        "primary": "#111827",
+        "secondary": "#6B7280",
+        "muted": "#9CA3AF"
+      },
+      "border": {
+        "default": "#D1D5DB",
+        "focus": "#3B82F6"
+      }
+    },
+    "dark": {
+      "bg": {
+        "primary": "#111827",
+        "secondary": "#1F2937",
+        "tertiary": "#374151"
+      },
+      "text": {
+        "primary": "#F9FAFB",
+        "secondary": "#D1D5DB",
+        "muted": "#9CA3AF"
+      },
+      "border": {
+        "default": "#4B5563",
+        "focus": "#60A5FA"
+      }
+    }
+  },
+  "spacing": {
+    "mobile": {
+      "xs": 4,
+      "sm": 8,
+      "md": 12,
+      "lg": 16,
+      "xl": 20
+    },
+    "desktop": {
+      "xs": 8,
+      "sm": 12,
+      "md": 16,
+      "lg": 24,
+      "xl": 32
+    }
+  },
+  "typography": {
+    "mobile": {
+      "heading1": 24,
+      "heading2": 20,
+      "heading3": 18,
+      "body": 14,
+      "caption": 12
+    },
+    "desktop": {
+      "heading1": 48,
+      "heading2": 36,
+      "heading3": 24,
+      "body": 16,
+      "caption": 14
+    }
+  }
+}

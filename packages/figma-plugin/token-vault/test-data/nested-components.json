@@ -1,0 +1,42 @@
+{
+  "button": {
+    "primary": {
+      "bg": "#3B82F6",
+      "text": "#FFFFFF",
+      "border": "#2563EB",
+      "padding": {
+        "x": 16,
+        "y": 8
+      },
+      "borderRadius": 8
+    },
+    "secondary": {
+      "bg": "#F3F4F6",
+      "text": "#111827",
+      "border": "#D1D5DB",
+      "padding": {
+        "x": 16,
+        "y": 8
+      },
+      "borderRadius": 8
+    }
+  },
+  "input": {
+    "default": {
+      "bg": "#FFFFFF",
+      "text": "#111827",
+      "border": "#D1D5DB",
+      "placeholder": "#9CA3AF",
+      "padding": 12,
+      "borderRadius": 6
+    },
+    "focus": {
+      "border": "#3B82F6",
+      "shadow": "#DBEAFE"
+    },
+    "error": {
+      "border": "#EF4444",
+      "text": "#DC2626"
+    }
+  }
+}

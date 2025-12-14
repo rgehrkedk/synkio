@@ -13,7 +13,6 @@ Sync Figma Variables to your codebase with zero configuration. Works with Next.j
 - 🛠️ **CLI + API** - Use from command line or programmatically
 - 🔍 **Diff Detection** - See exactly what changed between syncs
 - ⏪ **Rollback Support** - Restore previous versions safely
-- 🔀 **Code Migration** - Auto-update code when tokens are renamed
 - 🎯 **TypeScript First** - Full type safety and autocomplete
 
 ## Installation
@@ -133,35 +132,6 @@ npx synkio rollback --force
 
 **Options:**
 - `--force, -f` - Skip confirmation prompt
-
-### `synkio migrate`
-
-Migrate code when tokens are renamed in Figma.
-
-```bash
-# Scan codebase for token usage patterns
-npx synkio migrate --scan
-
-# Generate migration plan from detected changes
-npx synkio migrate --plan
-
-# Apply approved migrations
-npx synkio migrate --apply
-```
-
-**Workflow:**
-1. Run `synkio sync` to pull latest tokens from Figma
-2. Run `synkio migrate --plan` to scan your code and generate a plan
-3. Review the plan at `.figma/reports/migration-plan.md`
-4. Change `<!-- APPROVED -->` to `APPROVED` in the plan
-5. Run `synkio migrate --apply` to update your code
-
-**Options:**
-- `--scan` - Scan codebase for token usage patterns (CSS, SCSS, TypeScript, Swift, Kotlin)
-- `--plan` - Generate migration plan with file/line changes
-- `--apply` - Apply approved migrations
-- `--dir <path>` - Directory to scan (default: auto-detect)
-- `--yes, -y` - Skip confirmation prompts
 
 ## Programmatic API
 

@@ -1,0 +1,372 @@
+/**
+ * File Grouping Component Styles
+ * Drag-and-drop file organization into collection groups
+ */
+
+/* Main container */
+.file-grouping {
+  padding: 16px 0;
+}
+
+/* Groups container */
+.groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Group card */
+.group-card {
+  border: 1px solid var(--figma-color-border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--figma-color-bg);
+  transition: all 0.15s ease;
+}
+
+.group-card:hover {
+  border-color: var(--figma-color-border-strong);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Group header */
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.group-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.group-name-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--figma-color-border);
+  border-radius: 4px;
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  font-size: 12px;
+  font-weight: 500;
+  outline: none;
+}
+
+.group-name-input:focus {
+  border-color: var(--figma-color-border-brand);
+  box-shadow: 0 0 0 1px var(--figma-color-border-brand);
+}
+
+/* Group files container (drop zone) */
+.group-files {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--figma-color-bg-secondary);
+  border-radius: 6px;
+  min-height: 60px;
+  transition: all 0.2s ease;
+  border: 2px dashed transparent;
+}
+
+.group-files.drop-zone-active {
+  border-color: var(--figma-color-border-brand);
+  background: var(--figma-color-bg-brand-tertiary);
+}
+
+.group-files:empty::before {
+  content: 'Drag files here';
+  display: block;
+  text-align: center;
+  color: var(--figma-color-text-tertiary);
+  font-size: 11px;
+  padding: 16px 0;
+}
+
+/* File card (draggable) */
+.file-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--figma-color-bg);
+  border: 1px solid var(--figma-color-border);
+  border-radius: 4px;
+  cursor: grab;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.file-card:hover {
+  background: var(--figma-color-bg-hover);
+  border-color: var(--figma-color-border-strong);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.file-card:active {
+  cursor: grabbing;
+}
+
+.file-card.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.file-card-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.file-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-card-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--figma-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-card-size {
+  font-size: 10px;
+  color: var(--figma-color-text-tertiary);
+  margin-top: 2px;
+}
+
+.file-card-drag-handle {
+  font-size: 14px;
+  color: var(--figma-color-text-tertiary);
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.file-card:active .file-card-drag-handle {
+  cursor: grabbing;
+}
+
+/* Mode options */
+.mode-options {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--figma-color-bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--figma-color-border);
+}
+
+.mode-options-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--figma-color-text);
+  margin-bottom: 10px;
+}
+
+/* Mode option radio */
+.mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--figma-color-bg);
+  border: 1px solid var(--figma-color-border);
+  position: relative;
+}
+
+.mode-option:hover {
+  background: var(--figma-color-bg-hover);
+  border-color: var(--figma-color-border-selected);
+}
+
+.mode-option.selected {
+  border-color: var(--figma-color-bg-brand);
+  background: var(--figma-color-bg-brand-tertiary, rgba(24, 160, 251, 0.08));
+}
+
+.mode-option:last-of-type {
+  margin-bottom: 0;
+}
+
+.mode-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mode-option .radio-indicator {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--figma-color-border);
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.15s ease;
+  margin-top: 1px;
+}
+
+.mode-option.selected .radio-indicator {
+  border-color: var(--figma-color-bg-brand);
+}
+
+.mode-option .radio-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 8px;
+  height: 8px;
+  background: var(--figma-color-bg-brand);
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+}
+
+.mode-option.selected .radio-indicator::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.mode-option-content {
+  flex: 1;
+}
+
+.mode-option-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--figma-color-text);
+  margin-bottom: 2px;
+}
+
+.mode-option-description {
+  font-size: 10px;
+  color: var(--figma-color-text-secondary);
+}
+
+/* Mode names list */
+.mode-names-list {
+  margin: 10px 0 10px 26px;
+  padding: 10px 12px;
+  background: var(--figma-color-bg);
+  border-radius: 4px;
+  border: 1px solid var(--figma-color-border);
+}
+
+.mode-names-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--figma-color-text-secondary);
+  margin-bottom: 8px;
+}
+
+.mode-name-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mode-name-item:last-child {
+  margin-bottom: 0;
+}
+
+.mode-name-file {
+  font-size: 10px;
+  color: var(--figma-color-text-secondary);
+  white-space: nowrap;
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mode-name-arrow {
+  font-size: 10px;
+  color: var(--figma-color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.mode-name-input {
+  width: 80px;
+  padding: 4px 6px;
+  border: 1px solid var(--figma-color-border);
+  border-radius: 3px;
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  font-size: 11px;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.mode-name-input:focus {
+  border-color: var(--figma-color-border-brand);
+  box-shadow: 0 0 0 1px var(--figma-color-border-brand);
+}
+
+/* Actions */
+.grouping-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.grouping-actions .button {
+  flex: 1;
+}
+
+/* Create new collection button */
+.button-add {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: var(--figma-color-text-secondary);
+  border: 1px dashed var(--figma-color-border);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.button-add:hover {
+  background: var(--figma-color-bg-hover);
+  color: var(--figma-color-text);
+  border-color: var(--figma-color-border-strong);
+}
+
+/* Empty state */
+.groups-container:empty::before {
+  content: 'No collections yet. Click "Create New Collection" to get started.';
+  display: block;
+  text-align: center;
+  color: var(--figma-color-text-tertiary);
+  font-size: 11px;
+  padding: 32px 16px;
+  border: 1px dashed var(--figma-color-border);
+  border-radius: 6px;
+  background: var(--figma-color-bg-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 400px) {
+  .file-card {
+    padding: 6px 8px;
+  }
+
+  .file-card-name {
+    font-size: 10px;
+  }
+
+  .mode-names-list {
+    margin-left: 16px;
+  }
+}

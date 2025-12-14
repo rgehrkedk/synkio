@@ -1,0 +1,22 @@
+{
+  "color.brand.primary": "#3B82F6",
+  "color.brand.secondary": "#8B5CF6",
+  "color.gray.50": "#F9FAFB",
+  "color.gray.100": "#F3F4F6",
+  "color.gray.900": "#111827",
+  "spacing.xs": 4,
+  "spacing.sm": 8,
+  "spacing.md": 16,
+  "spacing.lg": 24,
+  "spacing.xl": 32,
+  "fontSize.sm": 14,
+  "fontSize.base": 16,
+  "fontSize.lg": 18,
+  "fontSize.xl": 20,
+  "fontFamily.body": "Inter",
+  "fontFamily.heading": "Poppins",
+  "borderRadius.sm": 4,
+  "borderRadius.md": 8,
+  "borderRadius.lg": 12,
+  "borderRadius.full": 9999
+}

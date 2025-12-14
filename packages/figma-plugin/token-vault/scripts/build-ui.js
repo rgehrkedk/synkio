@@ -27,17 +27,26 @@ async function buildUI() {
 
   console.log('✓ UI JavaScript bundled');
 
-  // Read CSS files and concatenate
+  // Read CSS files and concatenate - include all component CSS
   const cssFiles = [
     'src/ui/styles/base.css',
     'src/ui/styles/tabs.css',
-    'src/ui/styles/components.css'
+    'src/ui/styles/components.css',
+    'src/ui/styles/baseline-confirmation.css',
+    'src/ui/styles/sync-changes.css',
+    'src/ui/styles/import-changes.css',
+    'src/ui/styles/structure-preview.css',
+    'src/ui/styles/level-selector.css',
+    'src/ui/styles/file-grouping.css',
+    'src/ui/styles/live-preview.css'
   ];
 
   let cssContent = '';
   for (const file of cssFiles) {
     if (fs.existsSync(file)) {
       cssContent += fs.readFileSync(file, 'utf8') + '\n';
+    } else {
+      console.warn(`Warning: CSS file not found: ${file}`);
     }
   }
 

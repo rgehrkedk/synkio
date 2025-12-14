@@ -1,0 +1,232 @@
+/**
+ * Baseline Confirmation Component Styles
+ *
+ * Styles for the baseline detection and confirmation UI,
+ * including valid, warning, and error states.
+ */
+
+.baseline-confirmation {
+  background: var(--figma-color-bg);
+  border: 1px solid var(--figma-color-border);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+/* Header Section */
+.baseline-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--figma-color-border);
+}
+
+.baseline-header.error {
+  border-bottom-color: var(--figma-color-border-danger, #f24822);
+}
+
+.baseline-header.warning {
+  border-bottom-color: var(--figma-color-border-warning, #f9a825);
+}
+
+.status-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.baseline-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.filename {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: var(--figma-color-text);
+}
+
+.file-info {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary);
+}
+
+/* Content Section */
+.baseline-content {
+  margin-bottom: 16px;
+}
+
+.collections-summary {
+  margin: 12px 0;
+}
+
+.summary-title {
+  font-weight: 500;
+  font-size: 11px;
+  margin-bottom: 8px;
+  color: var(--figma-color-text);
+}
+
+.collection-item {
+  font-size: 11px;
+  padding: 4px 0;
+  color: var(--figma-color-text-secondary);
+}
+
+.validation-status {
+  margin: 12px 0;
+  padding: 8px;
+  background: var(--figma-color-bg-success-tertiary, #e6f4ea);
+  border-radius: 4px;
+}
+
+.status-item {
+  font-size: 11px;
+  padding: 4px 0;
+}
+
+.status-item.valid {
+  color: var(--figma-color-text-success, #1e8e3e);
+}
+
+.confirmation-question {
+  font-weight: 500;
+  font-size: 12px;
+  margin: 16px 0 0;
+  color: var(--figma-color-text);
+}
+
+/* Error State */
+.baseline-confirmation.blocked {
+  border-color: var(--figma-color-border-danger, #f24822);
+}
+
+.error-summary {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--figma-color-text-danger, #f24822);
+  margin-bottom: 12px;
+}
+
+.broken-aliases-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 12px 0;
+  padding-right: 8px;
+}
+
+/* Custom scrollbar */
+.broken-aliases-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.broken-aliases-list::-webkit-scrollbar-track {
+  background: var(--figma-color-bg-secondary);
+  border-radius: 3px;
+}
+
+.broken-aliases-list::-webkit-scrollbar-thumb {
+  background: var(--figma-color-border);
+  border-radius: 3px;
+}
+
+.broken-aliases-list::-webkit-scrollbar-thumb:hover {
+  background: var(--figma-color-border-strong);
+}
+
+.broken-alias-item {
+  padding: 8px;
+  margin: 8px 0;
+  background: var(--figma-color-bg-secondary);
+  border-left: 3px solid var(--figma-color-border-danger, #f24822);
+  border-radius: 0 4px 4px 0;
+  font-size: 11px;
+}
+
+.alias-path {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--figma-color-text);
+}
+
+.alias-error {
+  color: var(--figma-color-text-secondary);
+  margin-left: 12px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.more-errors {
+  font-size: 11px;
+  color: var(--figma-color-text-tertiary);
+  font-style: italic;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.fix-instructions {
+  margin: 12px 0;
+  padding: 12px;
+  background: var(--figma-color-bg-warning-tertiary, #fff3e0);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--figma-color-text);
+}
+
+.fix-instructions ol {
+  margin: 8px 0 0 20px;
+  padding: 0;
+}
+
+.fix-instructions li {
+  margin: 4px 0;
+  padding-left: 4px;
+}
+
+/* Warning State */
+.baseline-confirmation.warning {
+  border-color: var(--figma-color-border-warning, #f9a825);
+}
+
+.warning-message {
+  padding: 12px;
+  background: var(--figma-color-bg-warning-tertiary, #fff3e0);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--figma-color-text-warning, #f9a825);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* Actions Footer */
+.baseline-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.baseline-actions .button {
+  flex: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 400px) {
+  .baseline-actions {
+    flex-direction: column-reverse;
+  }
+
+  .baseline-actions .button {
+    width: 100%;
+  }
+}
+
+/* Hidden state */
+#baselineConfirmationSection {
+  display: none;
+}
+
+#baselineConfirmationSection.active {
+  display: block;
+}

@@ -1,0 +1,44 @@
+{
+  "$metadata": {
+    "version": "1.0.0",
+    "exportedAt": "2025-12-13T17:30:00.000Z",
+    "pluginVersion": "2.0.0"
+  },
+  "baseline": {
+    "colors/brand/blue-500": {
+      "$type": "color",
+      "value": "#3B82F6",
+      "description": "Base blue color"
+    },
+    "colors/brand/purple-500": {
+      "$type": "color",
+      "value": "#8B5CF6",
+      "description": "Base purple color"
+    },
+    "colors/semantic/primary": {
+      "$type": "color",
+      "value": "{colors/brand/blue-500}",
+      "description": "Primary color references brand blue"
+    },
+    "colors/semantic/secondary": {
+      "$type": "color",
+      "value": "{colors/brand/purple-500}",
+      "description": "Secondary color references brand purple"
+    },
+    "spacing/base": {
+      "$type": "dimension",
+      "value": 8,
+      "description": "Base spacing unit"
+    },
+    "spacing/sm": {
+      "$type": "dimension",
+      "value": "{spacing/base}",
+      "description": "Small spacing equals base"
+    },
+    "spacing/md": {
+      "$type": "dimension",
+      "value": 16,
+      "description": "Medium spacing (2x base)"
+    }
+  }
+}

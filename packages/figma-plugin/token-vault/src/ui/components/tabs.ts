@@ -102,9 +102,17 @@ export function updateActionButton(): void {
     case 'import':
       actionBtn.textContent = 'Import to Figma';
       const hasFiles = state.files.size > 0;
-      const hasCollections = state.collections.length > 0;
-      const allCollectionsHaveFiles = state.collections.every(c => c.fileNames.length > 0);
-      actionBtn.disabled = !(hasFiles && hasCollections && allCollectionsHaveFiles);
+
+      // Check if using flexible import (new system)
+      if (state.structureConfig && state.structureConfig.levels.length > 0) {
+        // Flexible import: enable if structure is configured
+        actionBtn.disabled = !hasFiles;
+      } else {
+        // Legacy import: enable if collections are configured
+        const hasCollections = state.collections.length > 0;
+        const allCollectionsHaveFiles = state.collections.every(c => c.fileNames.length > 0);
+        actionBtn.disabled = !(hasFiles && hasCollections && allCollectionsHaveFiles);
+      }
       break;
 
     case 'export':

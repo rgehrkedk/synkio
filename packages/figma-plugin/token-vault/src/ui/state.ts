@@ -4,6 +4,10 @@
  */
 
 import type { CollectionSummary } from '../types/collection.types.js';
+import type { BaselineDetectionResult } from '../backend/utils/baseline-detector.js';
+import type { ValidationResult } from '../backend/utils/baseline-validator.js';
+import type { VersionBump } from '../backend/utils/version-manager.js';
+import type { LevelConfiguration, FileGroup, CollectionConfiguration } from '../types/level-config.types.js';
 
 /**
  * Uploaded file representation
@@ -24,15 +28,54 @@ export interface CollectionConfig {
 }
 
 /**
+ * Import step in the flexible import flow
+ */
+export type ImportStep = 'upload' | 'group' | 'configure' | 'preview';
+
+/**
+ * Structure configuration state
+ */
+export interface StructureConfigState {
+  /**
+   * File name being configured (for single-file imports)
+   */
+  fileName?: string;
+
+  /**
+   * Group ID being configured (for multi-file imports)
+   */
+  groupId?: string;
+
+  /**
+   * Level configurations
+   */
+  levels: LevelConfiguration[];
+}
+
+/**
  * Application state shape
  */
 export interface AppState {
+  // File management
   files: Map<string, UploadedFile>;
   collections: CollectionConfig[];
   currentTab: 'import' | 'export' | 'sync';
+
+  // Figma collections
   figmaCollections: CollectionSummary[];
   selectedExportCollections: Set<string>;
   selectedSyncCollections: Set<string>;
+
+  // NEW: Flexible import flow state
+  currentImportStep?: ImportStep;
+  fileGroups?: FileGroup[];
+  structureConfig?: StructureConfigState;
+  collectionConfigurations?: CollectionConfiguration[];
+
+  // Baseline detection (kept for baseline import)
+  baselineDetection?: BaselineDetectionResult;
+  validation?: ValidationResult;
+  versionBump?: VersionBump;
 }
 
 /**
@@ -91,6 +134,42 @@ export function resetState(): void {
     selectedSyncCollections: new Set(),
   };
   notifyListeners();
+}
+
+/**
+ * Update import step
+ */
+export function setImportStep(step: ImportStep): void {
+  setState({ currentImportStep: step });
+}
+
+/**
+ * Update file groups
+ */
+export function setFileGroups(groups: FileGroup[]): void {
+  setState({ fileGroups: groups });
+}
+
+/**
+ * Update structure configuration
+ */
+export function setStructureConfig(config: StructureConfigState): void {
+  setState({ structureConfig: config });
+}
+
+/**
+ * Update level configuration
+ */
+export function updateLevelConfiguration(levels: LevelConfiguration[]): void {
+  const currentConfig = state.structureConfig;
+  if (currentConfig) {
+    setState({
+      structureConfig: {
+        ...currentConfig,
+        levels,
+      },
+    });
+  }
 }
 
 /**
