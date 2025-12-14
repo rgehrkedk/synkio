@@ -1,7 +1,7 @@
 {
-  "light": {
+  "dark-hc": {
     "strokeStart": {
-      "$value": "#a3e96a",
+      "$value": "rgba(239, 251, 228, 0.00)",
       "$type": "color",
       "$extensions": {
         "com.figma": {
@@ -13,7 +13,7 @@
       }
     },
     "strokeEnd": {
-      "$value": "rgba(0, 0, 0, 0.00)",
+      "$value": "rgba(12, 22, 3, 0.00)",
       "$type": "color",
       "$extensions": {
         "com.figma": {
@@ -25,7 +25,7 @@
       }
     },
     "shapeFillStart": {
-      "$value": "#000000",
+      "$value": "#effbe4",
       "$type": "color",
       "$extensions": {
         "com.figma": {
@@ -37,7 +37,7 @@
       }
     },
     "shapeFillEnd": {
-      "$value": "rgba(0, 0, 0, 0.00)",
+      "$value": "rgba(163, 233, 106, 0.00)",
       "$type": "color",
       "$extensions": {
         "com.figma": {
@@ -73,7 +73,7 @@
       }
     },
     "bg": {
-      "$value": "#ffffff",
+      "$value": "#000000",
       "$type": "color",
       "$extensions": {
         "com.figma": {

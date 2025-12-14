@@ -1,0 +1,363 @@
+import { mkdir, writeFile, readdir, unlink } from 'fs/promises';
+import { resolve } from 'path';
+import { loadConfig } from '../../core/config.js';
+import { FigmaClient } from '../../core/figma.js';
+import { splitTokens, SplitTokensOptions, normalizePluginData } from '../../core/tokens.js';
+import { createLogger } from '../../utils/logger.js';
+import { readBaseline, writeBaseline } from '../../core/baseline.js';
+import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary } from '../../core/compare.js';
+import { BaselineData } from '../../types/index.js';
+import chalk from 'chalk';
+import ora from 'ora';
+
+export interface SyncOptions {
+  force?: boolean;      // Bypass breaking change protection
+  preview?: boolean;    // Show what would change, don't sync
+  report?: boolean;     // Force generate markdown report
+  noReport?: boolean;   // Force skip report generation
+  watch?: boolean;      // Watch for changes
+  interval?: number;    // Watch interval in seconds (default 30)
+  collection?: string;  // Sync only specific collection(s), comma-separated
+}
+
+export async function syncCommand(options: SyncOptions = {}) {
+  const logger = createLogger();
+  const spinner = ora('Syncing design tokens...').start();
+
+  try {
+    // 1. Load config
+    spinner.text = 'Loading configuration...';
+    const config = loadConfig();
+    logger.debug('Config loaded', config);
+
+    // 2. Fetch data from Figma
+    spinner.text = 'Fetching data from Figma...';
+    const figmaClient = new FigmaClient({ ...config.figma, logger });
+    const rawData = await figmaClient.fetchData();
+    logger.debug('Figma data fetched');
+
+    // 3. Normalize plugin data to baseline format
+    spinner.text = 'Processing tokens...';
+    let normalizedTokens = normalizePluginData(rawData);
+    logger.debug(`Normalized ${Object.keys(normalizedTokens).length} token entries`);
+
+    // 3b. Filter by collection if specified
+    if (options.collection) {
+      const collectionsToSync = options.collection.split(',').map(c => c.trim().toLowerCase());
+      const originalCount = Object.keys(normalizedTokens).length;
+      normalizedTokens = Object.fromEntries(
+        Object.entries(normalizedTokens).filter(([_, entry]) => {
+          const entryCollection = (entry.collection || entry.path.split('.')[0]).toLowerCase();
+          return collectionsToSync.includes(entryCollection);
+        })
+      );
+      const filteredCount = Object.keys(normalizedTokens).length;
+      spinner.text = `Filtered to ${filteredCount} tokens from collection(s): ${options.collection}`;
+      logger.debug(`Filtered from ${originalCount} to ${filteredCount} tokens`);
+      
+      if (filteredCount === 0) {
+        spinner.fail(chalk.red(`No tokens found for collection(s): ${options.collection}`));
+        console.log(chalk.dim('\n  Available collections can be seen with: synkio tokens\n'));
+        process.exit(1);
+      }
+    }
+
+    // 4. Read existing baseline for comparison
+    const localBaseline = await readBaseline();
+    
+    // Build the new baseline object
+    const newBaseline: BaselineData = {
+      baseline: normalizedTokens,
+      metadata: {
+        syncedAt: new Date().toISOString(),
+      },
+    };
+
+    // 5. Compare if we have a local baseline
+    let hasBaselineChanges = false;
+    if (localBaseline) {
+      spinner.text = 'Comparing with local tokens...';
+      const result = compareBaselines(localBaseline, newBaseline);
+      const counts = getChangeCounts(result);
+      
+      // No changes from Figma - but still regenerate files (config may have changed)
+      if (!hasChanges(result)) {
+        spinner.text = 'Regenerating token files...';
+        hasBaselineChanges = false;
+      } else {
+        hasBaselineChanges = true;
+      }
+
+      // Preview mode - show changes and exit
+      if (options.preview) {
+        spinner.stop();
+        console.log(chalk.cyan('\n  Preview Mode - No changes will be applied\n'));
+        printDiffSummary(result);
+        return;
+      }
+
+      // Breaking changes detected - block unless --force
+      if (hasBreakingChanges(result) && !options.force) {
+        spinner.stop();
+        
+        console.log(chalk.yellow('\n  ⚠️  BREAKING CHANGES DETECTED\n'));
+        
+        // Show breaking changes summary
+        if (result.pathChanges.length > 0) {
+          console.log(chalk.red(`  Path changes: ${result.pathChanges.length}`));
+          result.pathChanges.slice(0, 5).forEach(change => {
+            console.log(chalk.dim(`    ${change.oldPath} → ${change.newPath}`));
+          });
+          if (result.pathChanges.length > 5) {
+            console.log(chalk.dim(`    ... and ${result.pathChanges.length - 5} more`));
+          }
+        }
+        
+        if (result.modeRenames.length > 0) {
+          console.log(chalk.red(`  Mode renames: ${result.modeRenames.length}`));
+          result.modeRenames.forEach(rename => {
+            console.log(chalk.dim(`    ${rename.collection}: ${rename.oldMode} → ${rename.newMode}`));
+          });
+        }
+        
+        if (result.newModeNames.length > 0) {
+          console.log(chalk.red(`  New modes: ${result.newModeNames.join(', ')}`));
+        }
+        
+        if (result.deletedVariables.length > 0) {
+          console.log(chalk.red(`  Deleted variables: ${result.deletedVariables.length}`));
+          result.deletedVariables.slice(0, 5).forEach(v => {
+            console.log(chalk.dim(`    - ${v.path}`));
+          });
+          if (result.deletedVariables.length > 5) {
+            console.log(chalk.dim(`    ... and ${result.deletedVariables.length - 5} more`));
+          }
+        }
+        
+        if (result.deletedModeNames.length > 0) {
+          console.log(chalk.red(`  Deleted modes: ${result.deletedModeNames.join(', ')}`));
+        }
+
+        console.log(chalk.yellow('\n  These changes may break your code.\n'));
+        console.log(`  Run ${chalk.cyan('synkio sync --force')} to apply anyway.`);
+        console.log(`  Run ${chalk.cyan('synkio sync --preview')} to see full details.\n`);
+        
+        process.exit(1);
+      }
+
+      // Show summary of what will be synced
+      spinner.stop();
+      console.log(chalk.cyan(`\n  Syncing ${counts.total} change(s)...\n`));
+      
+      // Show value changes
+      if (result.valueChanges.length > 0) {
+        console.log(chalk.dim(`  Value changes (${result.valueChanges.length}):`));
+        result.valueChanges.slice(0, 5).forEach(change => {
+          console.log(chalk.dim(`    ${change.path}: ${JSON.stringify(change.oldValue)} → ${JSON.stringify(change.newValue)}`));
+        });
+        if (result.valueChanges.length > 5) {
+          console.log(chalk.dim(`    ... and ${result.valueChanges.length - 5} more`));
+        }
+      }
+      
+      // Show new variables
+      if (result.newVariables.length > 0) {
+        console.log(chalk.green(`  New variables (${result.newVariables.length}):`));
+        result.newVariables.slice(0, 5).forEach(v => {
+          console.log(chalk.green(`    + ${v.path}`));
+        });
+        if (result.newVariables.length > 5) {
+          console.log(chalk.dim(`    ... and ${result.newVariables.length - 5} more`));
+        }
+      }
+      
+      // Show new modes
+      if (result.newModeNames.length > 0) {
+        console.log(chalk.green(`  New modes: ${result.newModeNames.join(', ')}`));
+      }
+      
+      console.log('');
+    } else {
+      spinner.info('No local baseline found. Performing initial sync.');
+    }
+
+    // 6. Write baseline
+    spinner.start('Writing baseline...');
+    await writeBaseline(newBaseline);
+
+    // 7. Split tokens into files
+    spinner.text = 'Processing tokens...';
+    const splitOptions: SplitTokensOptions = {
+      collections: config.collections || {},
+      dtcg: config.output.dtcg !== false,                    // default true
+      includeVariableId: config.output.includeVariableId === true, // default false
+      extensions: config.output.extensions || {},            // optional metadata
+    };
+    const processedTokens = splitTokens(normalizedTokens, splitOptions);
+    logger.debug(`${processedTokens.size} token sets processed`);
+
+    // 7. Write files
+    spinner.text = 'Writing token files...';
+    const outDir = resolve(process.cwd(), config.output.dir);
+    await mkdir(outDir, { recursive: true });
+
+    // Clean up old .json files that are no longer needed
+    try {
+      const existingFiles = await readdir(outDir);
+      const newFileNames = new Set(processedTokens.keys());
+      for (const file of existingFiles) {
+        if (file.endsWith('.json') && !newFileNames.has(file)) {
+          await unlink(resolve(outDir, file));
+          logger.debug(`Removed stale file: ${file}`);
+        }
+      }
+    } catch (err) {
+      // Ignore errors if directory doesn't exist yet
+    }
+
+    let filesWritten = 0;
+    for (const [fileName, content] of processedTokens) {
+      const filePath = resolve(outDir, fileName);
+      await writeFile(filePath, JSON.stringify(content, null, 2));
+      filesWritten++;
+    }
+
+    // 8. Generate report based on config and flags
+    // CLI flags override config: --report forces, --no-report skips
+    const syncConfig = config.sync || { report: true, reportHistory: false };
+    const shouldGenerateReport = options.noReport ? false : (options.report || syncConfig.report !== false);
+    
+    if (shouldGenerateReport && localBaseline) {
+      const result = compareBaselines(localBaseline, newBaseline);
+      
+      // Only generate if there were actual changes
+      if (hasChanges(result)) {
+        const report = generateDiffReport(result, {
+          fileName: config.figma.fileId,
+          exportedAt: newBaseline.metadata.syncedAt,
+        });
+        
+        const synkioDir = resolve(process.cwd(), '.synkio');
+        await mkdir(synkioDir, { recursive: true });
+        
+        let reportPath: string;
+        if (syncConfig.reportHistory) {
+          // Timestamped reports for changelog history
+          const reportsDir = resolve(synkioDir, 'reports');
+          await mkdir(reportsDir, { recursive: true });
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          reportPath = resolve(reportsDir, `${timestamp}.md`);
+        } else {
+          // Single report file, overwritten each sync
+          reportPath = resolve(synkioDir, 'sync-report.md');
+        }
+        
+        await writeFile(reportPath, report);
+        const relativePath = reportPath.replace(process.cwd() + '/', '');
+        spinner.succeed(chalk.green(`✓ Sync complete. Wrote ${filesWritten} token files. Report: ${relativePath}`));
+        return;
+      }
+    }
+    
+    // Show appropriate message based on whether there were changes
+    if (hasBaselineChanges) {
+      spinner.succeed(chalk.green(`✓ Sync complete. Wrote ${filesWritten} token files to ${config.output.dir}.`));
+    } else if (localBaseline) {
+      spinner.succeed(chalk.green(`✓ No changes from Figma. Regenerated ${filesWritten} token files.`));
+    } else {
+      spinner.succeed(chalk.green(`✓ Initial sync complete. Wrote ${filesWritten} token files to ${config.output.dir}.`));
+    }
+
+  } catch (error: any) {
+    spinner.fail(chalk.red(`Sync failed: ${error.message}`));
+    logger.error('Sync failed', { error });
+    process.exit(1);
+  }
+}
+
+/**
+ * Watch mode - poll Figma for changes at regular intervals
+ */
+export async function watchCommand(options: SyncOptions = {}) {
+  const interval = (options.interval || 30) * 1000; // Convert to ms
+  const logger = createLogger();
+  
+  console.log(chalk.cyan(`\n  👀 Watching for changes (every ${options.interval || 30}s)\n`));
+  console.log(chalk.dim('  Press Ctrl+C to stop\n'));
+  
+  let lastBaseline: BaselineData | undefined = undefined;
+  let isRunning = true;
+  
+  // Handle Ctrl+C gracefully
+  process.on('SIGINT', () => {
+    isRunning = false;
+    console.log(chalk.dim('\n\n  Watch stopped.\n'));
+    process.exit(0);
+  });
+  
+  // Initial sync
+  try {
+    const config = loadConfig();
+    const figmaClient = new FigmaClient({ ...config.figma, logger });
+    
+    // Read current baseline
+    lastBaseline = await readBaseline();
+    
+    if (!lastBaseline) {
+      console.log(chalk.yellow('  No baseline found. Running initial sync...\n'));
+      await syncCommand({ ...options, watch: false });
+      lastBaseline = await readBaseline();
+    } else {
+      console.log(chalk.dim(`  Baseline loaded. Last sync: ${lastBaseline.metadata.syncedAt}\n`));
+    }
+    
+    // Watch loop
+    while (isRunning) {
+      const checkTime = new Date().toLocaleTimeString();
+      process.stdout.write(chalk.dim(`  [${checkTime}] Checking Figma... `));
+      
+      try {
+        const rawData = await figmaClient.fetchData();
+        const normalizedTokens = normalizePluginData(rawData);
+        
+        const newBaseline: BaselineData = {
+          baseline: normalizedTokens,
+          metadata: {
+            syncedAt: new Date().toISOString(),
+          },
+        };
+        
+        if (lastBaseline) {
+          const result = compareBaselines(lastBaseline, newBaseline);
+          
+          if (hasChanges(result)) {
+            process.stdout.write(chalk.green('Changes detected!\n\n'));
+            
+            // Check for breaking changes
+            if (hasBreakingChanges(result) && !options.force) {
+              console.log(chalk.yellow('  ⚠️  Breaking changes detected. Use --force to apply.\n'));
+              printDiffSummary(result);
+              console.log('');
+            } else {
+              // Apply the sync
+              await syncCommand({ ...options, watch: false });
+              lastBaseline = await readBaseline();
+              console.log('');
+            }
+          } else {
+            process.stdout.write(chalk.dim('No changes\n'));
+          }
+        }
+      } catch (err: any) {
+        process.stdout.write(chalk.red(`Error: ${err.message}\n`));
+      }
+      
+      // Wait for next interval
+      await new Promise(resolve => setTimeout(resolve, interval));
+    }
+  } catch (error: any) {
+    console.error(chalk.red(`\n  Watch failed: ${error.message}\n`));
+    logger.error('Watch failed', { error });
+    process.exit(1);
+  }
+}

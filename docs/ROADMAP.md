@@ -1,8 +1,8 @@
 # Synkio Tokens - Product Roadmap
 
-**Last Updated:** December 6, 2024
-**Status:** Phase 1 - In Progress
-**Current Version:** 0.1.0-alpha
+**Last Updated:** December 15, 2025
+**Status:** Phase 1 - Complete (synkio-v2)
+**Current Version:** 0.2.0
 
 ---
 
@@ -152,20 +152,23 @@ Synkio Tokens (Monorepo)
 - [ ] Add error handling with actionable messages
 - [ ] Create templates for common frameworks
 
-**CLI Commands:**
+**CLI Commands (Implemented):**
 ```bash
 npx synkio init              # Interactive setup
-npx synkio init --template nextjs
-npx synkio init --template tailwind
+npx synkio init --figma-url=<url> --output-dir=<dir>
 
 npx synkio sync              # Sync from Figma
-npx synkio sync --dry-run    # Preview changes
+npx synkio sync --preview    # Preview changes (dry-run)
+npx synkio sync --force      # Bypass breaking change protection
+npx synkio sync --report     # Force generate markdown report
+npx synkio sync --watch      # Watch mode - poll Figma for changes
+npx synkio sync --watch --interval=60  # Custom interval (default: 30s)
 
-npx synkio diff              # Show changes
-npx synkio diff --format table|json|markdown
+npx synkio rollback          # Restore previous baseline
+npx synkio rollback --preview  # Preview what would be restored
 
-npx synkio rollback          # Restore previous
-npx synkio rollback --force  # Skip confirmation
+npx synkio validate          # Check config and Figma connection
+npx synkio tokens            # Show current baseline (debug)
 ```
 
 **Config Templates:**

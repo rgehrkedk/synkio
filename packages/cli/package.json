@@ -1,0 +1,51 @@
+{
+  "name": "@synkio/cli",
+  "version": "1.0.0",
+  "description": "Zero-config design token sync from Figma to code",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "synkio": "./dist/cli/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x dist/cli/bin.js",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "figma",
+    "design-tokens",
+    "design-system",
+    "sync",
+    "cli"
+  ],
+  "author": "Synkio",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.0.0",
+    "dotenv": "^17.2.3",
+    "ora": "^8.0.0",
+    "p-retry": "^7.1.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^2.0.0"
+  }
+}
