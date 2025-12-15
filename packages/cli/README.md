@@ -101,34 +101,38 @@ Synkio is configured via `tokensrc.json`:
     "utilities": true,
     "transforms": { "useRem": true }
   },
-  "scss": {
-    "enabled": true,
-    "maps": true
-  },
-  "js": {
-    "enabled": true,
-    "typescript": true,
-    "format": "nested"
-  },
-  "tailwind": {
-    "enabled": true,
-    "extend": true
-  },
   "docs": {
     "enabled": true
   }
 }
 ```
 
-### Output Formats
+### Output Modes
 
-| Format | File | Description |
-|--------|------|-------------|
-| **CSS** | `tokens.css` | CSS custom properties with optional utility classes |
-| **SCSS** | `_tokens.scss` | SCSS $variables with optional maps |
-| **JS/TS** | `tokens.ts` | JavaScript/TypeScript exports (nested or flat) |
-| **Tailwind** | `tailwind.tokens.js` | Tailwind theme configuration |
-| **React Native** | Via JS with `reactNative: true` | Unitless numbers for StyleSheet |
+Synkio supports three output modes:
+
+| Mode | Description |
+|------|-------------|
+| **JSON** (default) | W3C DTCG-compliant token files |
+| **CSS** | Zero-dependency CSS custom properties |
+| **Style Dictionary** | Full platform support (SCSS, JS, TS, iOS, Android, etc.) |
+
+For simple projects, use `css.enabled: true`. For advanced needs, enable Style Dictionary mode:
+
+```json
+{
+  "output": {
+    "mode": "style-dictionary",
+    "platforms": ["css", "scss", "ts", "ios-swift"]
+  }
+}
+```
+
+Then install Style Dictionary as a peer dependency:
+
+```bash
+npm install style-dictionary --save-dev
+```
 
 ### Per-Collection Configuration
 

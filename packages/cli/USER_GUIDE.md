@@ -18,6 +18,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [Output Options](#output-options)
   - [CSS Options](#css-options)
   - [Docs Options](#docs-options)
+  - [Style Dictionary Mode](#style-dictionary-mode)
   - [Sync Options](#sync-options)
   - [Collection Options](#collection-options)
 - [Output Formats](#output-formats)
@@ -338,20 +339,27 @@ Generate a static documentation site:
 | `dir` | `.synkio/docs` | Documentation output directory |
 | `title` | `Design Tokens` | Site title |
 
-### SCSS Options
+### Style Dictionary Mode
 
-Generate SCSS variables and optional maps:
+For advanced multi-platform output, use Style Dictionary mode. This provides professional-grade token transforms for all major platforms.
+
+**Step 1: Install Style Dictionary**
+
+```bash
+npm install style-dictionary --save-dev
+```
+
+**Step 2: Enable in config**
 
 ```json
 {
-  "scss": {
-    "enabled": true,
-    "file": "_tokens.scss",
-    "maps": true,
-    "prefix": "",
-    "transforms": {
-      "useRem": false,
-      "basePxFontSize": 16
+  "output": {
+    "dir": "tokens",
+    "mode": "style-dictionary",
+    "platforms": ["css", "scss", "ts", "ios-swift"],
+    "styleDictionary": {
+      "outputReferences": true,
+      "prefix": "app"
     }
   }
 }
@@ -359,132 +367,52 @@ Generate SCSS variables and optional maps:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `enabled` | `false` | Generate SCSS variables |
-| `file` | `_tokens.scss` | SCSS output filename |
-| `maps` | `false` | Generate SCSS maps for programmatic access |
-| `prefix` | `""` | Prefix for variable names |
-| `transforms.useRem` | `false` | Use rem units instead of px |
-| `transforms.basePxFontSize` | `16` | Base font size for rem calculations |
+| `mode` | `json` | Output mode: `json`, `css`, or `style-dictionary` |
+| `platforms` | `["css"]` | Platform presets to generate |
+| `styleDictionary.outputReferences` | `true` | Use CSS variable references in output |
+| `styleDictionary.prefix` | `""` | Prefix for all token names |
+| `styleDictionary.configFile` | - | Path to custom Style Dictionary config |
 
-**SCSS Output Example:**
+**Available Platform Presets:**
 
-```scss
-// Variables
-$color-primary-500: #6366f1;
-$spacing-md: 16px;
+| Preset | Output | Description |
+|--------|--------|-------------|
+| `css` | `tokens.css` | CSS custom properties |
+| `scss` | `_tokens.scss` | SCSS variables |
+| `scss-map` | `_tokens.map.scss` | SCSS map for iteration |
+| `js` | `tokens.js` | JavaScript ES module |
+| `ts` | `tokens.ts` | TypeScript with types |
+| `json` | `tokens.json` | JSON format |
+| `json-flat` | `tokens.flat.json` | Flat JSON (no nesting) |
+| `android` | `tokens.xml` | Android resources XML |
+| `ios` | `tokens.h` | iOS Objective-C header |
+| `ios-swift` | `Tokens.swift` | Swift struct |
+| `compose` | `Tokens.kt` | Jetpack Compose Kotlin |
 
-// Maps (when maps: true)
-$colors: (
-  'primary-500': #6366f1,
-  'primary-600': #4f46e5,
-);
+**Example output with `platforms: ["css", "ts"]`:**
+
+```
+tokens/
+├── tokens.css      # CSS custom properties
+└── tokens.ts       # TypeScript with full types
 ```
 
-### JavaScript/TypeScript Options
+**Custom Style Dictionary Config:**
 
-Generate JS/TS token exports:
+For full control, provide your own Style Dictionary config:
 
 ```json
 {
-  "js": {
-    "enabled": true,
-    "file": "tokens.ts",
-    "format": "nested",
-    "typescript": true,
-    "reactNative": false,
-    "moduleFormat": "esm"
+  "output": {
+    "mode": "style-dictionary",
+    "styleDictionary": {
+      "configFile": "./style-dictionary.config.js"
+    }
   }
 }
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `enabled` | `false` | Generate JavaScript/TypeScript tokens |
-| `file` | `tokens.js` | Output filename (.ts if typescript: true) |
-| `format` | `nested` | `nested` for object hierarchy, `flat` for individual exports |
-| `typescript` | `false` | Generate TypeScript with type definitions |
-| `reactNative` | `false` | Use React Native transforms (unitless numbers) |
-| `moduleFormat` | `esm` | `esm` for ES modules, `cjs` for CommonJS |
-
-**Nested Format Example:**
-
-```typescript
-export const tokens = {
-  color: {
-    primary: {
-      500: '#6366f1',
-    }
-  },
-  spacing: {
-    md: '16px',
-  }
-};
-```
-
-**Flat Format Example:**
-
-```typescript
-export const colorPrimary500 = '#6366f1';
-export const spacingMd = '16px';
-```
-
-**React Native Example (unitless):**
-
-```typescript
-export const tokens = {
-  spacing: {
-    md: 16,  // No 'px' unit
-  },
-  fontSize: {
-    lg: 24,  // No 'px' unit
-  }
-};
-```
-
-### Tailwind CSS Options
-
-Generate Tailwind configuration:
-
-```json
-{
-  "tailwind": {
-    "enabled": true,
-    "file": "tailwind.tokens.js",
-    "extend": true,
-    "esm": true,
-    "cssVariables": false
-  }
-}
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `enabled` | `false` | Generate Tailwind config |
-| `file` | `tailwind.tokens.js` | Output filename |
-| `extend` | `true` | Use `theme.extend` (true) or replace theme (false) |
-| `esm` | `true` | ES module (true) or CommonJS (false) |
-| `cssVariables` | `false` | Use CSS variable references instead of raw values |
-
-**Tailwind Output Example:**
-
-```javascript
-export default {
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          500: '#6366f1',
-          600: '#4f46e5',
-        }
-      },
-      spacing: {
-        md: '1rem',
-        lg: '1.5rem',
-      }
-    }
-  }
-};
-```
+See [Style Dictionary documentation](https://amzn.github.io/style-dictionary) for advanced configuration.
 
 ### Sync Options
 
