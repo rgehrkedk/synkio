@@ -1,6 +1,7 @@
 import { BaselineData, BaselineEntry } from '../../types/index.js';
 import { Config } from '../config.js';
-import { generateTokensCSS, generateUtilitiesCSS, generateDocsCSS } from './css-generator.js';
+import { generateTokensCSS, generateUtilitiesCSS } from '../css/index.js';
+import { generateDocsCSS } from './css-generator.js';
 import { generateIndexHTML, generateCollectionPage, generateAllTokensPage } from './html-generator.js';
 import { generatePreviewJS } from './js-generator.js';
 

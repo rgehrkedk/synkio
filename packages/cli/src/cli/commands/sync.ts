@@ -92,7 +92,7 @@ export async function syncCommand(options: SyncOptions = {}) {
         try {
           const sdResult = await generateWithStyleDictionary(localBaseline, config);
           sdFilesWritten = sdResult.files.length;
-          outputs = { css: { files: [] }, scss: { files: [] }, js: { files: [] }, tailwind: { files: [] }, docs: { files: [], outputDir: '' } };
+          outputs = { css: { files: [] }, docs: { files: [], outputDir: '' } };
         } catch (error) {
           if (error instanceof StyleDictionaryNotInstalledError) {
             spinner.fail(chalk.red(error.message));
@@ -105,17 +105,11 @@ export async function syncCommand(options: SyncOptions = {}) {
       }
       
       const cssFilesWritten = outputs.css.files.length;
-      const scssFilesWritten = outputs.scss.files.length;
-      const jsFilesWritten = outputs.js.files.length;
-      const tailwindFilesWritten = outputs.tailwind.files.length;
       const docsFilesWritten = outputs.docs.files.length;
       
       const extras: string[] = [];
       if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
       if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
-      if (scssFilesWritten > 0) extras.push(`${scssFilesWritten} SCSS`);
-      if (jsFilesWritten > 0) extras.push(`${jsFilesWritten} JS`);
-      if (tailwindFilesWritten > 0) extras.push(`${tailwindFilesWritten} Tailwind`);
       if (docsFilesWritten > 0) extras.push(`${docsFilesWritten} docs`);
       const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')} files)` : '';
       
@@ -367,9 +361,6 @@ export async function syncCommand(options: SyncOptions = {}) {
     }
     
     const cssFilesWritten = outputs.css.files.length;
-    const scssFilesWritten = outputs.scss.files.length;
-    const jsFilesWritten = outputs.js.files.length;
-    const tailwindFilesWritten = outputs.tailwind.files.length;
     const docsFilesWritten = outputs.docs.files.length;
     const docsDir = outputs.docs.outputDir;
 
@@ -411,9 +402,6 @@ export async function syncCommand(options: SyncOptions = {}) {
         const allOutputs = [
           sdFilesWritten > 0 ? `${sdFilesWritten} Style Dictionary` : null,
           cssFilesWritten > 0 ? `${cssFilesWritten} CSS` : null,
-          scssFilesWritten > 0 ? `${scssFilesWritten} SCSS` : null,
-          jsFilesWritten > 0 ? `${jsFilesWritten} JS` : null,
-          tailwindFilesWritten > 0 ? `${tailwindFilesWritten} Tailwind` : null,
         ].filter(Boolean);
         
         if (allOutputs.length > 0) {
@@ -430,9 +418,6 @@ export async function syncCommand(options: SyncOptions = {}) {
     const extras: string[] = [];
     if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
     if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
-    if (scssFilesWritten > 0) extras.push(`${scssFilesWritten} SCSS`);
-    if (jsFilesWritten > 0) extras.push(`${jsFilesWritten} JS`);
-    if (tailwindFilesWritten > 0) extras.push(`${tailwindFilesWritten} Tailwind`);
     if (docsFilesWritten > 0) extras.push('docs');
     const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';
     

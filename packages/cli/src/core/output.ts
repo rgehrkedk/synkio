@@ -3,12 +3,9 @@ import { resolve, join } from 'path';
 import { BaselineData } from '../types/index.js';
 import { Config } from './config.js';
 import { parseTokens, ParsedTokens } from './docs/index.js';
-import { generateTokensCSS, generateUtilitiesCSS } from './docs/css-generator.js';
+import { generateTokensCSS, generateUtilitiesCSS } from './css/index.js';
+import type { CSSTransformOptions } from './css/index.js';
 import { generateDocs } from './docs/index.js';
-import { CSSTransformOptions } from './transforms/index.js';
-import { generateSCSS } from './generators/scss-generator.js';
-import { generateJS, generateTSTypes } from './generators/js-generator.js';
-import { generateTailwindConfig } from './generators/tailwind-generator.js';
 import { 
   buildWithStyleDictionary, 
   StyleDictionaryNotInstalledError,
@@ -84,6 +81,7 @@ async function writeTransformFile(
 
 /**
  * Generate CSS files from baseline data
+ * Zero-dependency CSS output for simple use cases
  */
 export async function generateCssFromBaseline(
   baseline: BaselineData,
@@ -115,11 +113,11 @@ export async function generateCssFromBaseline(
 export async function generateDocsFromBaseline(
   baseline: BaselineData,
   config: Config
-): Promise<{ files: string[]; outputDir: string }> {
+): Promise<TransformResult> {
   const docsConfig = config.docs;
   
   if (!docsConfig?.enabled) {
-    return { files: [], outputDir: '' };
+    return EMPTY_RESULT;
   }
   
   const outputDir = resolve(process.cwd(), docsConfig.dir || '.synkio/docs');
@@ -150,125 +148,30 @@ export async function generateDocsFromBaseline(
 }
 
 /**
- * Generate SCSS files from baseline data
- */
-export async function generateScssFromBaseline(
-  baseline: BaselineData,
-  config: Config
-): Promise<TransformResult> {
-  const scssConfig = config.scss;
-  if (!scssConfig?.enabled) return EMPTY_RESULT;
-  
-  const ctx = await prepareTransformContext(baseline, scssConfig.dir, config.output.dir);
-  const files: string[] = [];
-  const transformOptions = buildTransformOptions(scssConfig.transforms);
-  
-  // Generate SCSS
-  const scss = generateSCSS(ctx.tokens.all, ctx.modeNames, {
-    ...transformOptions,
-    maps: scssConfig.maps ?? false,
-    prefix: scssConfig.prefix ?? '',
-  });
-  
-  await writeTransformFile(ctx.outputDir, scssConfig.file || '_tokens.scss', scss, files);
-  
-  return { files, outputDir: ctx.outputDir };
-}
-
-/**
- * Generate JavaScript/TypeScript files from baseline data
- */
-export async function generateJsFromBaseline(
-  baseline: BaselineData,
-  config: Config
-): Promise<TransformResult> {
-  const jsConfig = config.js;
-  if (!jsConfig?.enabled) return EMPTY_RESULT;
-  
-  const ctx = await prepareTransformContext(baseline, jsConfig.dir, config.output.dir);
-  const files: string[] = [];
-  
-  // Generate JS/TS
-  const js = generateJS(ctx.tokens.all, ctx.modeNames, {
-    format: jsConfig.format ?? 'nested',
-    typescript: jsConfig.typescript ?? false,
-    reactNative: jsConfig.reactNative ?? false,
-    moduleFormat: jsConfig.moduleFormat ?? 'esm',
-  });
-  
-  // Determine file extension
-  let jsFile = jsConfig.file || 'tokens.js';
-  if (jsConfig.typescript && !jsFile.endsWith('.ts')) {
-    jsFile = jsFile.replace(/\.js$/, '.ts');
-  }
-  
-  await writeTransformFile(ctx.outputDir, jsFile, js, files);
-  
-  // Generate TypeScript type definitions if needed (only for .js files)
-  if (jsConfig.typescript && !jsFile.endsWith('.ts')) {
-    const types = generateTSTypes(ctx.tokens.all, ctx.modeNames);
-    const typesFile = jsFile.replace(/\.(js|ts)$/, '.d.ts');
-    await writeTransformFile(ctx.outputDir, typesFile, types, files);
-  }
-  
-  return { files, outputDir: ctx.outputDir };
-}
-
-/**
- * Generate Tailwind config from baseline data
- */
-export async function generateTailwindFromBaseline(
-  baseline: BaselineData,
-  config: Config
-): Promise<TransformResult> {
-  const tailwindConfig = config.tailwind;
-  if (!tailwindConfig?.enabled) return EMPTY_RESULT;
-  
-  const ctx = await prepareTransformContext(baseline, tailwindConfig.dir, config.output.dir);
-  const files: string[] = [];
-  const transformOptions = buildTransformOptions(tailwindConfig.transforms, { useRem: true });
-  
-  // Generate Tailwind config
-  const tailwind = generateTailwindConfig(ctx.tokens.all, ctx.modeNames, {
-    ...transformOptions,
-    extend: tailwindConfig.extend ?? true,
-    esm: tailwindConfig.esm ?? true,
-    cssVariables: tailwindConfig.cssVariables ?? false,
-  });
-  
-  await writeTransformFile(ctx.outputDir, tailwindConfig.file || 'tailwind.tokens.js', tailwind, files);
-  
-  return { files, outputDir: ctx.outputDir };
-}
-
-/**
  * Generate all enabled output formats from baseline
+ * 
+ * For simple use cases, use mode: "css" (zero-dependency)
+ * For advanced needs (SCSS, JS, TS, etc.), use mode: "style-dictionary"
  */
 export async function generateAllFromBaseline(
   baseline: BaselineData,
   config: Config
 ): Promise<{
   css: TransformResult;
-  scss: TransformResult;
-  js: TransformResult;
-  tailwind: TransformResult;
   docs: TransformResult;
   styleDictionary?: TransformResult;
 }> {
-  const [css, scss, js, tailwind, docs] = await Promise.all([
+  const [css, docs] = await Promise.all([
     generateCssFromBaseline(baseline, config),
-    generateScssFromBaseline(baseline, config),
-    generateJsFromBaseline(baseline, config),
-    generateTailwindFromBaseline(baseline, config),
     generateDocsFromBaseline(baseline, config),
   ]);
   
-  return { css, scss, js, tailwind, docs };
+  return { css, docs };
 }
 
 /**
  * Generate outputs using Style Dictionary
- * This is an alternative to the built-in generators
+ * This provides full platform support: CSS, SCSS, JS, TS, iOS, Android, etc.
  */
 export async function generateWithStyleDictionary(
   baseline: BaselineData,

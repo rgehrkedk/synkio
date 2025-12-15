@@ -73,32 +73,6 @@ const DocsConfigSchema = z.object({
   title: z.string().optional().default('Design Tokens'), // Documentation title
 }).optional();
 
-// SCSS output configuration
-const ScssConfigSchema = BaseTransformSchema.extend({
-  file: z.string().optional().default('_tokens.scss'), // Output filename
-  maps: z.boolean().optional().default(false),         // Generate SCSS maps
-  prefix: z.string().optional().default(''),           // Variable name prefix
-  transforms: TransformOptionsSchema,
-}).optional();
-
-// JavaScript/TypeScript output configuration
-const JsConfigSchema = BaseTransformSchema.extend({
-  file: z.string().optional().default('tokens.js'),    // Output filename
-  format: z.enum(['nested', 'flat']).optional().default('nested'), // Object structure
-  typescript: z.boolean().optional().default(false),   // Generate TypeScript with types
-  reactNative: z.boolean().optional().default(false),  // Use React Native transforms (unitless)
-  moduleFormat: z.enum(['esm', 'cjs']).optional().default('esm'), // Module format
-}).optional();
-
-// Tailwind CSS configuration
-const TailwindConfigSchema = BaseTransformSchema.extend({
-  file: z.string().optional().default('tailwind.tokens.js'), // Output filename
-  extend: z.boolean().optional().default(true),        // Use theme.extend
-  esm: z.boolean().optional().default(true),           // ES module format
-  cssVariables: z.boolean().optional().default(false), // Use CSS variable references
-  transforms: TransformOptionsSchema,
-}).optional();
-
 // Collection-specific configuration
 const CollectionConfigSchema = z.object({
   dir: z.string().optional(),                         // Output directory for this collection (defaults to output.dir)
@@ -115,9 +89,6 @@ export const ConfigSchema = z.object({
   output: OutputConfigSchema,
   sync: SyncConfigSchema,
   css: CssConfigSchema,
-  scss: ScssConfigSchema,
-  js: JsConfigSchema,
-  tailwind: TailwindConfigSchema,
   docs: DocsConfigSchema,
   collections: CollectionsConfigSchema,
 });
