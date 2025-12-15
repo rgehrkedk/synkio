@@ -1,6 +1,6 @@
 {
   "name": "synkio",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Sync Figma variables to design tokens with breaking change protection",
   "type": "module",
   "main": "./dist/index.js",
