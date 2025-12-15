@@ -44,3 +44,6 @@ coverage/
 # Local data (user-generated)
 .figma/
 tokensrc.json
+
+# Development notes (not for public repo)
+ROADMAP.md
