@@ -7,6 +7,7 @@ import { syncCommand, watchCommand } from './commands/sync.js';
 import { rollbackCommand } from './commands/rollback.js';
 import { validateCommand } from './commands/validate.js';
 import { tokensCommand } from './commands/tokens.js';
+import { docsCommand } from './commands/docs.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
@@ -60,6 +61,7 @@ function showHelp(command?: string) {
             console.log('  --watch             Watch for changes (poll Figma)');
             console.log('  --interval=<s>      Watch interval in seconds (default: 30)');
             console.log('  --collection=<name> Sync only specific collection(s), comma-separated');
+            console.log('  --regenerate        Regenerate files from existing baseline (no Figma fetch)');
             break;
         case 'rollback':
             console.log('Usage: synkio rollback [options]\n');
@@ -81,12 +83,27 @@ function showHelp(command?: string) {
             console.log('Display the current token baseline.\n');
             console.log('Shows the contents of .synkio/baseline.json for debugging.');
             break;
+        case 'docs':
+            console.log('Usage: synkio docs [options]\n');
+            console.log('Generate a static documentation site for your design tokens.\n');
+            console.log('Creates a self-hosted styleguide with:');
+            console.log('  - Color palettes with visual swatches');
+            console.log('  - Typography scales with previews');
+            console.log('  - Spacing visualization');
+            console.log('  - CSS custom properties (tokens.css)');
+            console.log('  - Utility classes (utilities.css)\n');
+            console.log('Options:');
+            console.log('  --output=<dir>   Output directory (default: .synkio/docs)');
+            console.log('  --title=<name>   Documentation title');
+            console.log('  --open           Open in browser after generating');
+            break;
         default:
             console.log(`synkio v${pkg.version}\n`);
             console.log('Usage: synkio <command> [options]\n');
             console.log('Commands:');
             console.log('  init       Initialize a new project');
             console.log('  sync       Sync tokens from Figma');
+            console.log('  docs       Generate token documentation site');
             console.log('  rollback   Revert to previous token version');
             console.log('  validate   Check configuration and connection');
             console.log('  tokens     Show current token baseline');
@@ -137,6 +154,7 @@ switch (command) {
             report: syncOptions.report as boolean,
             noReport: syncOptions.noReport as boolean,
             collection: syncOptions.collection as string,
+            regenerate: syncOptions.regenerate as boolean,
         });
     }
     break;
@@ -151,6 +169,14 @@ switch (command) {
     break;
   case 'tokens':
     tokensCommand();
+    break;
+  case 'docs':
+    const docsOptions = parseArgs(args);
+    docsCommand({
+        output: docsOptions.output as string,
+        title: docsOptions.title as string,
+        open: docsOptions.open as boolean,
+    });
     break;
   default:
     if (command) {

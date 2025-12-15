@@ -1,0 +1,627 @@
+{
+  "baseline": {
+    "VariableID:1:3:default": {
+      "variableId": "VariableID:1:3",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.spacing.xs",
+      "value": 4,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:4:default": {
+      "variableId": "VariableID:1:4",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.spacing.sm",
+      "value": 8,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:5:default": {
+      "variableId": "VariableID:1:5",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.spacing.md",
+      "value": 16,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:6:default": {
+      "variableId": "VariableID:1:6",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.spacing.lg",
+      "value": 24,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:7:default": {
+      "variableId": "VariableID:1:7",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.spacing.xl",
+      "value": 32,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:8:default": {
+      "variableId": "VariableID:1:8",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.spacing.2xl",
+      "value": 48,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:9:default": {
+      "variableId": "VariableID:1:9",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.spacing.3xl",
+      "value": 64,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:10:default": {
+      "variableId": "VariableID:1:10",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.radius.none",
+      "value": 0,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:11:default": {
+      "variableId": "VariableID:1:11",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.radius.sm",
+      "value": 4,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:12:default": {
+      "variableId": "VariableID:1:12",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.radius.md",
+      "value": 8,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:13:default": {
+      "variableId": "VariableID:1:13",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.radius.lg",
+      "value": 12,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:14:default": {
+      "variableId": "VariableID:1:14",
+      "collection": "primitives",
+      "mode": "default",
+      "path": "default.radius.full",
+      "value": 9999,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:20:default": {
+      "variableId": "VariableID:1:20",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.50",
+      "value": "#eef2ff",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:21:default": {
+      "variableId": "VariableID:1:21",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.100",
+      "value": "#e0e7ff",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:22:default": {
+      "variableId": "VariableID:1:22",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.200",
+      "value": "#c7d2fe",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:23:default": {
+      "variableId": "VariableID:1:23",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.300",
+      "value": "#a5b4fc",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:24:default": {
+      "variableId": "VariableID:1:24",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.400",
+      "value": "#818cf8",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:25:default": {
+      "variableId": "VariableID:1:25",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.500",
+      "value": "#6366f1",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:26:default": {
+      "variableId": "VariableID:1:26",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.600",
+      "value": "#4f46e5",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:27:default": {
+      "variableId": "VariableID:1:27",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.700",
+      "value": "#4338ca",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:28:default": {
+      "variableId": "VariableID:1:28",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.800",
+      "value": "#3730a3",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:29:default": {
+      "variableId": "VariableID:1:29",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.primary.900",
+      "value": "#312e81",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:30:default": {
+      "variableId": "VariableID:1:30",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.50",
+      "value": "#fafafa",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:31:default": {
+      "variableId": "VariableID:1:31",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.100",
+      "value": "#f5f5f5",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:32:default": {
+      "variableId": "VariableID:1:32",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.200",
+      "value": "#e5e5e5",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:33:default": {
+      "variableId": "VariableID:1:33",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.300",
+      "value": "#d4d4d4",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:34:default": {
+      "variableId": "VariableID:1:34",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.400",
+      "value": "#a3a3a3",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:35:default": {
+      "variableId": "VariableID:1:35",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.500",
+      "value": "#737373",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:36:default": {
+      "variableId": "VariableID:1:36",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.600",
+      "value": "#525252",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:37:default": {
+      "variableId": "VariableID:1:37",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.700",
+      "value": "#404040",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:38:default": {
+      "variableId": "VariableID:1:38",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.800",
+      "value": "#262626",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:39:default": {
+      "variableId": "VariableID:1:39",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.neutral.900",
+      "value": "#171717",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:40:default": {
+      "variableId": "VariableID:1:40",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.success.500",
+      "value": "#22c55e",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:41:default": {
+      "variableId": "VariableID:1:41",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.warning.500",
+      "value": "#f59e0b",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:42:default": {
+      "variableId": "VariableID:1:42",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.error.500",
+      "value": "#ef4444",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:43:default": {
+      "variableId": "VariableID:1:43",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.background.primary",
+      "value": "#ffffff",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:44:default": {
+      "variableId": "VariableID:1:44",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.background.secondary",
+      "value": "#f5f5f5",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:45:default": {
+      "variableId": "VariableID:1:45",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.text.primary",
+      "value": "#171717",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:46:default": {
+      "variableId": "VariableID:1:46",
+      "collection": "colors",
+      "mode": "default",
+      "path": "color.text.secondary",
+      "value": "#525252",
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:48:default": {
+      "variableId": "VariableID:1:48",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.size.xs",
+      "value": 12,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:49:default": {
+      "variableId": "VariableID:1:49",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.size.sm",
+      "value": 14,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:50:default": {
+      "variableId": "VariableID:1:50",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.size.base",
+      "value": 16,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:51:default": {
+      "variableId": "VariableID:1:51",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.size.lg",
+      "value": 18,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:52:default": {
+      "variableId": "VariableID:1:52",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.size.xl",
+      "value": 20,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:53:default": {
+      "variableId": "VariableID:1:53",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.size.2xl",
+      "value": 24,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:54:default": {
+      "variableId": "VariableID:1:54",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.size.3xl",
+      "value": 30,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:55:default": {
+      "variableId": "VariableID:1:55",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.size.4xl",
+      "value": 36,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:56:default": {
+      "variableId": "VariableID:1:56",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.weight.normal",
+      "value": 400,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:57:default": {
+      "variableId": "VariableID:1:57",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.weight.medium",
+      "value": 500,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:58:default": {
+      "variableId": "VariableID:1:58",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.weight.semibold",
+      "value": 600,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:59:default": {
+      "variableId": "VariableID:1:59",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.weight.bold",
+      "value": 700,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:60:default": {
+      "variableId": "VariableID:1:60",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.lineHeight.tight",
+      "value": 1.25,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:61:default": {
+      "variableId": "VariableID:1:61",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.lineHeight.normal",
+      "value": 1.5,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:1:62:default": {
+      "variableId": "VariableID:1:62",
+      "collection": "typography",
+      "mode": "default",
+      "path": "default.font.lineHeight.relaxed",
+      "value": 1.75,
+      "type": "float",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:2:64:light": {
+      "variableId": "VariableID:2:64",
+      "collection": "theme",
+      "mode": "light",
+      "path": "bg.primary.default",
+      "value": {
+        "$ref": "VariableID:1:31"
+      },
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    },
+    "VariableID:2:64:dark": {
+      "variableId": "VariableID:2:64",
+      "collection": "theme",
+      "mode": "dark",
+      "path": "bg.primary.default",
+      "value": {
+        "$ref": "VariableID:1:38"
+      },
+      "type": "color",
+      "scopes": [
+        "ALL_SCOPES"
+      ]
+    }
+  },
+  "metadata": {
+    "syncedAt": "2025-12-15T10:21:32.670Z"
+  }
+}

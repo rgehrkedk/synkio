@@ -108,6 +108,25 @@ export async function initCommand(options: InitOptions = {}) {
     
     const outputDir = options.outputDir || await prompt('? Output directory for tokens?', detected.tokensDir || 'tokens');
 
+    // Ask about CSS output
+    const generateCss = await prompt('? Generate CSS custom properties? (y/n)', 'y');
+    const cssEnabled = generateCss.toLowerCase() === 'y' || generateCss.toLowerCase() === 'yes';
+    
+    let cssUtilities = false;
+    if (cssEnabled) {
+        const utilitiesAnswer = await prompt('? Also generate utility classes? (y/n)', 'y');
+        cssUtilities = utilitiesAnswer.toLowerCase() === 'y' || utilitiesAnswer.toLowerCase() === 'yes';
+    }
+
+    // Ask about documentation dashboard
+    const generateDocs = await prompt('? Generate documentation dashboard? (y/n)', 'y');
+    const docsEnabled = generateDocs.toLowerCase() === 'y' || generateDocs.toLowerCase() === 'yes';
+    
+    let docsTitle = 'Design Tokens';
+    if (docsEnabled) {
+        docsTitle = await prompt('? Documentation title?', 'Design Tokens');
+    }
+
     // Create minimal tokensrc.json - no nodeId needed (defaults to document root)
     const config: any = {
         version: '1.0.0',
@@ -118,6 +137,17 @@ export async function initCommand(options: InitOptions = {}) {
         output: {
             dir: outputDir,
             format: 'json'
+        },
+        css: {
+            enabled: cssEnabled,
+            file: 'tokens.css',
+            utilities: cssUtilities,
+            utilitiesFile: 'utilities.css'
+        },
+        docs: {
+            enabled: docsEnabled,
+            dir: '.synkio/docs',
+            title: docsTitle
         }
     };
     

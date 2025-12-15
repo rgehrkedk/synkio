@@ -1,11 +1,12 @@
 import { mkdir, writeFile, readdir, unlink } from 'fs/promises';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import { loadConfig } from '../../core/config.js';
 import { FigmaClient } from '../../core/figma.js';
 import { splitTokens, SplitTokensOptions, normalizePluginData } from '../../core/tokens.js';
 import { createLogger } from '../../utils/logger.js';
 import { readBaseline, writeBaseline } from '../../core/baseline.js';
 import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary } from '../../core/compare.js';
+import { generateAllFromBaseline } from '../../core/output.js';
 import { BaselineData } from '../../types/index.js';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -18,6 +19,7 @@ export interface SyncOptions {
   watch?: boolean;      // Watch for changes
   interval?: number;    // Watch interval in seconds (default 30)
   collection?: string;  // Sync only specific collection(s), comma-separated
+  regenerate?: boolean; // Regenerate files from existing baseline (no Figma fetch)
 }
 
 export async function syncCommand(options: SyncOptions = {}) {
@@ -29,6 +31,76 @@ export async function syncCommand(options: SyncOptions = {}) {
     spinner.text = 'Loading configuration...';
     const config = loadConfig();
     logger.debug('Config loaded', config);
+
+    // Handle --regenerate: skip Figma fetch, use existing baseline
+    if (options.regenerate) {
+      spinner.text = 'Regenerating files from existing baseline...';
+      const localBaseline = await readBaseline();
+      
+      if (!localBaseline) {
+        spinner.fail(chalk.red('No baseline found. Run synkio sync first to fetch tokens from Figma.'));
+        process.exit(1);
+      }
+      
+      // Use the existing baseline tokens
+      const normalizedTokens = localBaseline.baseline;
+      
+      // Split and write token files
+      const splitOptions: SplitTokensOptions = {
+        collections: config.collections || {},
+        dtcg: config.output.dtcg !== false,
+        includeVariableId: config.output.includeVariableId === true,
+        extensions: config.output.extensions || {},
+      };
+      const processedTokens = splitTokens(normalizedTokens, splitOptions);
+      
+      const defaultOutDir = resolve(process.cwd(), config.output.dir);
+      
+      // Build map of files per directory
+      const filesByDir = new Map<string, Map<string, any>>();
+      for (const [fileName, fileData] of processedTokens) {
+        const outDir = fileData.dir 
+          ? resolve(process.cwd(), fileData.dir) 
+          : defaultOutDir;
+        
+        if (!filesByDir.has(outDir)) {
+          filesByDir.set(outDir, new Map());
+        }
+        filesByDir.get(outDir)!.set(fileName, fileData.content);
+      }
+      
+      // Ensure all output directories exist and write files
+      let filesWritten = 0;
+      for (const [outDir, filesInDir] of filesByDir) {
+        await mkdir(outDir, { recursive: true });
+        for (const [fileName, content] of filesInDir) {
+          const filePath = resolve(outDir, fileName);
+          await writeFile(filePath, JSON.stringify(content, null, 2));
+          filesWritten++;
+        }
+      }
+      
+      // Generate all enabled output formats
+      spinner.text = 'Generating output files...';
+      const outputs = await generateAllFromBaseline(localBaseline, config);
+      
+      const cssFilesWritten = outputs.css.files.length;
+      const scssFilesWritten = outputs.scss.files.length;
+      const jsFilesWritten = outputs.js.files.length;
+      const tailwindFilesWritten = outputs.tailwind.files.length;
+      const docsFilesWritten = outputs.docs.files.length;
+      
+      const extras: string[] = [];
+      if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
+      if (scssFilesWritten > 0) extras.push(`${scssFilesWritten} SCSS`);
+      if (jsFilesWritten > 0) extras.push(`${jsFilesWritten} JS`);
+      if (tailwindFilesWritten > 0) extras.push(`${tailwindFilesWritten} Tailwind`);
+      if (docsFilesWritten > 0) extras.push(`${docsFilesWritten} docs`);
+      const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')} files)` : '';
+      
+      spinner.succeed(chalk.green(`✓ Regenerated ${filesWritten} token files from baseline.${extrasStr}`));
+      return;
+    }
 
     // 2. Fetch data from Figma
     spinner.text = 'Fetching data from Figma...';
@@ -198,31 +270,70 @@ export async function syncCommand(options: SyncOptions = {}) {
 
     // 7. Write files
     spinner.text = 'Writing token files...';
-    const outDir = resolve(process.cwd(), config.output.dir);
-    await mkdir(outDir, { recursive: true });
+    const defaultOutDir = resolve(process.cwd(), config.output.dir);
+    await mkdir(defaultOutDir, { recursive: true });
 
-    // Clean up old .json files that are no longer needed
-    try {
-      const existingFiles = await readdir(outDir);
-      const newFileNames = new Set(processedTokens.keys());
-      for (const file of existingFiles) {
-        if (file.endsWith('.json') && !newFileNames.has(file)) {
-          await unlink(resolve(outDir, file));
-          logger.debug(`Removed stale file: ${file}`);
-        }
+    // Track all output directories for cleanup
+    const outputDirs = new Set<string>([defaultOutDir]);
+    
+    // Build map of files per directory
+    const filesByDir = new Map<string, Map<string, any>>();
+    for (const [fileName, fileData] of processedTokens) {
+      const outDir = fileData.dir 
+        ? resolve(process.cwd(), fileData.dir) 
+        : defaultOutDir;
+      
+      outputDirs.add(outDir);
+      
+      if (!filesByDir.has(outDir)) {
+        filesByDir.set(outDir, new Map());
       }
-    } catch (err) {
-      // Ignore errors if directory doesn't exist yet
+      filesByDir.get(outDir)!.set(fileName, fileData.content);
+    }
+    
+    // Ensure all output directories exist
+    for (const dir of outputDirs) {
+      await mkdir(dir, { recursive: true });
+    }
+
+    // Clean up old .json files that are no longer needed (in each output dir)
+    for (const [outDir, filesInDir] of filesByDir) {
+      try {
+        const existingFiles = await readdir(outDir);
+        const newFileNames = new Set(filesInDir.keys());
+        for (const file of existingFiles) {
+          if (file.endsWith('.json') && !newFileNames.has(file)) {
+            await unlink(resolve(outDir, file));
+            logger.debug(`Removed stale file: ${file}`);
+          }
+        }
+      } catch (err) {
+        // Ignore errors if directory doesn't exist yet
+      }
     }
 
     let filesWritten = 0;
-    for (const [fileName, content] of processedTokens) {
-      const filePath = resolve(outDir, fileName);
-      await writeFile(filePath, JSON.stringify(content, null, 2));
-      filesWritten++;
+    for (const [outDir, filesInDir] of filesByDir) {
+      for (const [fileName, content] of filesInDir) {
+        const filePath = resolve(outDir, fileName);
+        await writeFile(filePath, JSON.stringify(content, null, 2));
+        filesWritten++;
+      }
     }
 
-    // 8. Generate report based on config and flags
+    // 8. Generate CSS if enabled in config
+    // 8. Generate all enabled output formats (CSS, SCSS, JS, Tailwind, docs)
+    spinner.text = 'Generating output files...';
+    const outputs = await generateAllFromBaseline(newBaseline, config);
+    
+    const cssFilesWritten = outputs.css.files.length;
+    const scssFilesWritten = outputs.scss.files.length;
+    const jsFilesWritten = outputs.js.files.length;
+    const tailwindFilesWritten = outputs.tailwind.files.length;
+    const docsFilesWritten = outputs.docs.files.length;
+    const docsDir = outputs.docs.outputDir;
+
+    // 9. Generate report based on config and flags
     // CLI flags override config: --report forces, --no-report skips
     const syncConfig = config.sync || { report: true, reportHistory: false };
     const shouldGenerateReport = options.noReport ? false : (options.report || syncConfig.report !== false);
@@ -255,17 +366,46 @@ export async function syncCommand(options: SyncOptions = {}) {
         await writeFile(reportPath, report);
         const relativePath = reportPath.replace(process.cwd() + '/', '');
         spinner.succeed(chalk.green(`✓ Sync complete. Wrote ${filesWritten} token files. Report: ${relativePath}`));
+        
+        // Show additional outputs
+        const allOutputs = [
+          cssFilesWritten > 0 ? `${cssFilesWritten} CSS` : null,
+          scssFilesWritten > 0 ? `${scssFilesWritten} SCSS` : null,
+          jsFilesWritten > 0 ? `${jsFilesWritten} JS` : null,
+          tailwindFilesWritten > 0 ? `${tailwindFilesWritten} Tailwind` : null,
+        ].filter(Boolean);
+        
+        if (allOutputs.length > 0) {
+          console.log(chalk.dim(`  + ${allOutputs.join(', ')} file(s) in ${config.output.dir}`));
+        }
+        if (docsFilesWritten > 0) {
+          console.log(chalk.dim(`  + Documentation: ${docsDir}`));
+        }
         return;
       }
     }
     
+    // Build output summary
+    const extras: string[] = [];
+    if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
+    if (scssFilesWritten > 0) extras.push(`${scssFilesWritten} SCSS`);
+    if (jsFilesWritten > 0) extras.push(`${jsFilesWritten} JS`);
+    if (tailwindFilesWritten > 0) extras.push(`${tailwindFilesWritten} Tailwind`);
+    if (docsFilesWritten > 0) extras.push('docs');
+    const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';
+    
     // Show appropriate message based on whether there were changes
     if (hasBaselineChanges) {
-      spinner.succeed(chalk.green(`✓ Sync complete. Wrote ${filesWritten} token files to ${config.output.dir}.`));
+      spinner.succeed(chalk.green(`✓ Sync complete. Wrote ${filesWritten} token files to ${config.output.dir}.${extrasStr}`));
     } else if (localBaseline) {
-      spinner.succeed(chalk.green(`✓ No changes from Figma. Regenerated ${filesWritten} token files.`));
+      spinner.succeed(chalk.green(`✓ No changes from Figma. Regenerated ${filesWritten} token files.${extrasStr}`));
     } else {
-      spinner.succeed(chalk.green(`✓ Initial sync complete. Wrote ${filesWritten} token files to ${config.output.dir}.`));
+      spinner.succeed(chalk.green(`✓ Initial sync complete. Wrote ${filesWritten} token files to ${config.output.dir}.${extrasStr}`));
+    }
+    
+    // Show docs location if generated
+    if (docsFilesWritten > 0) {
+      console.log(chalk.dim(`  Documentation: ${docsDir}`));
     }
 
   } catch (error: any) {

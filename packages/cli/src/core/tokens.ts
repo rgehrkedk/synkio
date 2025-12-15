@@ -6,15 +6,23 @@ import { BaselineEntry } from '../types/index.js';
 export type RawTokens = Record<string, BaselineEntry>;
 
 /**
- * The result of splitting tokens, a map of file names to their content.
+ * The result of splitting tokens, a map of file names to their content and metadata.
  */
-export type SplitTokens = Map<string, any>;
+export interface SplitTokenFile {
+  content: any;
+  collection: string;
+  dir?: string;  // Custom output directory for this file (relative to cwd)
+}
+
+export type SplitTokens = Map<string, SplitTokenFile>;
 
 /**
  * Configuration for how to split collections
  */
 export interface CollectionSplitOptions {
   [collectionName: string]: {
+    dir?: string;          // Output directory for this collection (relative to cwd)
+    file?: string;         // Custom filename base (e.g., "colors" → "colors.json", or with modes: "theme" → "theme.light.json")
     splitModes?: boolean;  // true = separate files per mode (default), false = single file with modes as nested keys
     includeMode?: boolean; // true = include mode as first-level key even when splitting (default: true)
   };
@@ -58,8 +66,8 @@ export function normalizePluginData(rawData: any): RawTokens {
     const result: RawTokens = {};
     
     for (const token of data.tokens) {
-      // Create a unique key for each token entry
-      const key = `${token.variableId}:${token.mode}`;
+      // Create a unique key for each token entry: VariableID:X:X:collection.mode
+      const key = `${token.variableId}:${token.collection}.${token.mode}`;
       const entry: any = {
         variableId: token.variableId,
         collection: token.collection,
@@ -142,7 +150,7 @@ export interface SplitTokensOptions {
  * splitTokens(tokens, { dtcg: false })
  */
 export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = {}): SplitTokens {
-    const files = new Map<string, any>();
+    const files = new Map<string, { content: any; collection: string }>();
     const collectionOptions = options.collections || {};
     const useDtcg = options.dtcg !== false; // default true
     const includeVariableId = options.includeVariableId === true; // default false
@@ -151,6 +159,14 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
     const typeKey = useDtcg ? '$type' : 'type';
     const extensionsKey = useDtcg ? '$extensions' : 'extensions';
     const descriptionKey = useDtcg ? '$description' : 'description';
+    
+    // Build a lookup map from VariableID to path for resolving references
+    const variableIdToPath = new Map<string, string>();
+    for (const entry of Object.values(rawTokens)) {
+        if (entry.variableId && entry.path) {
+            variableIdToPath.set(entry.variableId, entry.path);
+        }
+    }
     
     for (const entry of Object.values(rawTokens)) {
         // Use explicit collection/mode fields if available (new Synkio format)
@@ -179,14 +195,29 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
         }
         
         if (!files.has(fileKey)) {
-            files.set(fileKey, {});
+            files.set(fileKey, { content: {}, collection });
         }
 
-        const fileContent = files.get(fileKey);
+        const fileData = files.get(fileKey)!;
+        
+        // Resolve value - convert VariableID references to DTCG path references
+        let resolvedValue = entry.value;
+        if (entry.value && typeof entry.value === 'object' && entry.value.$ref) {
+            const refVariableId = entry.value.$ref;
+            const refPath = variableIdToPath.get(refVariableId);
+            if (refPath) {
+                // DTCG format: wrap path in curly braces
+                resolvedValue = `{${refPath}}`;
+            } else {
+                // Fallback: keep original reference if path not found
+                console.warn(`Warning: Could not resolve reference ${refVariableId} for token ${entry.path}`);
+                resolvedValue = entry.value;
+            }
+        }
         
         // Build token object with DTCG or legacy format
         const tokenObj: Record<string, any> = {
-            [valueKey]: entry.value,
+            [valueKey]: resolvedValue,
             [typeKey]: entry.type,
         };
         
@@ -217,26 +248,68 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
         
         // Create nested structure for the token
         if (nestedPath.length > 0) {
-            set(fileContent, nestedPath, tokenObj);
+            set(fileData.content, nestedPath, tokenObj);
         } else {
             // Edge case: no nested path
-            fileContent[entry.path] = tokenObj;
+            fileData.content[entry.path] = tokenObj;
         }
     }
     
-    const result = new Map<string, any>();
-    for (const [key, value] of files.entries()) {
-        result.set(`${key}.json`, value);
+    const result: SplitTokens = new Map();
+    for (const [key, fileData] of files.entries()) {
+        const collectionConfig = collectionOptions[fileData.collection];
+        
+        // Determine the filename
+        // key format is either "collection.mode" (split) or "collection" (merged)
+        let fileName: string;
+        if (collectionConfig?.file) {
+            // Custom filename specified
+            const keyParts = key.split('.');
+            if (keyParts.length > 1) {
+                // Has mode suffix (e.g., "theme.light" → use custom file + mode)
+                const mode = keyParts.slice(1).join('.');
+                fileName = `${collectionConfig.file}.${mode}.json`;
+            } else {
+                // No mode suffix
+                fileName = `${collectionConfig.file}.json`;
+            }
+        } else {
+            // Default: use key as-is
+            fileName = `${key}.json`;
+        }
+        
+        result.set(fileName, {
+            content: fileData.content,
+            collection: fileData.collection,
+            dir: collectionConfig?.dir,
+        });
     }
     return result;
 }
 
-export function parseVariableId(prefixedId: string): { varId: string; mode: string } {
+/**
+ * Parse a prefixed variable ID into its components
+ * Supports both formats:
+ * - New format: VariableID:X:X:collection.mode
+ * - Legacy format: VariableID:X:X:mode
+ */
+export function parseVariableId(prefixedId: string): { varId: string; collection: string; mode: string } {
   const parts = prefixedId.split(':');
   if (parts.length < 2) {
-    return { varId: prefixedId, mode: 'default' };
+    return { varId: prefixedId, collection: 'unknown', mode: 'default' };
   }
-  const mode = parts.pop()!;
+  
+  const lastPart = parts.pop()!;
   const varId = parts.join(':');
-  return { varId, mode };
+  
+  // Check if lastPart contains collection.mode (new format)
+  if (lastPart.includes('.')) {
+    const dotIndex = lastPart.indexOf('.');
+    const collection = lastPart.substring(0, dotIndex);
+    const mode = lastPart.substring(dotIndex + 1);
+    return { varId, collection, mode };
+  }
+  
+  // Legacy format: just mode
+  return { varId, collection: 'unknown', mode: lastPart };
 }

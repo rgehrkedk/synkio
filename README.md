@@ -1,21 +1,41 @@
 # Synkio
 
-**Sync Figma design tokens to code in seconds.**
-
-Synkio is a lightweight CLI that bridges Figma variables and your codebase. No complex setup, no plugins to configure—just run and sync.
+**Sync Figma variables to code. No Enterprise plan required.**
 
 [![npm version](https://img.shields.io/npm/v/synkio.svg)](https://www.npmjs.com/package/synkio)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Features
+Synkio is a developer-friendly CLI that bridges the gap between Figma design variables and your codebase. It bypasses the need for Figma's Enterprise REST API by utilizing the Plugin API, giving you a powerful sync workflow on any Figma plan.
 
-- **⚡ One-command setup** — Get started in under 2 minutes
-- **🔒 Breaking change protection** — Prevents accidental breakage from design changes
-- **👀 Preview mode** — Review changes before applying (like a designer's PR)
-- **↩️ Rollback** — Instantly revert to previous token state
-- **📊 DTCG format** — Standards-compliant output with `$value` and `$type`
-- **🎯 Selective sync** — Sync specific collections only
-- **👁️ Watch mode** — Auto-sync when Figma changes
+## Why Synkio?
+
+Most token sync tools require expensive Figma Enterprise licenses to access variables via the REST API. Synkio takes a smarter approach:
+
+- 🔓 **No Enterprise Needed** — Works with Free, Professional, and Organization plans
+- 🛡️ **Breaking Change Protection** — Intelligent diffing based on permanent Variable IDs prevents accidental production breaks
+- ⚡ **Developer Experience** — A simple CLI workflow that lives in your terminal, not a 3rd party dashboard
+- 📦 **Standard Output** — Generates W3C DTCG-compliant tokens ready for Style Dictionary or direct use
+
+### Comparison
+
+| Feature | Synkio | Tokens Studio | SaaS Platforms | Figma Enterprise API |
+|---------|--------|---------------|----------------|----------------------|
+| **Figma Plan** | Any (Free, Pro, Org) | Any | Varies | Enterprise Only |
+| **Cost** | Free (Open Source) | Freemium | Subscription ($$$) | Included in Ent. Plan |
+| **Data Source** | Native Figma Variables | Proprietary JSON | Cloud Database | Native Figma Variables |
+| **Sync Method** | Hybrid (Plugin + CLI) | Plugin (Git Sync) | Cloud Connector | Direct REST API |
+| **Safety Logic** | ID-based Diffing | Git Diff (File-based) | Version Control | Manual (Custom Code) |
+| **Setup Time** | < 5 min | High (Figma config heavy) | Medium (Account setup) | Depends (Custom Scripting) |
+| **Developer UX** | CLI / Terminal | GUI / Plugin | Web Dashboard | Custom |
+
+## How It Works
+
+Synkio uses a "Hybrid Sync" method:
+
+1. **The Plugin** — Runs inside Figma to read variables and store them in the file's `sharedPluginData`
+2. **The CLI** — Fetches this data via the standard Figma API, compares it with your local tokens, and generates output files
+
+This gives you the accuracy of an internal plugin with the automation speed of a CLI.
 
 ## Quick Start
 
@@ -31,11 +51,15 @@ npm install synkio --save-dev
 npx synkio init
 ```
 
-This creates `tokensrc.json` and `.env` with your Figma credentials.
+This creates `tokensrc.json` and adds `.env` to your `.gitignore`.
 
-### 3. Run the Figma Plugin
+### 3. Prepare Figma File
 
-Open your Figma file and run the **Synkio** plugin to prepare your variables.
+1. Open your Figma file
+2. Run the [Synkio plugin](packages/figma-plugin/synkio-sync/)
+3. Click **"Prepare for Sync"**
+
+This snapshots your variables so the CLI can access them.
 
 ### 4. Sync
 
@@ -52,11 +76,22 @@ Your tokens are now in your project! 🎉
 | `synkio init` | Initialize project with Figma credentials |
 | `synkio sync` | Fetch tokens from Figma |
 | `synkio sync --preview` | Preview changes without applying |
-| `synkio sync --watch` | Watch for Figma changes |
+| `synkio sync --watch` | Poll for changes automatically |
 | `synkio sync --collection=<name>` | Sync specific collection(s) |
+| `synkio sync --force` | Overwrite local files, ignoring safety warnings |
 | `synkio rollback` | Revert to previous sync |
 | `synkio rollback --preview` | Preview rollback changes |
 | `synkio validate` | Check config and connection |
+
+## Smart Safety Checks
+
+Synkio acts as a gatekeeper for your design system. Unlike simple exporters, it understands the difference between a rename and a deletion:
+
+- **Renames** — If a designer changes `Brand Blue` to `Primary Blue`, Synkio sees the ID match and reports it as a **rename**, not a deletion
+- **Deletions** — Blocks sync if a variable used in your code has been deleted in Figma
+- **Mode Changes** — Detects if a theme mode (e.g., "Dark Mode") was added or removed
+
+Use `npx synkio sync --preview` to see a full report of changes without writing any files.
 
 ## Configuration
 
@@ -75,16 +110,7 @@ Synkio is configured via `tokensrc.json`:
 }
 ```
 
-## Breaking Change Protection
-
-Synkio automatically detects changes that could break your code:
-
-- **Path changes** — Token renamed
-- **Deleted variables** — Token removed  
-- **Deleted modes** — Theme mode removed
-- **New modes** — New theme mode added
-
-When detected, sync is blocked until you review with `--preview` or force with `--force`.
+See the [User Guide](packages/cli/USER_GUIDE.md) for full configuration options.
 
 ## Documentation
 
@@ -105,6 +131,12 @@ synkio/
 └── README.md
 ```
 
+## Contributing
+
+Synkio is an open source project built to solve a specific frustration: the lack of easy variable syncing for non-Enterprise teams.
+
+Contributions are welcome! If there's a way to make the TypeScript cleaner, the CLI faster, or the tests more robust, please open a Pull Request.
+
 ## License
 
-MIT © [Synkio](https://github.com/rgehrkedk/synkio)
+MIT © [rgehrkedk](https://github.com/rgehrkedk)

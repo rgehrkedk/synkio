@@ -30,8 +30,71 @@ const SyncConfigSchema = z.object({
   reportHistory: z.boolean().optional().default(false), // Keep timestamped reports as changelog
 }).optional();
 
+// CSS output configuration
+const CssConfigSchema = z.object({
+  enabled: z.boolean().optional().default(false),      // Generate CSS custom properties
+  dir: z.string().optional(),                          // Output directory (defaults to output.dir)
+  file: z.string().optional().default('tokens.css'),   // Output filename
+  utilities: z.boolean().optional().default(false),    // Generate utility classes
+  utilitiesFile: z.string().optional().default('utilities.css'), // Utilities filename
+  // Transform options
+  transforms: z.object({
+    useRem: z.boolean().optional().default(false),     // Use rem instead of px for dimensions
+    basePxFontSize: z.number().optional().default(16), // Base font size for rem calculations
+  }).optional(),
+}).optional();
+
+// Documentation/Dashboard configuration
+const DocsConfigSchema = z.object({
+  enabled: z.boolean().optional().default(false),      // Generate documentation site
+  dir: z.string().optional().default('.synkio/docs'),   // Output directory
+  title: z.string().optional().default('Design Tokens'), // Documentation title
+}).optional();
+
+// SCSS output configuration
+const ScssConfigSchema = z.object({
+  enabled: z.boolean().optional().default(false),      // Generate SCSS variables
+  dir: z.string().optional(),                          // Output directory (defaults to output.dir)
+  file: z.string().optional().default('_tokens.scss'), // Output filename
+  maps: z.boolean().optional().default(false),         // Generate SCSS maps
+  prefix: z.string().optional().default(''),           // Variable name prefix
+  // Transform options (shared with CSS)
+  transforms: z.object({
+    useRem: z.boolean().optional().default(false),
+    basePxFontSize: z.number().optional().default(16),
+  }).optional(),
+}).optional();
+
+// JavaScript/TypeScript output configuration
+const JsConfigSchema = z.object({
+  enabled: z.boolean().optional().default(false),      // Generate JS/TS tokens
+  dir: z.string().optional(),                          // Output directory (defaults to output.dir)
+  file: z.string().optional().default('tokens.js'),    // Output filename
+  format: z.enum(['nested', 'flat']).optional().default('nested'), // Object structure
+  typescript: z.boolean().optional().default(false),   // Generate TypeScript with types
+  reactNative: z.boolean().optional().default(false),  // Use React Native transforms (unitless)
+  moduleFormat: z.enum(['esm', 'cjs']).optional().default('esm'), // Module format
+}).optional();
+
+// Tailwind CSS configuration
+const TailwindConfigSchema = z.object({
+  enabled: z.boolean().optional().default(false),      // Generate Tailwind config
+  dir: z.string().optional(),                          // Output directory (defaults to output.dir)
+  file: z.string().optional().default('tailwind.tokens.js'), // Output filename
+  extend: z.boolean().optional().default(true),        // Use theme.extend
+  esm: z.boolean().optional().default(true),           // ES module format
+  cssVariables: z.boolean().optional().default(false), // Use CSS variable references
+  // Transform options
+  transforms: z.object({
+    useRem: z.boolean().optional().default(true),      // Tailwind typically uses rem
+    basePxFontSize: z.number().optional().default(16),
+  }).optional(),
+}).optional();
+
 // Collection-specific configuration
 const CollectionConfigSchema = z.object({
+  dir: z.string().optional(),                         // Output directory for this collection (defaults to output.dir)
+  file: z.string().optional(),                        // Custom filename pattern (e.g., "colors" → "colors.json", or with modes: "theme" → "theme.light.json")
   splitModes: z.boolean().optional().default(true),   // Whether to split multi-mode collections into separate files per mode
   includeMode: z.boolean().optional().default(true),  // Whether to include mode as first-level key even when splitting
 });
@@ -43,6 +106,11 @@ export const ConfigSchema = z.object({
   figma: FigmaConfigSchema,
   output: OutputConfigSchema,
   sync: SyncConfigSchema,
+  css: CssConfigSchema,
+  scss: ScssConfigSchema,
+  js: JsConfigSchema,
+  tailwind: TailwindConfigSchema,
+  docs: DocsConfigSchema,
   collections: CollectionsConfigSchema,
 });
 

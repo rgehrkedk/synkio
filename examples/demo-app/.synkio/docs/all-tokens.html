@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-mode="default">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Tokens - Synkio Docs</title>
+  <link rel="stylesheet" href="assets/tokens.css">
+  <link rel="stylesheet" href="assets/utilities.css">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <!-- Sidebar -->
+    <aside class="docs-sidebar">
+      <a href="index.html" class="docs-logo">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="#6366f1"/>
+          <path d="M8 16L14 22L24 10" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Design Tokens
+      </a>
+      
+      <nav class="docs-nav">
+        <a href="index.html" class="">
+          Overview
+        </a>
+        
+        <div class="docs-nav-section">Collections</div>
+        
+        <a href="primitives.html" class="">
+          Primitives
+          <span class="docs-nav-count">12</span>
+        </a>
+        
+        <a href="colors.html" class="">
+          Colors
+          <span class="docs-nav-count">27</span>
+        </a>
+        
+        <a href="typography.html" class="">
+          Typography
+          <span class="docs-nav-count">15</span>
+        </a>
+        
+        <a href="theme.html" class="">
+          Theme
+          <span class="docs-nav-count">2</span>
+        </a>
+        
+        
+        <a href="all-tokens.html" class="active">
+          All Tokens
+        </a>
+        
+        <div class="docs-nav-section">Resources</div>
+        <a href="tokens.json" target="_blank">
+          tokens.json ↗
+        </a>
+      </nav>
+    </aside>
+    
+    <!-- Main content -->
+    <main class="docs-main">
+      <header class="docs-header">
+        <div>
+          <h1 class="docs-title">All Tokens</h1>
+          <p class="docs-subtitle">Last synced: Dec 15, 2025, 11:38 AM</p>
+        </div>
+        
+        <div class="docs-controls">
+          <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
+          
+          
+          <div class="docs-mode-switcher">
+            
+              <button class="docs-mode-btn active" data-mode="default">
+                Default
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="light">
+                Light
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="dark">
+                Dark
+              </button>
+            
+          </div>
+          
+          
+          <button class="docs-theme-toggle" id="themeToggle" title="Toggle theme">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+      
+      
+    <section class="docs-section">
+      <div class="docs-section-header">
+        <h2 class="docs-section-title">All Tokens</h2>
+        <span class="docs-section-count">56 tokens</span>
+      </div>
+      
+      <table class="docs-token-table">
+        <thead>
+          <tr>
+            <th>Path</th>
+            <th>Type</th>
+            <th>Value</th>
+            <th>Collection</th>
+            <th>Mode</th>
+            <th>CSS Variable</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+            <tr data-token="default.spacing.xs" data-mode="default">
+              <td><strong>default.spacing.xs</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="4">4</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-spacing-xs">--default-spacing-xs</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.spacing.sm" data-mode="default">
+              <td><strong>default.spacing.sm</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="8">8</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-spacing-sm">--default-spacing-sm</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.spacing.md" data-mode="default">
+              <td><strong>default.spacing.md</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="16">16</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-spacing-md">--default-spacing-md</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.spacing.lg" data-mode="default">
+              <td><strong>default.spacing.lg</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="24">24</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-spacing-lg">--default-spacing-lg</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.spacing.xl" data-mode="default">
+              <td><strong>default.spacing.xl</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="32">32</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-spacing-xl">--default-spacing-xl</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.spacing.2xl" data-mode="default">
+              <td><strong>default.spacing.2xl</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="48">48</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-spacing-2xl">--default-spacing-2xl</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.spacing.3xl" data-mode="default">
+              <td><strong>default.spacing.3xl</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="64">64</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-spacing-3xl">--default-spacing-3xl</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.radius.none" data-mode="default">
+              <td><strong>default.radius.none</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="0">0</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-radius-none">--default-radius-none</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.radius.sm" data-mode="default">
+              <td><strong>default.radius.sm</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="4">4</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-radius-sm">--default-radius-sm</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.radius.md" data-mode="default">
+              <td><strong>default.radius.md</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="8">8</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-radius-md">--default-radius-md</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.radius.lg" data-mode="default">
+              <td><strong>default.radius.lg</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="12">12</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-radius-lg">--default-radius-lg</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.radius.full" data-mode="default">
+              <td><strong>default.radius.full</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="9999">9999</code>
+              </td>
+              <td>primitives</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-radius-full">--default-radius-full</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.50" data-mode="default">
+              <td><strong>color.primary.50</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #eef2ff; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#eef2ff">#eef2ff</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-50">--color-primary-50</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.100" data-mode="default">
+              <td><strong>color.primary.100</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #e0e7ff; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#e0e7ff">#e0e7ff</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-100">--color-primary-100</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.200" data-mode="default">
+              <td><strong>color.primary.200</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #c7d2fe; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#c7d2fe">#c7d2fe</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-200">--color-primary-200</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.300" data-mode="default">
+              <td><strong>color.primary.300</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #a5b4fc; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#a5b4fc">#a5b4fc</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-300">--color-primary-300</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.400" data-mode="default">
+              <td><strong>color.primary.400</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #818cf8; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#818cf8">#818cf8</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-400">--color-primary-400</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.500" data-mode="default">
+              <td><strong>color.primary.500</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #6366f1; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#6366f1">#6366f1</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-500">--color-primary-500</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.600" data-mode="default">
+              <td><strong>color.primary.600</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #4f46e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#4f46e5">#4f46e5</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-600">--color-primary-600</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.700" data-mode="default">
+              <td><strong>color.primary.700</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #4338ca; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#4338ca">#4338ca</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-700">--color-primary-700</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.800" data-mode="default">
+              <td><strong>color.primary.800</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #3730a3; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#3730a3">#3730a3</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-800">--color-primary-800</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.primary.900" data-mode="default">
+              <td><strong>color.primary.900</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #312e81; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#312e81">#312e81</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-primary-900">--color-primary-900</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.50" data-mode="default">
+              <td><strong>color.neutral.50</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #fafafa; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#fafafa">#fafafa</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-50">--color-neutral-50</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.100" data-mode="default">
+              <td><strong>color.neutral.100</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #f5f5f5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#f5f5f5">#f5f5f5</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-100">--color-neutral-100</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.200" data-mode="default">
+              <td><strong>color.neutral.200</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #e5e5e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#e5e5e5">#e5e5e5</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-200">--color-neutral-200</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.300" data-mode="default">
+              <td><strong>color.neutral.300</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #d4d4d4; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#d4d4d4">#d4d4d4</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-300">--color-neutral-300</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.400" data-mode="default">
+              <td><strong>color.neutral.400</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #a3a3a3; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#a3a3a3">#a3a3a3</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-400">--color-neutral-400</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.500" data-mode="default">
+              <td><strong>color.neutral.500</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #737373; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#737373">#737373</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-500">--color-neutral-500</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.600" data-mode="default">
+              <td><strong>color.neutral.600</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #525252; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#525252">#525252</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-600">--color-neutral-600</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.700" data-mode="default">
+              <td><strong>color.neutral.700</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #404040; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#404040">#404040</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-700">--color-neutral-700</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.800" data-mode="default">
+              <td><strong>color.neutral.800</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #262626; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#262626">#262626</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-800">--color-neutral-800</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.neutral.900" data-mode="default">
+              <td><strong>color.neutral.900</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #171717; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#171717">#171717</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-neutral-900">--color-neutral-900</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.success.500" data-mode="default">
+              <td><strong>color.success.500</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #22c55e; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#22c55e">#22c55e</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-success-500">--color-success-500</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.warning.500" data-mode="default">
+              <td><strong>color.warning.500</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #f59e0b; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#f59e0b">#f59e0b</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-warning-500">--color-warning-500</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.error.500" data-mode="default">
+              <td><strong>color.error.500</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #ef4444; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#ef4444">#ef4444</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-error-500">--color-error-500</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.background.primary" data-mode="default">
+              <td><strong>color.background.primary</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #ffffff; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#ffffff">#ffffff</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-background-primary">--color-background-primary</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.background.secondary" data-mode="default">
+              <td><strong>color.background.secondary</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #f5f5f5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#f5f5f5">#f5f5f5</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-background-secondary">--color-background-secondary</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.text.primary" data-mode="default">
+              <td><strong>color.text.primary</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #171717; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#171717">#171717</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-text-primary">--color-text-primary</code>
+              </td>
+            </tr>
+          
+            <tr data-token="color.text.secondary" data-mode="default">
+              <td><strong>color.text.secondary</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #525252; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#525252">#525252</code>
+                  </span>
+              </td>
+              <td>colors</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--color-text-secondary">--color-text-secondary</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.size.xs" data-mode="default">
+              <td><strong>default.font.size.xs</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="12">12</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-size-xs">--default-font-size-xs</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.size.sm" data-mode="default">
+              <td><strong>default.font.size.sm</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="14">14</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-size-sm">--default-font-size-sm</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.size.base" data-mode="default">
+              <td><strong>default.font.size.base</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="16">16</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-size-base">--default-font-size-base</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.size.lg" data-mode="default">
+              <td><strong>default.font.size.lg</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="18">18</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-size-lg">--default-font-size-lg</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.size.xl" data-mode="default">
+              <td><strong>default.font.size.xl</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="20">20</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-size-xl">--default-font-size-xl</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.size.2xl" data-mode="default">
+              <td><strong>default.font.size.2xl</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="24">24</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-size-2xl">--default-font-size-2xl</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.size.3xl" data-mode="default">
+              <td><strong>default.font.size.3xl</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="30">30</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-size-3xl">--default-font-size-3xl</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.size.4xl" data-mode="default">
+              <td><strong>default.font.size.4xl</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="36">36</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-size-4xl">--default-font-size-4xl</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.weight.normal" data-mode="default">
+              <td><strong>default.font.weight.normal</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="400">400</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-weight-normal">--default-font-weight-normal</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.weight.medium" data-mode="default">
+              <td><strong>default.font.weight.medium</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="500">500</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-weight-medium">--default-font-weight-medium</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.weight.semibold" data-mode="default">
+              <td><strong>default.font.weight.semibold</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="600">600</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-weight-semibold">--default-font-weight-semibold</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.weight.bold" data-mode="default">
+              <td><strong>default.font.weight.bold</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="700">700</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-weight-bold">--default-font-weight-bold</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.lineHeight.tight" data-mode="default">
+              <td><strong>default.font.lineHeight.tight</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="1.25">1.25</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-lineheight-tight">--default-font-lineheight-tight</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.lineHeight.normal" data-mode="default">
+              <td><strong>default.font.lineHeight.normal</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="1.5">1.5</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-lineheight-normal">--default-font-lineheight-normal</code>
+              </td>
+            </tr>
+          
+            <tr data-token="default.font.lineHeight.relaxed" data-mode="default">
+              <td><strong>default.font.lineHeight.relaxed</strong></td>
+              <td><code>float</code></td>
+              <td>
+                <code data-copy="1.75">1.75</code>
+              </td>
+              <td>typography</td>
+              <td>default</td>
+              <td>
+                <code data-copy="--default-font-lineheight-relaxed">--default-font-lineheight-relaxed</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.primary.default" data-mode="light">
+              <td><strong>bg.primary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #888888; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="{&quot;$ref&quot;:&quot;VariableID:1:31&quot;}">{&quot;$ref&quot;:&quot;VariableID:1:31&quot;}</code>
+                  </span>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code data-copy="--bg-primary-default">--bg-primary-default</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.primary.default" data-mode="dark">
+              <td><strong>bg.primary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #888888; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="{&quot;$ref&quot;:&quot;VariableID:1:38&quot;}">{&quot;$ref&quot;:&quot;VariableID:1:38&quot;}</code>
+                  </span>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code data-copy="--bg-primary-default">--bg-primary-default</code>
+              </td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </section>
+  
+      
+      <footer class="docs-footer">
+        <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
+        <span>Last updated: Dec 15, 2025, 11:38 AM</span>
+      </footer>
+    </main>
+  </div>
+  
+  <button class="docs-mobile-toggle" id="mobileToggle">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  
+  <div class="docs-copied" id="copiedToast">Copied to clipboard!</div>
+  
+  <script src="assets/preview.js"></script>
+</body>
+</html>

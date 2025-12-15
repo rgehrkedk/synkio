@@ -1,0 +1,58 @@
+{
+  "default": {
+    "default": {
+      "spacing": {
+        "xs": {
+          "$value": 4,
+          "$type": "float"
+        },
+        "sm": {
+          "$value": 8,
+          "$type": "float"
+        },
+        "md": {
+          "$value": 16,
+          "$type": "float"
+        },
+        "lg": {
+          "$value": 24,
+          "$type": "float"
+        },
+        "xl": {
+          "$value": 32,
+          "$type": "float"
+        },
+        "2xl": {
+          "$value": 48,
+          "$type": "float"
+        },
+        "3xl": {
+          "$value": 64,
+          "$type": "float"
+        }
+      },
+      "radius": {
+        "none": {
+          "$value": 0,
+          "$type": "float"
+        },
+        "sm": {
+          "$value": 4,
+          "$type": "float"
+        },
+        "md": {
+          "$value": 8,
+          "$type": "float"
+        },
+        "lg": {
+          "$value": 12,
+          "$type": "float"
+        },
+        "full": {
+          "$value": 9999,
+          "$type": "float"
+        }
+      }
+    }
+  }
+}

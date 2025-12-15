@@ -68,13 +68,17 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
       extensions: config.output.extensions || {},
     });
     
-    const outDir = resolve(process.cwd(), config.output.dir);
-    await mkdir(outDir, { recursive: true });
+    const defaultOutDir = resolve(process.cwd(), config.output.dir);
+    await mkdir(defaultOutDir, { recursive: true });
 
     let filesWritten = 0;
-    for (const [fileName, content] of processedTokens) {
+    for (const [fileName, fileData] of processedTokens) {
+      const outDir = fileData.dir 
+        ? resolve(process.cwd(), fileData.dir) 
+        : defaultOutDir;
+      await mkdir(outDir, { recursive: true });
       const filePath = resolve(outDir, fileName);
-      await writeFile(filePath, JSON.stringify(content, null, 2));
+      await writeFile(filePath, JSON.stringify(fileData.content, null, 2));
       filesWritten++;
     }
 

@@ -12,9 +12,12 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [rollback](#rollback)
   - [validate](#validate)
   - [tokens](#tokens)
+  - [docs](#docs)
 - [Configuration](#configuration)
   - [Basic Config](#basic-config)
   - [Output Options](#output-options)
+  - [CSS Options](#css-options)
+  - [Docs Options](#docs-options)
   - [Sync Options](#sync-options)
   - [Collection Options](#collection-options)
 - [Output Formats](#output-formats)
@@ -114,6 +117,7 @@ npx synkio sync
 | `--watch` | Poll Figma for changes |
 | `--interval=<s>` | Watch interval in seconds (default: 30) |
 | `--collection=<name>` | Sync specific collection(s), comma-separated |
+| `--regenerate` | Regenerate files from existing baseline (no Figma fetch) |
 
 **Examples:**
 
@@ -132,6 +136,9 @@ npx synkio sync --collection=theme
 
 # Sync multiple collections
 npx synkio sync --collection=theme,base
+
+# Regenerate files after config change (no Figma fetch)
+npx synkio sync --regenerate
 ```
 
 ---
@@ -178,6 +185,42 @@ Debug utility to view current baseline.
 ```bash
 npx synkio tokens
 ```
+
+---
+
+### docs
+
+Generate a static documentation site for your design tokens.
+
+```bash
+npx synkio docs
+```
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--output=<dir>` | Output directory (default: `.synkio/docs`) |
+| `--open` | Open in browser after generating |
+
+**Examples:**
+
+```bash
+# Generate documentation
+npx synkio docs
+
+# Generate and open in browser
+npx synkio docs --open
+
+# Custom output directory
+npx synkio docs --output=styleguide
+```
+
+The generated site includes:
+- Color palettes with visual swatches
+- Typography scales with previews
+- Spacing tokens
+- CSS custom properties reference
+- Copy-to-clipboard functionality
 
 ---
 
@@ -233,6 +276,216 @@ Configuration is stored in `tokensrc.json` in your project root.
 | `extensions.scopes` | `false` | Include usage scopes |
 | `extensions.codeSyntax` | `false` | Include platform code names |
 
+### CSS Options
+
+Generate CSS custom properties and utility classes:
+
+```json
+{
+  "css": {
+    "enabled": true,
+    "file": "tokens.css",
+    "utilities": true,
+    "utilitiesFile": "utilities.css",
+    "transforms": {
+      "useRem": true,
+      "basePxFontSize": 16
+    }
+  }
+}
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `false` | Generate CSS custom properties |
+| `file` | `tokens.css` | CSS output filename |
+| `utilities` | `false` | Generate utility classes |
+| `utilitiesFile` | `utilities.css` | Utilities filename |
+| `transforms.useRem` | `false` | Use rem units instead of px |
+| `transforms.basePxFontSize` | `16` | Base font size for rem calculations |
+
+**Transform Examples:**
+
+With `useRem: false` (default):
+```css
+--spacing-md: 16px;
+--font-size-lg: 24px;
+```
+
+With `useRem: true`:
+```css
+--spacing-md: 1rem;
+--font-size-lg: 1.5rem;
+```
+
+### Docs Options
+
+Generate a static documentation site:
+
+```json
+{
+  "docs": {
+    "enabled": true,
+    "dir": ".synkio/docs",
+    "title": "Design Tokens"
+  }
+}
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `false` | Generate documentation site |
+| `dir` | `.synkio/docs` | Documentation output directory |
+| `title` | `Design Tokens` | Site title |
+
+### SCSS Options
+
+Generate SCSS variables and optional maps:
+
+```json
+{
+  "scss": {
+    "enabled": true,
+    "file": "_tokens.scss",
+    "maps": true,
+    "prefix": "",
+    "transforms": {
+      "useRem": false,
+      "basePxFontSize": 16
+    }
+  }
+}
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `false` | Generate SCSS variables |
+| `file` | `_tokens.scss` | SCSS output filename |
+| `maps` | `false` | Generate SCSS maps for programmatic access |
+| `prefix` | `""` | Prefix for variable names |
+| `transforms.useRem` | `false` | Use rem units instead of px |
+| `transforms.basePxFontSize` | `16` | Base font size for rem calculations |
+
+**SCSS Output Example:**
+
+```scss
+// Variables
+$color-primary-500: #6366f1;
+$spacing-md: 16px;
+
+// Maps (when maps: true)
+$colors: (
+  'primary-500': #6366f1,
+  'primary-600': #4f46e5,
+);
+```
+
+### JavaScript/TypeScript Options
+
+Generate JS/TS token exports:
+
+```json
+{
+  "js": {
+    "enabled": true,
+    "file": "tokens.ts",
+    "format": "nested",
+    "typescript": true,
+    "reactNative": false,
+    "moduleFormat": "esm"
+  }
+}
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `false` | Generate JavaScript/TypeScript tokens |
+| `file` | `tokens.js` | Output filename (.ts if typescript: true) |
+| `format` | `nested` | `nested` for object hierarchy, `flat` for individual exports |
+| `typescript` | `false` | Generate TypeScript with type definitions |
+| `reactNative` | `false` | Use React Native transforms (unitless numbers) |
+| `moduleFormat` | `esm` | `esm` for ES modules, `cjs` for CommonJS |
+
+**Nested Format Example:**
+
+```typescript
+export const tokens = {
+  color: {
+    primary: {
+      500: '#6366f1',
+    }
+  },
+  spacing: {
+    md: '16px',
+  }
+};
+```
+
+**Flat Format Example:**
+
+```typescript
+export const colorPrimary500 = '#6366f1';
+export const spacingMd = '16px';
+```
+
+**React Native Example (unitless):**
+
+```typescript
+export const tokens = {
+  spacing: {
+    md: 16,  // No 'px' unit
+  },
+  fontSize: {
+    lg: 24,  // No 'px' unit
+  }
+};
+```
+
+### Tailwind CSS Options
+
+Generate Tailwind configuration:
+
+```json
+{
+  "tailwind": {
+    "enabled": true,
+    "file": "tailwind.tokens.js",
+    "extend": true,
+    "esm": true,
+    "cssVariables": false
+  }
+}
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `false` | Generate Tailwind config |
+| `file` | `tailwind.tokens.js` | Output filename |
+| `extend` | `true` | Use `theme.extend` (true) or replace theme (false) |
+| `esm` | `true` | ES module (true) or CommonJS (false) |
+| `cssVariables` | `false` | Use CSS variable references instead of raw values |
+
+**Tailwind Output Example:**
+
+```javascript
+export default {
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          500: '#6366f1',
+          600: '#4f46e5',
+        }
+      },
+      spacing: {
+        md: '1rem',
+        lg: '1.5rem',
+      }
+    }
+  }
+};
+```
+
 ### Sync Options
 
 ```json
@@ -256,6 +509,14 @@ Configure per-collection output behavior:
 ```json
 {
   "collections": {
+    "colors": {
+      "dir": "src/styles/tokens/colors",
+      "splitModes": false
+    },
+    "primitives": {
+      "dir": "src/styles/tokens/primitives",
+      "splitModes": false
+    },
     "theme": {
       "splitModes": true,
       "includeMode": true
@@ -266,8 +527,11 @@ Configure per-collection output behavior:
 
 | Option | Default | Description |
 |--------|---------|-------------|
+| `dir` | `output.dir` | Custom output directory for this collection |
 | `splitModes` | `true` | Separate files per mode (`theme.light.json`, `theme.dark.json`) |
 | `includeMode` | `true` | Include mode as first-level key in JSON |
+
+After changing collection config, run `npx synkio sync --regenerate` to regenerate files without fetching from Figma.
 
 ---
 

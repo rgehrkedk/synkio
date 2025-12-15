@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+
+# Generated files (optional - can be committed for demo)
+# synkio-docs/
+# tokens/
+
+# OS
+.DS_Store

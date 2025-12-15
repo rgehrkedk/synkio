@@ -1,0 +1,15 @@
+{
+  "name": "synkio-demo-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo app showcasing Synkio design tokens integration",
+  "scripts": {
+    "dev": "npx serve src",
+    "sync": "npx synkio sync",
+    "docs": "npx synkio docs --open",
+    "validate": "npx synkio validate"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
