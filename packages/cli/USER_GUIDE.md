@@ -44,7 +44,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
 ### 1. Install
 
 ```bash
-npm install @synkio/cli --save-dev
+npm install synkio --save-dev
 ```
 
 ### 2. Initialize

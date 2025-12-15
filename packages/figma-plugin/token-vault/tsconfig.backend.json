@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "lib": ["ES2017"]
-  },
-  "include": ["src/code.ts", "src/backend/**/*", "src/types/**/*"],
-  "exclude": ["src/ui/**/*", "tests/**/*"]
-}

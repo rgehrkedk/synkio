@@ -1,5 +1,5 @@
 {
-  "name": "@synkio/cli",
+  "name": "synkio",
   "version": "1.0.0",
   "description": "Zero-config design token sync from Figma to code",
   "type": "module",
@@ -8,6 +8,15 @@
   "bin": {
     "synkio": "./dist/cli/bin.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rgehrkedk/synkio.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/rgehrkedk/synkio#readme",
+  "bugs": {
+    "url": "https://github.com/rgehrkedk/synkio/issues"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -15,7 +24,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "USER_GUIDE.md"
   ],
   "scripts": {
     "build": "tsc && chmod +x dist/cli/bin.js",

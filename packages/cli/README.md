@@ -4,7 +4,7 @@
 
 Synkio is a lightweight CLI that bridges Figma variables and your codebase. No complex setup, no plugins to configure—just run and sync.
 
-[![npm version](https://img.shields.io/npm/v/@synkio/cli.svg)](https://www.npmjs.com/package/@synkio/cli)
+[![npm version](https://img.shields.io/npm/v/synkio.svg)](https://www.npmjs.com/package/synkio)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Features
@@ -21,7 +21,7 @@ Synkio is a lightweight CLI that bridges Figma variables and your codebase. No c
 ### 1. Install
 
 ```bash
-npm install @synkio/cli --save-dev
+npm install synkio --save-dev
 ```
 
 ### 2. Initialize

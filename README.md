@@ -1,215 +1,111 @@
 # Synkio
 
-**Designer-first design token synchronization from Figma to code.**
+**Sync Figma design tokens to code in seconds.**
 
-Synkio enables designers and developers to sync Figma Variables to their codebase with zero friction. One click in Figma, instant updates in code.
+Synkio is a lightweight CLI that bridges Figma variables and your codebase. No complex setup, no plugins to configure—just run and sync.
 
----
+[![npm version](https://img.shields.io/npm/v/synkio.svg)](https://www.npmjs.com/package/synkio)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## 🚀 Quick Start
+## Features
 
-### For Developers
+- **⚡ One-command setup** — Get started in under 2 minutes
+- **🔒 Breaking change protection** — Prevents accidental breakage from design changes
+- **👀 Preview mode** — Review changes before applying (like a designer's PR)
+- **↩️ Rollback** — Instantly revert to previous token state
+- **📊 DTCG format** — Standards-compliant output with `$value` and `$type`
+- **🎯 Selective sync** — Sync specific collections only
+- **👁️ Watch mode** — Auto-sync when Figma changes
+
+## Quick Start
+
+### 1. Install
 
 ```bash
-# Install CLI
-npm install -g @synkio/core
+npm install synkio --save-dev
+```
 
-# Initialize in your project
+### 2. Initialize
+
+```bash
 npx synkio init
+```
 
-# Sync tokens from Figma
+This creates `tokensrc.json` and `.env` with your Figma credentials.
+
+### 3. Run the Figma Plugin
+
+Open your Figma file and run the **Synkio** plugin to prepare your variables.
+
+### 4. Sync
+
+```bash
 npx synkio sync
 ```
 
-### For Designers
+Your tokens are now in your project! 🎉
 
-1. Install [Synkio Export Plugin](https://figma.com/community/plugin/synkio-export) in Figma
-2. Open your design file
-3. Click "Sync to Node" → Copy the node ID
-4. Share with your dev team
+## Commands
 
-### For Everyone
+| Command | Description |
+|---------|-------------|
+| `synkio init` | Initialize project with Figma credentials |
+| `synkio sync` | Fetch tokens from Figma |
+| `synkio sync --preview` | Preview changes without applying |
+| `synkio sync --watch` | Watch for Figma changes |
+| `synkio sync --collection=<name>` | Sync specific collection(s) |
+| `synkio rollback` | Revert to previous sync |
+| `synkio rollback --preview` | Preview rollback changes |
+| `synkio validate` | Check config and connection |
 
-Visit [synkio.io](https://synkio.io) to preview your tokens visually without installing anything.
+## Configuration
 
----
+Synkio is configured via `tokensrc.json`:
 
-## 📦 Packages
-
-This is a monorepo containing:
-
-- **[@synkio/core](packages/core/)** - NPM package for CLI and programmatic API
-- **[plugin-export](packages/plugin-export/)** - Figma plugin for exporting variables
-- **[plugin-import](packages/plugin-import/)** - Figma plugin for importing JSON tokens
-- **[dashboard](apps/dashboard/)** - Web dashboard at synkio.io
-
----
-
-## ✨ Features
-
-- 🎨 **Visual Preview** - See your tokens rendered as colors, typography, spacing
-- 🔄 **Bidirectional Sync** - Import JSON to Figma, export Variables to code
-- 🎯 **Framework Agnostic** - Works with Next.js, Remix, Vite, plain HTML
-- 🎨 **Style Dictionary** - Automatic token compilation to CSS, SCSS, Tailwind
-- 🔍 **Smart Diff** - See what changed before syncing
-- 🔄 **Code Migration** - Auto-update token references in your codebase
-- 💾 **Backup & Rollback** - Never lose your tokens
-
----
-
-## 🏗️ Architecture
-
-```
-Figma Variables
-       ↓
-  Synkio Plugin (export to Node data)
-       ↓
-  Figma REST API
-       ↓
-  @synkio/core (CLI/API)
-       ↓
-  Your codebase (JSON tokens)
-       ↓
-  Style Dictionary (optional)
-       ↓
-  CSS/SCSS/Tailwind/etc.
+```json
+{
+  "version": "1.0.0",
+  "figma": {
+    "fileId": "your-file-id",
+    "accessToken": "${FIGMA_TOKEN}"
+  },
+  "output": {
+    "dir": "tokens"
+  }
+}
 ```
 
----
+## Breaking Change Protection
 
-## 📖 Documentation
+Synkio automatically detects changes that could break your code:
 
-- [Getting Started](docs/getting-started.md)
-- [CLI Reference](docs/cli-reference.md)
-- [API Reference](docs/api-reference.md)
-- [Plugin Guide](docs/plugin-guide.md)
-- [Examples](examples/)
+- **Path changes** — Token renamed
+- **Deleted variables** — Token removed  
+- **Deleted modes** — Theme mode removed
+- **New modes** — New theme mode added
 
----
+When detected, sync is blocked until you review with `--preview` or force with `--force`.
 
-## 🔧 Troubleshooting
+## Documentation
 
-### Figma API Issues
+- [User Guide](packages/cli/USER_GUIDE.md) — Complete reference for all commands and options
+- [CLI Package](packages/cli/) — npm package source
+- [Figma Plugin](packages/figma-plugin/synkio-sync/) — Figma plugin source
 
-**Rate Limiting (429 errors)**
-
-Synkio automatically handles Figma API rate limits with exponential backoff retry (1s, 2s, 4s). If you see repeated rate limit errors:
-
-```bash
-# Retry automatically happens in the background
-# Check the request ID in error messages for debugging
-```
-
-**Server Errors (5xx)**
-
-Temporary Figma server issues are automatically retried up to 3 times. If sync continues to fail:
-
-1. Check [Figma Status](https://status.figma.com) for outages
-2. Verify your access token is valid
-3. Try again in a few minutes
-
-**Authentication Errors (403)**
+## Repository Structure
 
 ```
-Error: Figma API error (403): Forbidden
+synkio/
+├── packages/
+│   ├── cli/                 # npm package (synkio)
+│   │   ├── src/             # TypeScript source
+│   │   ├── USER_GUIDE.md    # Full documentation
+│   │   └── ROADMAP.md       # Planned features
+│   └── figma-plugin/
+│       └── synkio-sync/     # Figma plugin
+└── README.md
 ```
 
-This means your `FIGMA_ACCESS_TOKEN` is invalid or expired:
+## License
 
-1. Generate a new token at [Figma Settings → Personal Access Tokens](https://figma.com/settings)
-2. Update your `.env` file: `FIGMA_ACCESS_TOKEN=figd_...`
-3. Run `synkio sync` again
-
-### Configuration Errors
-
-**Missing Configuration**
-
-```
-Error: Configuration not found.
-Run 'synkio init' to create a configuration file.
-```
-
-Solution: Run `synkio init` to create `tokensrc.json` in your project root.
-
-**Invalid Configuration**
-
-```
-Error: figma.fileId is required
-```
-
-Zod validation ensures your config is correct. The error message will tell you exactly what's missing or invalid. Common fixes:
-
-- Add missing required fields to `tokensrc.json`
-- Fix typos in field names (strict validation catches this)
-- Ensure `version` follows semver format: `"1.0.0"`
-
-### Debug Mode
-
-Enable verbose logging to see detailed information about API calls and retry attempts:
-
-```bash
-DEBUG=1 synkio sync
-```
-
-This shows:
-- Figma API request/response details
-- Retry attempts and backoff timing
-- Token processing steps
-- File operations
-
-### Network Issues
-
-**Timeout Errors**
-
-```
-Error: Request timeout after 30000ms
-```
-
-This means the Figma API didn't respond within 30 seconds. Usually caused by:
-
-- Slow network connection
-- Very large Figma files
-- Figma API slowdown
-
-Solution:
-1. Check your internet connection
-2. Try again (timeouts are rare and usually transient)
-3. If persistent, the file might be too large - contact support
-
-### Getting Help
-
-If you encounter issues not covered here:
-
-1. Check the [documentation](https://synkio.io/docs)
-2. Search [GitHub Issues](https://github.com/rgehrkedk/synkio/issues)
-3. Open a new issue with:
-   - Error message and stack trace
-   - Output from `DEBUG=1 synkio sync`
-   - Your `tokensrc.json` (redact sensitive info)
-   - Request ID from error message (if applicable)
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-## 🔗 Links
-
-- [Website](https://synkio.io)
-- [Documentation](https://synkio.io/docs)
-- [NPM Package](https://npmjs.com/package/@synkio/core)
-- [GitHub](https://github.com/rgehrkedk/synkio)
-- [Figma Community](https://figma.com/community/plugin/synkio)
-
----
-
-**Made with ❤️ for designers and developers**
+MIT © [Synkio](https://github.com/rgehrkedk/synkio)
