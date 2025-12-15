@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import { resolve, join } from 'path';
 import { BaselineData } from '../types/index.js';
 import { Config } from './config.js';
-import { parseTokens } from './docs/index.js';
+import { parseTokens, ParsedTokens } from './docs/index.js';
 import { generateTokensCSS, generateUtilitiesCSS } from './docs/css-generator.js';
 import { generateDocs } from './docs/index.js';
 import { CSSTransformOptions } from './transforms/index.js';
@@ -11,47 +11,96 @@ import { generateJS, generateTSTypes } from './generators/js-generator.js';
 import { generateTailwindConfig } from './generators/tailwind-generator.js';
 
 /**
+ * Result of a transform generation
+ */
+interface TransformResult {
+  files: string[];
+  outputDir: string;
+}
+
+/**
+ * Empty result for disabled transforms
+ */
+const EMPTY_RESULT: TransformResult = { files: [], outputDir: '' };
+
+/**
+ * Common options for transform generation
+ */
+interface TransformContext {
+  outputDir: string;
+  tokens: ParsedTokens;
+  modeNames: string[];
+}
+
+/**
+ * Prepare common context for transform generation
+ * Handles directory creation and token parsing
+ */
+async function prepareTransformContext(
+  baseline: BaselineData,
+  dir: string | undefined,
+  defaultDir: string
+): Promise<TransformContext> {
+  const outputDir = resolve(process.cwd(), dir || defaultDir);
+  await mkdir(outputDir, { recursive: true });
+  
+  const tokens = parseTokens(baseline);
+  const modeNames = Array.from(tokens.modes.keys());
+  
+  return { outputDir, tokens, modeNames };
+}
+
+/**
+ * Build CSS transform options from config
+ */
+function buildTransformOptions(
+  transforms?: { useRem?: boolean; basePxFontSize?: number },
+  defaults: { useRem: boolean } = { useRem: false }
+): CSSTransformOptions {
+  return {
+    useRem: transforms?.useRem ?? defaults.useRem,
+    basePxFontSize: transforms?.basePxFontSize ?? 16,
+  };
+}
+
+/**
+ * Write a file and track it in the files array
+ */
+async function writeTransformFile(
+  outputDir: string,
+  fileName: string,
+  content: string,
+  files: string[]
+): Promise<void> {
+  await writeFile(join(outputDir, fileName), content, 'utf-8');
+  files.push(fileName);
+}
+
+/**
  * Generate CSS files from baseline data
  */
 export async function generateCssFromBaseline(
   baseline: BaselineData,
   config: Config
-): Promise<{ files: string[]; outputDir: string }> {
+): Promise<TransformResult> {
   const cssConfig = config.css;
+  if (!cssConfig?.enabled) return EMPTY_RESULT;
   
-  if (!cssConfig?.enabled) {
-    return { files: [], outputDir: '' };
-  }
-  
-  // Use css.dir if specified, otherwise fall back to output.dir
-  const outputDir = resolve(process.cwd(), cssConfig.dir || config.output.dir);
-  await mkdir(outputDir, { recursive: true });
-  
-  const tokens = parseTokens(baseline);
-  const modeNames = Array.from(tokens.modes.keys());
+  const ctx = await prepareTransformContext(baseline, cssConfig.dir, config.output.dir);
   const files: string[] = [];
-  
-  // Build transform options from config
-  const transformOptions: CSSTransformOptions = {
-    useRem: cssConfig.transforms?.useRem ?? false,
-    basePxFontSize: cssConfig.transforms?.basePxFontSize ?? 16,
-  };
+  const transformOptions = buildTransformOptions(cssConfig.transforms);
   
   // Generate tokens.css
-  const tokensCSS = generateTokensCSS(tokens.all, modeNames, transformOptions);
-  const tokensCssFile = cssConfig.file || 'tokens.css';
-  await writeFile(join(outputDir, tokensCssFile), tokensCSS, 'utf-8');
-  files.push(tokensCssFile);
+  const tokensCSS = generateTokensCSS(ctx.tokens.all, ctx.modeNames, transformOptions);
+  await writeTransformFile(ctx.outputDir, cssConfig.file || 'tokens.css', tokensCSS, files);
   
   // Generate utilities.css if enabled
   if (cssConfig.utilities) {
-    const utilitiesCSS = generateUtilitiesCSS(tokens.all);
-    const utilitiesFile = cssConfig.utilitiesFile || 'utilities.css';
-    await writeFile(join(outputDir, utilitiesFile), utilitiesCSS, 'utf-8');
-    files.push(utilitiesFile);
+    const utilitiesCSS = generateUtilitiesCSS(ctx.tokens.all);
+    await writeTransformFile(ctx.outputDir, cssConfig.utilitiesFile || 'utilities.css', utilitiesCSS, files);
   }
   
-  return { files, outputDir };
+  return { files, outputDir: ctx.outputDir };
 }
 
 /**
@@ -100,38 +149,24 @@ export async function generateDocsFromBaseline(
 export async function generateScssFromBaseline(
   baseline: BaselineData,
   config: Config
-): Promise<{ files: string[]; outputDir: string }> {
+): Promise<TransformResult> {
   const scssConfig = config.scss;
+  if (!scssConfig?.enabled) return EMPTY_RESULT;
   
-  if (!scssConfig?.enabled) {
-    return { files: [], outputDir: '' };
-  }
-  
-  // Use scss.dir if specified, otherwise fall back to output.dir
-  const outputDir = resolve(process.cwd(), scssConfig.dir || config.output.dir);
-  await mkdir(outputDir, { recursive: true });
-  
-  const tokens = parseTokens(baseline);
-  const modeNames = Array.from(tokens.modes.keys());
+  const ctx = await prepareTransformContext(baseline, scssConfig.dir, config.output.dir);
   const files: string[] = [];
-  
-  const transformOptions: CSSTransformOptions = {
-    useRem: scssConfig.transforms?.useRem ?? false,
-    basePxFontSize: scssConfig.transforms?.basePxFontSize ?? 16,
-  };
+  const transformOptions = buildTransformOptions(scssConfig.transforms);
   
   // Generate SCSS
-  const scss = generateSCSS(tokens.all, modeNames, {
+  const scss = generateSCSS(ctx.tokens.all, ctx.modeNames, {
     ...transformOptions,
     maps: scssConfig.maps ?? false,
     prefix: scssConfig.prefix ?? '',
   });
   
-  const scssFile = scssConfig.file || '_tokens.scss';
-  await writeFile(join(outputDir, scssFile), scss, 'utf-8');
-  files.push(scssFile);
+  await writeTransformFile(ctx.outputDir, scssConfig.file || '_tokens.scss', scss, files);
   
-  return { files, outputDir };
+  return { files, outputDir: ctx.outputDir };
 }
 
 /**
@@ -140,23 +175,15 @@ export async function generateScssFromBaseline(
 export async function generateJsFromBaseline(
   baseline: BaselineData,
   config: Config
-): Promise<{ files: string[]; outputDir: string }> {
+): Promise<TransformResult> {
   const jsConfig = config.js;
+  if (!jsConfig?.enabled) return EMPTY_RESULT;
   
-  if (!jsConfig?.enabled) {
-    return { files: [], outputDir: '' };
-  }
-  
-  // Use js.dir if specified, otherwise fall back to output.dir
-  const outputDir = resolve(process.cwd(), jsConfig.dir || config.output.dir);
-  await mkdir(outputDir, { recursive: true });
-  
-  const tokens = parseTokens(baseline);
-  const modeNames = Array.from(tokens.modes.keys());
+  const ctx = await prepareTransformContext(baseline, jsConfig.dir, config.output.dir);
   const files: string[] = [];
   
   // Generate JS/TS
-  const js = generateJS(tokens.all, modeNames, {
+  const js = generateJS(ctx.tokens.all, ctx.modeNames, {
     format: jsConfig.format ?? 'nested',
     typescript: jsConfig.typescript ?? false,
     reactNative: jsConfig.reactNative ?? false,
@@ -169,21 +196,16 @@ export async function generateJsFromBaseline(
     jsFile = jsFile.replace(/\.js$/, '.ts');
   }
   
-  await writeFile(join(outputDir, jsFile), js, 'utf-8');
-  files.push(jsFile);
+  await writeTransformFile(ctx.outputDir, jsFile, js, files);
   
-  // Generate TypeScript type definitions if needed
-  if (jsConfig.typescript) {
-    const types = generateTSTypes(tokens.all, modeNames);
+  // Generate TypeScript type definitions if needed (only for .js files)
+  if (jsConfig.typescript && !jsFile.endsWith('.ts')) {
+    const types = generateTSTypes(ctx.tokens.all, ctx.modeNames);
     const typesFile = jsFile.replace(/\.(js|ts)$/, '.d.ts');
-    // Only write separate .d.ts if the main file is .js
-    if (!jsFile.endsWith('.ts')) {
-      await writeFile(join(outputDir, typesFile), types, 'utf-8');
-      files.push(typesFile);
-    }
+    await writeTransformFile(ctx.outputDir, typesFile, types, files);
   }
   
-  return { files, outputDir };
+  return { files, outputDir: ctx.outputDir };
 }
 
 /**
@@ -192,39 +214,25 @@ export async function generateJsFromBaseline(
 export async function generateTailwindFromBaseline(
   baseline: BaselineData,
   config: Config
-): Promise<{ files: string[]; outputDir: string }> {
+): Promise<TransformResult> {
   const tailwindConfig = config.tailwind;
+  if (!tailwindConfig?.enabled) return EMPTY_RESULT;
   
-  if (!tailwindConfig?.enabled) {
-    return { files: [], outputDir: '' };
-  }
-  
-  // Use tailwind.dir if specified, otherwise fall back to output.dir
-  const outputDir = resolve(process.cwd(), tailwindConfig.dir || config.output.dir);
-  await mkdir(outputDir, { recursive: true });
-  
-  const tokens = parseTokens(baseline);
-  const modeNames = Array.from(tokens.modes.keys());
+  const ctx = await prepareTransformContext(baseline, tailwindConfig.dir, config.output.dir);
   const files: string[] = [];
-  
-  const transformOptions: CSSTransformOptions = {
-    useRem: tailwindConfig.transforms?.useRem ?? true,
-    basePxFontSize: tailwindConfig.transforms?.basePxFontSize ?? 16,
-  };
+  const transformOptions = buildTransformOptions(tailwindConfig.transforms, { useRem: true });
   
   // Generate Tailwind config
-  const tailwind = generateTailwindConfig(tokens.all, modeNames, {
+  const tailwind = generateTailwindConfig(ctx.tokens.all, ctx.modeNames, {
     ...transformOptions,
     extend: tailwindConfig.extend ?? true,
     esm: tailwindConfig.esm ?? true,
     cssVariables: tailwindConfig.cssVariables ?? false,
   });
   
-  const tailwindFile = tailwindConfig.file || 'tailwind.tokens.js';
-  await writeFile(join(outputDir, tailwindFile), tailwind, 'utf-8');
-  files.push(tailwindFile);
+  await writeTransformFile(ctx.outputDir, tailwindConfig.file || 'tailwind.tokens.js', tailwind, files);
   
-  return { files, outputDir };
+  return { files, outputDir: ctx.outputDir };
 }
 
 /**
@@ -234,11 +242,11 @@ export async function generateAllFromBaseline(
   baseline: BaselineData,
   config: Config
 ): Promise<{
-  css: { files: string[]; outputDir: string };
-  scss: { files: string[]; outputDir: string };
-  js: { files: string[]; outputDir: string };
-  tailwind: { files: string[]; outputDir: string };
-  docs: { files: string[]; outputDir: string };
+  css: TransformResult;
+  scss: TransformResult;
+  js: TransformResult;
+  tailwind: TransformResult;
+  docs: TransformResult;
 }> {
   const [css, scss, js, tailwind, docs] = await Promise.all([
     generateCssFromBaseline(baseline, config),

@@ -30,18 +30,24 @@ const SyncConfigSchema = z.object({
   reportHistory: z.boolean().optional().default(false), // Keep timestamped reports as changelog
 }).optional();
 
-// CSS output configuration
-const CssConfigSchema = z.object({
-  enabled: z.boolean().optional().default(false),      // Generate CSS custom properties
+// Shared transform options schema (useRem, basePxFontSize)
+const TransformOptionsSchema = z.object({
+  useRem: z.boolean().optional(),                      // Use rem instead of px for dimensions
+  basePxFontSize: z.number().optional().default(16),   // Base font size for rem calculations
+}).optional();
+
+// Base schema for transform outputs (enabled, dir, file)
+const BaseTransformSchema = z.object({
+  enabled: z.boolean().optional().default(false),
   dir: z.string().optional(),                          // Output directory (defaults to output.dir)
+});
+
+// CSS output configuration
+const CssConfigSchema = BaseTransformSchema.extend({
   file: z.string().optional().default('tokens.css'),   // Output filename
   utilities: z.boolean().optional().default(false),    // Generate utility classes
   utilitiesFile: z.string().optional().default('utilities.css'), // Utilities filename
-  // Transform options
-  transforms: z.object({
-    useRem: z.boolean().optional().default(false),     // Use rem instead of px for dimensions
-    basePxFontSize: z.number().optional().default(16), // Base font size for rem calculations
-  }).optional(),
+  transforms: TransformOptionsSchema,
 }).optional();
 
 // Documentation/Dashboard configuration
@@ -52,23 +58,15 @@ const DocsConfigSchema = z.object({
 }).optional();
 
 // SCSS output configuration
-const ScssConfigSchema = z.object({
-  enabled: z.boolean().optional().default(false),      // Generate SCSS variables
-  dir: z.string().optional(),                          // Output directory (defaults to output.dir)
+const ScssConfigSchema = BaseTransformSchema.extend({
   file: z.string().optional().default('_tokens.scss'), // Output filename
   maps: z.boolean().optional().default(false),         // Generate SCSS maps
   prefix: z.string().optional().default(''),           // Variable name prefix
-  // Transform options (shared with CSS)
-  transforms: z.object({
-    useRem: z.boolean().optional().default(false),
-    basePxFontSize: z.number().optional().default(16),
-  }).optional(),
+  transforms: TransformOptionsSchema,
 }).optional();
 
 // JavaScript/TypeScript output configuration
-const JsConfigSchema = z.object({
-  enabled: z.boolean().optional().default(false),      // Generate JS/TS tokens
-  dir: z.string().optional(),                          // Output directory (defaults to output.dir)
+const JsConfigSchema = BaseTransformSchema.extend({
   file: z.string().optional().default('tokens.js'),    // Output filename
   format: z.enum(['nested', 'flat']).optional().default('nested'), // Object structure
   typescript: z.boolean().optional().default(false),   // Generate TypeScript with types
@@ -77,18 +75,12 @@ const JsConfigSchema = z.object({
 }).optional();
 
 // Tailwind CSS configuration
-const TailwindConfigSchema = z.object({
-  enabled: z.boolean().optional().default(false),      // Generate Tailwind config
-  dir: z.string().optional(),                          // Output directory (defaults to output.dir)
+const TailwindConfigSchema = BaseTransformSchema.extend({
   file: z.string().optional().default('tailwind.tokens.js'), // Output filename
   extend: z.boolean().optional().default(true),        // Use theme.extend
   esm: z.boolean().optional().default(true),           // ES module format
   cssVariables: z.boolean().optional().default(false), // Use CSS variable references
-  // Transform options
-  transforms: z.object({
-    useRem: z.boolean().optional().default(true),      // Tailwind typically uses rem
-    basePxFontSize: z.number().optional().default(16),
-  }).optional(),
+  transforms: TransformOptionsSchema,
 }).optional();
 
 // Collection-specific configuration

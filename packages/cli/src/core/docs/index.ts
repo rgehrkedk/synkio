@@ -30,9 +30,9 @@ export interface ParsedToken {
 }
 
 /**
- * Parse baseline data into categorized tokens
+ * Result of parsing tokens from baseline
  */
-export function parseTokens(baseline: BaselineData): {
+export interface ParsedTokens {
   colors: ParsedToken[];
   typography: ParsedToken[];
   spacing: ParsedToken[];
@@ -40,7 +40,12 @@ export function parseTokens(baseline: BaselineData): {
   all: ParsedToken[];
   collections: Map<string, ParsedToken[]>;
   modes: Map<string, ParsedToken[]>;
-} {
+}
+
+/**
+ * Parse baseline data into categorized tokens
+ */
+export function parseTokens(baseline: BaselineData): ParsedTokens {
   const colors: ParsedToken[] = [];
   const typography: ParsedToken[] = [];
   const spacing: ParsedToken[] = [];
