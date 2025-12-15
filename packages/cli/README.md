@@ -89,7 +89,6 @@ When detected, sync is blocked until you review with `--preview` or force with `
 ## Documentation
 
 - [User Guide](USER_GUIDE.md) — Complete reference for all commands and options
-- [Roadmap](ROADMAP.md) — Planned features
 
 ## License
 

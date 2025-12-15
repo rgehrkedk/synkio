@@ -99,8 +99,7 @@ synkio/
 ├── packages/
 │   ├── cli/                 # npm package (synkio)
 │   │   ├── src/             # TypeScript source
-│   │   ├── USER_GUIDE.md    # Full documentation
-│   │   └── ROADMAP.md       # Planned features
+│   │   └── USER_GUIDE.md    # Full documentation
 │   └── figma-plugin/
 │       └── synkio-sync/     # Figma plugin
 └── README.md
