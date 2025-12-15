@@ -1,11 +1,11 @@
 {
   "name": "synkio",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Sync Figma variables to design tokens with breaking change protection",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "synkio": "./dist/cli/bin.js"
+    "synkio": "dist/cli/bin.js"
   },
   "repository": {
     "type": "git",
