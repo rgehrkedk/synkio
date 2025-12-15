@@ -30,6 +30,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [Watch Mode](#watch-mode)
   - [Selective Sync](#selective-sync)
   - [Rollback Preview](#rollback-preview)
+- [Hosting Documentation](#hosting-your-documentation)
 - [Figma Setup](#figma-setup)
 
 ---
@@ -222,6 +223,27 @@ The generated site includes:
 - Spacing tokens
 - CSS custom properties reference
 - Copy-to-clipboard functionality
+
+### Hosting Your Documentation
+
+The generated docs are static HTML and can be hosted anywhere. For plug-and-play deployment:
+
+**GitHub Pages (recommended):**
+```bash
+# Copy the workflow to your project
+mkdir -p .github/workflows
+curl -o .github/workflows/deploy-docs.yml \
+  https://raw.githubusercontent.com/rgehrkedk/synkio/main/.github/workflows/deploy-docs.yml
+```
+
+Then enable GitHub Pages in your repository settings (Source: GitHub Actions).
+
+**Other options:**
+- Netlify: Connect repo, set build command to `npm ci && npx synkio docs`
+- Vercel: Connect repo, set output directory to `.synkio/docs`
+- Docker: See hosting guide for Dockerfile
+
+See the full [Hosting Guide](../../docs/HOSTING.md) for detailed setup instructions.
 
 ---
 
