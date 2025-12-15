@@ -16,12 +16,28 @@ const ExtensionsConfigSchema = z.object({
   codeSyntax: z.boolean().optional().default(false),   // Include code syntax (WEB, ANDROID, iOS)
 }).optional();
 
+// Style Dictionary configuration for advanced users
+const StyleDictionaryConfigSchema = z.object({
+  configFile: z.string().optional(),                   // Path to custom Style Dictionary config
+  outputReferences: z.boolean().optional().default(true), // Use CSS var references in output
+  prefix: z.string().optional(),                       // Prefix for all token names
+}).optional();
+
+// Available platform presets for Style Dictionary
+const PlatformPresetSchema = z.enum([
+  'css', 'scss', 'scss-map', 'js', 'ts', 'json', 'json-flat',
+  'android', 'ios', 'ios-swift', 'compose'
+]);
+
 const OutputConfigSchema = z.object({
   dir: z.string(),
   format: z.literal('json'),
-  dtcg: z.boolean().optional().default(true),            // Use DTCG format ($value, $type) - default true
-  includeVariableId: z.boolean().optional().default(false), // Include Figma variableId in output - default false
-  extensions: ExtensionsConfigSchema,                    // Optional metadata extensions
+  mode: z.enum(['json', 'style-dictionary']).optional().default('json'), // Output mode
+  platforms: z.array(PlatformPresetSchema).optional(), // Platform presets for style-dictionary mode
+  styleDictionary: StyleDictionaryConfigSchema,        // Style Dictionary options
+  dtcg: z.boolean().optional().default(true),          // Use DTCG format ($value, $type) - default true
+  includeVariableId: z.boolean().optional().default(false), // Include Figma variableId in output
+  extensions: ExtensionsConfigSchema,                  // Optional metadata extensions
 });
 
 // Sync behavior configuration

@@ -1,0 +1,12 @@
+{
+  "dark": {
+    "bg": {
+      "primary": {
+        "default": {
+          "$value": "{color.neutral.800}",
+          "$type": "color"
+        }
+      }
+    }
+  }
+}

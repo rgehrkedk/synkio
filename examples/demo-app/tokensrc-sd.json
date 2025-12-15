@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "figma": {
+    "fileId": "2v7lEGTB8CgFbYmawBETjG",
+    "accessToken": "${FIGMA_TOKEN}"
+  },
+  "output": {
+    "dir": "tokens-sd",
+    "format": "json",
+    "mode": "style-dictionary",
+    "platforms": ["css", "scss", "js"]
+  },
+  "collections": {
+    "theme": {
+      "splitModes": true
+    },
+    "colors": {
+      "splitModes": false
+    },
+    "primitives": {
+      "splitModes": false
+    },
+    "typography": {
+      "splitModes": true
+    }
+  }
+}

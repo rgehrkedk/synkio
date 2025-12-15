@@ -6,7 +6,8 @@ import { splitTokens, SplitTokensOptions, normalizePluginData } from '../../core
 import { createLogger } from '../../utils/logger.js';
 import { readBaseline, writeBaseline } from '../../core/baseline.js';
 import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary } from '../../core/compare.js';
-import { generateAllFromBaseline } from '../../core/output.js';
+import { generateAllFromBaseline, generateWithStyleDictionary, isStyleDictionaryAvailable } from '../../core/output.js';
+import { StyleDictionaryNotInstalledError } from '../../core/style-dictionary/index.js';
 import { BaselineData } from '../../types/index.js';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -82,7 +83,26 @@ export async function syncCommand(options: SyncOptions = {}) {
       
       // Generate all enabled output formats
       spinner.text = 'Generating output files...';
-      const outputs = await generateAllFromBaseline(localBaseline, config);
+      
+      // Check if using Style Dictionary mode
+      let outputs;
+      let sdFilesWritten = 0;
+      
+      if (config.output.mode === 'style-dictionary') {
+        try {
+          const sdResult = await generateWithStyleDictionary(localBaseline, config);
+          sdFilesWritten = sdResult.files.length;
+          outputs = { css: { files: [] }, scss: { files: [] }, js: { files: [] }, tailwind: { files: [] }, docs: { files: [], outputDir: '' } };
+        } catch (error) {
+          if (error instanceof StyleDictionaryNotInstalledError) {
+            spinner.fail(chalk.red(error.message));
+            process.exit(1);
+          }
+          throw error;
+        }
+      } else {
+        outputs = await generateAllFromBaseline(localBaseline, config);
+      }
       
       const cssFilesWritten = outputs.css.files.length;
       const scssFilesWritten = outputs.scss.files.length;
@@ -91,6 +111,7 @@ export async function syncCommand(options: SyncOptions = {}) {
       const docsFilesWritten = outputs.docs.files.length;
       
       const extras: string[] = [];
+      if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
       if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
       if (scssFilesWritten > 0) extras.push(`${scssFilesWritten} SCSS`);
       if (jsFilesWritten > 0) extras.push(`${jsFilesWritten} JS`);
@@ -324,7 +345,26 @@ export async function syncCommand(options: SyncOptions = {}) {
     // 8. Generate CSS if enabled in config
     // 8. Generate all enabled output formats (CSS, SCSS, JS, Tailwind, docs)
     spinner.text = 'Generating output files...';
-    const outputs = await generateAllFromBaseline(newBaseline, config);
+    
+    // Check if using Style Dictionary mode
+    let outputs;
+    let sdFilesWritten = 0;
+    
+    if (config.output.mode === 'style-dictionary') {
+      try {
+        const sdResult = await generateWithStyleDictionary(newBaseline, config);
+        sdFilesWritten = sdResult.files.length;
+        outputs = { css: { files: [] }, scss: { files: [] }, js: { files: [] }, tailwind: { files: [] }, docs: { files: [], outputDir: '' } };
+      } catch (error) {
+        if (error instanceof StyleDictionaryNotInstalledError) {
+          spinner.fail(chalk.red(error.message));
+          process.exit(1);
+        }
+        throw error;
+      }
+    } else {
+      outputs = await generateAllFromBaseline(newBaseline, config);
+    }
     
     const cssFilesWritten = outputs.css.files.length;
     const scssFilesWritten = outputs.scss.files.length;
@@ -369,6 +409,7 @@ export async function syncCommand(options: SyncOptions = {}) {
         
         // Show additional outputs
         const allOutputs = [
+          sdFilesWritten > 0 ? `${sdFilesWritten} Style Dictionary` : null,
           cssFilesWritten > 0 ? `${cssFilesWritten} CSS` : null,
           scssFilesWritten > 0 ? `${scssFilesWritten} SCSS` : null,
           jsFilesWritten > 0 ? `${jsFilesWritten} JS` : null,
@@ -387,6 +428,7 @@ export async function syncCommand(options: SyncOptions = {}) {
     
     // Build output summary
     const extras: string[] = [];
+    if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
     if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
     if (scssFilesWritten > 0) extras.push(`${scssFilesWritten} SCSS`);
     if (jsFilesWritten > 0) extras.push(`${jsFilesWritten} JS`);

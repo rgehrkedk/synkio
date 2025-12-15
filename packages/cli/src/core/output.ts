@@ -9,6 +9,12 @@ import { CSSTransformOptions } from './transforms/index.js';
 import { generateSCSS } from './generators/scss-generator.js';
 import { generateJS, generateTSTypes } from './generators/js-generator.js';
 import { generateTailwindConfig } from './generators/tailwind-generator.js';
+import { 
+  buildWithStyleDictionary, 
+  StyleDictionaryNotInstalledError,
+  isStyleDictionaryAvailable,
+  PlatformPreset
+} from './style-dictionary/index.js';
 
 /**
  * Result of a transform generation
@@ -247,6 +253,7 @@ export async function generateAllFromBaseline(
   js: TransformResult;
   tailwind: TransformResult;
   docs: TransformResult;
+  styleDictionary?: TransformResult;
 }> {
   const [css, scss, js, tailwind, docs] = await Promise.all([
     generateCssFromBaseline(baseline, config),
@@ -258,3 +265,50 @@ export async function generateAllFromBaseline(
   
   return { css, scss, js, tailwind, docs };
 }
+
+/**
+ * Generate outputs using Style Dictionary
+ * This is an alternative to the built-in generators
+ */
+export async function generateWithStyleDictionary(
+  baseline: BaselineData,
+  config: Config
+): Promise<TransformResult> {
+  const outputConfig = config.output;
+  
+  // Check if Style Dictionary mode is enabled
+  if (outputConfig.mode !== 'style-dictionary') {
+    return EMPTY_RESULT;
+  }
+  
+  // Get platforms from config, default to ['css'] if not specified
+  const platforms = (outputConfig.platforms || ['css']) as PlatformPreset[];
+  const outputDir = resolve(process.cwd(), outputConfig.dir);
+  
+  try {
+    const result = await buildWithStyleDictionary(baseline, {
+      outputDir,
+      platforms,
+      configFile: outputConfig.styleDictionary?.configFile,
+      options: {
+        outputReferences: outputConfig.styleDictionary?.outputReferences ?? true,
+        prefix: outputConfig.styleDictionary?.prefix,
+      }
+    });
+    
+    return {
+      files: result.files,
+      outputDir: result.outputDir
+    };
+  } catch (error) {
+    if (error instanceof StyleDictionaryNotInstalledError) {
+      throw error;
+    }
+    throw new Error(`Style Dictionary build failed: ${error}`);
+  }
+}
+
+/**
+ * Check if Style Dictionary is available as a peer dependency
+ */
+export { isStyleDictionaryAvailable };

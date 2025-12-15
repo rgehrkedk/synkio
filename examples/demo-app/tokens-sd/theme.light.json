@@ -1,0 +1,12 @@
+{
+  "light": {
+    "bg": {
+      "primary": {
+        "default": {
+          "$value": "{color.neutral.100}",
+          "$type": "color"
+        }
+      }
+    }
+  }
+}
