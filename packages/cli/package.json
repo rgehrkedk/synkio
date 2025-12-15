@@ -30,7 +30,9 @@
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "docs": "node dist/cli/bin.js docs",
+    "docs:serve": "node dist/cli/bin.js docs && npx serve .synkio/docs"
   },
   "keywords": [
     "figma",

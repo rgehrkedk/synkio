@@ -175,6 +175,7 @@ See the [User Guide](USER_GUIDE.md#configuration) for full configuration options
 ## Documentation
 
 - [User Guide](USER_GUIDE.md) — Complete reference for all commands and options
+- [Hosting Guide](../../docs/HOSTING.md) — Deploy your design tokens docs to GitHub Pages, Netlify, Vercel, and more
 
 ## License
 
