@@ -112,8 +112,13 @@ export const ConfigSchema = z.object({
 
 export type Config = z.infer<typeof ConfigSchema>;
 
+export interface LoadConfigOptions {
+  /** Skip Figma token validation (useful for docs generation from existing baseline) */
+  skipFigmaAuth?: boolean;
+}
+
 // A simple config loader
-export function loadConfig(filePath: string = 'tokensrc.json'): Config {
+export function loadConfig(filePath: string = 'tokensrc.json', options: LoadConfigOptions = {}): Config {
   const fullPath = resolve(process.cwd(), filePath);
   let content: string;
   try {
@@ -128,11 +133,14 @@ export function loadConfig(filePath: string = 'tokensrc.json'): Config {
   } catch (error) {
     throw new Error(`Could not parse JSON in ${fullPath}`);
   }
-  
-  // Replace env var placeholder
+
+  // Replace env var placeholder (skip if not needed for this operation)
   if (json.figma?.accessToken === '${FIGMA_TOKEN}') {
     if (process.env.FIGMA_TOKEN) {
       json.figma.accessToken = process.env.FIGMA_TOKEN;
+    } else if (options.skipFigmaAuth) {
+      // Use placeholder for validation - won't be used for actual API calls
+      json.figma.accessToken = 'PLACEHOLDER_NOT_USED';
     } else {
       throw new Error('FIGMA_TOKEN environment variable is not set, but is required by tokensrc.json.');
     }

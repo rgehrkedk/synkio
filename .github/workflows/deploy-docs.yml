@@ -1,61 +1,42 @@
 # Deploy Design Tokens Documentation to GitHub Pages
 #
-# This workflow automatically generates and deploys your design tokens documentation
-# to GitHub Pages whenever tokens are updated.
+# This workflow deploys the Synkio demo design tokens documentation
+# to GitHub Pages as a live showcase.
 #
-# SETUP INSTRUCTIONS:
-# 1. Go to your repository's Settings > Pages
-# 2. Set "Source" to "GitHub Actions"
-# 3. That's it! Push changes to trigger deployment.
-#
-# CUSTOMIZATION:
-# - Change DOCS_DIR to your docs output directory (default: .synkio/docs)
-# - Modify the trigger paths to match your token file locations
-# - Add FIGMA_TOKEN secret if you want to sync during deployment
+# For YOUR project, copy this workflow and customize:
+# - DOCS_DIR: your docs output directory
+# - paths: trigger paths matching your token files
+# - working-directory: if not in repo root
 
 name: Deploy Design Tokens Docs
 
 on:
-  # Trigger on push to main/master when token files change
+  # Trigger on push to main when docs or tokens change
   push:
     branches:
       - main
       - master
     paths:
-      # Trigger when tokens or docs config changes
-      - '**/tokens/**'
-      - '**/baseline.json'
-      - '**/.synkio/baseline.json'
-      - '**/tokensrc.json'
-      - '**/tokensrc-*.json'
-      # Also trigger when this workflow changes
+      - 'examples/demo-app/**'
+      - 'packages/cli/src/core/docs/**'
       - '.github/workflows/deploy-docs.yml'
 
   # Allow manual trigger from Actions tab
   workflow_dispatch:
-    inputs:
-      regenerate:
-        description: 'Regenerate docs from existing baseline'
-        required: false
-        default: 'true'
-        type: boolean
 
-# Sets permissions for GITHUB_TOKEN to allow deployment to GitHub Pages
+# Permissions for GitHub Pages deployment
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
+# Only one deployment at a time
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 env:
-  # Change this to match your docs output directory
-  DOCS_DIR: '.synkio/docs'
-  # Change this to your tokensrc.json path if different
-  CONFIG_FILE: 'tokensrc.json'
+  DOCS_DIR: 'examples/demo-app/docs'
 
 jobs:
   build:
@@ -68,23 +49,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install CLI dependencies
+        working-directory: packages/cli
         run: npm ci
 
+      - name: Build CLI
+        working-directory: packages/cli
+        run: npm run build
+
       - name: Generate documentation
-        run: |
-          # Check if synkio is installed locally or globally
-          if [ -f "node_modules/.bin/synkio" ]; then
-            npx synkio docs --output=${{ env.DOCS_DIR }}
-          elif command -v synkio &> /dev/null; then
-            synkio docs --output=${{ env.DOCS_DIR }}
-          else
-            echo "Synkio not found. Installing..."
-            npm install synkio
-            npx synkio docs --output=${{ env.DOCS_DIR }}
-          fi
+        working-directory: examples/demo-app
+        run: node ../../packages/cli/dist/cli/bin.js docs --output=docs
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

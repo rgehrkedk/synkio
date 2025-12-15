@@ -44,6 +44,8 @@ coverage/
 # Local data (user-generated)
 .figma/
 tokensrc.json
+# Allow demo tokensrc for showcase
+!examples/demo-app/tokensrc.json
 
 # Development notes (not for public repo)
 ROADMAP.md

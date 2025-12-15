@@ -20,9 +20,9 @@ export async function docsCommand(options: DocsOptions = {}) {
   const spinner = ora('Generating documentation...').start();
 
   try {
-    // 1. Load config
+    // 1. Load config (skip Figma auth since we only need local baseline)
     spinner.text = 'Loading configuration...';
-    const config = loadConfig();
+    const config = loadConfig('tokensrc.json', { skipFigmaAuth: true });
     
     // 2. Read baseline data
     spinner.text = 'Reading token data...';
