@@ -1,6 +1,6 @@
 {
   "name": "synkio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Zero-config design token sync from Figma to code",
   "type": "module",
   "main": "./dist/index.js",
