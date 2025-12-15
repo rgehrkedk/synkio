@@ -1,16 +1,4 @@
 /**
- * CSS Generator for Documentation Site
- *
- * This module generates the CSS styling for the documentation site itself.
- * For token CSS output (tokens.css, utilities.css), use ../css/index.ts
- */
-
-/**
- * Generate documentation site CSS
- * This creates all the styling for the docs UI - layout, typography, colors, etc.
- */
-export function generateDocsCSS(): string {
-  return `/**
  * Synkio Documentation Styles
  * This file styles the documentation site itself
  */
@@ -651,6 +639,4 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--docs-text-muted);
-}
-`;
 }

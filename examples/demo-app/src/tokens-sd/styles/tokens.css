@@ -1,0 +1,61 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root {
+  --default-spacing-xs: 4rem;
+  --default-spacing-sm: 8rem;
+  --default-spacing-md: 16rem;
+  --default-spacing-lg: 24rem;
+  --default-spacing-xl: 32rem;
+  --default-spacing-2xl: 48rem;
+  --default-spacing-3xl: 64rem;
+  --default-radius-none: 0;
+  --default-radius-sm: 4rem;
+  --default-radius-md: 8rem;
+  --default-radius-lg: 12rem;
+  --default-radius-full: 9999rem;
+  --default-font-size-xs: 12rem;
+  --default-font-size-sm: 14rem;
+  --default-font-size-base: 16rem;
+  --default-font-size-lg: 18rem;
+  --default-font-size-xl: 20rem;
+  --default-font-size-2xl: 24rem;
+  --default-font-size-3xl: 30rem;
+  --default-font-size-4xl: 36rem;
+  --default-font-weight-normal: 400;
+  --default-font-weight-medium: 500;
+  --default-font-weight-semibold: 600;
+  --default-font-weight-bold: 700;
+  --default-font-line-height-tight: 1.25rem;
+  --default-font-line-height-normal: 1.5rem;
+  --default-font-line-height-relaxed: 1.75rem;
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-400: #a3a3a3;
+  --color-neutral-500: #737373;
+  --color-neutral-600: #525252;
+  --color-neutral-700: #404040;
+  --color-neutral-800: #262626;
+  --color-neutral-900: #171717;
+  --color-success-500: #22c55e;
+  --color-warning-500: #f59e0b;
+  --color-error-500: #ef4444;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f5f5f5;
+  --color-text-primary: #171717;
+  --color-text-secondary: #525252;
+  --bg-primary-default: var(--color-neutral-800);
+}

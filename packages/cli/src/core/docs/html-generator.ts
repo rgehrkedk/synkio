@@ -144,7 +144,7 @@ function capitalizeFirst(str: string): string {
 }
 
 /**
- * Format display value
+ * Format display value - for resolved values (colors, numbers, etc.)
  */
 function formatDisplayValue(value: any, type: string): string {
   if (value === null || value === undefined) return '–';
@@ -162,6 +162,10 @@ function formatDisplayValue(value: any, type: string): string {
       }
       return `rgba(${r}, ${g}, ${b}, ${a.toFixed(2)})`;
     }
+    // Skip $ref objects - these should be handled by referencePath
+    if ('$ref' in value) {
+      return '→ reference';
+    }
     return JSON.stringify(value);
   }
   
@@ -178,6 +182,13 @@ function formatDisplayValue(value: any, type: string): string {
   }
   
   return String(value);
+}
+
+/**
+ * Format reference path for display - wrap in curly braces like DTCG format
+ */
+function formatReferencePath(path: string): string {
+  return `{${path}}`;
 }
 
 /**
@@ -254,17 +265,22 @@ export function generateIndexHTML(
         ${previewTokens.map(token => {
           const isColor = token.type.toLowerCase() === 'color';
           const isTypography = ['fontfamily', 'fontweight', 'fontsize', 'lineheight', 'letterspacing'].includes(token.type.toLowerCase());
+          const displayValue = token.resolvedValue !== undefined ? token.resolvedValue : token.value;
+          const referenceHtml = token.referencePath 
+            ? `<div class="docs-token-reference" data-copy="${escapeHtml(formatReferencePath(token.referencePath))}" title="References ${escapeHtml(token.referencePath)}">→ ${escapeHtml(formatReferencePath(token.referencePath))}</div>`
+            : '';
           
           if (isColor) {
             return `
-          <div class="docs-token-card" data-token="${escapeHtml(token.path)}">
+          <div class="docs-token-card${token.referencePath ? ' docs-token-card--reference' : ''}" data-token="${escapeHtml(token.path)}">
             <div class="docs-color-preview">
-              <div class="docs-color-preview-inner" style="background: ${getColorBackground(token.value)}"></div>
+              <div class="docs-color-preview-inner" style="background: ${getColorBackground(displayValue)}"></div>
             </div>
             <div class="docs-token-info">
               <div class="docs-token-name">${escapeHtml(token.path.split('.').slice(-2).join('.') || token.path)}</div>
-              <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(token.value, token.type))}">
-                ${escapeHtml(formatDisplayValue(token.value, token.type))}
+              ${referenceHtml}
+              <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(displayValue, token.type))}">
+                ${escapeHtml(formatDisplayValue(displayValue, token.type))}
               </div>
               <div class="docs-token-variable" data-copy="${escapeHtml(token.cssVariable)}">${escapeHtml(token.cssVariable)}</div>
             </div>
@@ -273,14 +289,15 @@ export function generateIndexHTML(
           
           if (isTypography) {
             return `
-          <div class="docs-token-card" data-token="${escapeHtml(token.path)}">
+          <div class="docs-token-card${token.referencePath ? ' docs-token-card--reference' : ''}" data-token="${escapeHtml(token.path)}">
             <div class="docs-typography-preview" style="${getTypographyStyle(token)}">
               Aa Bb Cc
             </div>
             <div class="docs-token-info">
               <div class="docs-token-name">${escapeHtml(token.path.split('.').pop() || token.path)}</div>
-              <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(token.value, token.type))}">
-                ${escapeHtml(formatDisplayValue(token.value, token.type))}
+              ${referenceHtml}
+              <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(displayValue, token.type))}">
+                ${escapeHtml(formatDisplayValue(displayValue, token.type))}
               </div>
               <div class="docs-token-variable" data-copy="${escapeHtml(token.cssVariable)}">${escapeHtml(token.cssVariable)}</div>
             </div>
@@ -289,11 +306,12 @@ export function generateIndexHTML(
           
           // Generic token
           return `
-          <div class="docs-token-card" data-token="${escapeHtml(token.path)}">
+          <div class="docs-token-card${token.referencePath ? ' docs-token-card--reference' : ''}" data-token="${escapeHtml(token.path)}">
             <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
               <div class="docs-token-name">${escapeHtml(token.path.split('.').slice(-2).join('.') || token.path)}</div>
-              <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(token.value, token.type))}">
-                ${escapeHtml(formatDisplayValue(token.value, token.type))}
+              ${referenceHtml}
+              <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(displayValue, token.type))}">
+                ${escapeHtml(formatDisplayValue(displayValue, token.type))}
               </div>
               <div class="docs-token-variable" data-copy="${escapeHtml(token.cssVariable)}">${escapeHtml(token.cssVariable)}</div>
             </div>
@@ -446,16 +464,23 @@ function renderTokenCard(token: ParsedToken, collectionHasColors: boolean, colle
   const isColor = isColorToken(token);
   const isTypo = isTypographyToken(token);
   
+  // Use resolved value for display if token is a reference
+  const displayValue = token.resolvedValue !== undefined ? token.resolvedValue : token.value;
+  const referenceHtml = token.referencePath 
+    ? `<div class="docs-token-reference" data-copy="${escapeHtml(formatReferencePath(token.referencePath))}" title="References ${escapeHtml(token.referencePath)}">→ ${escapeHtml(formatReferencePath(token.referencePath))}</div>`
+    : '';
+  
   if (isColor) {
     return `
-      <div class="docs-token-card" data-token="${escapeHtml(token.path)}" data-mode="${token.mode}">
+      <div class="docs-token-card${token.referencePath ? ' docs-token-card--reference' : ''}" data-token="${escapeHtml(token.path)}" data-mode="${token.mode}">
         <div class="docs-color-preview">
-          <div class="docs-color-preview-inner" style="background: ${getColorBackground(token.value)}"></div>
+          <div class="docs-color-preview-inner" style="background: ${getColorBackground(displayValue)}"></div>
         </div>
         <div class="docs-token-info">
           <div class="docs-token-name">${escapeHtml(token.path.split('.').slice(-2).join('.') || token.path)}</div>
-          <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(token.value, token.type))}">
-            ${escapeHtml(formatDisplayValue(token.value, token.type))}
+          ${referenceHtml}
+          <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(displayValue, token.type))}">
+            ${escapeHtml(formatDisplayValue(displayValue, token.type))}
           </div>
           <div class="docs-token-variable" data-copy="${escapeHtml(token.cssVariable)}">${escapeHtml(token.cssVariable)}</div>
         </div>
@@ -465,14 +490,15 @@ function renderTokenCard(token: ParsedToken, collectionHasColors: boolean, colle
   
   if (isTypo) {
     return `
-      <div class="docs-token-card" data-token="${escapeHtml(token.path)}" data-mode="${token.mode}">
+      <div class="docs-token-card${token.referencePath ? ' docs-token-card--reference' : ''}" data-token="${escapeHtml(token.path)}" data-mode="${token.mode}">
         <div class="docs-typography-preview" style="${getTypographyStyle(token)}">
           Aa Bb Cc
         </div>
         <div class="docs-token-info">
           <div class="docs-token-name">${escapeHtml(token.path.split('.').pop() || token.path)}</div>
-          <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(token.value, token.type))}">
-            ${escapeHtml(formatDisplayValue(token.value, token.type))}
+          ${referenceHtml}
+          <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(displayValue, token.type))}">
+            ${escapeHtml(formatDisplayValue(displayValue, token.type))}
           </div>
           <div class="docs-token-variable" data-copy="${escapeHtml(token.cssVariable)}">${escapeHtml(token.cssVariable)}</div>
         </div>
@@ -482,11 +508,12 @@ function renderTokenCard(token: ParsedToken, collectionHasColors: boolean, colle
   
   // Default: generic token card
   return `
-    <div class="docs-token-card" data-token="${escapeHtml(token.path)}" data-mode="${token.mode}">
+    <div class="docs-token-card${token.referencePath ? ' docs-token-card--reference' : ''}" data-token="${escapeHtml(token.path)}" data-mode="${token.mode}">
       <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
         <div class="docs-token-name">${escapeHtml(token.path.split('.').slice(-2).join('.') || token.path)}</div>
-        <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(token.value, token.type))}">
-          ${escapeHtml(formatDisplayValue(token.value, token.type))}
+        ${referenceHtml}
+        <div class="docs-token-value" data-copy="${escapeHtml(formatDisplayValue(displayValue, token.type))}">
+          ${escapeHtml(formatDisplayValue(displayValue, token.type))}
         </div>
         <div class="docs-token-variable" data-copy="${escapeHtml(token.cssVariable)}">${escapeHtml(token.cssVariable)}</div>
       </div>
@@ -670,23 +697,32 @@ export function generateAllTokensPage(allTokens: ParsedToken[], options: Templat
             <th>Path</th>
             <th>Type</th>
             <th>Value</th>
+            <th>Reference</th>
             <th>Collection</th>
             <th>Mode</th>
             <th>CSS Variable</th>
           </tr>
         </thead>
         <tbody>
-          ${allTokens.map(token => `
-            <tr data-token="${escapeHtml(token.path)}" data-mode="${token.mode}">
+          ${allTokens.map(token => {
+            const displayValue = token.resolvedValue !== undefined ? token.resolvedValue : token.value;
+            return `
+            <tr data-token="${escapeHtml(token.path)}" data-mode="${token.mode}"${token.referencePath ? ' class="docs-table-row--reference"' : ''}>
               <td><strong>${escapeHtml(token.path)}</strong></td>
               <td><code>${escapeHtml(token.type)}</code></td>
               <td>
                 ${token.type.toLowerCase() === 'color' ? 
                   `<span style="display: inline-flex; align-items: center; gap: 8px;">
-                    <span style="width: 16px; height: 16px; border-radius: 4px; background: ${getColorBackground(token.value)}; border: 1px solid var(--docs-border);"></span>
-                    <code data-copy="${escapeHtml(formatDisplayValue(token.value, token.type))}">${escapeHtml(formatDisplayValue(token.value, token.type))}</code>
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: ${getColorBackground(displayValue)}; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="${escapeHtml(formatDisplayValue(displayValue, token.type))}">${escapeHtml(formatDisplayValue(displayValue, token.type))}</code>
                   </span>` :
-                  `<code data-copy="${escapeHtml(formatDisplayValue(token.value, token.type))}">${escapeHtml(formatDisplayValue(token.value, token.type))}</code>`
+                  `<code data-copy="${escapeHtml(formatDisplayValue(displayValue, token.type))}">${escapeHtml(formatDisplayValue(displayValue, token.type))}</code>`
+                }
+              </td>
+              <td>
+                ${token.referencePath 
+                  ? `<code class="docs-table-reference" data-copy="${escapeHtml(formatReferencePath(token.referencePath))}" title="References ${escapeHtml(token.referencePath)}">→ ${escapeHtml(formatReferencePath(token.referencePath))}</code>`
+                  : '–'
                 }
               </td>
               <td>${escapeHtml(token.collection)}</td>
@@ -695,7 +731,7 @@ export function generateAllTokensPage(allTokens: ParsedToken[], options: Templat
                 <code data-copy="${escapeHtml(token.cssVariable)}">${escapeHtml(token.cssVariable)}</code>
               </td>
             </tr>
-          `).join('')}
+          `;}).join('')}
         </tbody>
       </table>
     </section>

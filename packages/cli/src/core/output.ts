@@ -9,8 +9,7 @@ import { generateDocs } from './docs/index.js';
 import { 
   buildWithStyleDictionary, 
   StyleDictionaryNotInstalledError,
-  isStyleDictionaryAvailable,
-  PlatformPreset
+  isStyleDictionaryAvailable
 } from './style-dictionary/index.js';
 
 /**
@@ -184,18 +183,24 @@ export async function generateWithStyleDictionary(
     return EMPTY_RESULT;
   }
   
-  // Get platforms from config, default to ['css'] if not specified
-  const platforms = (outputConfig.platforms || ['css']) as PlatformPreset[];
   const outputDir = resolve(process.cwd(), outputConfig.dir);
+  const sdConfig = outputConfig.styleDictionary;
   
   try {
     const result = await buildWithStyleDictionary(baseline, {
       outputDir,
-      platforms,
-      configFile: outputConfig.styleDictionary?.configFile,
+      configFile: sdConfig?.configFile,
+      // Pass inline Style Dictionary config from tokensrc.json
+      inlineConfig: sdConfig ? {
+        transformGroup: sdConfig.transformGroup,
+        transforms: sdConfig.transforms,
+        buildPath: sdConfig.buildPath,
+        files: sdConfig.files as { destination: string; format: string; filter?: unknown; options?: Record<string, unknown> }[] | undefined,
+        platforms: sdConfig.platforms as Record<string, { transformGroup?: string; transforms?: string[]; buildPath?: string; prefix?: string; files: { destination: string; format: string; filter?: unknown; options?: Record<string, unknown> }[] }> | undefined,
+      } : undefined,
       options: {
-        outputReferences: outputConfig.styleDictionary?.outputReferences ?? true,
-        prefix: outputConfig.styleDictionary?.prefix,
+        outputReferences: sdConfig?.outputReferences ?? true,
+        prefix: sdConfig?.prefix,
       }
     });
     

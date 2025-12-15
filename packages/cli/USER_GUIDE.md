@@ -351,15 +351,52 @@ npm install style-dictionary --save-dev
 
 **Step 2: Enable in config**
 
+You must provide either a `configFile` (path to external config) or `inlineConfig` (configuration object).
+
+**Option A: Inline Configuration (Recommended for simple setups)**
+
 ```json
 {
   "output": {
-    "dir": "tokens",
+    "dir": "src/tokens",
     "mode": "style-dictionary",
-    "platforms": ["css", "scss", "ts", "ios-swift"],
     "styleDictionary": {
-      "outputReferences": true,
-      "prefix": "app"
+      "buildPath": "src/styles/",
+      "platforms": {
+        "css": {
+          "transformGroup": "css",
+          "files": [
+            {
+              "destination": "tokens.css",
+              "format": "css/variables",
+              "options": { "outputReferences": true }
+            }
+          ]
+        },
+        "scss": {
+          "transformGroup": "scss",
+          "files": [
+            {
+              "destination": "_tokens.scss",
+              "format": "scss/variables"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+**Option B: External Configuration File**
+
+```json
+{
+  "output": {
+    "dir": "src/tokens",
+    "mode": "style-dictionary",
+    "styleDictionary": {
+      "configFile": "./sd.config.js"
     }
   }
 }
@@ -367,37 +404,14 @@ npm install style-dictionary --save-dev
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `mode` | `json` | Output mode: `json`, `css`, or `style-dictionary` |
-| `platforms` | `["css"]` | Platform presets to generate |
+| `mode` | `json` | Output mode: `json` or `style-dictionary` |
+| `styleDictionary.configFile` | - | Path to custom Style Dictionary config |
+| `styleDictionary.platforms` | - | Inline platform configuration object |
 | `styleDictionary.outputReferences` | `true` | Use CSS variable references in output |
 | `styleDictionary.prefix` | `""` | Prefix for all token names |
-| `styleDictionary.configFile` | - | Path to custom Style Dictionary config |
 
-**Available Platform Presets:**
-
-| Preset | Output | Description |
-|--------|--------|-------------|
-| `css` | `tokens.css` | CSS custom properties |
-| `scss` | `_tokens.scss` | SCSS variables |
-| `scss-map` | `_tokens.map.scss` | SCSS map for iteration |
-| `js` | `tokens.js` | JavaScript ES module |
-| `ts` | `tokens.ts` | TypeScript with types |
-| `json` | `tokens.json` | JSON format |
-| `json-flat` | `tokens.flat.json` | Flat JSON (no nesting) |
-| `android` | `tokens.xml` | Android resources XML |
-| `ios` | `tokens.h` | iOS Objective-C header |
-| `ios-swift` | `Tokens.swift` | Swift struct |
-| `compose` | `Tokens.kt` | Jetpack Compose Kotlin |
-
-**Example output with `platforms: ["css", "ts"]`:**
-
-```
-tokens/
-├── tokens.css      # CSS custom properties
-└── tokens.ts       # TypeScript with full types
-```
-
-**Custom Style Dictionary Config:**
+**Note on Transformations:**
+Synkio automatically maps Figma types to DTCG-compliant types before passing them to Style Dictionary. For example, a variable with path `spacing/sm` and type `FLOAT` will be mapped to type `dimension` with value `16`. This allows Style Dictionary's standard transform groups (like `css`) to automatically apply units (e.g., `16px`) without custom transforms.
 
 For full control, provide your own Style Dictionary config:
 

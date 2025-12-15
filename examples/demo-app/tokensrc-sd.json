@@ -5,22 +5,67 @@
     "accessToken": "${FIGMA_TOKEN}"
   },
   "output": {
-    "dir": "tokens-sd",
+    "dir": "src/tokens-sd/tokens",
     "format": "json",
     "mode": "style-dictionary",
-    "platforms": ["css", "scss", "js"]
+    "styleDictionary": {
+      "buildPath": "src/tokens-sd/styles/",
+      "platforms": {
+        "css": {
+          "transformGroup": "css",
+          "files": [
+            {
+              "destination": "tokens.css",
+              "format": "css/variables",
+              "options": { "outputReferences": true }
+            }
+          ]
+        },
+        "scss": {
+          "transformGroup": "scss",
+          "files": [
+            {
+              "destination": "_tokens.scss",
+              "format": "scss/variables"
+            }
+          ]
+        },
+        "js": {
+          "transformGroup": "js",
+          "files": [
+            {
+              "destination": "tokens.js",
+              "format": "javascript/es6"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "docs": {
+    "enabled": true,
+    "dir": ".synkio/docs-sd",
+    "title": "Design Tokens"
   },
   "collections": {
     "theme": {
+      "dir": "src/tokens-sd/tokens/themes",
+      "file": "theme",
       "splitModes": true
     },
     "colors": {
+      "dir": "src/tokens-sd/tokens/colors",
+      "file": "colors",
       "splitModes": false
     },
     "primitives": {
+      "dir": "src/tokens-sd/tokens/primitives",
+      "file": "primitives",
       "splitModes": false
     },
     "typography": {
+      "dir": "src/tokens-sd/tokens/typography",
+      "file": "typography",
       "splitModes": true
     }
   }

@@ -28,6 +28,10 @@ export interface ParsedToken {
   mode: string;
   cssVariable: string;
   description?: string;
+  /** If this token is a reference, this is the path it references */
+  referencePath?: string;
+  /** If this token is a reference, this is the resolved value */
+  resolvedValue?: any;
 }
 
 /**
@@ -55,8 +59,16 @@ export function parseTokens(baseline: BaselineData): ParsedTokens {
   const collections = new Map<string, ParsedToken[]>();
   const modes = new Map<string, ParsedToken[]>();
 
+  // Build lookup map from VariableID to path and value for resolving references
+  const variableIdLookup = new Map<string, { path: string; value: any }>();
+  for (const entry of Object.values(baseline.baseline)) {
+    if (entry.variableId && entry.path) {
+      variableIdLookup.set(entry.variableId, { path: entry.path, value: entry.value });
+    }
+  }
+
   for (const [key, entry] of Object.entries(baseline.baseline)) {
-    const parsed = parseToken(entry);
+    const parsed = parseToken(entry, variableIdLookup);
     all.push(parsed);
 
     // Group by collection
@@ -110,9 +122,26 @@ export function parseTokens(baseline: BaselineData): ParsedTokens {
 /**
  * Parse a single token entry
  */
-function parseToken(entry: BaselineEntry): ParsedToken {
+function parseToken(
+  entry: BaselineEntry,
+  variableIdLookup: Map<string, { path: string; value: any }>
+): ParsedToken {
   // Generate CSS variable name from path
   const cssVariable = `--${entry.path.replace(/\./g, '-').toLowerCase()}`;
+  
+  // Check if value is a reference
+  let referencePath: string | undefined;
+  let resolvedValue: any;
+  
+  if (entry.value && typeof entry.value === 'object' && '$ref' in entry.value) {
+    const refVariableId = entry.value.$ref;
+    const refData = variableIdLookup.get(refVariableId);
+    if (refData) {
+      referencePath = refData.path;
+      // Recursively resolve nested references to get the final value
+      resolvedValue = resolveValue(refData.value, variableIdLookup);
+    }
+  }
   
   return {
     path: entry.path,
@@ -122,7 +151,25 @@ function parseToken(entry: BaselineEntry): ParsedToken {
     mode: entry.mode || 'default',
     cssVariable,
     description: entry.description,
+    referencePath,
+    resolvedValue,
   };
+}
+
+/**
+ * Recursively resolve a value that may contain references
+ */
+function resolveValue(
+  value: any,
+  variableIdLookup: Map<string, { path: string; value: any }>
+): any {
+  if (value && typeof value === 'object' && '$ref' in value) {
+    const refData = variableIdLookup.get(value.$ref);
+    if (refData) {
+      return resolveValue(refData.value, variableIdLookup);
+    }
+  }
+  return value;
 }
 
 /**

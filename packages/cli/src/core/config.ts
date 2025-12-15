@@ -18,22 +18,39 @@ const ExtensionsConfigSchema = z.object({
 
 // Style Dictionary configuration for advanced users
 const StyleDictionaryConfigSchema = z.object({
-  configFile: z.string().optional(),                   // Path to custom Style Dictionary config
+  configFile: z.string().optional(),                   // Path to external Style Dictionary config file
   outputReferences: z.boolean().optional().default(true), // Use CSS var references in output
   prefix: z.string().optional(),                       // Prefix for all token names
+  // Inline Style Dictionary config - passed directly to SD
+  // See: https://styledictionary.com/reference/config/
+  transformGroup: z.string().optional(),               // e.g., "css", "scss", "js"
+  transforms: z.array(z.string()).optional(),          // Custom transform names
+  buildPath: z.string().optional(),                    // Output path for SD files
+  files: z.array(z.object({
+    destination: z.string(),
+    format: z.string(),
+    filter: z.any().optional(),
+    options: z.record(z.string(), z.any()).optional(),
+  })).optional(),
+  // Full platforms config for multi-platform builds
+  platforms: z.record(z.string(), z.object({
+    transformGroup: z.string().optional(),
+    transforms: z.array(z.string()).optional(),
+    buildPath: z.string().optional(),
+    prefix: z.string().optional(),
+    files: z.array(z.object({
+      destination: z.string(),
+      format: z.string(),
+      filter: z.any().optional(),
+      options: z.record(z.string(), z.any()).optional(),
+    })),
+  })).optional(),
 }).optional();
-
-// Available platform presets for Style Dictionary
-const PlatformPresetSchema = z.enum([
-  'css', 'scss', 'scss-map', 'js', 'ts', 'json', 'json-flat',
-  'android', 'ios', 'ios-swift', 'compose'
-]);
 
 const OutputConfigSchema = z.object({
   dir: z.string(),
   format: z.literal('json'),
   mode: z.enum(['json', 'style-dictionary']).optional().default('json'), // Output mode
-  platforms: z.array(PlatformPresetSchema).optional(), // Platform presets for style-dictionary mode
   styleDictionary: StyleDictionaryConfigSchema,        // Style Dictionary options
   dtcg: z.boolean().optional().default(true),          // Use DTCG format ($value, $type) - default true
   includeVariableId: z.boolean().optional().default(false), // Include Figma variableId in output

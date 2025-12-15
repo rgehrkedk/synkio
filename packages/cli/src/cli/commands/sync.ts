@@ -21,6 +21,7 @@ export interface SyncOptions {
   interval?: number;    // Watch interval in seconds (default 30)
   collection?: string;  // Sync only specific collection(s), comma-separated
   regenerate?: boolean; // Regenerate files from existing baseline (no Figma fetch)
+  config?: string;      // Path to config file (default: tokensrc.json)
 }
 
 export async function syncCommand(options: SyncOptions = {}) {
@@ -30,7 +31,7 @@ export async function syncCommand(options: SyncOptions = {}) {
   try {
     // 1. Load config
     spinner.text = 'Loading configuration...';
-    const config = loadConfig();
+    const config = loadConfig(options.config);
     logger.debug('Config loaded', config);
 
     // Handle --regenerate: skip Figma fetch, use existing baseline
@@ -92,7 +93,8 @@ export async function syncCommand(options: SyncOptions = {}) {
         try {
           const sdResult = await generateWithStyleDictionary(localBaseline, config);
           sdFilesWritten = sdResult.files.length;
-          outputs = { css: { files: [] }, docs: { files: [], outputDir: '' } };
+          // Still generate docs and CSS if enabled (independent of SD mode)
+          outputs = await generateAllFromBaseline(localBaseline, config);
         } catch (error) {
           if (error instanceof StyleDictionaryNotInstalledError) {
             spinner.fail(chalk.red(error.message));
@@ -348,7 +350,8 @@ export async function syncCommand(options: SyncOptions = {}) {
       try {
         const sdResult = await generateWithStyleDictionary(newBaseline, config);
         sdFilesWritten = sdResult.files.length;
-        outputs = { css: { files: [] }, scss: { files: [] }, js: { files: [] }, tailwind: { files: [] }, docs: { files: [], outputDir: '' } };
+        // Still generate docs and CSS if enabled (independent of SD mode)
+        outputs = await generateAllFromBaseline(newBaseline, config);
       } catch (error) {
         if (error instanceof StyleDictionaryNotInstalledError) {
           spinner.fail(chalk.red(error.message));
@@ -464,7 +467,7 @@ export async function watchCommand(options: SyncOptions = {}) {
   
   // Initial sync
   try {
-    const config = loadConfig();
+    const config = loadConfig(options.config);
     const figmaClient = new FigmaClient({ ...config.figma, logger });
     
     // Read current baseline

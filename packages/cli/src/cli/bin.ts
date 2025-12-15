@@ -62,6 +62,7 @@ function showHelp(command?: string) {
             console.log('  --interval=<s>      Watch interval in seconds (default: 30)');
             console.log('  --collection=<name> Sync only specific collection(s), comma-separated');
             console.log('  --regenerate        Regenerate files from existing baseline (no Figma fetch)');
+            console.log('  --config=<file>     Path to config file (default: tokensrc.json)');
             break;
         case 'rollback':
             console.log('Usage: synkio rollback [options]\n');
@@ -146,6 +147,7 @@ switch (command) {
             force: syncOptions.force as boolean,
             interval: syncOptions.interval ? parseInt(syncOptions.interval as string) : 30,
             collection: syncOptions.collection as string,
+            config: syncOptions.config as string,
         });
     } else {
         syncCommand({
@@ -155,6 +157,7 @@ switch (command) {
             noReport: syncOptions.noReport as boolean,
             collection: syncOptions.collection as string,
             regenerate: syncOptions.regenerate as boolean,
+            config: syncOptions.config as string,
         });
     }
     break;

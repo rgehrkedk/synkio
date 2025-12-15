@@ -123,7 +123,9 @@ For simple projects, use `css.enabled: true`. For advanced needs, enable Style D
 {
   "output": {
     "mode": "style-dictionary",
-    "platforms": ["css", "scss", "ts", "ios-swift"]
+    "styleDictionary": {
+      "configFile": "./sd.config.js"
+    }
   }
 }
 ```

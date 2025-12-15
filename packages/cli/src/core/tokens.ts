@@ -29,6 +29,73 @@ export interface CollectionSplitOptions {
 }
 
 /**
+ * Map Figma types to DTCG canonical types
+ * Also considers the path to infer better types (e.g., spacing.xs with type 'float' -> 'dimension')
+ */
+export function mapToDTCGType(type: string, path?: string): string {
+  const typeMap: Record<string, string> = {
+    'color': 'color',
+    'float': 'number',
+    'number': 'number',
+    'boolean': 'boolean',
+    'string': 'string',
+    'dimension': 'dimension',
+    'fontfamily': 'fontFamily',
+    'fontweight': 'fontWeight',
+    'fontsize': 'dimension',
+    'lineheight': 'number',
+    'letterspacing': 'dimension',
+    'shadow': 'shadow',
+    'border': 'border',
+    'duration': 'duration',
+    'cubicbezier': 'cubicBezier',
+    'gradient': 'gradient',
+    'typography': 'typography',
+  };
+  
+  const baseType = typeMap[type.toLowerCase()] || type.toLowerCase();
+  
+  // Infer dimension type from path for float/number types
+  if ((type.toLowerCase() === 'float' || type.toLowerCase() === 'number') && path) {
+    const pathLower = path.toLowerCase();
+    const dimensionPatterns = ['spacing', 'space', 'radius', 'size', 'width', 'height', 'gap', 'padding', 'margin', 'border'];
+    if (dimensionPatterns.some(pattern => pathLower.includes(pattern))) {
+      return 'dimension';
+    }
+  }
+  
+  return baseType;
+}
+
+/**
+ * Normalize token values for DTCG format
+ */
+function normalizeValue(value: unknown, type: string, path?: string, dtcgType?: string): unknown {
+  // Handle Figma color objects { r, g, b, a }
+  if (type.toLowerCase() === 'color' && typeof value === 'object' && value !== null) {
+    const v = value as { r?: number; g?: number; b?: number; a?: number };
+    if ('r' in v && 'g' in v && 'b' in v) {
+      const r = Math.round((v.r ?? 0) * 255);
+      const g = Math.round((v.g ?? 0) * 255);
+      const b = Math.round((v.b ?? 0) * 255);
+      const a = v.a ?? 1;
+      
+      if (a === 1) {
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+      }
+      return `rgba(${r}, ${g}, ${b}, ${a})`;
+    }
+  }
+  
+  // Add px suffix for dimension types (spacing, radius, size, etc.)
+  if (dtcgType === 'dimension' && typeof value === 'number') {
+    return `${value}px`;
+  }
+  
+  return value;
+}
+
+/**
  * Token entry from the new Synkio plugin format
  */
 interface SynkioTokenEntry {
@@ -200,6 +267,9 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
 
         const fileData = files.get(fileKey)!;
         
+        // Determine the DTCG type (may be inferred from path)
+        const dtcgType = mapToDTCGType(entry.type, entry.path);
+        
         // Resolve value - convert VariableID references to DTCG path references
         let resolvedValue = entry.value;
         if (entry.value && typeof entry.value === 'object' && entry.value.$ref) {
@@ -213,12 +283,15 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
                 console.warn(`Warning: Could not resolve reference ${refVariableId} for token ${entry.path}`);
                 resolvedValue = entry.value;
             }
+        } else {
+            // Normalize the value (add px for dimensions, convert colors, etc.)
+            resolvedValue = normalizeValue(entry.value, entry.type, entry.path, dtcgType);
         }
         
         // Build token object with DTCG or legacy format
         const tokenObj: Record<string, any> = {
             [valueKey]: resolvedValue,
-            [typeKey]: entry.type,
+            [typeKey]: dtcgType,
         };
         
         // Optionally include description (DTCG uses $description)
