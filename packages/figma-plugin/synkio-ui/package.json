@@ -1,0 +1,14 @@
+{
+  "name": "synkio-ui-plugin",
+  "version": "1.0.0",
+  "description": "Figma plugin with UI for Synkio sync",
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.100.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  }
+}
