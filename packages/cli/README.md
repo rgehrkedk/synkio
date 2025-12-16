@@ -177,6 +177,42 @@ See the [User Guide](USER_GUIDE.md#configuration) for full configuration options
 - [User Guide](USER_GUIDE.md) — Complete reference for all commands and options
 - [Hosting Guide](../../docs/HOSTING.md) — Deploy your design tokens docs to GitHub Pages, Netlify, Vercel, and more
 
+## Telemetry
+
+Synkio collects anonymous usage data to help us understand how the CLI is being used and prioritize features. This helps us distinguish real human usage from automated installs/downloads.
+
+### What We Collect
+
+- **Command name** (e.g., `sync`, `init`, `docs`)
+- **CLI version**
+- **Node.js version**
+- **OS platform and architecture**
+- **Anonymous user ID** (random UUID stored locally)
+
+### What We Don't Collect
+
+- No IP addresses
+- No personal information
+- No file contents or Figma data
+- No project names or paths
+
+### Opt-Out
+
+To disable telemetry, set the `SYNKIO_NO_TRACK` environment variable:
+
+```bash
+# In your shell
+export SYNKIO_NO_TRACK=1
+
+# Or in your .env file
+SYNKIO_NO_TRACK=1
+
+# Or inline with the command
+SYNKIO_NO_TRACK=1 npx synkio sync
+```
+
+Telemetry is completely non-blocking and fails silently if there's no internet connection.
+
 ## License
 
 MIT © [rgehrkedk](https://github.com/rgehrkedk)

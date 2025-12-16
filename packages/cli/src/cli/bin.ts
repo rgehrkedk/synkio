@@ -8,6 +8,7 @@ import { rollbackCommand } from './commands/rollback.js';
 import { validateCommand } from './commands/validate.js';
 import { tokensCommand } from './commands/tokens.js';
 import { docsCommand } from './commands/docs.js';
+import { trackCommand } from '../utils/telemetry.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
@@ -128,6 +129,11 @@ if (command === 'help') {
 if (args.includes('--help') || args.includes('-h')) {
     showHelp(command !== '--help' && command !== '-h' ? command : undefined);
     process.exit(0);
+}
+
+// Track command usage (fire-and-forget, respects SYNKIO_NO_TRACK)
+if (command && !['help', '--help', '-h', '--version', '-v'].includes(command)) {
+    trackCommand(command, pkg.version);
 }
 
 switch (command) {
