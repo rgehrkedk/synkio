@@ -45,7 +45,7 @@ describe('loadConfig', () => {
   });
 
   it('should throw an error if the config file is not found', () => {
-    expect(() => loadConfig()).toThrow('Config file not found');
+    expect(() => loadConfig()).toThrow('No config file found');
   });
 
   it('should throw an error for invalid JSON', () => {

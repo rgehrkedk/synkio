@@ -23,20 +23,21 @@ describe('tokens', () => {
         value: {
           colors: {
             primary: {
-              base: { '$value': '#0000ff', '$type': 'COLOR' },
-              hover: { '$value': '#0000dd', '$type': 'COLOR' },
+              base: { '$value': '#0000ff', '$type': 'color' },
+              hover: { '$value': '#0000dd', '$type': 'color' },
             },
           },
         },
       });
-      
+
       const spacingFile = result.get('spacing.value.json');
       expect(spacingFile).toBeDefined();
       expect(spacingFile!.collection).toBe('spacing');
+      // Type is inferred from path: "spacing" in path → dimension type
       expect(spacingFile!.content).toEqual({
         value: {
           spacing: {
-            small: { '$value': '8px', '$type': 'FLOAT' },
+            small: { '$value': '8px', '$type': 'dimension' },
           },
         },
       });
