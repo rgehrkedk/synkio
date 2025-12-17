@@ -3,23 +3,20 @@
  * Handles plugin logic and communication with UI
  */
 
-import { chunkData, reassembleChunks } from './shared';
-import { compareSnapshots } from './shared';
-import { addHistoryEntry, parseHistory, serializeHistory } from './shared';
-import type { SyncData, TokenEntry, DiffEntry, SyncEvent, ComparisonResult, CollectionRename, ModeRename } from './shared';
-
-console.log('=== SYNKIO UI PLUGIN STARTING ===');
+import { chunkData, reassembleChunks } from './lib/chunking';
+import { compareSnapshots } from './lib/compare';
+import { addHistoryEntry, parseHistory, serializeHistory } from './lib/history';
+import type { SyncData, TokenEntry, SyncEvent } from './lib/types';
+import type { SimpleDiff, SimpleCompareResult } from './lib/compare';
 
 const NAMESPACE = 'synkio';
 
 // Show UI
-console.log('Showing UI...');
 figma.showUI(__html__, {
   width: 400,
   height: 600,
   themeColors: true,
 });
-console.log('UI shown');
 
 // Wait for UI to be ready
 let uiReady = false;
@@ -67,6 +64,8 @@ async function collectTokens(): Promise<TokenEntry[]> {
 
         tokens.push({
           variableId: variable.id,
+          collectionId: collection.id,
+          modeId: modeId,
           collection: collection.name,
           mode: modeName,
           path: variable.name.replace(/\//g, '.'),
@@ -169,15 +168,11 @@ async function sendDiffToUI() {
 
   const baseline = getBaselineSnapshot();
 
-  let diffs: DiffEntry[] = [];
-  let collectionRenames: CollectionRename[] = [];
-  let modeRenames: ModeRename[] = [];
+  let diffs: SimpleDiff[] = [];
 
   if (baseline) {
     const result = compareSnapshots(current, baseline);
     diffs = result.diffs;
-    collectionRenames = result.collectionRenames;
-    modeRenames = result.modeRenames;
   } else {
     // No baseline yet - all current tokens are "new"
     diffs = currentTokens.map(token => ({
@@ -192,18 +187,9 @@ async function sendDiffToUI() {
 
   const history = getHistory();
 
-  console.log('Sending update to UI:', {
-    diffsCount: diffs.length,
-    collectionRenames: collectionRenames.length,
-    modeRenames: modeRenames.length,
-    historyCount: history.length
-  });
-
   figma.ui.postMessage({
     type: 'update',
     diffs: diffs,
-    collectionRenames: collectionRenames,
-    modeRenames: modeRenames,
     history: history,
     hasBaseline: !!baseline,
   });
@@ -212,20 +198,14 @@ async function sendDiffToUI() {
 /**
  * Handle messages from UI
  */
-console.log('Setting up message handler');
 figma.ui.onmessage = async (msg) => {
-  console.log('=== MESSAGE HANDLER CALLED ===');
   try {
-    console.log('Received message:', msg);
-
     if (msg.type === 'ready') {
-      console.log('UI is ready');
       uiReady = true;
       await sendDiffToUI();
     }
 
     if (msg.type === 'sync') {
-      console.log('Sync request');
       const currentTokens = await collectTokens();
       const snapshot: SyncData = {
         version: '2.0.0',
@@ -236,18 +216,50 @@ figma.ui.onmessage = async (msg) => {
       const baseline = getBaselineSnapshot();
       const result = baseline ? compareSnapshots(snapshot, baseline) : null;
       const changeCount = result
-        ? result.diffs.length + result.collectionRenames.length + result.modeRenames.length
+        ? result.counts.total
         : currentTokens.length;
+
+      // Collect change paths with values for history
+      let changePaths: string[] = [];
+      const truncate = (v: any, max = 20): string => {
+        const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        return s.length > max ? s.slice(0, max) + '…' : s;
+      };
+
+      if (result) {
+        changePaths = result.diffs.map(d => {
+          if (d.type === 'renamed') {
+            // Show path rename
+            if (d.oldValue !== undefined && d.newValue !== undefined) {
+              return `↔ ${d.oldName} → ${d.name}: ${truncate(d.oldValue)} → ${truncate(d.newValue)}`;
+            }
+            return `↔ ${d.oldName} → ${d.name}`;
+          } else if (d.type === 'modified') {
+            return `~ ${d.name}: ${truncate(d.oldValue)} → ${truncate(d.newValue)}`;
+          } else if (d.type === 'added') {
+            return `+ ${d.name}: ${truncate(d.newValue)}`;
+          } else {
+            return `- ${d.name}: ${truncate(d.oldValue)}`;
+          }
+        });
+      } else {
+        // Initial sync - show token names with values
+        changePaths = currentTokens.slice(0, 50).map(t => `+ ${t.path}: ${truncate(t.value)}`);
+        if (currentTokens.length > 50) {
+          changePaths.push('... and ' + (currentTokens.length - 50) + ' more');
+        }
+      }
 
       // Save new baseline
       saveBaselineSnapshot(snapshot);
 
-      // Add to history
+      // Add to history with paths
       const userName = figma.currentUser ? figma.currentUser.name : 'Unknown';
       addToHistory({
         u: userName,
         t: Date.now(),
         c: changeCount,
+        p: changePaths,
       });
 
       figma.notify('Synced ' + changeCount + ' changes');
@@ -260,10 +272,6 @@ figma.ui.onmessage = async (msg) => {
       figma.closePlugin();
     }
   } catch (error) {
-    console.error('Plugin error:', error);
     figma.notify('Error: ' + String(error), { error: true });
   }
 };
-
-// UI will send 'ready' message when loaded
-console.log('Waiting for UI to be ready...');

@@ -10,6 +10,8 @@ const MAX_CHUNK_SIZE = 90000; // Figma has 100KB limit per key
 
 interface TokenEntry {
   variableId: string;
+  collectionId?: string;   // Figma's permanent collection ID
+  modeId?: string;         // Figma's permanent mode ID
   collection: string;
   mode: string;
   path: string;
@@ -79,9 +81,11 @@ async function collectTokens(): Promise<TokenEntry[]> {
       // Get value for each mode
       for (const [modeId, value] of Object.entries(variable.valuesByMode)) {
         const modeName = modeMap.get(modeId) || modeId;
-        
+
         const entry: TokenEntry = {
           variableId: variable.id,
+          collectionId: collection.id,
+          modeId: modeId,
           collection: collection.name,
           mode: modeName,
           path: variable.name.replace(/\//g, '.'), // Convert Figma path separators

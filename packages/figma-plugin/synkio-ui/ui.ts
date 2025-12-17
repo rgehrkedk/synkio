@@ -2,12 +2,11 @@
  * Synkio UI Plugin - UI Logic
  */
 
-console.log('=== UI.JS LOADING ===');
-
 interface DiffEntry {
   id: string;
   name: string;
-  type: 'added' | 'deleted' | 'modified';
+  type: 'added' | 'deleted' | 'modified' | 'renamed';
+  oldName?: string;
   oldValue?: any;
   newValue?: any;
   collection: string;
@@ -29,6 +28,7 @@ interface SyncEvent {
   u: string;
   t: number;
   c: number;
+  p?: string[];
 }
 
 let currentDiffs: DiffEntry[] = [];
@@ -68,18 +68,13 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 // Sync button
 syncButton.addEventListener('click', () => {
-  console.log('Sync button clicked');
-  if (isSyncing) {
-    console.log('Already syncing, ignoring');
-    return;
-  }
+  if (isSyncing) return;
 
   isSyncing = true;
   syncButton.disabled = true;
   syncIcon.textContent = '⟳';
   syncText.textContent = 'Syncing...';
 
-  console.log('Sending sync message to plugin');
   parent.postMessage({ pluginMessage: { type: 'sync' } }, '*');
 });
 
@@ -146,14 +141,34 @@ function renderDiffs(diffs: DiffEntry[], collectionRenames: CollectionRename[] =
   // Render token diffs
   if (diffs.length > 0) {
     html += diffs.map(diff => {
-      const iconMap = {
+      const iconMap: Record<string, string> = {
         added: '+',
         modified: '~',
-        deleted: '−'
+        deleted: '−',
+        renamed: '↔'
       };
 
       let valuesHtml = '';
-      if (diff.type === 'modified') {
+      if (diff.type === 'renamed') {
+        // Show old name → new name
+        valuesHtml = `
+          <div class="diff-values">
+            <span class="old">${diff.oldName}</span>
+            <span class="arrow">→</span>
+            <span class="new">${diff.name}</span>
+          </div>
+        `;
+        // If value also changed, show that too
+        if (diff.oldValue !== undefined && diff.newValue !== undefined) {
+          valuesHtml += `
+            <div class="diff-values">
+              <span class="old">${formatValue(diff.oldValue)}</span>
+              <span class="arrow">→</span>
+              <span class="new">${formatValue(diff.newValue)}</span>
+            </div>
+          `;
+        }
+      } else if (diff.type === 'modified') {
         valuesHtml = `
           <div class="diff-values">
             <span class="old">${formatValue(diff.oldValue)}</span>
@@ -170,12 +185,15 @@ function renderDiffs(diffs: DiffEntry[], collectionRenames: CollectionRename[] =
         `;
       }
 
+      // For renamed, show new name in header; for others show current name
+      const displayName = diff.type === 'renamed' ? diff.name : diff.name;
+
       return `
         <div class="diff-item">
           <div class="diff-header">
             <div class="diff-badge ${diff.type}">${iconMap[diff.type]}</div>
             <div class="diff-info">
-              <div class="diff-name">${diff.name}</div>
+              <div class="diff-name">${displayName}</div>
               <div class="diff-collection">${diff.collection}</div>
             </div>
           </div>
@@ -205,25 +223,57 @@ function renderHistory(history: SyncEvent[]) {
     return;
   }
 
-  const html = history.map(event => {
+  const html = history.map((event, index) => {
     const initial = event.u.charAt(0).toUpperCase();
     const timeAgo = formatTimeAgo(event.t);
+    const hasChanges = event.p && event.p.length > 0;
+
+    const changesHtml = hasChanges ? `
+      <div class="history-changes" id="changes-${index}" style="display: none;">
+        ${event.p!.map(path => `<div class="history-change-item">${escapeHtml(path)}</div>`).join('')}
+      </div>
+    ` : '';
 
     return `
-      <div class="history-item">
+      <div class="history-item ${hasChanges ? 'expandable' : ''}" ${hasChanges ? `onclick="toggleChanges(${index})"` : ''}>
         <div class="history-avatar">${initial}</div>
         <div class="history-details">
           <div class="history-header">
             <span class="history-user">${event.u}</span>
             <span class="history-time">${timeAgo}</span>
           </div>
-          <div class="history-action">Synced ${event.c} ${event.c === 1 ? 'change' : 'changes'}</div>
+          <div class="history-action">
+            Synced ${event.c} ${event.c === 1 ? 'change' : 'changes'}
+            ${hasChanges ? '<span class="expand-icon" id="icon-' + index + '">▶</span>' : ''}
+          </div>
         </div>
       </div>
+      ${changesHtml}
     `;
   }).join('');
 
   historyContent.innerHTML = `<div class="history-list">${html}</div>`;
+}
+
+// Toggle history changes visibility
+function toggleChanges(index: number) {
+  const changesEl = document.getElementById('changes-' + index);
+  const iconEl = document.getElementById('icon-' + index);
+  if (changesEl && iconEl) {
+    const isHidden = changesEl.style.display === 'none';
+    changesEl.style.display = isHidden ? 'block' : 'none';
+    iconEl.textContent = isHidden ? '▼' : '▶';
+  }
+}
+
+// Make toggleChanges available globally for onclick
+(window as any).toggleChanges = toggleChanges;
+
+// Escape HTML to prevent XSS
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 // Format value for display
@@ -258,18 +308,11 @@ function updateStatus(diffCount: number) {
 }
 
 // Handle messages from plugin
-console.log('Setting up window.onmessage handler');
 window.onmessage = (event) => {
-  console.log('=== UI RECEIVED MESSAGE ===');
-  console.log('Event:', event);
-  console.log('Event data:', event.data);
-  console.log('Plugin message:', event.data.pluginMessage);
-
   const msg = event.data.pluginMessage;
 
   if (msg && msg.type === 'update') {
     const totalChanges = msg.diffs.length + (msg.collectionRenames?.length || 0) + (msg.modeRenames?.length || 0);
-    console.log('Update received, diffs:', msg.diffs.length, 'collectionRenames:', msg.collectionRenames?.length || 0, 'modeRenames:', msg.modeRenames?.length || 0, 'history:', msg.history.length);
     renderDiffs(msg.diffs, msg.collectionRenames || [], msg.modeRenames || []);
     renderHistory(msg.history);
     updateStatus(totalChanges);
@@ -277,17 +320,10 @@ window.onmessage = (event) => {
     // Reset sync button
     isSyncing = false;
     syncButton.disabled = false;
-    syncIcon.textContent = '✓';
+    syncIcon.textContent = '';
     syncText.textContent = 'Sync';
-  } else {
-    console.log('Message was not an update, msg:', msg);
   }
 };
 
-// Initialize
-console.log('UI loaded, waiting for plugin data...');
-console.log('DOM ready, elements:', { syncButton, statusDot, statusText });
-
 // Tell plugin we're ready
-console.log('Sending ready message to plugin');
 parent.postMessage({ pluginMessage: { type: 'ready' } }, '*');

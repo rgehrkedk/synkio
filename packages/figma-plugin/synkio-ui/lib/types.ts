@@ -1,9 +1,11 @@
 /**
- * Shared types for Synkio CLI and Figma plugin
+ * Shared types for Synkio Figma plugin
  */
 
 export interface TokenEntry {
   variableId: string;
+  collectionId?: string;   // Figma's permanent collection ID
+  modeId?: string;         // Figma's permanent mode ID
   collection: string;
   mode: string;
   path: string;
@@ -36,6 +38,7 @@ export interface SyncEvent {
   u: string;      // user
   t: number;      // timestamp (ms)
   c: number;      // changeCount
+  p?: string[];   // paths of changed tokens (optional for backwards compat)
 }
 
 export interface CollectionRename {

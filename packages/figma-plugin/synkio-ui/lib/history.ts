@@ -2,7 +2,7 @@
  * Sync history management
  */
 
-import type { SyncEvent } from './types.js';
+import type { SyncEvent } from './types';
 
 const MAX_HISTORY_ENTRIES = 5;
 

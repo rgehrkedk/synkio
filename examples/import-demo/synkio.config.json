@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "figma": {
+    "fileId": "import-demo",
+    "accessToken": "not-needed-for-import"
+  },
+  "output": {
+    "dir": "tokens",
+    "format": "json",
+    "dtcg": true
+  },
+  "css": {
+    "enabled": true,
+    "file": "tokens.css",
+    "utilities": true
+  },
+  "docs": {
+    "enabled": true,
+    "dir": ".synkio/docs",
+    "title": "Import Demo - Design Tokens"
+  },
+  "import": {
+    "dir": "figma-exports",
+    "sources": {
+      "theme": {
+        "files": ["light.tokens.json", "dark.tokens.json"]
+      },
+      "colors": {
+        "files": ["value.tokens.json"]
+      },
+      "spacing": {
+        "files": ["value.tokens 2.json"]
+      },
+      "typography": {
+        "files": ["value.tokens 3.json"]
+      }
+    }
+  },
+  "collections": {
+    "theme": {
+      "splitModes": true
+    }
+  }
+}

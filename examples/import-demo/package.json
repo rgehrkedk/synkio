@@ -1,0 +1,16 @@
+{
+  "name": "synkio-import-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo app showcasing Synkio import from Figma native JSON exports",
+  "scripts": {
+    "import": "npx synkio import ./figma-exports --collection=theme",
+    "import:preview": "npx synkio import ./figma-exports --collection=theme --preview",
+    "regenerate": "npx synkio sync --regenerate",
+    "docs": "npx synkio docs --open",
+    "dev": "npx serve ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

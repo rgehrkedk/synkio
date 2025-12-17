@@ -37,6 +37,8 @@
           const modeName = modeMap.get(modeId) || modeId;
           const entry = {
             variableId: variable.id,
+            collectionId: collection.id,
+            modeId,
             collection: collection.name,
             mode: modeName,
             path: variable.name.replace(/\//g, "."),

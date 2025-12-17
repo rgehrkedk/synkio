@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 11px;
+      color: #333;
+      background: #F5F5F5;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background: white;
+      border-bottom: 1px solid #e6e6e6;
+      padding: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .title {
+      font-weight: 600;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .version {
+      font-size: 9px;
+      color: #999;
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 400;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: #666;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .status-dot.synced { background: #10b981; }
+    .status-dot.unsynced { background: #f59e0b; }
+
+    /* Sync Button */
+    .sync-button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      background: #18A0FB;
+      color: white;
+      font-weight: 500;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .sync-button:hover {
+      background: #0D8EDE;
+    }
+
+    .sync-button:active {
+      transform: scale(0.99);
+    }
+
+    .sync-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: #F0F0F0;
+      border-radius: 6px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 6px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .tab:hover {
+      color: #333;
+    }
+
+    .tab.active {
+      background: white;
+      color: #000;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    /* Content Area */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* Section Header */
+    .section-header {
+      font-size: 10px;
+      font-weight: 700;
+      color: #8e8e8e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+
+    /* Diff Items */
+    .diff-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .diff-item {
+      background: white;
+      border: 1px solid #e6e6e6;
+      border-radius: 6px;
+      padding: 12px;
+      transition: border-color 0.15s;
+    }
+
+    .diff-item:hover {
+      border-color: #18A0FB;
+    }
+
+    .diff-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .diff-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .diff-badge.added { background: #d1fae5; color: #059669; }
+    .diff-badge.modified { background: #fed7aa; color: #ea580c; }
+    .diff-badge.deleted { background: #fee2e2; color: #dc2626; }
+    .diff-badge.renamed { background: #dbeafe; color: #2563eb; }
+
+    .rename-section {
+      margin-bottom: 16px;
+    }
+
+    .rename-section-header {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+
+    .diff-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .diff-name {
+      font-weight: 600;
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .diff-collection {
+      font-size: 9px;
+      color: #999;
+    }
+
+    .diff-values {
+      margin-left: 28px;
+      padding: 6px 8px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 4px;
+      font-family: 'Menlo', monospace;
+      font-size: 10px;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .diff-values .old {
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
+
+    .diff-values .new {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .diff-values .arrow {
+      color: #ccc;
+      font-size: 12px;
+    }
+
+    /* History */
+    .history-list {
+      background: white;
+      border: 1px solid #e6e6e6;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .history-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid #f3f4f6;
+      transition: background 0.15s;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-item:hover {
+      background: #f9fafb;
+    }
+
+    .history-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #dbeafe;
+      color: #2563eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 10px;
+      flex-shrink: 0;
+      border: 1px solid #bfdbfe;
+    }
+
+    .history-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+
+    .history-user {
+      font-weight: 600;
+      font-size: 11px;
+    }
+
+    .history-time {
+      font-size: 9px;
+      color: #999;
+    }
+
+    .history-action {
+      font-size: 10px;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .history-item.expandable {
+      cursor: pointer;
+    }
+
+    .expand-icon {
+      font-size: 8px;
+      color: #999;
+      transition: transform 0.15s;
+    }
+
+    .history-changes {
+      background: #f9fafb;
+      border-bottom: 1px solid #f3f4f6;
+      padding: 8px 12px 8px 56px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .history-change-item {
+      font-family: 'Menlo', monospace;
+      font-size: 10px;
+      color: #666;
+      padding: 2px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-change-item:first-child {
+      padding-top: 0;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: #999;
+    }
+
+    .empty-state svg {
+      width: 32px;
+      height: 32px;
+      opacity: 0.2;
+      margin: 0 auto 12px;
+    }
+
+    .empty-state.dashed {
+      background: white;
+      border: 2px dashed #e6e6e6;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <div class="header">
+        <div class="title">
+          Synkio
+          <span class="version">v1.0</span>
+        </div>
+        <div class="status">
+          <div class="status-dot synced" id="statusDot"></div>
+          <span id="statusText">Loading...</span>
+        </div>
+      </div>
+
+      <button class="sync-button" id="syncButton">
+        <span id="syncIcon"></span>
+        <span id="syncText">Sync</span>
+      </button>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="diff">
+          Diff
+        </button>
+        <button class="tab" data-tab="history">
+          History
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="view active" id="diffView">
+        <div class="section-header" id="diffHeader">Pending Changes (0)</div>
+        <div id="diffContent"></div>
+      </div>
+
+      <div class="view" id="historyView">
+        <div id="historyContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="ui.js"></script>
+</body>
+</html>

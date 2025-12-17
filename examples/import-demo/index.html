@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Synkio Import Demo</title>
+  <link rel="stylesheet" href="tokens/tokens.css">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: var(--bg-primary-default, #fafafa);
+      color: var(--fg-primary-default, #171717);
+      transition: background 0.3s, color 0.3s;
+    }
+
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: var(--fg-secondary-default, #737373);
+      margin-bottom: 2rem;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-secondary-default, #f5f5f5);
+      border: 1px solid var(--border-primary-default, #a3a3a3);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-secondary-hover, #e5e5e5);
+    }
+
+    .card {
+      background: var(--bg-secondary-default, #f5f5f5);
+      border: 1px solid var(--border-primary-subtle, #e5e5e5);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 1rem;
+    }
+
+    .color-swatch {
+      text-align: center;
+    }
+
+    .color-swatch .swatch {
+      width: 100%;
+      height: 60px;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-primary-subtle, #e5e5e5);
+      margin-bottom: 0.5rem;
+    }
+
+    .color-swatch .label {
+      font-size: 0.75rem;
+      color: var(--fg-secondary-default, #737373);
+    }
+
+    .brand-button {
+      background: var(--bg-brand-default, #4F46E5);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .brand-button:hover {
+      background: var(--bg-brand-hover, #4338CA);
+    }
+
+    code {
+      background: var(--bg-tertiary-default, #e5e5e5);
+      padding: 0.125rem 0.375rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+
+    .instructions {
+      background: var(--bg-tertiary-default, #e5e5e5);
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .instructions code {
+      display: block;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      background: var(--bg-primary-default, #fafafa);
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+
+  <div class="container">
+    <h1>Synkio Import Demo</h1>
+    <p class="subtitle">Design tokens imported from Figma native JSON export</p>
+
+    <div class="card">
+      <h2>Background Colors</h2>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--bg-primary-default)"></div>
+          <div class="label">bg-primary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--bg-secondary-default)"></div>
+          <div class="label">bg-secondary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--bg-tertiary-default)"></div>
+          <div class="label">bg-tertiary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--bg-brand-default)"></div>
+          <div class="label">bg-brand</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Foreground Colors</h2>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--fg-primary-default)"></div>
+          <div class="label">fg-primary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--fg-secondary-default)"></div>
+          <div class="label">fg-secondary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--fg-brand-default)"></div>
+          <div class="label">fg-brand</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Border Colors</h2>
+      <div class="color-grid">
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--border-primary-default)"></div>
+          <div class="label">border-primary</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--border-primary-subtle)"></div>
+          <div class="label">border-subtle</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background: var(--border-brand-default)"></div>
+          <div class="label">border-brand</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Interactive Elements</h2>
+      <p>
+        <button class="brand-button">Brand Button</button>
+      </p>
+      <p style="margin-top: 1rem; color: var(--fg-secondary-default)">
+        Uses <code>--bg-brand-default</code> and <code>--bg-brand-hover</code>
+      </p>
+    </div>
+
+    <div class="card instructions">
+      <h2>How to Use</h2>
+      <p>1. Import tokens from Figma exports:</p>
+      <code>npm run import</code>
+
+      <p>2. Generate CSS and docs:</p>
+      <code>npm run regenerate</code>
+
+      <p>3. Run this demo:</p>
+      <code>npm run dev</code>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentMode = html.getAttribute('data-mode');
+      html.setAttribute('data-mode', currentMode === 'light' ? 'dark' : 'light');
+    }
+
+    // Default to light mode (dark is :root default in CSS)
+    // Toggle switches to light mode which has [data-mode="light"] overrides
+    document.documentElement.setAttribute('data-mode', 'dark');
+  </script>
+</body>
+</html>
