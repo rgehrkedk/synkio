@@ -9,9 +9,8 @@
  */
 
 import { writeFile, mkdir } from 'fs/promises';
-import { join, dirname } from 'path';
-import { BaselineData, BaselineEntry } from '../../types/index.js';
-import { mapToDTCGType } from '../tokens.js';
+import { join } from 'path';
+import { BaselineData } from '../../types/index.js';
 import { convertToIntermediateFormat } from '../intermediate-tokens.js';
 
 // Type definitions for Style Dictionary (to avoid requiring the package at parse time)
@@ -100,89 +99,6 @@ async function loadStyleDictionary(): Promise<any | null> {
   }
 }
 
-/**
- * Convert Synkio baseline data to DTCG-compliant token format
- * This is the format Style Dictionary expects
- */
-export function convertToDTCG(baseline: BaselineData): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  
-  // Build lookup map from VariableID to path for resolving references
-  const variableIdToPath = new Map<string, string>();
-  for (const entry of Object.values(baseline.baseline)) {
-    if (entry.variableId && entry.path) {
-      variableIdToPath.set(entry.variableId, entry.path);
-    }
-  }
-  
-  for (const [key, entry] of Object.entries(baseline.baseline)) {
-    const pathParts = entry.path.split('.');
-    let current = result;
-    
-    // Navigate/create nested structure
-    for (let i = 0; i < pathParts.length - 1; i++) {
-      const part = pathParts[i];
-      if (!current[part]) {
-        current[part] = {};
-      }
-      current = current[part] as Record<string, unknown>;
-    }
-    
-    // Set the token value using DTCG format
-    const tokenName = pathParts[pathParts.length - 1];
-    
-    // Resolve references to DTCG format: { "$ref": "VariableID:1:38" } → "{path.to.token}"
-    let resolvedValue: unknown;
-    if (entry.value && typeof entry.value === 'object' && '$ref' in entry.value) {
-      const refVariableId = (entry.value as { $ref: string }).$ref;
-      const refPath = variableIdToPath.get(refVariableId);
-      if (refPath) {
-        // DTCG reference format: string wrapped in curly braces
-        resolvedValue = `{${refPath}}`;
-      } else {
-        console.warn(`Warning: Could not resolve reference ${refVariableId} for token ${entry.path}`);
-        resolvedValue = entry.value;
-      }
-    } else {
-      // Pass raw values - let Style Dictionary handle transforms
-      resolvedValue = normalizeColorValue(entry.value, entry.type);
-    }
-    
-    current[tokenName] = {
-      $value: resolvedValue,
-      // Use shared mapping logic to infer correct DTCG type (e.g. float -> dimension)
-      $type: mapToDTCGType(entry.type, entry.path),
-      ...(entry.description && { $description: entry.description }),
-    };
-  }
-  
-  return result;
-}
-
-/**
- * Only normalize Figma color objects to hex/rgba format
- * All other transforms are left to Style Dictionary
- */
-function normalizeColorValue(value: unknown, type: string): unknown {
-  // Handle Figma color objects { r, g, b, a } - must convert to string format
-  if (type.toLowerCase() === 'color' && typeof value === 'object' && value !== null) {
-    const v = value as { r?: number; g?: number; b?: number; a?: number };
-    if ('r' in v && 'g' in v && 'b' in v) {
-      const r = Math.round((v.r ?? 0) * 255);
-      const g = Math.round((v.g ?? 0) * 255);
-      const b = Math.round((v.b ?? 0) * 255);
-      const a = v.a ?? 1;
-      
-      if (a === 1) {
-        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-      }
-      return `rgba(${r}, ${g}, ${b}, ${a})`;
-    }
-  }
-  
-  // Return raw value - no transforms
-  return value;
-}
 
 /**
  * Build tokens using Style Dictionary
@@ -207,10 +123,11 @@ export async function buildWithStyleDictionary(
   
   // Write DTCG tokens as Style Dictionary source
   const tokensPath = join(outputDir, '.tokens-source.json');
-  // Use shared conversion if config is provided, otherwise fall back to local function
-  const dtcgTokens = options.config
-    ? convertToIntermediateFormat(baseline, options.config)
-    : convertToDTCG(baseline);
+  // Always use the shared intermediate format conversion
+  if (!options.config) {
+    throw new Error('Config object is required for Style Dictionary build');
+  }
+  const dtcgTokens = convertToIntermediateFormat(baseline, options.config);
   await writeFile(tokensPath, JSON.stringify(dtcgTokens, null, 2), 'utf-8');
   
   // Try to load Style Dictionary

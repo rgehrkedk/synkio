@@ -96,14 +96,9 @@ Synkio UI er et velstruktureret plugin med god kodearkitektur og solid funktiona
 
 ## HØJE ANBEFALINGER (Før Publish)
 
-### 3. Tilføj shared.ts til .gitignore
+### 3. ~~Tilføj shared.ts til .gitignore~~ ✅ ALLEREDE LØST
 
-**Problem**: Build-scriptet genererer `shared.ts` som ikke bør committes.
-
-**Rettelse** - tilføj til `.gitignore`:
-```
-shared.ts
-```
+`shared.ts` er allerede i `.gitignore` - ingen handling nødvendig.
 
 ---
 
