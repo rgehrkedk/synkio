@@ -38,48 +38,280 @@ export function compareBaselines(baseline: BaselineData, fetched: BaselineData):
   // The actual entries are in the nested 'baseline' property if it exists
   const rawBaseline = baseline.baseline || {};
   const rawFetched = fetched.baseline || {};
-  
+
   const baselineEntries: Record<string, BaselineEntry> = (rawBaseline as any).baseline || rawBaseline;
   const fetchedEntries: Record<string, BaselineEntry> = (rawFetched as any).baseline || rawFetched;
 
-  // Build lookup maps
-  // Use entry.variableId and entry.mode directly since the prefixed key format is complex
+  // ============================================
+  // Check if we have IDs available
+  // ============================================
+  const baselineHasIds = Object.values(baselineEntries).some(e => e.collectionId && e.modeId);
+  const fetchedHasIds = Object.values(fetchedEntries).some(e => e.collectionId && e.modeId);
+  const useIdBasedMatching = baselineHasIds && fetchedHasIds;
+
+  // Build lookup maps for variable comparison (used in both approaches)
   const baselineByVarId = new Map<string, Map<string, BaselineEntry>>();
-  const baselineModesByCollection = new Map<string, Set<string>>();
 
   for (const [prefixedId, entry] of Object.entries(baselineEntries)) {
-    // Use the variableId from the entry if available, otherwise fall back to parsing
     const varId = entry.variableId || parseVariableId(prefixedId).varId;
     const mode = entry.mode || parseVariableId(prefixedId).mode;
-    const collection = entry.collection || 'unknown';
 
     if (!baselineByVarId.has(varId)) {
       baselineByVarId.set(varId, new Map());
     }
     baselineByVarId.get(varId)!.set(mode, entry);
-    
-    // Track modes per collection
-    if (!baselineModesByCollection.has(collection)) {
-      baselineModesByCollection.set(collection, new Set());
-    }
-    baselineModesByCollection.get(collection)!.add(mode);
   }
 
-  // Track fetched modes by collection
-  const fetchedModesByCollection = new Map<string, Set<string>>();
+  // Track which modes have been renamed to exclude them from deletion detection
+  const renamedModes = new Set<string>();
 
-  // Compare fetched against baseline
+  if (useIdBasedMatching) {
+    // ============================================
+    // ID-BASED MATCHING (preferred)
+    // ============================================
+
+    // Build ID-based lookup maps
+    interface CollectionInfo {
+      name: string;
+      modes: Map<string, string>; // modeId -> modeName
+    }
+
+    const baselineCollections = new Map<string, CollectionInfo>();
+    const fetchedCollections = new Map<string, CollectionInfo>();
+
+    // Build baseline collection/mode map
+    for (const entry of Object.values(baselineEntries)) {
+      if (!entry.collectionId || !entry.modeId) continue;
+
+      if (!baselineCollections.has(entry.collectionId)) {
+        baselineCollections.set(entry.collectionId, {
+          name: entry.collection,
+          modes: new Map()
+        });
+      }
+
+      baselineCollections.get(entry.collectionId)!.modes.set(entry.modeId, entry.mode);
+    }
+
+    // Build fetched collection/mode map
+    for (const entry of Object.values(fetchedEntries)) {
+      if (!entry.collectionId || !entry.modeId) continue;
+
+      if (!fetchedCollections.has(entry.collectionId)) {
+        fetchedCollections.set(entry.collectionId, {
+          name: entry.collection,
+          modes: new Map()
+        });
+      }
+
+      fetchedCollections.get(entry.collectionId)!.modes.set(entry.modeId, entry.mode);
+    }
+
+    // Detect collection renames (same collectionId, different name)
+    for (const [collectionId, baselineCol] of baselineCollections) {
+      const fetchedCol = fetchedCollections.get(collectionId);
+      if (fetchedCol && baselineCol.name !== fetchedCol.name) {
+        result.collectionRenames.push({
+          oldCollection: baselineCol.name,
+          newCollection: fetchedCol.name,
+          modeMapping: [],
+        });
+      }
+    }
+
+    // Detect mode renames (same modeId, different mode name)
+    for (const [collectionId, baselineCol] of baselineCollections) {
+      const fetchedCol = fetchedCollections.get(collectionId);
+      if (!fetchedCol) continue;
+
+      for (const [modeId, baselineModeName] of baselineCol.modes) {
+        const fetchedModeName = fetchedCol.modes.get(modeId);
+        if (fetchedModeName && baselineModeName !== fetchedModeName) {
+          result.modeRenames.push({
+            collection: fetchedCol.name, // Use new collection name in case collection was also renamed
+            oldMode: baselineModeName,
+            newMode: fetchedModeName,
+          });
+          // Track this mode as renamed using old collection name
+          renamedModes.add(`${baselineCol.name}:${baselineModeName}`);
+        }
+      }
+    }
+
+    // Detect new/deleted collections
+    for (const [collectionId, fetchedCol] of fetchedCollections) {
+      if (!baselineCollections.has(collectionId)) {
+        // Completely new collection - all modes are new
+        for (const modeName of fetchedCol.modes.values()) {
+          result.newModes.push({ collection: fetchedCol.name, mode: modeName });
+        }
+      }
+    }
+
+    for (const [collectionId, baselineCol] of baselineCollections) {
+      if (!fetchedCollections.has(collectionId)) {
+        // Completely deleted collection - all modes are deleted
+        for (const modeName of baselineCol.modes.values()) {
+          result.deletedModes.push({ collection: baselineCol.name, mode: modeName });
+          renamedModes.add(`${baselineCol.name}:${modeName}`); // Mark as renamed to exclude from variable deletion
+        }
+      }
+    }
+
+    // Detect new/deleted modes within existing collections
+    for (const [collectionId, baselineCol] of baselineCollections) {
+      const fetchedCol = fetchedCollections.get(collectionId);
+      if (!fetchedCol) continue;
+
+      // New modes (modeId in fetched but not in baseline)
+      for (const [modeId, modeName] of fetchedCol.modes) {
+        if (!baselineCol.modes.has(modeId)) {
+          result.newModes.push({ collection: fetchedCol.name, mode: modeName });
+        }
+      }
+
+      // Deleted modes (modeId in baseline but not in fetched)
+      for (const [modeId, modeName] of baselineCol.modes) {
+        if (!fetchedCol.modes.has(modeId)) {
+          result.deletedModes.push({ collection: baselineCol.name, mode: modeName });
+          renamedModes.add(`${baselineCol.name}:${modeName}`); // Mark as renamed to exclude from variable deletion
+        }
+      }
+    }
+
+  } else {
+    // ============================================
+    // FALLBACK: HEURISTIC MATCHING (legacy baselines without IDs)
+    // ============================================
+
+    const baselineModesByCollection = new Map<string, Set<string>>();
+    const fetchedModesByCollection = new Map<string, Set<string>>();
+
+    // Build collection/mode maps using collection and mode names
+    for (const entry of Object.values(baselineEntries)) {
+      const collection = entry.collection || 'unknown';
+      if (!baselineModesByCollection.has(collection)) {
+        baselineModesByCollection.set(collection, new Set());
+      }
+      baselineModesByCollection.get(collection)!.add(entry.mode);
+    }
+
+    for (const entry of Object.values(fetchedEntries)) {
+      const collection = entry.collection || 'unknown';
+      if (!fetchedModesByCollection.has(collection)) {
+        fetchedModesByCollection.set(collection, new Set());
+      }
+      fetchedModesByCollection.get(collection)!.add(entry.mode);
+    }
+
+    // Detect collection renames using heuristic (same mode count)
+    const baselineOnlyCollections = [...baselineModesByCollection.keys()].filter(c => !fetchedModesByCollection.has(c));
+    const fetchedOnlyCollections = [...fetchedModesByCollection.keys()].filter(c => !baselineModesByCollection.has(c));
+
+    const unmatchedBaseline = [...baselineOnlyCollections];
+    const unmatchedFetched = [...fetchedOnlyCollections];
+
+    for (const oldCollection of baselineOnlyCollections) {
+      const oldModes = [...(baselineModesByCollection.get(oldCollection) || new Set<string>())];
+
+      // Find a new collection with the same number of modes (heuristic)
+      const matchIndex = unmatchedFetched.findIndex(newCollection => {
+        const newModes = fetchedModesByCollection.get(newCollection) || new Set<string>();
+        return newModes.size === oldModes.length;
+      });
+
+      if (matchIndex !== -1) {
+        const newCollection = unmatchedFetched[matchIndex];
+        const newModes = [...(fetchedModesByCollection.get(newCollection) || new Set<string>())];
+
+        // Record collection rename
+        result.collectionRenames.push({
+          oldCollection,
+          newCollection,
+          modeMapping: [],
+        });
+
+        // Track mode renames within the renamed collection
+        for (let i = 0; i < oldModes.length; i++) {
+          const oldMode = oldModes[i];
+          const newMode = newModes[i];
+
+          // Always track as renamed to exclude from deleted variables check
+          renamedModes.add(`${oldCollection}:${oldMode}`);
+
+          // Only add to modeRenames if the mode name actually changed
+          if (oldMode !== newMode) {
+            result.modeRenames.push({
+              collection: newCollection, // Use the new collection name
+              oldMode,
+              newMode,
+            });
+          }
+        }
+
+        unmatchedBaseline.splice(unmatchedBaseline.indexOf(oldCollection), 1);
+        unmatchedFetched.splice(matchIndex, 1);
+      }
+    }
+
+    // Handle remaining unmatched collections as truly new/deleted
+    for (const collection of unmatchedBaseline) {
+      const modes = baselineModesByCollection.get(collection) || new Set<string>();
+      for (const mode of modes) {
+        result.deletedModes.push({ collection, mode });
+        renamedModes.add(`${collection}:${mode}`);
+      }
+    }
+
+    for (const collection of unmatchedFetched) {
+      const modes = fetchedModesByCollection.get(collection) || new Set<string>();
+      for (const mode of modes) {
+        result.newModes.push({ collection, mode });
+      }
+    }
+
+    // Handle mode renames within collections that exist in both baseline and fetched
+    const sharedCollections = [...baselineModesByCollection.keys()].filter(c => fetchedModesByCollection.has(c));
+
+    for (const collection of sharedCollections) {
+      const baselineModes = baselineModesByCollection.get(collection) || new Set<string>();
+      const fetchedModes = fetchedModesByCollection.get(collection) || new Set<string>();
+
+      const deletedInCollection = [...baselineModes].filter(m => !fetchedModes.has(m));
+      const newInCollection = [...fetchedModes].filter(m => !baselineModes.has(m));
+
+      // If same number of modes deleted and added in a collection, it's likely a rename (heuristic)
+      if (deletedInCollection.length === newInCollection.length && deletedInCollection.length > 0) {
+        // Pair them up as renames
+        for (let i = 0; i < deletedInCollection.length; i++) {
+          result.modeRenames.push({
+            collection,
+            oldMode: deletedInCollection[i],
+            newMode: newInCollection[i],
+          });
+          renamedModes.add(`${collection}:${deletedInCollection[i]}`);
+        }
+      } else {
+        // Not a simple rename - track as deleted/new
+        for (const mode of deletedInCollection) {
+          result.deletedModes.push({ collection, mode });
+          renamedModes.add(`${collection}:${mode}`);
+        }
+        for (const mode of newInCollection) {
+          result.newModes.push({ collection, mode });
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // Token comparison (same for both approaches)
+  // ============================================
+
+  // Compare fetched against baseline to find changes and new variables
   for (const [prefixedId, fetchedEntry] of Object.entries(fetchedEntries)) {
-    // Use the variableId from the entry if available, otherwise fall back to parsing
     const varId = fetchedEntry.variableId || parseVariableId(prefixedId).varId;
     const mode = fetchedEntry.mode || parseVariableId(prefixedId).mode;
-    const collection = fetchedEntry.collection || 'unknown';
-    
-    // Track modes per collection
-    if (!fetchedModesByCollection.has(collection)) {
-      fetchedModesByCollection.set(collection, new Set());
-    }
-    fetchedModesByCollection.get(collection)!.add(mode);
 
     // Check if this variable ID exists in baseline
     if (!baselineByVarId.has(varId)) {
@@ -100,14 +332,15 @@ export function compareBaselines(baseline: BaselineData, fetched: BaselineData):
     // Check if this specific mode existed in baseline
     if (!baselineModes.has(mode)) {
       // Mode doesn't exist for this variable - could be new mode or renamed mode
-      // We'll handle this after analyzing all modes per collection
+      // This is handled by the mode detection logic above
       continue;
     }
 
     const baselineEntry = baselineModes.get(mode)!;
 
     // Compare path
-    if (baselineEntry.path !== fetchedEntry.path) {
+    const pathChanged = baselineEntry.path !== fetchedEntry.path;
+    if (pathChanged) {
       // Path changed - BREAKING
       result.pathChanges.push({
         variableId: prefixedId,
@@ -116,10 +349,9 @@ export function compareBaselines(baseline: BaselineData, fetched: BaselineData):
         value: fetchedEntry.value,
         type: fetchedEntry.type,
       });
-      continue;
     }
 
-    // Compare value
+    // Compare value (check even if path changed - both can happen simultaneously)
     if (JSON.stringify(baselineEntry.value) !== JSON.stringify(fetchedEntry.value)) {
       // Value changed
       result.valueChanges.push({
@@ -129,108 +361,6 @@ export function compareBaselines(baseline: BaselineData, fetched: BaselineData):
         newValue: fetchedEntry.value,
         type: fetchedEntry.type,
       });
-    }
-  }
-
-  // Detect collection renames first, then mode renames within unchanged collections
-  const baselineOnlyCollections = [...baselineModesByCollection.keys()].filter(c => !fetchedModesByCollection.has(c));
-  const fetchedOnlyCollections = [...fetchedModesByCollection.keys()].filter(c => !baselineModesByCollection.has(c));
-  const renamedModes = new Set<string>(); // Track renamed old mode names to exclude from deleted
-  const renamedCollections = new Set<string>(); // Track renamed old collection names
-
-  // Try to match deleted collections with new collections (collection renames)
-  // Match by same number of modes - this is a heuristic
-  const unmatchedBaseline = [...baselineOnlyCollections];
-  const unmatchedFetched = [...fetchedOnlyCollections];
-
-  for (const oldCollection of baselineOnlyCollections) {
-    const oldModes = [...(baselineModesByCollection.get(oldCollection) || new Set<string>())];
-
-    // Find a new collection with the same number of modes
-    const matchIndex = unmatchedFetched.findIndex(newCollection => {
-      const newModes = fetchedModesByCollection.get(newCollection) || new Set<string>();
-      return newModes.size === oldModes.length;
-    });
-
-    if (matchIndex !== -1) {
-      const newCollection = unmatchedFetched[matchIndex];
-      const newModes = [...(fetchedModesByCollection.get(newCollection) || new Set<string>())];
-
-      // Record collection rename (without mode mapping - modes are tracked separately)
-      result.collectionRenames.push({
-        oldCollection,
-        newCollection,
-        modeMapping: [], // Mode changes are tracked as modeRenames instead
-      });
-
-      // Track mode renames within the renamed collection
-      for (let i = 0; i < oldModes.length; i++) {
-        const oldMode = oldModes[i];
-        const newMode = newModes[i];
-
-        // Always track as renamed to exclude from deleted variables check
-        renamedModes.add(`${oldCollection}:${oldMode}`);
-
-        // Only add to modeRenames if the mode name actually changed
-        if (oldMode !== newMode) {
-          result.modeRenames.push({
-            collection: newCollection, // Use the new collection name
-            oldMode,
-            newMode,
-          });
-        }
-      }
-
-      renamedCollections.add(oldCollection);
-      unmatchedBaseline.splice(unmatchedBaseline.indexOf(oldCollection), 1);
-      unmatchedFetched.splice(matchIndex, 1);
-    }
-  }
-
-  // Handle remaining unmatched collections as truly new/deleted
-  for (const collection of unmatchedBaseline) {
-    const modes = baselineModesByCollection.get(collection) || new Set<string>();
-    for (const mode of modes) {
-      result.deletedModes.push({ collection, mode });
-    }
-  }
-
-  for (const collection of unmatchedFetched) {
-    const modes = fetchedModesByCollection.get(collection) || new Set<string>();
-    for (const mode of modes) {
-      result.newModes.push({ collection, mode });
-    }
-  }
-
-  // Now handle mode renames within collections that exist in both baseline and fetched
-  const sharedCollections = [...baselineModesByCollection.keys()].filter(c => fetchedModesByCollection.has(c));
-
-  for (const collection of sharedCollections) {
-    const baselineModes = baselineModesByCollection.get(collection) || new Set<string>();
-    const fetchedModes = fetchedModesByCollection.get(collection) || new Set<string>();
-
-    const deletedInCollection = [...baselineModes].filter(m => !fetchedModes.has(m));
-    const newInCollection = [...fetchedModes].filter(m => !baselineModes.has(m));
-
-    // If same number of modes deleted and added in a collection, it's likely a rename
-    if (deletedInCollection.length === newInCollection.length && deletedInCollection.length > 0) {
-      // Pair them up as renames (for single mode rename, this is straightforward)
-      for (let i = 0; i < deletedInCollection.length; i++) {
-        result.modeRenames.push({
-          collection,
-          oldMode: deletedInCollection[i],
-          newMode: newInCollection[i],
-        });
-        renamedModes.add(`${collection}:${deletedInCollection[i]}`);
-      }
-    } else {
-      // Not a simple rename - track as deleted/new with collection context
-      for (const mode of deletedInCollection) {
-        result.deletedModes.push({ collection, mode });
-      }
-      for (const mode of newInCollection) {
-        result.newModes.push({ collection, mode });
-      }
     }
   }
 

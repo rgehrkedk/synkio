@@ -164,6 +164,8 @@ ${errorDetails}`
       const key = `${token.variableId}:${token.collection}.${token.mode}`;
       const entry: any = {
         variableId: token.variableId,
+        collectionId: token.collectionId,
+        modeId: token.modeId,
         collection: token.collection,
         mode: token.mode,
         path: token.path,

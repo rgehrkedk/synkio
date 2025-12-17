@@ -1,7 +1,7 @@
 {
   "default": {
     "size": {
-      "xs": {
+      "xxs": {
         "$value": "10px",
         "$type": "dimension"
       },

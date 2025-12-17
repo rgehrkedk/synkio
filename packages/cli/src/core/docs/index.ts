@@ -6,6 +6,8 @@ import { generateTokensCSS, generateUtilitiesCSS } from '../css/index.js';
 import { generateDocsCSS } from './css-generator.js';
 import { generateIndexHTML, generateCollectionPage, generateAllTokensPage } from './html-generator.js';
 import { generatePreviewJS } from './js-generator.js';
+import { mapToDTCGType } from '../tokens.js';
+import { applySDNameTransform } from '../sd-hooks.js';
 import type { IntermediateTokenFormat } from '../intermediate-tokens.js';
 
 export interface DocsGeneratorOptions {
@@ -52,90 +54,53 @@ export interface ParsedTokens {
   modes: Map<string, ParsedToken[]>;
 }
 
-/**
- * Generate platform-specific variable names based on Style Dictionary's transform conventions
- * See: https://amzn.github.io/style-dictionary/#/transforms?id=pre-defined-transforms
- */
-function generatePlatformVariableNames(tokenPath: string, platforms?: string[]): Record<string, string> {
-  if (!platforms || platforms.length === 0) {
-    return {};
-  }
+/** Platform info from intermediate format metadata */
+type PlatformInfo = NonNullable<IntermediateTokenFormat['$metadata']['output']['styleDictionary']>['platforms'];
 
+/**
+ * Generate platform-specific variable names using SD's actual transform functions.
+ *
+ * When SD is configured: Uses SD's native name/* transforms
+ * When SD is not configured: Only shows JSON nested path and CSS variable (if CSS enabled)
+ */
+async function generatePlatformVariableNames(
+  tokenPath: string,
+  platforms?: PlatformInfo,
+  cssEnabled?: boolean
+): Promise<Record<string, string>> {
   const result: Record<string, string> = {};
   const parts = tokenPath.split('.');
 
-  for (const platform of platforms) {
-    switch (platform.toLowerCase()) {
-      // iOS Swift uses camelCase (name/camel transform)
-      case 'ios-swift':
-      case 'ios':
-      case 'swift':
-        result[platform] = parts.map((part, i) =>
-          i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-        ).join('');
-        break;
+  // Always include JSON nested path format
+  const formattedParts = parts.map(part => {
+    if (/^\d/.test(part) || /[^a-zA-Z0-9_]/.test(part)) {
+      return `["${part}"]`;
+    }
+    return part;
+  });
+  result['json'] = formattedParts.join('.').replace(/\.\[/g, '[');
 
-      // Android uses snake_case (name/snake transform)
-      case 'android':
-        result[platform] = parts.join('_').toLowerCase();
-        break;
+  // Include CSS variable if CSS output is enabled
+  if (cssEnabled) {
+    result['css'] = `--${parts.join('-').toLowerCase()}`;
+  }
 
-      // Compose uses camelCase (name/camel transform)
-      case 'compose':
-        result[platform] = parts.map((part, i) =>
-          i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-        ).join('');
-        break;
+  // If no SD platforms configured, return just JSON (and optionally CSS)
+  if (!platforms) {
+    return result;
+  }
 
-      // Flutter/Dart uses camelCase (name/camel transform)
-      case 'flutter':
-      case 'dart':
-        result[platform] = parts.map((part, i) =>
-          i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-        ).join('');
-        break;
-
-      // CSS/SCSS/JS use kebab-case with prefix (name/kebab transform)
-      case 'css':
-      case 'scss':
-      case 'sass':
-        result[platform] = `--${parts.join('-').toLowerCase()}`;
-        break;
-
-      // JavaScript uses PascalCase (name/pascal transform in SD)
-      case 'js':
-      case 'javascript':
-        result[platform] = parts.map(part =>
-          part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-        ).join('');
-        break;
-
-      // TypeScript uses PascalCase (same as JS)
-      case 'ts':
-      case 'typescript':
-        result[platform] = parts.map(part =>
-          part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-        ).join('');
-        break;
-
-      // JSON uses nested path with dot notation
-      // e.g., color.primary["50"] or color.primary.50
-      case 'json':
-        // Use bracket notation for parts that start with numbers or have special chars
-        const formattedParts = parts.map(part => {
-          // If part starts with a number or contains special chars, use bracket notation
-          if (/^\d/.test(part) || /[^a-zA-Z0-9_]/.test(part)) {
-            return `["${part}"]`;
-          }
-          return part;
-        });
-        // Join with dots, but brackets are already included where needed
-        result[platform] = formattedParts.join('.').replace(/\.\[/g, '[');
-        break;
-
-      default:
-        // Default to kebab-case
-        result[platform] = `--${parts.join('-').toLowerCase()}`;
+  // Generate variable names for each SD platform using SD's actual transforms
+  // Skip 'json' since we always want to show the nested path format for JSON access
+  for (const [platformName, platformConfig] of Object.entries(platforms)) {
+    if (platformName === 'json') {
+      continue; // Don't override our JSON nested path format
+    }
+    if (platformConfig.nameTransform) {
+      const transformed = await applySDNameTransform(tokenPath, platformConfig.nameTransform);
+      if (transformed) {
+        result[platformName] = transformed;
+      }
     }
   }
 
@@ -145,11 +110,12 @@ function generatePlatformVariableNames(tokenPath: string, platforms?: string[]):
 /**
  * Parse baseline data into categorized tokens
  */
-export function parseTokens(
+export async function parseTokens(
   baseline: BaselineData,
   variableNaming?: { prefix: string; separator: string },
-  platforms?: string[]
-): ParsedTokens {
+  platforms?: PlatformInfo,
+  cssEnabled?: boolean
+): Promise<ParsedTokens> {
   const colors: ParsedToken[] = [];
   const typography: ParsedToken[] = [];
   const spacing: ParsedToken[] = [];
@@ -167,7 +133,7 @@ export function parseTokens(
   }
 
   for (const [key, entry] of Object.entries(baseline.baseline)) {
-    const parsed = parseToken(entry, variableIdLookup, variableNaming, platforms);
+    const parsed = await parseToken(entry, variableIdLookup, variableNaming, platforms, cssEnabled);
     all.push(parsed);
 
     // Group by collection
@@ -200,7 +166,7 @@ export function parseTokens(
       case 'size':
       case 'number':
         // Check if path suggests spacing
-        if (parsed.path.toLowerCase().includes('spacing') || 
+        if (parsed.path.toLowerCase().includes('spacing') ||
             parsed.path.toLowerCase().includes('space') ||
             parsed.path.toLowerCase().includes('gap') ||
             parsed.path.toLowerCase().includes('padding') ||
@@ -221,19 +187,20 @@ export function parseTokens(
 /**
  * Parse a single token entry
  */
-function parseToken(
+async function parseToken(
   entry: BaselineEntry,
   variableIdLookup: Map<string, { path: string; value: any }>,
   variableNaming?: { prefix: string; separator: string },
-  platforms?: string[]
-): ParsedToken {
+  platforms?: PlatformInfo,
+  cssEnabled?: boolean
+): Promise<ParsedToken> {
   // Generate CSS variable name from path using metadata or defaults
   const prefix = variableNaming?.prefix || '--';
   const separator = variableNaming?.separator || '-';
   const cssVariable = `${prefix}${entry.path.replace(/\./g, separator).toLowerCase()}`;
 
   // Generate platform-specific variable names
-  const platformVariables = generatePlatformVariableNames(entry.path, platforms);
+  const platformVariables = await generatePlatformVariableNames(entry.path, platforms, cssEnabled);
 
   // Check if value is a reference
   let referencePath: string | undefined;
@@ -249,10 +216,13 @@ function parseToken(
     }
   }
 
+  // Convert Figma type to DTCG type using shared mapping
+  const dtcgType = mapToDTCGType(entry.type, entry.path);
+
   return {
     path: entry.path,
     value: entry.value,
-    type: entry.type,
+    type: dtcgType,
     collection: entry.collection || entry.path.split('.')[0],
     mode: entry.mode || 'default',
     cssVariable,
@@ -289,10 +259,14 @@ export async function generateDocs(
   // Try to load intermediate format for enhanced metadata
   const intermediateFormat = await tryLoadIntermediateFormat(options.config);
 
-  const tokens = parseTokens(
+  // Determine if CSS output is enabled
+  const cssEnabled = intermediateFormat?.$metadata?.output?.css?.enabled || options.config.css?.enabled;
+
+  const tokens = await parseTokens(
     baseline,
     intermediateFormat?.$metadata?.variableNaming,
-    intermediateFormat?.$metadata?.output?.styleDictionary?.platforms
+    intermediateFormat?.$metadata?.output?.styleDictionary?.platforms,
+    cssEnabled
   );
   const files: Record<string, string> = {};
 
@@ -334,7 +308,7 @@ export async function generateDocs(
     files[fileName] = generateCollectionPage(collectionName, collectionTokens, templateOptions);
   }
   
-  files['all-tokens.html'] = generateAllTokensPage(tokens.all, templateOptions);
+  files['all-tokens.html'] = generateAllTokensPage(tokens.all, templateOptions, tokens.collections);
   
   // Copy of tokens.json for reference
   files['tokens.json'] = JSON.stringify(baseline, null, 2);

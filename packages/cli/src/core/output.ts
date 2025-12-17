@@ -46,10 +46,10 @@ async function prepareTransformContext(
 ): Promise<TransformContext> {
   const outputDir = resolve(process.cwd(), dir || defaultDir);
   await mkdir(outputDir, { recursive: true });
-  
-  const tokens = parseTokens(baseline);
+
+  const tokens = await parseTokens(baseline);
   const modeNames = Array.from(tokens.modes.keys());
-  
+
   return { outputDir, tokens, modeNames };
 }
 

@@ -10,6 +10,7 @@
 </head>
 <body>
   <div class="docs-layout">
+    
     <!-- Sidebar -->
     <aside class="docs-sidebar">
       <a href="index.html" class="docs-logo">
@@ -27,8 +28,8 @@
 
         <div class="docs-nav-section">Collections</div>
         
-        <a href="primitives.html" class="">
-          Primitives
+        <a href="base.html" class="">
+          Base
           <span class="docs-nav-count">12</span>
         </a>
         
@@ -64,9 +65,10 @@
       <header class="docs-header">
         <div>
           <h1 class="docs-title">All Tokens</h1>
-          <p class="docs-subtitle">Last synced: Dec 17, 2025, 12:39 AM</p>
+          <p class="docs-subtitle">Last synced: Dec 17, 2025, 11:34 PM</p>
         </div>
 
+        
         <div class="docs-controls">
           <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
 
@@ -91,28 +93,6 @@
           </div>
           
 
-          
-          <div class="docs-mode-switcher">
-            
-              <button class="docs-mode-btn active" data-mode="value">
-                Value
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="default">
-                Default
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="light">
-                Light
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="dark">
-                Dark
-              </button>
-            
-          </div>
-          
-
           <button class="docs-theme-toggle" id="themeToggle" title="Toggle theme">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"/>
@@ -123,12 +103,32 @@
       </header>
 
       
+    <div class="docs-mode-row docs-mode-row--overview">
+      
+        <div class="docs-collection-mode-toggle">
+          <span class="docs-mode-label">Theme</span>
+          <div class="docs-mode-switcher" data-collection="theme">
+            
+              <button class="docs-mode-btn " data-mode="light">
+                Light
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="dark">
+                Dark
+              </button>
+            
+          </div>
+        </div>
+      
+    </div>
+
+      
     <section class="docs-section">
       <div class="docs-section-header">
         <h2 class="docs-section-title">All Tokens</h2>
         <span class="docs-section-count">89 tokens</span>
       </div>
-      
+
       <table class="docs-token-table">
         <thead>
           <tr>
@@ -143,199 +143,199 @@
         </thead>
         <tbody>
           
-            <tr data-token="default.spacing.xs" data-mode="value">
-              <td><strong>default.spacing.xs</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.xs" data-mode="value" data-collection="base">
+              <td><strong>spacing.xs</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="4">4</code>
+                <code data-copy="4px">4px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultSpacingXs" style="display: none;">DefaultSpacingXs</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultSpacingXs" style="display: none;">DefaultSpacingXs</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.spacing.xs" style="">default.spacing.xs</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.xs" style="">spacing.xs</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingXs" style="display: none;">SpacingXs</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SpacingXs" style="display: none;">SpacingXs</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.sm" data-mode="value">
-              <td><strong>default.spacing.sm</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.sm" data-mode="value" data-collection="base">
+              <td><strong>spacing.sm</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="8">8</code>
+                <code data-copy="8px">8px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultSpacingSm" style="display: none;">DefaultSpacingSm</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultSpacingSm" style="display: none;">DefaultSpacingSm</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.spacing.sm" style="">default.spacing.sm</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.sm" style="">spacing.sm</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingSm" style="display: none;">SpacingSm</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SpacingSm" style="display: none;">SpacingSm</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.md" data-mode="value">
-              <td><strong>default.spacing.md</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.md" data-mode="value" data-collection="base">
+              <td><strong>spacing.md</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="16">16</code>
+                <code data-copy="16px">16px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultSpacingMd" style="display: none;">DefaultSpacingMd</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultSpacingMd" style="display: none;">DefaultSpacingMd</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.spacing.md" style="">default.spacing.md</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.md" style="">spacing.md</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingMd" style="display: none;">SpacingMd</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SpacingMd" style="display: none;">SpacingMd</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.lg" data-mode="value">
-              <td><strong>default.spacing.lg</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.lg" data-mode="value" data-collection="base">
+              <td><strong>spacing.lg</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="24">24</code>
+                <code data-copy="24px">24px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultSpacingLg" style="display: none;">DefaultSpacingLg</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultSpacingLg" style="display: none;">DefaultSpacingLg</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.spacing.lg" style="">default.spacing.lg</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.lg" style="">spacing.lg</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingLg" style="display: none;">SpacingLg</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SpacingLg" style="display: none;">SpacingLg</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.xl" data-mode="value">
-              <td><strong>default.spacing.xl</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.xl" data-mode="value" data-collection="base">
+              <td><strong>spacing.xl</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="32">32</code>
+                <code data-copy="32px">32px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultSpacingXl" style="display: none;">DefaultSpacingXl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultSpacingXl" style="display: none;">DefaultSpacingXl</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.spacing.xl" style="">default.spacing.xl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.xl" style="">spacing.xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingXl" style="display: none;">SpacingXl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SpacingXl" style="display: none;">SpacingXl</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.2xl" data-mode="value">
-              <td><strong>default.spacing.2xl</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.2xl" data-mode="value" data-collection="base">
+              <td><strong>spacing.2xl</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="48">48</code>
+                <code data-copy="48px">48px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultSpacing2xl" style="display: none;">DefaultSpacing2xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultSpacing2xl" style="display: none;">DefaultSpacing2xl</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.spacing[&quot;2xl&quot;]" style="">default.spacing[&quot;2xl&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing[&quot;2xl&quot;]" style="">spacing[&quot;2xl&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Spacing2xl" style="display: none;">Spacing2xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Spacing2xl" style="display: none;">Spacing2xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.3xl" data-mode="value">
-              <td><strong>default.spacing.3xl</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.3xl" data-mode="value" data-collection="base">
+              <td><strong>spacing.3xl</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="64">64</code>
+                <code data-copy="64px">64px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultSpacing3xl" style="display: none;">DefaultSpacing3xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultSpacing3xl" style="display: none;">DefaultSpacing3xl</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.spacing[&quot;3xl&quot;]" style="">default.spacing[&quot;3xl&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing[&quot;3xl&quot;]" style="">spacing[&quot;3xl&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Spacing3xl" style="display: none;">Spacing3xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Spacing3xl" style="display: none;">Spacing3xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.none" data-mode="value">
-              <td><strong>default.radius.none</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.none" data-mode="value" data-collection="base">
+              <td><strong>radius.none</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="0">0</code>
+                <code data-copy="0px">0px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultRadiusNone" style="display: none;">DefaultRadiusNone</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultRadiusNone" style="display: none;">DefaultRadiusNone</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.radius.none" style="">default.radius.none</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.none" style="">radius.none</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusNone" style="display: none;">RadiusNone</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="RadiusNone" style="display: none;">RadiusNone</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.sm" data-mode="value">
-              <td><strong>default.radius.sm</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.sm" data-mode="value" data-collection="base">
+              <td><strong>radius.sm</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="4">4</code>
+                <code data-copy="4px">4px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultRadiusSm" style="display: none;">DefaultRadiusSm</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultRadiusSm" style="display: none;">DefaultRadiusSm</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.radius.sm" style="">default.radius.sm</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.sm" style="">radius.sm</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusSm" style="display: none;">RadiusSm</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="RadiusSm" style="display: none;">RadiusSm</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.md" data-mode="value">
-              <td><strong>default.radius.md</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.md" data-mode="value" data-collection="base">
+              <td><strong>radius.md</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="8">8</code>
+                <code data-copy="8px">8px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultRadiusMd" style="display: none;">DefaultRadiusMd</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultRadiusMd" style="display: none;">DefaultRadiusMd</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.radius.md" style="">default.radius.md</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.md" style="">radius.md</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusMd" style="display: none;">RadiusMd</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="RadiusMd" style="display: none;">RadiusMd</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.lg" data-mode="value">
-              <td><strong>default.radius.lg</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.lg" data-mode="value" data-collection="base">
+              <td><strong>radius.lg</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="12">12</code>
+                <code data-copy="12px">12px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultRadiusLg" style="display: none;">DefaultRadiusLg</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultRadiusLg" style="display: none;">DefaultRadiusLg</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.radius.lg" style="">default.radius.lg</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.lg" style="">radius.lg</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusLg" style="display: none;">RadiusLg</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="RadiusLg" style="display: none;">RadiusLg</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.full" data-mode="value">
-              <td><strong>default.radius.full</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.full" data-mode="value" data-collection="base">
+              <td><strong>radius.full</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="9999">9999</code>
+                <code data-copy="9999px">9999px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="DefaultRadiusFull" style="display: none;">DefaultRadiusFull</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="DefaultRadiusFull" style="display: none;">DefaultRadiusFull</code><code class="docs-token-variable--platform" data-platform="json" data-copy="default.radius.full" style="">default.radius.full</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.full" style="">radius.full</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusFull" style="display: none;">RadiusFull</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="RadiusFull" style="display: none;">RadiusFull</code>
               </td>
             </tr>
           
-            <tr data-token="primary.50" data-mode="value">
+            <tr data-token="primary.50" data-mode="value" data-collection="colors">
               <td><strong>primary.50</strong></td>
               <td><code>color</code></td>
               <td>
@@ -350,11 +350,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary50" style="display: none;">Primary50</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary50" style="display: none;">Primary50</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;50&quot;]" style="">primary[&quot;50&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;50&quot;]" style="">primary[&quot;50&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary50" style="display: none;">Primary50</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary50" style="display: none;">Primary50</code>
               </td>
             </tr>
           
-            <tr data-token="primary.100" data-mode="value">
+            <tr data-token="primary.100" data-mode="value" data-collection="colors">
               <td><strong>primary.100</strong></td>
               <td><code>color</code></td>
               <td>
@@ -369,11 +369,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary100" style="display: none;">Primary100</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary100" style="display: none;">Primary100</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;100&quot;]" style="">primary[&quot;100&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;100&quot;]" style="">primary[&quot;100&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary100" style="display: none;">Primary100</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary100" style="display: none;">Primary100</code>
               </td>
             </tr>
           
-            <tr data-token="primary.200" data-mode="value">
+            <tr data-token="primary.200" data-mode="value" data-collection="colors">
               <td><strong>primary.200</strong></td>
               <td><code>color</code></td>
               <td>
@@ -388,11 +388,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary200" style="display: none;">Primary200</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary200" style="display: none;">Primary200</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;200&quot;]" style="">primary[&quot;200&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;200&quot;]" style="">primary[&quot;200&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary200" style="display: none;">Primary200</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary200" style="display: none;">Primary200</code>
               </td>
             </tr>
           
-            <tr data-token="primary.300" data-mode="value">
+            <tr data-token="primary.300" data-mode="value" data-collection="colors">
               <td><strong>primary.300</strong></td>
               <td><code>color</code></td>
               <td>
@@ -407,11 +407,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary300" style="display: none;">Primary300</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary300" style="display: none;">Primary300</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;300&quot;]" style="">primary[&quot;300&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;300&quot;]" style="">primary[&quot;300&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary300" style="display: none;">Primary300</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary300" style="display: none;">Primary300</code>
               </td>
             </tr>
           
-            <tr data-token="primary.400" data-mode="value">
+            <tr data-token="primary.400" data-mode="value" data-collection="colors">
               <td><strong>primary.400</strong></td>
               <td><code>color</code></td>
               <td>
@@ -426,11 +426,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary400" style="display: none;">Primary400</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary400" style="display: none;">Primary400</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;400&quot;]" style="">primary[&quot;400&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;400&quot;]" style="">primary[&quot;400&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary400" style="display: none;">Primary400</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary400" style="display: none;">Primary400</code>
               </td>
             </tr>
           
-            <tr data-token="primary.500" data-mode="value">
+            <tr data-token="primary.500" data-mode="value" data-collection="colors">
               <td><strong>primary.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -445,11 +445,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary500" style="display: none;">Primary500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary500" style="display: none;">Primary500</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;500&quot;]" style="">primary[&quot;500&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;500&quot;]" style="">primary[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary500" style="display: none;">Primary500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary500" style="display: none;">Primary500</code>
               </td>
             </tr>
           
-            <tr data-token="primary.600" data-mode="value">
+            <tr data-token="primary.600" data-mode="value" data-collection="colors">
               <td><strong>primary.600</strong></td>
               <td><code>color</code></td>
               <td>
@@ -464,11 +464,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary600" style="display: none;">Primary600</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary600" style="display: none;">Primary600</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;600&quot;]" style="">primary[&quot;600&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;600&quot;]" style="">primary[&quot;600&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary600" style="display: none;">Primary600</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary600" style="display: none;">Primary600</code>
               </td>
             </tr>
           
-            <tr data-token="primary.700" data-mode="value">
+            <tr data-token="primary.700" data-mode="value" data-collection="colors">
               <td><strong>primary.700</strong></td>
               <td><code>color</code></td>
               <td>
@@ -483,11 +483,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary700" style="display: none;">Primary700</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary700" style="display: none;">Primary700</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;700&quot;]" style="">primary[&quot;700&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;700&quot;]" style="">primary[&quot;700&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary700" style="display: none;">Primary700</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary700" style="display: none;">Primary700</code>
               </td>
             </tr>
           
-            <tr data-token="primary.800" data-mode="value">
+            <tr data-token="primary.800" data-mode="value" data-collection="colors">
               <td><strong>primary.800</strong></td>
               <td><code>color</code></td>
               <td>
@@ -502,11 +502,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary800" style="display: none;">Primary800</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary800" style="display: none;">Primary800</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;800&quot;]" style="">primary[&quot;800&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;800&quot;]" style="">primary[&quot;800&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary800" style="display: none;">Primary800</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary800" style="display: none;">Primary800</code>
               </td>
             </tr>
           
-            <tr data-token="primary.900" data-mode="value">
+            <tr data-token="primary.900" data-mode="value" data-collection="colors">
               <td><strong>primary.900</strong></td>
               <td><code>color</code></td>
               <td>
@@ -521,11 +521,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Primary900" style="display: none;">Primary900</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary900" style="display: none;">Primary900</code><code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;900&quot;]" style="">primary[&quot;900&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;900&quot;]" style="">primary[&quot;900&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary900" style="display: none;">Primary900</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Primary900" style="display: none;">Primary900</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.50" data-mode="value">
+            <tr data-token="neutral.50" data-mode="value" data-collection="colors">
               <td><strong>neutral.50</strong></td>
               <td><code>color</code></td>
               <td>
@@ -540,11 +540,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral50" style="display: none;">Neutral50</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral50" style="display: none;">Neutral50</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;50&quot;]" style="">neutral[&quot;50&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;50&quot;]" style="">neutral[&quot;50&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral50" style="display: none;">Neutral50</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral50" style="display: none;">Neutral50</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.100" data-mode="value">
+            <tr data-token="neutral.100" data-mode="value" data-collection="colors">
               <td><strong>neutral.100</strong></td>
               <td><code>color</code></td>
               <td>
@@ -559,11 +559,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral100" style="display: none;">Neutral100</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral100" style="display: none;">Neutral100</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;100&quot;]" style="">neutral[&quot;100&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;100&quot;]" style="">neutral[&quot;100&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral100" style="display: none;">Neutral100</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral100" style="display: none;">Neutral100</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.200" data-mode="value">
+            <tr data-token="neutral.200" data-mode="value" data-collection="colors">
               <td><strong>neutral.200</strong></td>
               <td><code>color</code></td>
               <td>
@@ -578,11 +578,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral200" style="display: none;">Neutral200</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral200" style="display: none;">Neutral200</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;200&quot;]" style="">neutral[&quot;200&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;200&quot;]" style="">neutral[&quot;200&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral200" style="display: none;">Neutral200</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral200" style="display: none;">Neutral200</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.300" data-mode="value">
+            <tr data-token="neutral.300" data-mode="value" data-collection="colors">
               <td><strong>neutral.300</strong></td>
               <td><code>color</code></td>
               <td>
@@ -597,11 +597,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral300" style="display: none;">Neutral300</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral300" style="display: none;">Neutral300</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;300&quot;]" style="">neutral[&quot;300&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;300&quot;]" style="">neutral[&quot;300&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral300" style="display: none;">Neutral300</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral300" style="display: none;">Neutral300</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.400" data-mode="value">
+            <tr data-token="neutral.400" data-mode="value" data-collection="colors">
               <td><strong>neutral.400</strong></td>
               <td><code>color</code></td>
               <td>
@@ -616,11 +616,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral400" style="display: none;">Neutral400</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral400" style="display: none;">Neutral400</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;400&quot;]" style="">neutral[&quot;400&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;400&quot;]" style="">neutral[&quot;400&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral400" style="display: none;">Neutral400</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral400" style="display: none;">Neutral400</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.500" data-mode="value">
+            <tr data-token="neutral.500" data-mode="value" data-collection="colors">
               <td><strong>neutral.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -635,11 +635,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral500" style="display: none;">Neutral500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral500" style="display: none;">Neutral500</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;500&quot;]" style="">neutral[&quot;500&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;500&quot;]" style="">neutral[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral500" style="display: none;">Neutral500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral500" style="display: none;">Neutral500</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.600" data-mode="value">
+            <tr data-token="neutral.600" data-mode="value" data-collection="colors">
               <td><strong>neutral.600</strong></td>
               <td><code>color</code></td>
               <td>
@@ -654,11 +654,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral600" style="display: none;">Neutral600</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral600" style="display: none;">Neutral600</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;600&quot;]" style="">neutral[&quot;600&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;600&quot;]" style="">neutral[&quot;600&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral600" style="display: none;">Neutral600</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral600" style="display: none;">Neutral600</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.700" data-mode="value">
+            <tr data-token="neutral.700" data-mode="value" data-collection="colors">
               <td><strong>neutral.700</strong></td>
               <td><code>color</code></td>
               <td>
@@ -673,11 +673,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral700" style="display: none;">Neutral700</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral700" style="display: none;">Neutral700</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;700&quot;]" style="">neutral[&quot;700&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;700&quot;]" style="">neutral[&quot;700&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral700" style="display: none;">Neutral700</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral700" style="display: none;">Neutral700</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.800" data-mode="value">
+            <tr data-token="neutral.800" data-mode="value" data-collection="colors">
               <td><strong>neutral.800</strong></td>
               <td><code>color</code></td>
               <td>
@@ -692,11 +692,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral800" style="display: none;">Neutral800</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral800" style="display: none;">Neutral800</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;800&quot;]" style="">neutral[&quot;800&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;800&quot;]" style="">neutral[&quot;800&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral800" style="display: none;">Neutral800</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral800" style="display: none;">Neutral800</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.900" data-mode="value">
+            <tr data-token="neutral.900" data-mode="value" data-collection="colors">
               <td><strong>neutral.900</strong></td>
               <td><code>color</code></td>
               <td>
@@ -711,11 +711,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral900" style="display: none;">Neutral900</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral900" style="display: none;">Neutral900</code><code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;900&quot;]" style="">neutral[&quot;900&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;900&quot;]" style="">neutral[&quot;900&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral900" style="display: none;">Neutral900</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Neutral900" style="display: none;">Neutral900</code>
               </td>
             </tr>
           
-            <tr data-token="success.500" data-mode="value">
+            <tr data-token="success.500" data-mode="value" data-collection="colors">
               <td><strong>success.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -730,11 +730,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Success500" style="display: none;">Success500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Success500" style="display: none;">Success500</code><code class="docs-token-variable--platform" data-platform="json" data-copy="success[&quot;500&quot;]" style="">success[&quot;500&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="success[&quot;500&quot;]" style="">success[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Success500" style="display: none;">Success500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Success500" style="display: none;">Success500</code>
               </td>
             </tr>
           
-            <tr data-token="warning.500" data-mode="value">
+            <tr data-token="warning.500" data-mode="value" data-collection="colors">
               <td><strong>warning.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -749,11 +749,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Warning500" style="display: none;">Warning500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Warning500" style="display: none;">Warning500</code><code class="docs-token-variable--platform" data-platform="json" data-copy="warning[&quot;500&quot;]" style="">warning[&quot;500&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="warning[&quot;500&quot;]" style="">warning[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Warning500" style="display: none;">Warning500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Warning500" style="display: none;">Warning500</code>
               </td>
             </tr>
           
-            <tr data-token="error.500" data-mode="value">
+            <tr data-token="error.500" data-mode="value" data-collection="colors">
               <td><strong>error.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -768,11 +768,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Error500" style="display: none;">Error500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Error500" style="display: none;">Error500</code><code class="docs-token-variable--platform" data-platform="json" data-copy="error[&quot;500&quot;]" style="">error[&quot;500&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="error[&quot;500&quot;]" style="">error[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Error500" style="display: none;">Error500</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Error500" style="display: none;">Error500</code>
               </td>
             </tr>
           
-            <tr data-token="background.primary" data-mode="value">
+            <tr data-token="background.primary" data-mode="value" data-collection="colors">
               <td><strong>background.primary</strong></td>
               <td><code>color</code></td>
               <td>
@@ -787,11 +787,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BackgroundPrimary" style="display: none;">BackgroundPrimary</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BackgroundPrimary" style="display: none;">BackgroundPrimary</code><code class="docs-token-variable--platform" data-platform="json" data-copy="background.primary" style="">background.primary</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="background.primary" style="">background.primary</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BackgroundPrimary" style="display: none;">BackgroundPrimary</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BackgroundPrimary" style="display: none;">BackgroundPrimary</code>
               </td>
             </tr>
           
-            <tr data-token="background.secondary" data-mode="value">
+            <tr data-token="background.secondary" data-mode="value" data-collection="colors">
               <td><strong>background.secondary</strong></td>
               <td><code>color</code></td>
               <td>
@@ -806,11 +806,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BackgroundSecondary" style="display: none;">BackgroundSecondary</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BackgroundSecondary" style="display: none;">BackgroundSecondary</code><code class="docs-token-variable--platform" data-platform="json" data-copy="background.secondary" style="">background.secondary</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="background.secondary" style="">background.secondary</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BackgroundSecondary" style="display: none;">BackgroundSecondary</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BackgroundSecondary" style="display: none;">BackgroundSecondary</code>
               </td>
             </tr>
           
-            <tr data-token="text.primary" data-mode="value">
+            <tr data-token="text.primary" data-mode="value" data-collection="colors">
               <td><strong>text.primary</strong></td>
               <td><code>color</code></td>
               <td>
@@ -825,11 +825,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="TextPrimary" style="display: none;">TextPrimary</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="TextPrimary" style="display: none;">TextPrimary</code><code class="docs-token-variable--platform" data-platform="json" data-copy="text.primary" style="">text.primary</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="text.primary" style="">text.primary</code><code class="docs-token-variable--platform" data-platform="js" data-copy="TextPrimary" style="display: none;">TextPrimary</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="TextPrimary" style="display: none;">TextPrimary</code>
               </td>
             </tr>
           
-            <tr data-token="text.secondary" data-mode="value">
+            <tr data-token="text.secondary" data-mode="value" data-collection="colors">
               <td><strong>text.secondary</strong></td>
               <td><code>color</code></td>
               <td>
@@ -844,141 +844,141 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="TextSecondary" style="display: none;">TextSecondary</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="TextSecondary" style="display: none;">TextSecondary</code><code class="docs-token-variable--platform" data-platform="json" data-copy="text.secondary" style="">text.secondary</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="text.secondary" style="">text.secondary</code><code class="docs-token-variable--platform" data-platform="js" data-copy="TextSecondary" style="display: none;">TextSecondary</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="TextSecondary" style="display: none;">TextSecondary</code>
               </td>
             </tr>
           
-            <tr data-token="size.xs" data-mode="default">
+            <tr data-token="size.xs" data-mode="value" data-collection="font">
               <td><strong>size.xs</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="10">10</code>
+                <code data-copy="12px">12px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="SizeXs" style="display: none;">SizeXs</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeXs" style="display: none;">SizeXs</code><code class="docs-token-variable--platform" data-platform="json" data-copy="size.xs" style="">size.xs</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.xs" style="">size.xs</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeXs" style="display: none;">SizeXs</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeXs" style="display: none;">SizeXs</code>
               </td>
             </tr>
           
-            <tr data-token="size.sm" data-mode="default">
+            <tr data-token="size.sm" data-mode="value" data-collection="font">
               <td><strong>size.sm</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="14">14</code>
+                <code data-copy="14px">14px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="SizeSm" style="display: none;">SizeSm</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeSm" style="display: none;">SizeSm</code><code class="docs-token-variable--platform" data-platform="json" data-copy="size.sm" style="">size.sm</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.sm" style="">size.sm</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeSm" style="display: none;">SizeSm</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeSm" style="display: none;">SizeSm</code>
               </td>
             </tr>
           
-            <tr data-token="size.base" data-mode="default">
-              <td><strong>size.base</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="size.md" data-mode="value" data-collection="font">
+              <td><strong>size.md</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="16">16</code>
+                <code data-copy="16px">16px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="SizeBase" style="display: none;">SizeBase</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeBase" style="display: none;">SizeBase</code><code class="docs-token-variable--platform" data-platform="json" data-copy="size.base" style="">size.base</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.md" style="">size.md</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeMd" style="display: none;">SizeMd</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeMd" style="display: none;">SizeMd</code>
               </td>
             </tr>
           
-            <tr data-token="size.lg" data-mode="default">
+            <tr data-token="size.lg" data-mode="value" data-collection="font">
               <td><strong>size.lg</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="18">18</code>
+                <code data-copy="18px">18px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="SizeLg" style="display: none;">SizeLg</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeLg" style="display: none;">SizeLg</code><code class="docs-token-variable--platform" data-platform="json" data-copy="size.lg" style="">size.lg</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.lg" style="">size.lg</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeLg" style="display: none;">SizeLg</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeLg" style="display: none;">SizeLg</code>
               </td>
             </tr>
           
-            <tr data-token="size.xl" data-mode="default">
+            <tr data-token="size.xl" data-mode="value" data-collection="font">
               <td><strong>size.xl</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="20">20</code>
+                <code data-copy="20px">20px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="SizeXl" style="display: none;">SizeXl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeXl" style="display: none;">SizeXl</code><code class="docs-token-variable--platform" data-platform="json" data-copy="size.xl" style="">size.xl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.xl" style="">size.xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeXl" style="display: none;">SizeXl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="SizeXl" style="display: none;">SizeXl</code>
               </td>
             </tr>
           
-            <tr data-token="size.2xl" data-mode="default">
+            <tr data-token="size.2xl" data-mode="value" data-collection="font">
               <td><strong>size.2xl</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="24">24</code>
+                <code data-copy="24px">24px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Size2xl" style="display: none;">Size2xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Size2xl" style="display: none;">Size2xl</code><code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;2xl&quot;]" style="">size[&quot;2xl&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;2xl&quot;]" style="">size[&quot;2xl&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Size2xl" style="display: none;">Size2xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Size2xl" style="display: none;">Size2xl</code>
               </td>
             </tr>
           
-            <tr data-token="size.3xl" data-mode="default">
+            <tr data-token="size.3xl" data-mode="value" data-collection="font">
               <td><strong>size.3xl</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="30">30</code>
+                <code data-copy="30px">30px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Size3xl" style="display: none;">Size3xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Size3xl" style="display: none;">Size3xl</code><code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;3xl&quot;]" style="">size[&quot;3xl&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;3xl&quot;]" style="">size[&quot;3xl&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Size3xl" style="display: none;">Size3xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Size3xl" style="display: none;">Size3xl</code>
               </td>
             </tr>
           
-            <tr data-token="size.4xl" data-mode="default">
+            <tr data-token="size.4xl" data-mode="value" data-collection="font">
               <td><strong>size.4xl</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="36">36</code>
+                <code data-copy="36px">36px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="Size4xl" style="display: none;">Size4xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Size4xl" style="display: none;">Size4xl</code><code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;4xl&quot;]" style="">size[&quot;4xl&quot;]</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;4xl&quot;]" style="">size[&quot;4xl&quot;]</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Size4xl" style="display: none;">Size4xl</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="Size4xl" style="display: none;">Size4xl</code>
               </td>
             </tr>
           
-            <tr data-token="weight.normal" data-mode="default">
+            <tr data-token="weight.normal" data-mode="value" data-collection="font">
               <td><strong>weight.normal</strong></td>
-              <td><code>float</code></td>
+              <td><code>number</code></td>
               <td>
                 <code data-copy="400">400</code>
               </td>
@@ -986,15 +986,15 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="WeightNormal" style="display: none;">WeightNormal</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="WeightNormal" style="display: none;">WeightNormal</code><code class="docs-token-variable--platform" data-platform="json" data-copy="weight.normal" style="">weight.normal</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="weight.normal" style="">weight.normal</code><code class="docs-token-variable--platform" data-platform="js" data-copy="WeightNormal" style="display: none;">WeightNormal</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="WeightNormal" style="display: none;">WeightNormal</code>
               </td>
             </tr>
           
-            <tr data-token="weight.medium" data-mode="default">
+            <tr data-token="weight.medium" data-mode="value" data-collection="font">
               <td><strong>weight.medium</strong></td>
-              <td><code>float</code></td>
+              <td><code>number</code></td>
               <td>
                 <code data-copy="500">500</code>
               </td>
@@ -1002,15 +1002,15 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="WeightMedium" style="display: none;">WeightMedium</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="WeightMedium" style="display: none;">WeightMedium</code><code class="docs-token-variable--platform" data-platform="json" data-copy="weight.medium" style="">weight.medium</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="weight.medium" style="">weight.medium</code><code class="docs-token-variable--platform" data-platform="js" data-copy="WeightMedium" style="display: none;">WeightMedium</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="WeightMedium" style="display: none;">WeightMedium</code>
               </td>
             </tr>
           
-            <tr data-token="weight.semibold" data-mode="default">
+            <tr data-token="weight.semibold" data-mode="value" data-collection="font">
               <td><strong>weight.semibold</strong></td>
-              <td><code>float</code></td>
+              <td><code>number</code></td>
               <td>
                 <code data-copy="600">600</code>
               </td>
@@ -1018,15 +1018,15 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="WeightSemibold" style="display: none;">WeightSemibold</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="WeightSemibold" style="display: none;">WeightSemibold</code><code class="docs-token-variable--platform" data-platform="json" data-copy="weight.semibold" style="">weight.semibold</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="weight.semibold" style="">weight.semibold</code><code class="docs-token-variable--platform" data-platform="js" data-copy="WeightSemibold" style="display: none;">WeightSemibold</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="WeightSemibold" style="display: none;">WeightSemibold</code>
               </td>
             </tr>
           
-            <tr data-token="weight.bold" data-mode="default">
+            <tr data-token="weight.bold" data-mode="value" data-collection="font">
               <td><strong>weight.bold</strong></td>
-              <td><code>float</code></td>
+              <td><code>number</code></td>
               <td>
                 <code data-copy="700">700</code>
               </td>
@@ -1034,61 +1034,61 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="WeightBold" style="display: none;">WeightBold</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="WeightBold" style="display: none;">WeightBold</code><code class="docs-token-variable--platform" data-platform="json" data-copy="weight.bold" style="">weight.bold</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="weight.bold" style="">weight.bold</code><code class="docs-token-variable--platform" data-platform="js" data-copy="WeightBold" style="display: none;">WeightBold</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="WeightBold" style="display: none;">WeightBold</code>
               </td>
             </tr>
           
-            <tr data-token="lineHeight.tight" data-mode="default">
+            <tr data-token="lineHeight.tight" data-mode="value" data-collection="font">
               <td><strong>lineHeight.tight</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="1.25">1.25</code>
+                <code data-copy="1.25px">1.25px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="LineheightTight" style="display: none;">LineheightTight</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="LineheightTight" style="display: none;">LineheightTight</code><code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.tight" style="">lineHeight.tight</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.tight" style="">lineHeight.tight</code><code class="docs-token-variable--platform" data-platform="js" data-copy="LineHeightTight" style="display: none;">LineHeightTight</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="LineHeightTight" style="display: none;">LineHeightTight</code>
               </td>
             </tr>
           
-            <tr data-token="lineHeight.normal" data-mode="default">
+            <tr data-token="lineHeight.normal" data-mode="value" data-collection="font">
               <td><strong>lineHeight.normal</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="1.5">1.5</code>
+                <code data-copy="1.5px">1.5px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="LineheightNormal" style="display: none;">LineheightNormal</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="LineheightNormal" style="display: none;">LineheightNormal</code><code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.normal" style="">lineHeight.normal</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.normal" style="">lineHeight.normal</code><code class="docs-token-variable--platform" data-platform="js" data-copy="LineHeightNormal" style="display: none;">LineHeightNormal</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="LineHeightNormal" style="display: none;">LineHeightNormal</code>
               </td>
             </tr>
           
-            <tr data-token="lineHeight.relaxed" data-mode="default">
+            <tr data-token="lineHeight.relaxed" data-mode="value" data-collection="font">
               <td><strong>lineHeight.relaxed</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="1.75">1.75</code>
+                <code data-copy="1.75px">1.75px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="LineheightRelaxed" style="display: none;">LineheightRelaxed</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="LineheightRelaxed" style="display: none;">LineheightRelaxed</code><code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.relaxed" style="">lineHeight.relaxed</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.relaxed" style="">lineHeight.relaxed</code><code class="docs-token-variable--platform" data-platform="js" data-copy="LineHeightRelaxed" style="display: none;">LineHeightRelaxed</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="LineHeightRelaxed" style="display: none;">LineHeightRelaxed</code>
               </td>
             </tr>
           
-            <tr data-token="fontFamily.default" data-mode="default">
+            <tr data-token="fontFamily.default" data-mode="value" data-collection="font">
               <td><strong>fontFamily.default</strong></td>
               <td><code>string</code></td>
               <td>
@@ -1098,13 +1098,13 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FontfamilyDefault" style="display: none;">FontfamilyDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FontfamilyDefault" style="display: none;">FontfamilyDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fontFamily.default" style="">fontFamily.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fontFamily.default" style="">fontFamily.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FontFamilyDefault" style="display: none;">FontFamilyDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FontFamilyDefault" style="display: none;">FontFamilyDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.primary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.primary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1119,11 +1119,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="">bg.primary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="">bg.primary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.primary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.primary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1138,11 +1138,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="">bg.primary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="">bg.primary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.primary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.primary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.primary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1157,11 +1157,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="">bg.primary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="">bg.primary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.primary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.primary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.primary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1176,11 +1176,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="">bg.primary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="">bg.primary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.primary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.primary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1195,11 +1195,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="">fg.primary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="">fg.primary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.primary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.primary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1214,11 +1214,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="">fg.primary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="">fg.primary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.primary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.primary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.primary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1233,11 +1233,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="">fg.primary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="">fg.primary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.primary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.primary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.primary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1252,11 +1252,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="">fg.primary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="">fg.primary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.secondary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.secondary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.secondary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1271,11 +1271,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="">fg.secondary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="">fg.secondary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.secondary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.secondary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.secondary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1290,11 +1290,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="">fg.secondary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="">fg.secondary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.secondary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.secondary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.secondary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1309,11 +1309,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="">fg.secondary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="">fg.secondary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.secondary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.secondary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.secondary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1328,11 +1328,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="">fg.secondary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="">fg.secondary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.brand.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.brand.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1347,11 +1347,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="">fg.brand.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="">fg.brand.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.brand.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.brand.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1366,11 +1366,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="">fg.brand.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="">fg.brand.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.secondary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.secondary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.secondary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1385,11 +1385,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="">bg.secondary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="">bg.secondary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.secondary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.secondary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.secondary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1404,11 +1404,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="">bg.secondary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="">bg.secondary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.secondary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.secondary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.secondary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1423,11 +1423,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="">bg.secondary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="">bg.secondary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.secondary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.secondary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.secondary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1442,11 +1442,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="">bg.secondary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="">bg.secondary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.tertiary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.tertiary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.tertiary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1461,11 +1461,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="">bg.tertiary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="">bg.tertiary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.tertiary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.tertiary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.tertiary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1480,11 +1480,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="">bg.tertiary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="">bg.tertiary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.tertiary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.tertiary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.tertiary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1499,11 +1499,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="">bg.tertiary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="">bg.tertiary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.tertiary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.tertiary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.tertiary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1518,11 +1518,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="">bg.tertiary.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="">bg.tertiary.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="border.primary.subtle" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="border.primary.subtle" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.primary.subtle</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1537,11 +1537,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="">border.primary.subtle</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="">border.primary.subtle</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code>
               </td>
             </tr>
           
-            <tr data-token="border.primary.subtle" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="border.primary.subtle" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.primary.subtle</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1556,11 +1556,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="">border.primary.subtle</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="">border.primary.subtle</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code>
               </td>
             </tr>
           
-            <tr data-token="border.primary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="border.primary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1575,11 +1575,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="">border.primary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="">border.primary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="border.primary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="border.primary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1594,11 +1594,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="">border.primary.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="">border.primary.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.brand.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.brand.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1613,11 +1613,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="">bg.brand.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="">bg.brand.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.brand.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.brand.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1632,11 +1632,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="">bg.brand.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="">bg.brand.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.brand.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.brand.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.brand.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1651,11 +1651,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="">bg.brand.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="">bg.brand.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.brand.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.brand.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.brand.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1670,11 +1670,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code><code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="">bg.brand.hover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="">bg.brand.hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code>
               </td>
             </tr>
           
-            <tr data-token="border.brand.subtle" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="border.brand.subtle" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.brand.subtle</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1689,11 +1689,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="">border.brand.subtle</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="">border.brand.subtle</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code>
               </td>
             </tr>
           
-            <tr data-token="border.brand.subtle" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="border.brand.subtle" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.brand.subtle</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1708,11 +1708,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="">border.brand.subtle</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="">border.brand.subtle</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code>
               </td>
             </tr>
           
-            <tr data-token="border.brand.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="border.brand.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1727,11 +1727,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="">border.brand.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="">border.brand.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="border.brand.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="border.brand.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1746,7 +1746,7 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code><code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="">border.brand.default</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="">border.brand.default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code><code class="docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code>
               </td>
             </tr>
           
@@ -1757,7 +1757,7 @@
 
       <footer class="docs-footer">
         <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
-        <span>Last updated: Dec 17, 2025, 12:39 AM</span>
+        <span>Last updated: Dec 17, 2025, 11:34 PM</span>
         
         <span>Output mode: Style Dictionary</span>
         

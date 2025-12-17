@@ -3,41 +3,41 @@
     "bg": {
       "primary": {
         "default": {
-          "$value": "{color.neutral.50}",
+          "$value": "{neutral.50}",
           "$type": "color"
         },
         "hover": {
-          "$value": "{color.neutral.100}",
+          "$value": "{neutral.100}",
           "$type": "color"
         }
       },
       "secondary": {
         "default": {
-          "$value": "{color.neutral.100}",
+          "$value": "{neutral.100}",
           "$type": "color"
         },
         "hover": {
-          "$value": "{color.neutral.200}",
+          "$value": "{neutral.200}",
           "$type": "color"
         }
       },
       "tertiary": {
         "default": {
-          "$value": "{color.neutral.200}",
+          "$value": "{neutral.200}",
           "$type": "color"
         },
         "hover": {
-          "$value": "{color.neutral.300}",
+          "$value": "{neutral.300}",
           "$type": "color"
         }
       },
       "brand": {
         "default": {
-          "$value": "{color.primary.600}",
+          "$value": "{primary.600}",
           "$type": "color"
         },
         "hover": {
-          "$value": "{color.primary.700}",
+          "$value": "{primary.700}",
           "$type": "color"
         }
       }
@@ -45,27 +45,27 @@
     "fg": {
       "primary": {
         "default": {
-          "$value": "{color.neutral.900}",
+          "$value": "{neutral.900}",
           "$type": "color"
         },
         "hover": {
-          "$value": "{color.neutral.700}",
+          "$value": "{neutral.700}",
           "$type": "color"
         }
       },
       "secondary": {
         "default": {
-          "$value": "{color.neutral.500}",
+          "$value": "{neutral.500}",
           "$type": "color"
         },
         "hover": {
-          "$value": "{color.neutral.700}",
+          "$value": "{neutral.700}",
           "$type": "color"
         }
       },
       "brand": {
         "default": {
-          "$value": "{color.primary.700}",
+          "$value": "{primary.700}",
           "$type": "color"
         }
       }
@@ -73,21 +73,21 @@
     "border": {
       "primary": {
         "subtle": {
-          "$value": "{color.neutral.200}",
+          "$value": "{neutral.200}",
           "$type": "color"
         },
         "default": {
-          "$value": "{color.neutral.400}",
+          "$value": "{neutral.400}",
           "$type": "color"
         }
       },
       "brand": {
         "subtle": {
-          "$value": "{color.primary.100}",
+          "$value": "{primary.100}",
           "$type": "color"
         },
         "default": {
-          "$value": "{color.primary.600}",
+          "$value": "{primary.600}",
           "$type": "color"
         }
       }

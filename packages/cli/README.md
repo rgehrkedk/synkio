@@ -9,8 +9,8 @@ Synkio is a developer-friendly CLI that bridges the gap between Figma design var
 
 ## Requirements
 
-- **Figma Plugin**: [Synkio Sync](https://github.com/rgehrkedk/synkio/tree/main/packages/figma-plugin/synkio-sync) *(required to export variables)*
 - **Node.js**: v18 or later
+- **Figma Plugin**: [Synkio Sync](https://github.com/rgehrkedk/synkio/tree/main/packages/figma-plugin/synkio-sync) *(optional - see [Plugin-free Import](#plugin-free-import))*
 
 ## Why Synkio?
 
@@ -86,6 +86,7 @@ Your tokens are now in your project! 🎉
 | `synkio validate` | Check config and connection |
 | `synkio docs` | Generate documentation site |
 | `synkio docs --open` | Generate and open in browser |
+| `synkio import <path>` | Import from Figma native JSON export |
 
 See the [User Guide](USER_GUIDE.md) for all options and configuration.
 
@@ -190,6 +191,33 @@ You can configure each collection individually with custom output directories an
 Use `synkio sync --regenerate` to regenerate files after changing collection config.
 
 See the [User Guide](USER_GUIDE.md#configuration) for full configuration options.
+
+## Plugin-free Import
+
+Synkio can import tokens directly from Figma's native JSON export — **no plugin required**.
+
+### How It Works
+
+1. In Figma, select your variable collection
+2. Export via **File → Export → Variables → JSON**
+3. Import into Synkio:
+
+```bash
+npx synkio import ./figma-exports/ --collection=theme
+```
+
+This preserves Figma's `variableId` for full breaking change protection, just like the plugin workflow.
+
+### When to Use Import vs Sync
+
+| Workflow | Use Case |
+|----------|----------|
+| `synkio sync` | Automated CI/CD, real-time sync with Figma |
+| `synkio import` | Manual handoff, offline workflows, no plugin needed |
+
+Both workflows support the same breaking change detection and output generation.
+
+See the [User Guide](USER_GUIDE.md#import) for detailed import options.
 
 ## Documentation
 

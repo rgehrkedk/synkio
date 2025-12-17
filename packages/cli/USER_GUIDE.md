@@ -9,6 +9,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
 - [Commands](#commands)
   - [init](#init)
   - [sync](#sync)
+  - [import](#import)
   - [rollback](#rollback)
   - [validate](#validate)
   - [tokens](#tokens)
@@ -21,6 +22,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [Style Dictionary Mode](#style-dictionary-mode)
   - [Sync Options](#sync-options)
   - [Collection Options](#collection-options)
+  - [Import Options](#import-options)
 - [Output Formats](#output-formats)
   - [DTCG Format](#dtcg-format)
   - [Variable IDs](#variable-ids)
@@ -152,6 +154,110 @@ npx synkio sync --collection=theme
 npx synkio sync --collection=theme,base
 
 # Regenerate files after config change (no Figma fetch)
+npx synkio sync --regenerate
+```
+
+---
+
+### import
+
+Import tokens from Figma's native JSON export files — **no plugin required**.
+
+This is useful when:
+- You don't want to use the Figma plugin
+- Designers export JSON files manually
+- You need an offline workflow
+- You want to version control Figma exports in git
+
+```bash
+# Config-based (recommended)
+npx synkio import
+
+# Or with CLI arguments
+npx synkio import <path> --collection=<name>
+```
+
+**Arguments:**
+| Argument | Description |
+|----------|-------------|
+| `<path>` | Path to JSON file or directory (optional if using config) |
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--collection=<name>` | Collection name (required if not using config) |
+| `--mode=<name>` | Override mode name from file |
+| `--preview` | Show changes without applying |
+| `--force` | Import even with breaking changes |
+| `--config=<file>` | Path to config file |
+
+**Examples:**
+
+```bash
+# Import using config (recommended)
+npx synkio import
+
+# Preview what would change
+npx synkio import --preview
+
+# Import a single file
+npx synkio import ./light.tokens.json --collection=theme
+
+# Import all JSON files from a directory
+npx synkio import ./figma-exports/ --collection=theme
+
+# Force import past breaking changes
+npx synkio import --force
+```
+
+**Config-Based Import (Recommended):**
+
+Add `import` config to your `synkio.config.json`:
+
+```json
+{
+  "import": {
+    "dir": "figma-exports",
+    "sources": {
+      "theme": {
+        "files": ["light.tokens.json", "dark.tokens.json"]
+      },
+      "primitives": {
+        "dir": "figma-exports/primitives",
+        "files": ["colors.json", "spacing.json"]
+      }
+    }
+  }
+}
+```
+
+Then run:
+
+```bash
+npx synkio import
+```
+
+See [Import Options](#import-options) for full configuration details.
+
+**How Figma Native Export Works:**
+
+1. In Figma, select your variable collection
+2. Go to **File → Export → Variables → JSON**
+3. Save the JSON file(s) to your project
+4. Run `synkio import`
+
+The exported JSON includes `com.figma.variableId` which Synkio uses for intelligent diffing — the same ID-based protection as the plugin workflow.
+
+**Typical Workflow:**
+
+```bash
+# Designer exports from Figma and commits to repo
+git pull
+
+# Developer imports the new tokens
+npx synkio import
+
+# Generate output files (auto-runs if config has css/docs enabled)
 npx synkio sync --regenerate
 ```
 
@@ -510,6 +616,69 @@ Configure per-collection output behavior:
 | `includeMode` | `true` | Include mode as first-level key in JSON |
 
 After changing collection config, run `npx synkio sync --regenerate` to regenerate files without fetching from Figma.
+
+### Import Options
+
+Configure import sources for Figma's native JSON export workflow:
+
+```json
+{
+  "import": {
+    "dir": "figma-exports",
+    "sources": {
+      "theme": {
+        "files": ["light.tokens.json", "dark.tokens.json"]
+      },
+      "primitives": {
+        "dir": "figma-exports/primitives",
+        "files": ["colors.json", "spacing.json"]
+      },
+      "icons": {}
+    }
+  }
+}
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `dir` | `figma-exports` | Default directory for Figma export files |
+| `sources` | - | Map collection names to source files |
+| `sources.<name>.dir` | `import.dir` | Override directory for this collection |
+| `sources.<name>.files` | all `.json` | List of JSON files to import |
+
+**How it works:**
+
+1. Each key in `sources` becomes a collection name
+2. Files are loaded from the specified `dir` or the default `import.dir`
+3. If `files` is omitted, all `.json` files in the directory are imported
+4. Mode names are extracted from each file's `$extensions.com.figma.modeName`
+
+**Example with multiple collections:**
+
+```json
+{
+  "import": {
+    "dir": "figma-exports",
+    "sources": {
+      "theme": {
+        "files": ["light.tokens.json", "dark.tokens.json"]
+      },
+      "primitives": {
+        "dir": "figma-exports/foundation",
+        "files": ["colors.json", "spacing.json", "typography.json"]
+      },
+      "components": {
+        "dir": "figma-exports/components"
+      }
+    }
+  }
+}
+```
+
+This config will:
+- Import `theme` collection from `figma-exports/light.tokens.json` and `dark.tokens.json`
+- Import `primitives` collection from `figma-exports/foundation/colors.json`, etc.
+- Import `components` collection from all `.json` files in `figma-exports/components/`
 
 ---
 

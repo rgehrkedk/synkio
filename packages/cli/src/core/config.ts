@@ -107,6 +107,18 @@ const CollectionConfigSchema = z.object({
 
 const CollectionsConfigSchema = z.record(z.string(), CollectionConfigSchema).optional();
 
+// Import source configuration - maps Figma export files to collections
+// Used with `synkio import` command for importing from Figma native JSON exports
+const ImportSourceSchema = z.object({
+  dir: z.string().optional(),                         // Directory containing Figma export files (defaults to import.dir)
+  files: z.array(z.string()).optional(),              // List of JSON files to import for this collection
+});
+
+const ImportConfigSchema = z.object({
+  dir: z.string().optional().default('figma-exports'), // Default directory for Figma export files
+  sources: z.record(z.string(), ImportSourceSchema).optional(), // Collection name → source mapping
+}).optional();
+
 export const ConfigSchema = z.object({
   version: z.literal('1.0.0'),
   figma: FigmaConfigSchema,
@@ -115,6 +127,7 @@ export const ConfigSchema = z.object({
   css: CssConfigSchema,
   docs: DocsConfigSchema,
   collections: CollectionsConfigSchema,
+  import: ImportConfigSchema,
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

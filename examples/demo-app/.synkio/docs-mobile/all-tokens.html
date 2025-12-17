@@ -10,6 +10,7 @@
 </head>
 <body>
   <div class="docs-layout">
+    
     <!-- Sidebar -->
     <aside class="docs-sidebar">
       <a href="index.html" class="docs-logo">
@@ -27,8 +28,8 @@
 
         <div class="docs-nav-section">Collections</div>
         
-        <a href="primitives.html" class="">
-          Primitives
+        <a href="base.html" class="">
+          Base
           <span class="docs-nav-count">12</span>
         </a>
         
@@ -64,9 +65,10 @@
       <header class="docs-header">
         <div>
           <h1 class="docs-title">All Tokens</h1>
-          <p class="docs-subtitle">Last synced: Dec 17, 2025, 12:39 AM</p>
+          <p class="docs-subtitle">Last synced: Dec 17, 2025, 11:32 PM</p>
         </div>
 
+        
         <div class="docs-controls">
           <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
 
@@ -83,37 +85,11 @@
                   ANDROID
                 </option>
               
-                <option value="compose" >
-                  COMPOSE
-                </option>
-              
                 <option value="flutter" >
                   FLUTTER
                 </option>
               
             </select>
-          </div>
-          
-
-          
-          <div class="docs-mode-switcher">
-            
-              <button class="docs-mode-btn active" data-mode="value">
-                Value
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="default">
-                Default
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="light">
-                Light
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="dark">
-                Dark
-              </button>
-            
           </div>
           
 
@@ -127,12 +103,32 @@
       </header>
 
       
+    <div class="docs-mode-row docs-mode-row--overview">
+      
+        <div class="docs-collection-mode-toggle">
+          <span class="docs-mode-label">Theme</span>
+          <div class="docs-mode-switcher" data-collection="theme">
+            
+              <button class="docs-mode-btn " data-mode="light">
+                Light
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="dark">
+                Dark
+              </button>
+            
+          </div>
+        </div>
+      
+    </div>
+
+      
     <section class="docs-section">
       <div class="docs-section-header">
         <h2 class="docs-section-title">All Tokens</h2>
         <span class="docs-section-count">89 tokens</span>
       </div>
-      
+
       <table class="docs-token-table">
         <thead>
           <tr>
@@ -147,199 +143,199 @@
         </thead>
         <tbody>
           
-            <tr data-token="default.spacing.xs" data-mode="value">
-              <td><strong>default.spacing.xs</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.xs" data-mode="value" data-collection="base">
+              <td><strong>spacing.xs</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="4">4</code>
+                <code data-copy="4px">4px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingXs" style="">defaultSpacingXs</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_spacing_xs" style="display: none;">default_spacing_xs</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingXs" style="display: none;">defaultSpacingXs</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingXs" style="display: none;">defaultSpacingXs</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.xs" style="display: none;">spacing.xs</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="spacingXs" style="">spacingXs</code><code class="docs-token-variable--platform" data-platform="android" data-copy="spacing_xs" style="display: none;">spacing_xs</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="spacingXs" style="display: none;">spacingXs</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.sm" data-mode="value">
-              <td><strong>default.spacing.sm</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.sm" data-mode="value" data-collection="base">
+              <td><strong>spacing.sm</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="8">8</code>
+                <code data-copy="8px">8px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingSm" style="">defaultSpacingSm</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_spacing_sm" style="display: none;">default_spacing_sm</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingSm" style="display: none;">defaultSpacingSm</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingSm" style="display: none;">defaultSpacingSm</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.sm" style="display: none;">spacing.sm</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="spacingSm" style="">spacingSm</code><code class="docs-token-variable--platform" data-platform="android" data-copy="spacing_sm" style="display: none;">spacing_sm</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="spacingSm" style="display: none;">spacingSm</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.md" data-mode="value">
-              <td><strong>default.spacing.md</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.md" data-mode="value" data-collection="base">
+              <td><strong>spacing.md</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="16">16</code>
+                <code data-copy="16px">16px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingMd" style="">defaultSpacingMd</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_spacing_md" style="display: none;">default_spacing_md</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingMd" style="display: none;">defaultSpacingMd</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingMd" style="display: none;">defaultSpacingMd</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.md" style="display: none;">spacing.md</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="spacingMd" style="">spacingMd</code><code class="docs-token-variable--platform" data-platform="android" data-copy="spacing_md" style="display: none;">spacing_md</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="spacingMd" style="display: none;">spacingMd</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.lg" data-mode="value">
-              <td><strong>default.spacing.lg</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.lg" data-mode="value" data-collection="base">
+              <td><strong>spacing.lg</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="24">24</code>
+                <code data-copy="24px">24px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingLg" style="">defaultSpacingLg</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_spacing_lg" style="display: none;">default_spacing_lg</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingLg" style="display: none;">defaultSpacingLg</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingLg" style="display: none;">defaultSpacingLg</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.lg" style="display: none;">spacing.lg</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="spacingLg" style="">spacingLg</code><code class="docs-token-variable--platform" data-platform="android" data-copy="spacing_lg" style="display: none;">spacing_lg</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="spacingLg" style="display: none;">spacingLg</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.xl" data-mode="value">
-              <td><strong>default.spacing.xl</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.xl" data-mode="value" data-collection="base">
+              <td><strong>spacing.xl</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="32">32</code>
+                <code data-copy="32px">32px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingXl" style="">defaultSpacingXl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_spacing_xl" style="display: none;">default_spacing_xl</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingXl" style="display: none;">defaultSpacingXl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingXl" style="display: none;">defaultSpacingXl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing.xl" style="display: none;">spacing.xl</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="spacingXl" style="">spacingXl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="spacing_xl" style="display: none;">spacing_xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="spacingXl" style="display: none;">spacingXl</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.2xl" data-mode="value">
-              <td><strong>default.spacing.2xl</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.2xl" data-mode="value" data-collection="base">
+              <td><strong>spacing.2xl</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="48">48</code>
+                <code data-copy="48px">48px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacing2xl" style="">defaultSpacing2xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_spacing_2xl" style="display: none;">default_spacing_2xl</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacing2xl" style="display: none;">defaultSpacing2xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacing2xl" style="display: none;">defaultSpacing2xl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing[&quot;2xl&quot;]" style="display: none;">spacing[&quot;2xl&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="spacing2xl" style="">spacing2xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="spacing_2xl" style="display: none;">spacing_2xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="spacing2xl" style="display: none;">spacing2xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.3xl" data-mode="value">
-              <td><strong>default.spacing.3xl</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="spacing.3xl" data-mode="value" data-collection="base">
+              <td><strong>spacing.3xl</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="64">64</code>
+                <code data-copy="64px">64px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacing3xl" style="">defaultSpacing3xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_spacing_3xl" style="display: none;">default_spacing_3xl</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacing3xl" style="display: none;">defaultSpacing3xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacing3xl" style="display: none;">defaultSpacing3xl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="spacing[&quot;3xl&quot;]" style="display: none;">spacing[&quot;3xl&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="spacing3xl" style="">spacing3xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="spacing_3xl" style="display: none;">spacing_3xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="spacing3xl" style="display: none;">spacing3xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.none" data-mode="value">
-              <td><strong>default.radius.none</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.none" data-mode="value" data-collection="base">
+              <td><strong>radius.none</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="0">0</code>
+                <code data-copy="0px">0px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultRadiusNone" style="">defaultRadiusNone</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_radius_none" style="display: none;">default_radius_none</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultRadiusNone" style="display: none;">defaultRadiusNone</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultRadiusNone" style="display: none;">defaultRadiusNone</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.none" style="display: none;">radius.none</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="radiusNone" style="">radiusNone</code><code class="docs-token-variable--platform" data-platform="android" data-copy="radius_none" style="display: none;">radius_none</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="radiusNone" style="display: none;">radiusNone</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.sm" data-mode="value">
-              <td><strong>default.radius.sm</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.sm" data-mode="value" data-collection="base">
+              <td><strong>radius.sm</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="4">4</code>
+                <code data-copy="4px">4px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultRadiusSm" style="">defaultRadiusSm</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_radius_sm" style="display: none;">default_radius_sm</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultRadiusSm" style="display: none;">defaultRadiusSm</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultRadiusSm" style="display: none;">defaultRadiusSm</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.sm" style="display: none;">radius.sm</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="radiusSm" style="">radiusSm</code><code class="docs-token-variable--platform" data-platform="android" data-copy="radius_sm" style="display: none;">radius_sm</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="radiusSm" style="display: none;">radiusSm</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.md" data-mode="value">
-              <td><strong>default.radius.md</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.md" data-mode="value" data-collection="base">
+              <td><strong>radius.md</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="8">8</code>
+                <code data-copy="8px">8px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultRadiusMd" style="">defaultRadiusMd</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_radius_md" style="display: none;">default_radius_md</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultRadiusMd" style="display: none;">defaultRadiusMd</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultRadiusMd" style="display: none;">defaultRadiusMd</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.md" style="display: none;">radius.md</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="radiusMd" style="">radiusMd</code><code class="docs-token-variable--platform" data-platform="android" data-copy="radius_md" style="display: none;">radius_md</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="radiusMd" style="display: none;">radiusMd</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.lg" data-mode="value">
-              <td><strong>default.radius.lg</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.lg" data-mode="value" data-collection="base">
+              <td><strong>radius.lg</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="12">12</code>
+                <code data-copy="12px">12px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultRadiusLg" style="">defaultRadiusLg</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_radius_lg" style="display: none;">default_radius_lg</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultRadiusLg" style="display: none;">defaultRadiusLg</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultRadiusLg" style="display: none;">defaultRadiusLg</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.lg" style="display: none;">radius.lg</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="radiusLg" style="">radiusLg</code><code class="docs-token-variable--platform" data-platform="android" data-copy="radius_lg" style="display: none;">radius_lg</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="radiusLg" style="display: none;">radiusLg</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.full" data-mode="value">
-              <td><strong>default.radius.full</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="radius.full" data-mode="value" data-collection="base">
+              <td><strong>radius.full</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="9999">9999</code>
+                <code data-copy="9999px">9999px</code>
               </td>
               <td>
                 –
               </td>
-              <td>primitives</td>
+              <td>base</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultRadiusFull" style="">defaultRadiusFull</code><code class="docs-token-variable--platform" data-platform="android" data-copy="default_radius_full" style="display: none;">default_radius_full</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="defaultRadiusFull" style="display: none;">defaultRadiusFull</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="defaultRadiusFull" style="display: none;">defaultRadiusFull</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="radius.full" style="display: none;">radius.full</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="radiusFull" style="">radiusFull</code><code class="docs-token-variable--platform" data-platform="android" data-copy="radius_full" style="display: none;">radius_full</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="radiusFull" style="display: none;">radiusFull</code>
               </td>
             </tr>
           
-            <tr data-token="primary.50" data-mode="value">
+            <tr data-token="primary.50" data-mode="value" data-collection="colors">
               <td><strong>primary.50</strong></td>
               <td><code>color</code></td>
               <td>
@@ -354,11 +350,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary50" style="">primary50</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_50" style="display: none;">primary_50</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary50" style="display: none;">primary50</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary50" style="display: none;">primary50</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;50&quot;]" style="display: none;">primary[&quot;50&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary50" style="">primary50</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_50" style="display: none;">primary_50</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary50" style="display: none;">primary50</code>
               </td>
             </tr>
           
-            <tr data-token="primary.100" data-mode="value">
+            <tr data-token="primary.100" data-mode="value" data-collection="colors">
               <td><strong>primary.100</strong></td>
               <td><code>color</code></td>
               <td>
@@ -373,11 +369,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary100" style="">primary100</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_100" style="display: none;">primary_100</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary100" style="display: none;">primary100</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary100" style="display: none;">primary100</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;100&quot;]" style="display: none;">primary[&quot;100&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary100" style="">primary100</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_100" style="display: none;">primary_100</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary100" style="display: none;">primary100</code>
               </td>
             </tr>
           
-            <tr data-token="primary.200" data-mode="value">
+            <tr data-token="primary.200" data-mode="value" data-collection="colors">
               <td><strong>primary.200</strong></td>
               <td><code>color</code></td>
               <td>
@@ -392,11 +388,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary200" style="">primary200</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_200" style="display: none;">primary_200</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary200" style="display: none;">primary200</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary200" style="display: none;">primary200</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;200&quot;]" style="display: none;">primary[&quot;200&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary200" style="">primary200</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_200" style="display: none;">primary_200</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary200" style="display: none;">primary200</code>
               </td>
             </tr>
           
-            <tr data-token="primary.300" data-mode="value">
+            <tr data-token="primary.300" data-mode="value" data-collection="colors">
               <td><strong>primary.300</strong></td>
               <td><code>color</code></td>
               <td>
@@ -411,11 +407,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary300" style="">primary300</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_300" style="display: none;">primary_300</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary300" style="display: none;">primary300</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary300" style="display: none;">primary300</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;300&quot;]" style="display: none;">primary[&quot;300&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary300" style="">primary300</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_300" style="display: none;">primary_300</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary300" style="display: none;">primary300</code>
               </td>
             </tr>
           
-            <tr data-token="primary.400" data-mode="value">
+            <tr data-token="primary.400" data-mode="value" data-collection="colors">
               <td><strong>primary.400</strong></td>
               <td><code>color</code></td>
               <td>
@@ -430,11 +426,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary400" style="">primary400</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_400" style="display: none;">primary_400</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary400" style="display: none;">primary400</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary400" style="display: none;">primary400</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;400&quot;]" style="display: none;">primary[&quot;400&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary400" style="">primary400</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_400" style="display: none;">primary_400</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary400" style="display: none;">primary400</code>
               </td>
             </tr>
           
-            <tr data-token="primary.500" data-mode="value">
+            <tr data-token="primary.500" data-mode="value" data-collection="colors">
               <td><strong>primary.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -449,11 +445,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary500" style="">primary500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_500" style="display: none;">primary_500</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary500" style="display: none;">primary500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary500" style="display: none;">primary500</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;500&quot;]" style="display: none;">primary[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary500" style="">primary500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_500" style="display: none;">primary_500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary500" style="display: none;">primary500</code>
               </td>
             </tr>
           
-            <tr data-token="primary.600" data-mode="value">
+            <tr data-token="primary.600" data-mode="value" data-collection="colors">
               <td><strong>primary.600</strong></td>
               <td><code>color</code></td>
               <td>
@@ -468,11 +464,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary600" style="">primary600</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_600" style="display: none;">primary_600</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary600" style="display: none;">primary600</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary600" style="display: none;">primary600</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;600&quot;]" style="display: none;">primary[&quot;600&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary600" style="">primary600</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_600" style="display: none;">primary_600</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary600" style="display: none;">primary600</code>
               </td>
             </tr>
           
-            <tr data-token="primary.700" data-mode="value">
+            <tr data-token="primary.700" data-mode="value" data-collection="colors">
               <td><strong>primary.700</strong></td>
               <td><code>color</code></td>
               <td>
@@ -487,11 +483,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary700" style="">primary700</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_700" style="display: none;">primary_700</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary700" style="display: none;">primary700</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary700" style="display: none;">primary700</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;700&quot;]" style="display: none;">primary[&quot;700&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary700" style="">primary700</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_700" style="display: none;">primary_700</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary700" style="display: none;">primary700</code>
               </td>
             </tr>
           
-            <tr data-token="primary.800" data-mode="value">
+            <tr data-token="primary.800" data-mode="value" data-collection="colors">
               <td><strong>primary.800</strong></td>
               <td><code>color</code></td>
               <td>
@@ -506,11 +502,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary800" style="">primary800</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_800" style="display: none;">primary_800</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary800" style="display: none;">primary800</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary800" style="display: none;">primary800</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;800&quot;]" style="display: none;">primary[&quot;800&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary800" style="">primary800</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_800" style="display: none;">primary_800</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary800" style="display: none;">primary800</code>
               </td>
             </tr>
           
-            <tr data-token="primary.900" data-mode="value">
+            <tr data-token="primary.900" data-mode="value" data-collection="colors">
               <td><strong>primary.900</strong></td>
               <td><code>color</code></td>
               <td>
@@ -525,11 +521,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary900" style="">primary900</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_900" style="display: none;">primary_900</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="primary900" style="display: none;">primary900</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary900" style="display: none;">primary900</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="primary[&quot;900&quot;]" style="display: none;">primary[&quot;900&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="primary900" style="">primary900</code><code class="docs-token-variable--platform" data-platform="android" data-copy="primary_900" style="display: none;">primary_900</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="primary900" style="display: none;">primary900</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.50" data-mode="value">
+            <tr data-token="neutral.50" data-mode="value" data-collection="colors">
               <td><strong>neutral.50</strong></td>
               <td><code>color</code></td>
               <td>
@@ -544,11 +540,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral50" style="">neutral50</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_50" style="display: none;">neutral_50</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral50" style="display: none;">neutral50</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral50" style="display: none;">neutral50</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;50&quot;]" style="display: none;">neutral[&quot;50&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral50" style="">neutral50</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_50" style="display: none;">neutral_50</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral50" style="display: none;">neutral50</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.100" data-mode="value">
+            <tr data-token="neutral.100" data-mode="value" data-collection="colors">
               <td><strong>neutral.100</strong></td>
               <td><code>color</code></td>
               <td>
@@ -563,11 +559,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral100" style="">neutral100</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_100" style="display: none;">neutral_100</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral100" style="display: none;">neutral100</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral100" style="display: none;">neutral100</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;100&quot;]" style="display: none;">neutral[&quot;100&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral100" style="">neutral100</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_100" style="display: none;">neutral_100</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral100" style="display: none;">neutral100</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.200" data-mode="value">
+            <tr data-token="neutral.200" data-mode="value" data-collection="colors">
               <td><strong>neutral.200</strong></td>
               <td><code>color</code></td>
               <td>
@@ -582,11 +578,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral200" style="">neutral200</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_200" style="display: none;">neutral_200</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral200" style="display: none;">neutral200</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral200" style="display: none;">neutral200</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;200&quot;]" style="display: none;">neutral[&quot;200&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral200" style="">neutral200</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_200" style="display: none;">neutral_200</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral200" style="display: none;">neutral200</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.300" data-mode="value">
+            <tr data-token="neutral.300" data-mode="value" data-collection="colors">
               <td><strong>neutral.300</strong></td>
               <td><code>color</code></td>
               <td>
@@ -601,11 +597,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral300" style="">neutral300</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_300" style="display: none;">neutral_300</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral300" style="display: none;">neutral300</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral300" style="display: none;">neutral300</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;300&quot;]" style="display: none;">neutral[&quot;300&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral300" style="">neutral300</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_300" style="display: none;">neutral_300</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral300" style="display: none;">neutral300</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.400" data-mode="value">
+            <tr data-token="neutral.400" data-mode="value" data-collection="colors">
               <td><strong>neutral.400</strong></td>
               <td><code>color</code></td>
               <td>
@@ -620,11 +616,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral400" style="">neutral400</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_400" style="display: none;">neutral_400</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral400" style="display: none;">neutral400</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral400" style="display: none;">neutral400</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;400&quot;]" style="display: none;">neutral[&quot;400&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral400" style="">neutral400</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_400" style="display: none;">neutral_400</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral400" style="display: none;">neutral400</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.500" data-mode="value">
+            <tr data-token="neutral.500" data-mode="value" data-collection="colors">
               <td><strong>neutral.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -639,11 +635,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral500" style="">neutral500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_500" style="display: none;">neutral_500</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral500" style="display: none;">neutral500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral500" style="display: none;">neutral500</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;500&quot;]" style="display: none;">neutral[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral500" style="">neutral500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_500" style="display: none;">neutral_500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral500" style="display: none;">neutral500</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.600" data-mode="value">
+            <tr data-token="neutral.600" data-mode="value" data-collection="colors">
               <td><strong>neutral.600</strong></td>
               <td><code>color</code></td>
               <td>
@@ -658,11 +654,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral600" style="">neutral600</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_600" style="display: none;">neutral_600</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral600" style="display: none;">neutral600</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral600" style="display: none;">neutral600</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;600&quot;]" style="display: none;">neutral[&quot;600&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral600" style="">neutral600</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_600" style="display: none;">neutral_600</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral600" style="display: none;">neutral600</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.700" data-mode="value">
+            <tr data-token="neutral.700" data-mode="value" data-collection="colors">
               <td><strong>neutral.700</strong></td>
               <td><code>color</code></td>
               <td>
@@ -677,11 +673,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral700" style="">neutral700</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_700" style="display: none;">neutral_700</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral700" style="display: none;">neutral700</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral700" style="display: none;">neutral700</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;700&quot;]" style="display: none;">neutral[&quot;700&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral700" style="">neutral700</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_700" style="display: none;">neutral_700</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral700" style="display: none;">neutral700</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.800" data-mode="value">
+            <tr data-token="neutral.800" data-mode="value" data-collection="colors">
               <td><strong>neutral.800</strong></td>
               <td><code>color</code></td>
               <td>
@@ -696,11 +692,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral800" style="">neutral800</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_800" style="display: none;">neutral_800</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral800" style="display: none;">neutral800</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral800" style="display: none;">neutral800</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;800&quot;]" style="display: none;">neutral[&quot;800&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral800" style="">neutral800</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_800" style="display: none;">neutral_800</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral800" style="display: none;">neutral800</code>
               </td>
             </tr>
           
-            <tr data-token="neutral.900" data-mode="value">
+            <tr data-token="neutral.900" data-mode="value" data-collection="colors">
               <td><strong>neutral.900</strong></td>
               <td><code>color</code></td>
               <td>
@@ -715,11 +711,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral900" style="">neutral900</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_900" style="display: none;">neutral_900</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="neutral900" style="display: none;">neutral900</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral900" style="display: none;">neutral900</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="neutral[&quot;900&quot;]" style="display: none;">neutral[&quot;900&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="neutral900" style="">neutral900</code><code class="docs-token-variable--platform" data-platform="android" data-copy="neutral_900" style="display: none;">neutral_900</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="neutral900" style="display: none;">neutral900</code>
               </td>
             </tr>
           
-            <tr data-token="success.500" data-mode="value">
+            <tr data-token="success.500" data-mode="value" data-collection="colors">
               <td><strong>success.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -734,11 +730,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="success500" style="">success500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="success_500" style="display: none;">success_500</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="success500" style="display: none;">success500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="success500" style="display: none;">success500</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="success[&quot;500&quot;]" style="display: none;">success[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="success500" style="">success500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="success_500" style="display: none;">success_500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="success500" style="display: none;">success500</code>
               </td>
             </tr>
           
-            <tr data-token="warning.500" data-mode="value">
+            <tr data-token="warning.500" data-mode="value" data-collection="colors">
               <td><strong>warning.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -753,11 +749,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="warning500" style="">warning500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="warning_500" style="display: none;">warning_500</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="warning500" style="display: none;">warning500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="warning500" style="display: none;">warning500</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="warning[&quot;500&quot;]" style="display: none;">warning[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="warning500" style="">warning500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="warning_500" style="display: none;">warning_500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="warning500" style="display: none;">warning500</code>
               </td>
             </tr>
           
-            <tr data-token="error.500" data-mode="value">
+            <tr data-token="error.500" data-mode="value" data-collection="colors">
               <td><strong>error.500</strong></td>
               <td><code>color</code></td>
               <td>
@@ -772,11 +768,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="error500" style="">error500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="error_500" style="display: none;">error_500</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="error500" style="display: none;">error500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="error500" style="display: none;">error500</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="error[&quot;500&quot;]" style="display: none;">error[&quot;500&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="error500" style="">error500</code><code class="docs-token-variable--platform" data-platform="android" data-copy="error_500" style="display: none;">error_500</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="error500" style="display: none;">error500</code>
               </td>
             </tr>
           
-            <tr data-token="background.primary" data-mode="value">
+            <tr data-token="background.primary" data-mode="value" data-collection="colors">
               <td><strong>background.primary</strong></td>
               <td><code>color</code></td>
               <td>
@@ -791,11 +787,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="backgroundPrimary" style="">backgroundPrimary</code><code class="docs-token-variable--platform" data-platform="android" data-copy="background_primary" style="display: none;">background_primary</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="backgroundPrimary" style="display: none;">backgroundPrimary</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="backgroundPrimary" style="display: none;">backgroundPrimary</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="background.primary" style="display: none;">background.primary</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="backgroundPrimary" style="">backgroundPrimary</code><code class="docs-token-variable--platform" data-platform="android" data-copy="background_primary" style="display: none;">background_primary</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="backgroundPrimary" style="display: none;">backgroundPrimary</code>
               </td>
             </tr>
           
-            <tr data-token="background.secondary" data-mode="value">
+            <tr data-token="background.secondary" data-mode="value" data-collection="colors">
               <td><strong>background.secondary</strong></td>
               <td><code>color</code></td>
               <td>
@@ -810,11 +806,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="backgroundSecondary" style="">backgroundSecondary</code><code class="docs-token-variable--platform" data-platform="android" data-copy="background_secondary" style="display: none;">background_secondary</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="backgroundSecondary" style="display: none;">backgroundSecondary</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="backgroundSecondary" style="display: none;">backgroundSecondary</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="background.secondary" style="display: none;">background.secondary</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="backgroundSecondary" style="">backgroundSecondary</code><code class="docs-token-variable--platform" data-platform="android" data-copy="background_secondary" style="display: none;">background_secondary</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="backgroundSecondary" style="display: none;">backgroundSecondary</code>
               </td>
             </tr>
           
-            <tr data-token="text.primary" data-mode="value">
+            <tr data-token="text.primary" data-mode="value" data-collection="colors">
               <td><strong>text.primary</strong></td>
               <td><code>color</code></td>
               <td>
@@ -829,11 +825,11 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="textPrimary" style="">textPrimary</code><code class="docs-token-variable--platform" data-platform="android" data-copy="text_primary" style="display: none;">text_primary</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="textPrimary" style="display: none;">textPrimary</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="textPrimary" style="display: none;">textPrimary</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="text.primary" style="display: none;">text.primary</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="textPrimary" style="">textPrimary</code><code class="docs-token-variable--platform" data-platform="android" data-copy="text_primary" style="display: none;">text_primary</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="textPrimary" style="display: none;">textPrimary</code>
               </td>
             </tr>
           
-            <tr data-token="text.secondary" data-mode="value">
+            <tr data-token="text.secondary" data-mode="value" data-collection="colors">
               <td><strong>text.secondary</strong></td>
               <td><code>color</code></td>
               <td>
@@ -848,141 +844,141 @@
               <td>colors</td>
               <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="textSecondary" style="">textSecondary</code><code class="docs-token-variable--platform" data-platform="android" data-copy="text_secondary" style="display: none;">text_secondary</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="textSecondary" style="display: none;">textSecondary</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="textSecondary" style="display: none;">textSecondary</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="text.secondary" style="display: none;">text.secondary</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="textSecondary" style="">textSecondary</code><code class="docs-token-variable--platform" data-platform="android" data-copy="text_secondary" style="display: none;">text_secondary</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="textSecondary" style="display: none;">textSecondary</code>
               </td>
             </tr>
           
-            <tr data-token="size.xs" data-mode="default">
+            <tr data-token="size.xs" data-mode="value" data-collection="font">
               <td><strong>size.xs</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="10">10</code>
+                <code data-copy="12px">12px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeXs" style="">sizeXs</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_xs" style="display: none;">size_xs</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="sizeXs" style="display: none;">sizeXs</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeXs" style="display: none;">sizeXs</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.xs" style="display: none;">size.xs</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeXs" style="">sizeXs</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_xs" style="display: none;">size_xs</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeXs" style="display: none;">sizeXs</code>
               </td>
             </tr>
           
-            <tr data-token="size.sm" data-mode="default">
+            <tr data-token="size.sm" data-mode="value" data-collection="font">
               <td><strong>size.sm</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="14">14</code>
+                <code data-copy="14px">14px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeSm" style="">sizeSm</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_sm" style="display: none;">size_sm</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="sizeSm" style="display: none;">sizeSm</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeSm" style="display: none;">sizeSm</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.sm" style="display: none;">size.sm</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeSm" style="">sizeSm</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_sm" style="display: none;">size_sm</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeSm" style="display: none;">sizeSm</code>
               </td>
             </tr>
           
-            <tr data-token="size.base" data-mode="default">
-              <td><strong>size.base</strong></td>
-              <td><code>float</code></td>
+            <tr data-token="size.md" data-mode="value" data-collection="font">
+              <td><strong>size.md</strong></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="16">16</code>
+                <code data-copy="16px">16px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeBase" style="">sizeBase</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_base" style="display: none;">size_base</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="sizeBase" style="display: none;">sizeBase</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeBase" style="display: none;">sizeBase</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.md" style="display: none;">size.md</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeMd" style="">sizeMd</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_md" style="display: none;">size_md</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeMd" style="display: none;">sizeMd</code>
               </td>
             </tr>
           
-            <tr data-token="size.lg" data-mode="default">
+            <tr data-token="size.lg" data-mode="value" data-collection="font">
               <td><strong>size.lg</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="18">18</code>
+                <code data-copy="18px">18px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeLg" style="">sizeLg</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_lg" style="display: none;">size_lg</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="sizeLg" style="display: none;">sizeLg</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeLg" style="display: none;">sizeLg</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.lg" style="display: none;">size.lg</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeLg" style="">sizeLg</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_lg" style="display: none;">size_lg</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeLg" style="display: none;">sizeLg</code>
               </td>
             </tr>
           
-            <tr data-token="size.xl" data-mode="default">
+            <tr data-token="size.xl" data-mode="value" data-collection="font">
               <td><strong>size.xl</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="20">20</code>
+                <code data-copy="20px">20px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeXl" style="">sizeXl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_xl" style="display: none;">size_xl</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="sizeXl" style="display: none;">sizeXl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeXl" style="display: none;">sizeXl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size.xl" style="display: none;">size.xl</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeXl" style="">sizeXl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_xl" style="display: none;">size_xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="sizeXl" style="display: none;">sizeXl</code>
               </td>
             </tr>
           
-            <tr data-token="size.2xl" data-mode="default">
+            <tr data-token="size.2xl" data-mode="value" data-collection="font">
               <td><strong>size.2xl</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="24">24</code>
+                <code data-copy="24px">24px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="size2xl" style="">size2xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_2xl" style="display: none;">size_2xl</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="size2xl" style="display: none;">size2xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="size2xl" style="display: none;">size2xl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;2xl&quot;]" style="display: none;">size[&quot;2xl&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="size2xl" style="">size2xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_2xl" style="display: none;">size_2xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="size2xl" style="display: none;">size2xl</code>
               </td>
             </tr>
           
-            <tr data-token="size.3xl" data-mode="default">
+            <tr data-token="size.3xl" data-mode="value" data-collection="font">
               <td><strong>size.3xl</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="30">30</code>
+                <code data-copy="30px">30px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="size3xl" style="">size3xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_3xl" style="display: none;">size_3xl</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="size3xl" style="display: none;">size3xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="size3xl" style="display: none;">size3xl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;3xl&quot;]" style="display: none;">size[&quot;3xl&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="size3xl" style="">size3xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_3xl" style="display: none;">size_3xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="size3xl" style="display: none;">size3xl</code>
               </td>
             </tr>
           
-            <tr data-token="size.4xl" data-mode="default">
+            <tr data-token="size.4xl" data-mode="value" data-collection="font">
               <td><strong>size.4xl</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="36">36</code>
+                <code data-copy="36px">36px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="size4xl" style="">size4xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_4xl" style="display: none;">size_4xl</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="size4xl" style="display: none;">size4xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="size4xl" style="display: none;">size4xl</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="size[&quot;4xl&quot;]" style="display: none;">size[&quot;4xl&quot;]</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="size4xl" style="">size4xl</code><code class="docs-token-variable--platform" data-platform="android" data-copy="size_4xl" style="display: none;">size_4xl</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="size4xl" style="display: none;">size4xl</code>
               </td>
             </tr>
           
-            <tr data-token="weight.normal" data-mode="default">
+            <tr data-token="weight.normal" data-mode="value" data-collection="font">
               <td><strong>weight.normal</strong></td>
-              <td><code>float</code></td>
+              <td><code>number</code></td>
               <td>
                 <code data-copy="400">400</code>
               </td>
@@ -990,15 +986,15 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="weightNormal" style="">weightNormal</code><code class="docs-token-variable--platform" data-platform="android" data-copy="weight_normal" style="display: none;">weight_normal</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="weightNormal" style="display: none;">weightNormal</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="weightNormal" style="display: none;">weightNormal</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="weight.normal" style="display: none;">weight.normal</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="weightNormal" style="">weightNormal</code><code class="docs-token-variable--platform" data-platform="android" data-copy="weight_normal" style="display: none;">weight_normal</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="weightNormal" style="display: none;">weightNormal</code>
               </td>
             </tr>
           
-            <tr data-token="weight.medium" data-mode="default">
+            <tr data-token="weight.medium" data-mode="value" data-collection="font">
               <td><strong>weight.medium</strong></td>
-              <td><code>float</code></td>
+              <td><code>number</code></td>
               <td>
                 <code data-copy="500">500</code>
               </td>
@@ -1006,15 +1002,15 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="weightMedium" style="">weightMedium</code><code class="docs-token-variable--platform" data-platform="android" data-copy="weight_medium" style="display: none;">weight_medium</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="weightMedium" style="display: none;">weightMedium</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="weightMedium" style="display: none;">weightMedium</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="weight.medium" style="display: none;">weight.medium</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="weightMedium" style="">weightMedium</code><code class="docs-token-variable--platform" data-platform="android" data-copy="weight_medium" style="display: none;">weight_medium</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="weightMedium" style="display: none;">weightMedium</code>
               </td>
             </tr>
           
-            <tr data-token="weight.semibold" data-mode="default">
+            <tr data-token="weight.semibold" data-mode="value" data-collection="font">
               <td><strong>weight.semibold</strong></td>
-              <td><code>float</code></td>
+              <td><code>number</code></td>
               <td>
                 <code data-copy="600">600</code>
               </td>
@@ -1022,15 +1018,15 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="weightSemibold" style="">weightSemibold</code><code class="docs-token-variable--platform" data-platform="android" data-copy="weight_semibold" style="display: none;">weight_semibold</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="weightSemibold" style="display: none;">weightSemibold</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="weightSemibold" style="display: none;">weightSemibold</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="weight.semibold" style="display: none;">weight.semibold</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="weightSemibold" style="">weightSemibold</code><code class="docs-token-variable--platform" data-platform="android" data-copy="weight_semibold" style="display: none;">weight_semibold</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="weightSemibold" style="display: none;">weightSemibold</code>
               </td>
             </tr>
           
-            <tr data-token="weight.bold" data-mode="default">
+            <tr data-token="weight.bold" data-mode="value" data-collection="font">
               <td><strong>weight.bold</strong></td>
-              <td><code>float</code></td>
+              <td><code>number</code></td>
               <td>
                 <code data-copy="700">700</code>
               </td>
@@ -1038,61 +1034,61 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="weightBold" style="">weightBold</code><code class="docs-token-variable--platform" data-platform="android" data-copy="weight_bold" style="display: none;">weight_bold</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="weightBold" style="display: none;">weightBold</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="weightBold" style="display: none;">weightBold</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="weight.bold" style="display: none;">weight.bold</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="weightBold" style="">weightBold</code><code class="docs-token-variable--platform" data-platform="android" data-copy="weight_bold" style="display: none;">weight_bold</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="weightBold" style="display: none;">weightBold</code>
               </td>
             </tr>
           
-            <tr data-token="lineHeight.tight" data-mode="default">
+            <tr data-token="lineHeight.tight" data-mode="value" data-collection="font">
               <td><strong>lineHeight.tight</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="1.25">1.25</code>
+                <code data-copy="1.25px">1.25px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="lineheightTight" style="">lineheightTight</code><code class="docs-token-variable--platform" data-platform="android" data-copy="lineheight_tight" style="display: none;">lineheight_tight</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="lineheightTight" style="display: none;">lineheightTight</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="lineheightTight" style="display: none;">lineheightTight</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.tight" style="display: none;">lineHeight.tight</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="lineHeightTight" style="">lineHeightTight</code><code class="docs-token-variable--platform" data-platform="android" data-copy="line_height_tight" style="display: none;">line_height_tight</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="lineHeightTight" style="display: none;">lineHeightTight</code>
               </td>
             </tr>
           
-            <tr data-token="lineHeight.normal" data-mode="default">
+            <tr data-token="lineHeight.normal" data-mode="value" data-collection="font">
               <td><strong>lineHeight.normal</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="1.5">1.5</code>
+                <code data-copy="1.5px">1.5px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="lineheightNormal" style="">lineheightNormal</code><code class="docs-token-variable--platform" data-platform="android" data-copy="lineheight_normal" style="display: none;">lineheight_normal</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="lineheightNormal" style="display: none;">lineheightNormal</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="lineheightNormal" style="display: none;">lineheightNormal</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.normal" style="display: none;">lineHeight.normal</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="lineHeightNormal" style="">lineHeightNormal</code><code class="docs-token-variable--platform" data-platform="android" data-copy="line_height_normal" style="display: none;">line_height_normal</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="lineHeightNormal" style="display: none;">lineHeightNormal</code>
               </td>
             </tr>
           
-            <tr data-token="lineHeight.relaxed" data-mode="default">
+            <tr data-token="lineHeight.relaxed" data-mode="value" data-collection="font">
               <td><strong>lineHeight.relaxed</strong></td>
-              <td><code>float</code></td>
+              <td><code>dimension</code></td>
               <td>
-                <code data-copy="1.75">1.75</code>
+                <code data-copy="1.75px">1.75px</code>
               </td>
               <td>
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="lineheightRelaxed" style="">lineheightRelaxed</code><code class="docs-token-variable--platform" data-platform="android" data-copy="lineheight_relaxed" style="display: none;">lineheight_relaxed</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="lineheightRelaxed" style="display: none;">lineheightRelaxed</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="lineheightRelaxed" style="display: none;">lineheightRelaxed</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="lineHeight.relaxed" style="display: none;">lineHeight.relaxed</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="lineHeightRelaxed" style="">lineHeightRelaxed</code><code class="docs-token-variable--platform" data-platform="android" data-copy="line_height_relaxed" style="display: none;">line_height_relaxed</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="lineHeightRelaxed" style="display: none;">lineHeightRelaxed</code>
               </td>
             </tr>
           
-            <tr data-token="fontFamily.default" data-mode="default">
+            <tr data-token="fontFamily.default" data-mode="value" data-collection="font">
               <td><strong>fontFamily.default</strong></td>
               <td><code>string</code></td>
               <td>
@@ -1102,13 +1098,13 @@
                 –
               </td>
               <td>font</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fontfamilyDefault" style="">fontfamilyDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fontfamily_default" style="display: none;">fontfamily_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fontfamilyDefault" style="display: none;">fontfamilyDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fontfamilyDefault" style="display: none;">fontfamilyDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fontFamily.default" style="display: none;">fontFamily.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fontFamilyDefault" style="">fontFamilyDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="font_family_default" style="display: none;">font_family_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fontFamilyDefault" style="display: none;">fontFamilyDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.primary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.primary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1123,11 +1119,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="display: none;">bg.primary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.primary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.primary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1142,11 +1138,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="display: none;">bg.primary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.primary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.primary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.primary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1161,11 +1157,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="display: none;">bg.primary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.primary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.primary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.primary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1180,11 +1176,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="display: none;">bg.primary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.primary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.primary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1199,11 +1195,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="display: none;">fg.primary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.primary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.primary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1218,11 +1214,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="display: none;">fg.primary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.primary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.primary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.primary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1237,11 +1233,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="display: none;">fg.primary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.primary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.primary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.primary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1256,11 +1252,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="display: none;">fg.primary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.secondary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.secondary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.secondary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1275,11 +1271,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="display: none;">fg.secondary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.secondary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.secondary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.secondary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1294,11 +1290,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="display: none;">fg.secondary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.secondary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.secondary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.secondary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1313,11 +1309,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryHover" style="">fgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_hover" style="display: none;">fg_secondary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="display: none;">fg.secondary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryHover" style="">fgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_hover" style="display: none;">fg_secondary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.secondary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.secondary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.secondary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1332,11 +1328,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryHover" style="">fgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_hover" style="display: none;">fg_secondary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="display: none;">fg.secondary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryHover" style="">fgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_hover" style="display: none;">fg_secondary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="fg.brand.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="fg.brand.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1351,11 +1347,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgBrandDefault" style="">fgBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_brand_default" style="display: none;">fg_brand_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="display: none;">fg.brand.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgBrandDefault" style="">fgBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_brand_default" style="display: none;">fg_brand_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="fg.brand.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="fg.brand.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>fg.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1370,11 +1366,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgBrandDefault" style="">fgBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_brand_default" style="display: none;">fg_brand_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="display: none;">fg.brand.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="fgBrandDefault" style="">fgBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="fg_brand_default" style="display: none;">fg_brand_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.secondary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.secondary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.secondary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1389,11 +1385,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryDefault" style="">bgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_default" style="display: none;">bg_secondary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="display: none;">bg.secondary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryDefault" style="">bgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_default" style="display: none;">bg_secondary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.secondary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.secondary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.secondary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1408,11 +1404,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryDefault" style="">bgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_default" style="display: none;">bg_secondary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="display: none;">bg.secondary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryDefault" style="">bgSecondaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_default" style="display: none;">bg_secondary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.secondary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.secondary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.secondary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1427,11 +1423,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryHover" style="">bgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_hover" style="display: none;">bg_secondary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="display: none;">bg.secondary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryHover" style="">bgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_hover" style="display: none;">bg_secondary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.secondary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.secondary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.secondary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1446,11 +1442,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryHover" style="">bgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_hover" style="display: none;">bg_secondary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="display: none;">bg.secondary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryHover" style="">bgSecondaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_hover" style="display: none;">bg_secondary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.tertiary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.tertiary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.tertiary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1465,11 +1461,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryDefault" style="">bgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_default" style="display: none;">bg_tertiary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="display: none;">bg.tertiary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryDefault" style="">bgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_default" style="display: none;">bg_tertiary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.tertiary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.tertiary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.tertiary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1484,11 +1480,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryDefault" style="">bgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_default" style="display: none;">bg_tertiary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="display: none;">bg.tertiary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryDefault" style="">bgTertiaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_default" style="display: none;">bg_tertiary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.tertiary.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.tertiary.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.tertiary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1503,11 +1499,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryHover" style="">bgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_hover" style="display: none;">bg_tertiary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="display: none;">bg.tertiary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryHover" style="">bgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_hover" style="display: none;">bg_tertiary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.tertiary.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.tertiary.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.tertiary.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1522,11 +1518,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryHover" style="">bgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_hover" style="display: none;">bg_tertiary_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="display: none;">bg.tertiary.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryHover" style="">bgTertiaryHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_hover" style="display: none;">bg_tertiary_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</code>
               </td>
             </tr>
           
-            <tr data-token="border.primary.subtle" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="border.primary.subtle" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.primary.subtle</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1541,11 +1537,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimarySubtle" style="">borderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_primary_subtle" style="display: none;">border_primary_subtle</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="display: none;">border.primary.subtle</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimarySubtle" style="">borderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_primary_subtle" style="display: none;">border_primary_subtle</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</code>
               </td>
             </tr>
           
-            <tr data-token="border.primary.subtle" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="border.primary.subtle" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.primary.subtle</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1560,11 +1556,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimarySubtle" style="">borderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_primary_subtle" style="display: none;">border_primary_subtle</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="display: none;">border.primary.subtle</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimarySubtle" style="">borderPrimarySubtle</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_primary_subtle" style="display: none;">border_primary_subtle</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</code>
               </td>
             </tr>
           
-            <tr data-token="border.primary.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="border.primary.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1579,11 +1575,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimaryDefault" style="">borderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_primary_default" style="display: none;">border_primary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="display: none;">border.primary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimaryDefault" style="">borderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_primary_default" style="display: none;">border_primary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="border.primary.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="border.primary.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.primary.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1598,11 +1594,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimaryDefault" style="">borderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_primary_default" style="display: none;">border_primary_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="display: none;">border.primary.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimaryDefault" style="">borderPrimaryDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_primary_default" style="display: none;">border_primary_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.brand.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.brand.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1617,11 +1613,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandDefault" style="">bgBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_brand_default" style="display: none;">bg_brand_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="display: none;">bg.brand.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandDefault" style="">bgBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_brand_default" style="display: none;">bg_brand_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.brand.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.brand.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1636,11 +1632,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandDefault" style="">bgBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_brand_default" style="display: none;">bg_brand_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="display: none;">bg.brand.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandDefault" style="">bgBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_brand_default" style="display: none;">bg_brand_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="bg.brand.hover" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="bg.brand.hover" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.brand.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1655,11 +1651,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandHover" style="">bgBrandHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_brand_hover" style="display: none;">bg_brand_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgBrandHover" style="display: none;">bgBrandHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandHover" style="display: none;">bgBrandHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="display: none;">bg.brand.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandHover" style="">bgBrandHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_brand_hover" style="display: none;">bg_brand_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandHover" style="display: none;">bgBrandHover</code>
               </td>
             </tr>
           
-            <tr data-token="bg.brand.hover" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="bg.brand.hover" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>bg.brand.hover</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1674,11 +1670,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandHover" style="">bgBrandHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_brand_hover" style="display: none;">bg_brand_hover</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="bgBrandHover" style="display: none;">bgBrandHover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandHover" style="display: none;">bgBrandHover</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="display: none;">bg.brand.hover</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandHover" style="">bgBrandHover</code><code class="docs-token-variable--platform" data-platform="android" data-copy="bg_brand_hover" style="display: none;">bg_brand_hover</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandHover" style="display: none;">bgBrandHover</code>
               </td>
             </tr>
           
-            <tr data-token="border.brand.subtle" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="border.brand.subtle" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.brand.subtle</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1693,11 +1689,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandSubtle" style="">borderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_brand_subtle" style="display: none;">border_brand_subtle</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="display: none;">border.brand.subtle</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandSubtle" style="">borderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_brand_subtle" style="display: none;">border_brand_subtle</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</code>
               </td>
             </tr>
           
-            <tr data-token="border.brand.subtle" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="border.brand.subtle" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.brand.subtle</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1712,11 +1708,11 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandSubtle" style="">borderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_brand_subtle" style="display: none;">border_brand_subtle</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="display: none;">border.brand.subtle</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandSubtle" style="">borderBrandSubtle</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_brand_subtle" style="display: none;">border_brand_subtle</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</code>
               </td>
             </tr>
           
-            <tr data-token="border.brand.default" data-mode="light" class="docs-table-row--reference">
+            <tr data-token="border.brand.default" data-mode="light" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1731,11 +1727,11 @@
               <td>theme</td>
               <td>light</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandDefault" style="">borderBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_brand_default" style="display: none;">border_brand_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="display: none;">border.brand.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandDefault" style="">borderBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_brand_default" style="display: none;">border_brand_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</code>
               </td>
             </tr>
           
-            <tr data-token="border.brand.default" data-mode="dark" class="docs-table-row--reference">
+            <tr data-token="border.brand.default" data-mode="dark" data-collection="theme" class="docs-table-row--reference">
               <td><strong>border.brand.default</strong></td>
               <td><code>color</code></td>
               <td>
@@ -1750,7 +1746,7 @@
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandDefault" style="">borderBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_brand_default" style="display: none;">border_brand_default</code><code class="docs-token-variable--platform" data-platform="compose" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</code>
+                <code class="docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="display: none;">border.brand.default</code><code class="docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandDefault" style="">borderBrandDefault</code><code class="docs-token-variable--platform" data-platform="android" data-copy="border_brand_default" style="display: none;">border_brand_default</code><code class="docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</code>
               </td>
             </tr>
           
@@ -1761,7 +1757,7 @@
 
       <footer class="docs-footer">
         <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
-        <span>Last updated: Dec 17, 2025, 12:39 AM</span>
+        <span>Last updated: Dec 17, 2025, 11:32 PM</span>
         
         <span>Output mode: Style Dictionary</span>
         

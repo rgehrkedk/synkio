@@ -10,6 +10,7 @@
 </head>
 <body>
   <div class="docs-layout">
+    
     <!-- Sidebar -->
     <aside class="docs-sidebar">
       <a href="index.html" class="docs-logo">
@@ -29,7 +30,7 @@
         
         <a href="base.html" class="">
           Base
-          <span class="docs-nav-count">12</span>
+          <span class="docs-nav-count">22</span>
         </a>
         
         <a href="colors.html" class="">
@@ -64,9 +65,10 @@
       <header class="docs-header">
         <div>
           <h1 class="docs-title">Design Tokens</h1>
-          <p class="docs-subtitle">Last synced: Dec 17, 2025, 12:51 AM</p>
+          <p class="docs-subtitle">Last synced: Dec 17, 2025, 11:20 PM</p>
         </div>
 
+        
         <div class="docs-controls">
           <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
 
@@ -91,28 +93,6 @@
           </div>
           
 
-          
-          <div class="docs-mode-switcher">
-            
-              <button class="docs-mode-btn active" data-mode="value">
-                Value
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="default">
-                Default
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="light">
-                Light
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="dark">
-                Dark
-              </button>
-            
-          </div>
-          
-
           <button class="docs-theme-toggle" id="themeToggle" title="Toggle theme">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"/>
@@ -123,13 +103,29 @@
       </header>
 
       
+    <div class="docs-mode-row">
+      
+      <div class="docs-mode-switcher" data-collection="theme">
+        
+          <button class="docs-mode-btn " data-mode="light">
+            Light
+          </button>
+        
+          <button class="docs-mode-btn " data-mode="dark">
+            Dark
+          </button>
+        
+      </div>
+    </div>
+
+      
     
-      <section class="docs-section">
+      <section class="docs-section" data-collection="theme">
         <div class="docs-section-header">
           <h2 class="docs-section-title">Bg</h2>
           <span class="docs-section-count">16 tokens</span>
         </div>
-        
+
         
           
           <div class="docs-subsection">
@@ -151,10 +147,9 @@
           <div class="docs-token-value" data-copy="#fafafa">
             #fafafa
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-primary-default" style="">--bg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-primary-default" style="display: none;">--bg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="display: none;">bg.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-primary-default" style="">bg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-primary-default" style="display: none;">bg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #171717"></div>
@@ -165,10 +160,9 @@
           <div class="docs-token-value" data-copy="#171717">
             #171717
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-primary-default" style="">--bg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-primary-default" style="display: none;">--bg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="display: none;">bg.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-primary-default" style="">bg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-primary-default" style="display: none;">bg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
@@ -179,10 +173,9 @@
           <div class="docs-token-value" data-copy="#f5f5f5">
             #f5f5f5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-primary-hover" style="">--bg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-primary-hover" style="display: none;">--bg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="display: none;">bg.primary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-primary-hover" style="">bg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-primary-hover" style="display: none;">bg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #262626"></div>
@@ -193,10 +186,9 @@
           <div class="docs-token-value" data-copy="#262626">
             #262626
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-primary-hover" style="">--bg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-primary-hover" style="display: none;">--bg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="display: none;">bg.primary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-primary-hover" style="">bg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-primary-hover" style="display: none;">bg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -219,10 +211,9 @@
           <div class="docs-token-value" data-copy="#f5f5f5">
             #f5f5f5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-secondary-default" style="">--bg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-secondary-default" style="display: none;">--bg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="display: none;">bg.secondary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-secondary-default" style="">bg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-secondary-default" style="display: none;">bg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #262626"></div>
@@ -233,10 +224,9 @@
           <div class="docs-token-value" data-copy="#262626">
             #262626
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-secondary-default" style="">--bg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-secondary-default" style="display: none;">--bg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="display: none;">bg.secondary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-secondary-default" style="">bg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-secondary-default" style="display: none;">bg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
@@ -247,10 +237,9 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-secondary-hover" style="">--bg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-secondary-hover" style="display: none;">--bg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="display: none;">bg.secondary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-secondary-hover" style="">bg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-secondary-hover" style="display: none;">bg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -261,10 +250,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-secondary-hover" style="">--bg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-secondary-hover" style="display: none;">--bg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="display: none;">bg.secondary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-secondary-hover" style="">bg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-secondary-hover" style="display: none;">bg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -287,10 +275,9 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-tertiary-default" style="">--bg-tertiary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-tertiary-default" style="display: none;">--bg-tertiary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="display: none;">bg.tertiary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-tertiary-default" style="">bg-tertiary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-tertiary-default" style="display: none;">bg-tertiary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -301,10 +288,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-tertiary-default" style="">--bg-tertiary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-tertiary-default" style="display: none;">--bg-tertiary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="display: none;">bg.tertiary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-tertiary-default" style="">bg-tertiary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-tertiary-default" style="display: none;">bg-tertiary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
@@ -315,10 +301,9 @@
           <div class="docs-token-value" data-copy="#d4d4d4">
             #d4d4d4
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-tertiary-hover" style="">--bg-tertiary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-tertiary-hover" style="display: none;">--bg-tertiary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="display: none;">bg.tertiary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-tertiary-hover" style="">bg-tertiary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-tertiary-hover" style="display: none;">bg-tertiary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #525252"></div>
@@ -329,10 +314,9 @@
           <div class="docs-token-value" data-copy="#525252">
             #525252
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-tertiary-hover" style="">--bg-tertiary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-tertiary-hover" style="display: none;">--bg-tertiary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="display: none;">bg.tertiary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-tertiary-hover" style="">bg-tertiary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-tertiary-hover" style="display: none;">bg-tertiary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -355,10 +339,9 @@
           <div class="docs-token-value" data-copy="#4f46e5">
             #4f46e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-brand-default" style="">--bg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-brand-default" style="display: none;">--bg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="display: none;">bg.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-brand-default" style="">bg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-brand-default" style="display: none;">bg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #6366f1"></div>
@@ -369,10 +352,9 @@
           <div class="docs-token-value" data-copy="#6366f1">
             #6366f1
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-brand-default" style="">--bg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-brand-default" style="display: none;">--bg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="display: none;">bg.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-brand-default" style="">bg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-brand-default" style="display: none;">bg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #4338ca"></div>
@@ -383,10 +365,9 @@
           <div class="docs-token-value" data-copy="#4338ca">
             #4338ca
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-brand-hover" style="">--bg-brand-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-brand-hover" style="display: none;">--bg-brand-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="display: none;">bg.brand.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-brand-hover" style="">bg-brand-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-brand-hover" style="display: none;">bg-brand-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
@@ -397,20 +378,19 @@
           <div class="docs-token-value" data-copy="#4f46e5">
             #4f46e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--bg-brand-hover" style="">--bg-brand-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--bg-brand-hover" style="display: none;">--bg-brand-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="display: none;">bg.brand.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="bg-brand-hover" style="">bg-brand-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="bg-brand-hover" style="display: none;">bg-brand-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</div>
         </div>
       </div>
-    
           </div>
           
       </section>
     
-      <section class="docs-section">
+      <section class="docs-section" data-collection="theme">
         <div class="docs-section-header">
           <h2 class="docs-section-title">Fg</h2>
           <span class="docs-section-count">10 tokens</span>
         </div>
-        
+
         
           
           <div class="docs-subsection">
@@ -432,10 +412,9 @@
           <div class="docs-token-value" data-copy="#171717">
             #171717
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-primary-default" style="">--fg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-primary-default" style="display: none;">--fg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="display: none;">fg.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-primary-default" style="">fg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-primary-default" style="display: none;">fg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #fafafa"></div>
@@ -446,10 +425,9 @@
           <div class="docs-token-value" data-copy="#fafafa">
             #fafafa
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-primary-default" style="">--fg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-primary-default" style="display: none;">--fg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="display: none;">fg.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-primary-default" style="">fg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-primary-default" style="display: none;">fg-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -460,10 +438,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-primary-hover" style="">--fg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-primary-hover" style="display: none;">--fg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="display: none;">fg.primary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-primary-hover" style="">fg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-primary-hover" style="display: none;">fg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
@@ -474,10 +451,9 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-primary-hover" style="">--fg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-primary-hover" style="display: none;">--fg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="display: none;">fg.primary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-primary-hover" style="">fg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-primary-hover" style="display: none;">fg-primary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -500,10 +476,9 @@
           <div class="docs-token-value" data-copy="#737373">
             #737373
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-secondary-default" style="">--fg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-secondary-default" style="display: none;">--fg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="display: none;">fg.secondary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-secondary-default" style="">fg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-secondary-default" style="display: none;">fg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
@@ -514,10 +489,9 @@
           <div class="docs-token-value" data-copy="#d4d4d4">
             #d4d4d4
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-secondary-default" style="">--fg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-secondary-default" style="display: none;">--fg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="display: none;">fg.secondary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-secondary-default" style="">fg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-secondary-default" style="display: none;">fg-secondary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -528,10 +502,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-secondary-hover" style="">--fg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-secondary-hover" style="display: none;">--fg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="display: none;">fg.secondary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-secondary-hover" style="">fg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-secondary-hover" style="display: none;">fg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
@@ -542,10 +515,9 @@
           <div class="docs-token-value" data-copy="#f5f5f5">
             #f5f5f5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-secondary-hover" style="">--fg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-secondary-hover" style="display: none;">--fg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="display: none;">fg.secondary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-secondary-hover" style="">fg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-secondary-hover" style="display: none;">fg-secondary-hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -568,10 +540,9 @@
           <div class="docs-token-value" data-copy="#4338ca">
             #4338ca
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-brand-default" style="">--fg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-brand-default" style="display: none;">--fg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="display: none;">fg.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-brand-default" style="">fg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-brand-default" style="display: none;">fg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.brand.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #818cf8"></div>
@@ -582,20 +553,19 @@
           <div class="docs-token-value" data-copy="#818cf8">
             #818cf8
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--fg-brand-default" style="">--fg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--fg-brand-default" style="display: none;">--fg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="display: none;">fg.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="fg-brand-default" style="">fg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="fg-brand-default" style="display: none;">fg-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</div>
         </div>
       </div>
-    
           </div>
           
       </section>
     
-      <section class="docs-section">
+      <section class="docs-section" data-collection="theme">
         <div class="docs-section-header">
           <h2 class="docs-section-title">Border</h2>
           <span class="docs-section-count">8 tokens</span>
         </div>
-        
+
         
           
           <div class="docs-subsection">
@@ -617,10 +587,9 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--border-primary-subtle" style="">--border-primary-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--border-primary-subtle" style="display: none;">--border-primary-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="display: none;">border.primary.subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="border-primary-subtle" style="">border-primary-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="border-primary-subtle" style="display: none;">border-primary-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.primary.subtle" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -631,10 +600,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--border-primary-subtle" style="">--border-primary-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--border-primary-subtle" style="display: none;">--border-primary-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="display: none;">border.primary.subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="border-primary-subtle" style="">border-primary-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="border-primary-subtle" style="display: none;">border-primary-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.primary.default" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #a3a3a3"></div>
@@ -645,10 +613,9 @@
           <div class="docs-token-value" data-copy="#a3a3a3">
             #a3a3a3
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--border-primary-default" style="">--border-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--border-primary-default" style="display: none;">--border-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="display: none;">border.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="border-primary-default" style="">border-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="border-primary-default" style="display: none;">border-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.primary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #737373"></div>
@@ -659,10 +626,9 @@
           <div class="docs-token-value" data-copy="#737373">
             #737373
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--border-primary-default" style="">--border-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--border-primary-default" style="display: none;">--border-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="display: none;">border.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="border-primary-default" style="">border-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="border-primary-default" style="display: none;">border-primary-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -685,10 +651,9 @@
           <div class="docs-token-value" data-copy="#e0e7ff">
             #e0e7ff
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--border-brand-subtle" style="">--border-brand-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--border-brand-subtle" style="display: none;">--border-brand-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="display: none;">border.brand.subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="border-brand-subtle" style="">border-brand-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="border-brand-subtle" style="display: none;">border-brand-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.brand.subtle" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #3730a3"></div>
@@ -699,10 +664,9 @@
           <div class="docs-token-value" data-copy="#3730a3">
             #3730a3
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--border-brand-subtle" style="">--border-brand-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--border-brand-subtle" style="display: none;">--border-brand-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="display: none;">border.brand.subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="border-brand-subtle" style="">border-brand-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="border-brand-subtle" style="display: none;">border-brand-subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.brand.default" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
@@ -713,10 +677,9 @@
           <div class="docs-token-value" data-copy="#4f46e5">
             #4f46e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--border-brand-default" style="">--border-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--border-brand-default" style="display: none;">--border-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="display: none;">border.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="border-brand-default" style="">border-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="border-brand-default" style="display: none;">border-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.brand.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #6366f1"></div>
@@ -727,10 +690,9 @@
           <div class="docs-token-value" data-copy="#6366f1">
             #6366f1
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--border-brand-default" style="">--border-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--border-brand-default" style="display: none;">--border-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="display: none;">border.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="border-brand-default" style="">border-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="border-brand-default" style="display: none;">border-brand-default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</div>
         </div>
       </div>
-    
           </div>
           
       </section>
@@ -739,7 +701,7 @@
 
       <footer class="docs-footer">
         <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
-        <span>Last updated: Dec 17, 2025, 12:51 AM</span>
+        <span>Last updated: Dec 17, 2025, 11:20 PM</span>
         
         <span>Output mode: Style Dictionary</span>
         

@@ -5,6 +5,8 @@ import { z } from 'zod';
  */
 export const SynkioTokenEntrySchema = z.object({
   variableId: z.string(),
+  collectionId: z.string().optional(),
+  modeId: z.string().optional(),
   collection: z.string(),
   mode: z.string(),
   path: z.string(),

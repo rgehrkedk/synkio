@@ -68,37 +68,48 @@ body {
 
 /* Layout */
 .docs-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr;
+  display: block;
   min-height: 100vh;
+  padding-left: calc(244px + var(--docs-space-lg) * 2);
 }
 
 @media (max-width: 768px) {
   .docs-layout {
-    grid-template-columns: 1fr;
+    padding-left: 0;
   }
-  
+
   .docs-sidebar {
     display: none;
   }
-  
+
   .docs-sidebar.open {
     display: block;
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
     z-index: 100;
   }
 }
 
-/* Sidebar */
+/* Sidebar - Floating */
 .docs-sidebar {
   background: var(--docs-bg-secondary);
-  border-right: 1px solid var(--docs-border);
+  border: 1px solid var(--docs-border);
+  border-radius: var(--docs-radius-lg);
   padding: var(--docs-space-lg);
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  position: fixed;
+  top: var(--docs-space-lg);
+  left: var(--docs-space-lg);
+  width: 244px;
+  height: calc(100vh - var(--docs-space-lg) * 2);
   overflow-y: auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  z-index: 50;
 }
 
 .docs-logo {
@@ -222,6 +233,33 @@ body {
   color: var(--docs-text-muted);
 }
 
+/* Mode toggle row - appears below header on pages with multiple modes */
+.docs-mode-row {
+  display: flex;
+  align-items: center;
+  gap: var(--docs-space-md);
+  padding: var(--docs-space-md) 0;
+  margin-bottom: var(--docs-space-lg);
+  border-bottom: 1px solid var(--docs-border);
+}
+
+.docs-mode-row--overview {
+  flex-wrap: wrap;
+  gap: var(--docs-space-lg);
+}
+
+.docs-collection-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--docs-space-sm);
+}
+
+.docs-mode-label {
+  font-size: 0.875rem;
+  color: var(--docs-text-muted);
+  font-weight: 500;
+}
+
 .docs-mode-switcher {
   display: flex;
   background: var(--docs-bg-secondary);
@@ -330,6 +368,76 @@ body {
   font-size: 0.875rem;
   color: var(--docs-text-muted);
   margin-top: var(--docs-space-xs);
+}
+
+/* Configuration grid */
+.docs-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--docs-space-md);
+  margin-bottom: var(--docs-space-2xl);
+}
+
+.docs-config-card {
+  background: var(--docs-bg-secondary);
+  border: 1px solid var(--docs-border);
+  border-radius: var(--docs-radius-lg);
+  padding: var(--docs-space-lg);
+}
+
+.docs-config-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--docs-text);
+  margin: 0 0 var(--docs-space-md) 0;
+  padding-bottom: var(--docs-space-sm);
+  border-bottom: 1px solid var(--docs-border);
+}
+
+.docs-config-list {
+  display: grid;
+  gap: var(--docs-space-sm);
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.docs-config-list dt {
+  color: var(--docs-text-muted);
+  font-weight: 500;
+}
+
+.docs-config-list dd {
+  margin: 0;
+  color: var(--docs-text);
+}
+
+.docs-config-list code {
+  background: var(--docs-bg-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--docs-radius-sm);
+  font-size: 0.8125rem;
+}
+
+.docs-tag {
+  display: inline-block;
+  background: var(--docs-bg-tertiary);
+  color: var(--docs-text-muted);
+  padding: 2px 8px;
+  border-radius: var(--docs-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.docs-tag--primary {
+  background: var(--docs-accent);
+  color: white;
+}
+
+.docs-tag--success {
+  background: #10b981;
+  color: white;
 }
 
 /* Token grid */

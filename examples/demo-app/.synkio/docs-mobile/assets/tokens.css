@@ -5,18 +5,18 @@
  */
 
 :root {
-  --default-spacing-xs: 4px;
-  --default-spacing-sm: 8px;
-  --default-spacing-md: 16px;
-  --default-spacing-lg: 24px;
-  --default-spacing-xl: 32px;
-  --default-spacing-2xl: 48px;
-  --default-spacing-3xl: 64px;
-  --default-radius-none: 0;
-  --default-radius-sm: 4px;
-  --default-radius-md: 8px;
-  --default-radius-lg: 12px;
-  --default-radius-full: 9999px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
   --primary-50: #eef2ff;
   --primary-100: #e0e7ff;
   --primary-200: #c7d2fe;
@@ -44,12 +44,9 @@
   --background-secondary: #f5f5f5;
   --text-primary: #171717;
   --text-secondary: #525252;
-}
-
-[data-mode="default"] {
-  --size-xs: 10px;
+  --size-xs: 12px;
   --size-sm: 14px;
-  --size-base: 16px;
+  --size-md: 16px;
   --size-lg: 18px;
   --size-xl: 20px;
   --size-2xl: 24px;
@@ -59,9 +56,9 @@
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
-  --lineheight-tight: 1.25;
-  --lineheight-normal: 1.5;
-  --lineheight-relaxed: 1.75;
+  --lineheight-tight: 1.25px;
+  --lineheight-normal: 1.5px;
+  --lineheight-relaxed: 1.75px;
   --fontfamily-default: inter;
 }
 

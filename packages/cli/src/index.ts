@@ -19,6 +19,9 @@ export { validateCommand } from './cli/commands/validate.js';
 
 export { rollbackCommand } from './cli/commands/rollback.js';
 
+export { importCommand } from './cli/commands/import.js';
+export type { ImportOptions } from './cli/commands/import.js';
+
 // Config
 export {
   loadConfig,
@@ -72,6 +75,14 @@ export {
   normalizePluginData,
 } from './core/tokens.js';
 export type { SplitTokensOptions } from './core/tokens.js';
+
+// Figma native import
+export {
+  parseFigmaNativeExport,
+  parseFigmaNativeFiles,
+  isFigmaNativeFormat,
+} from './core/figma-native.js';
+export type { ParseFigmaNativeOptions, ParsedFigmaNativeFile } from './core/figma-native.js';
 
 // Output generation
 export {

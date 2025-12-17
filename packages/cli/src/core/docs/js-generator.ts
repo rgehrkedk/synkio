@@ -16,12 +16,11 @@ export function generatePreviewJS(): string {
   const mobileToggle = document.getElementById('mobileToggle');
   const sidebar = document.querySelector('.docs-sidebar');
   const copiedToast = document.getElementById('copiedToast');
-  const modeBtns = document.querySelectorAll('.docs-mode-btn');
 
   // ============================================
-  // Theme Toggle (Light/Dark)
+  // Theme Toggle (Light/Dark UI)
   // ============================================
-  
+
   function initTheme() {
     const savedTheme = localStorage.getItem('synkio-docs-theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -41,54 +40,113 @@ export function generatePreviewJS(): string {
   initTheme();
 
   // ============================================
-  // Mode Switcher (Light/Dark tokens, etc.)
+  // Mode Switcher (Token modes: light/dark/default, etc.)
+  // Supports per-collection mode filtering on overview page
   // ============================================
 
-  function initMode() {
-    const savedMode = localStorage.getItem('synkio-docs-mode');
-    if (savedMode) {
-      document.documentElement.setAttribute('data-mode', savedMode);
-      updateModeButtons(savedMode);
+  function initModes() {
+    // Get all mode switchers (may be multiple on overview page)
+    const modeSwitchers = document.querySelectorAll('.docs-mode-switcher');
+
+    modeSwitchers.forEach(switcher => {
+      const collection = switcher.dataset.collection;
+      const storageKey = collection
+        ? \`synkio-docs-mode-\${collection}\`
+        : 'synkio-docs-mode';
+
+      const savedMode = localStorage.getItem(storageKey);
+      if (savedMode) {
+        // Update button states
+        const btns = switcher.querySelectorAll('.docs-mode-btn');
+        btns.forEach(btn => {
+          if (btn.dataset.mode === savedMode) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        // Apply filtering
+        filterByMode(savedMode, collection);
+      }
+    });
+  }
+
+  function setMode(mode, collection) {
+    const storageKey = collection
+      ? \`synkio-docs-mode-\${collection}\`
+      : 'synkio-docs-mode';
+
+    localStorage.setItem(storageKey, mode);
+
+    // Update root data-mode if this is global (no collection)
+    if (!collection) {
+      document.documentElement.setAttribute('data-mode', mode);
     }
+
+    // Update button states for this switcher
+    const selector = collection
+      ? \`.docs-mode-switcher[data-collection="\${collection}"]\`
+      : '.docs-mode-switcher:not([data-collection])';
+    const switcher = document.querySelector(selector);
+
+    if (switcher) {
+      const btns = switcher.querySelectorAll('.docs-mode-btn');
+      btns.forEach(btn => {
+        if (btn.dataset.mode === mode) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    // Filter tokens by mode
+    filterByMode(mode, collection);
   }
 
-  function setMode(mode) {
-    document.documentElement.setAttribute('data-mode', mode);
-    localStorage.setItem('synkio-docs-mode', mode);
-    updateModeButtons(mode);
-    
-    // Filter tokens by mode if we're showing mode-specific content
-    filterByMode(mode);
-  }
+  function filterByMode(mode, collection) {
+    // Build selector for target elements
+    let selector = '[data-token]';
+    if (collection) {
+      // On overview page, filter only tokens in this collection's section
+      selector = \`[data-collection="\${collection}"] [data-token], [data-token][data-collection="\${collection}"]\`;
+    }
 
-  function updateModeButtons(activeMode) {
-    modeBtns.forEach(btn => {
-      if (btn.dataset.mode === activeMode) {
-        btn.classList.add('active');
+    const tokenElements = document.querySelectorAll(selector);
+
+    tokenElements.forEach(el => {
+      const elMode = el.dataset.mode;
+      const elCollection = el.dataset.collection || el.closest('[data-collection]')?.dataset.collection;
+
+      // If filtering by collection, only affect that collection's tokens
+      if (collection && elCollection !== collection) {
+        return;
+      }
+
+      if (!elMode || elMode === mode) {
+        el.style.display = '';
       } else {
-        btn.classList.remove('active');
+        el.style.display = 'none';
       }
     });
+
+    // Update section visibility
+    updateSectionVisibility();
   }
 
-  function filterByMode(mode) {
-    // Show/hide token cards based on mode
-    const tokenCards = document.querySelectorAll('[data-token]');
-    tokenCards.forEach(card => {
-      const cardMode = card.dataset.mode;
-      if (!cardMode || cardMode === mode) {
-        card.style.display = '';
-      } else {
-        card.style.display = 'none';
-      }
-    });
-  }
-
-  modeBtns.forEach(btn => {
-    btn.addEventListener('click', () => setMode(btn.dataset.mode));
+  // Attach click handlers to all mode buttons
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.docs-mode-btn');
+    if (btn) {
+      const mode = btn.dataset.mode;
+      const switcher = btn.closest('.docs-mode-switcher');
+      const collection = switcher?.dataset.collection;
+      setMode(mode, collection);
+    }
   });
 
-  initMode();
+  initModes();
 
   // ============================================
   // Platform Switcher (CSS, iOS, Android, etc.)
@@ -158,17 +216,29 @@ export function generatePreviewJS(): string {
     const normalizedQuery = query.toLowerCase().trim();
     const tokenElements = document.querySelectorAll('[data-token]');
     const rows = document.querySelectorAll('.docs-token-table tbody tr');
-    
+
     // Search in card view
     tokenElements.forEach(el => {
       if (!el.matches('tr')) {
         const tokenPath = (el.dataset.token || '').toLowerCase();
         const textContent = el.textContent.toLowerCase();
         const matches = !normalizedQuery || tokenPath.includes(normalizedQuery) || textContent.includes(normalizedQuery);
-        el.style.display = matches ? '' : 'none';
+
+        // Only show if matches search (mode filter handled separately)
+        if (!matches) {
+          el.style.display = 'none';
+        } else {
+          // Re-check mode filter
+          const mode = el.dataset.mode;
+          const collection = el.dataset.collection || el.closest('[data-collection]')?.dataset.collection;
+          const activeMode = getActiveMode(collection);
+          if (!mode || mode === activeMode) {
+            el.style.display = '';
+          }
+        }
       }
     });
-    
+
     // Search in table view
     rows.forEach(row => {
       const tokenPath = (row.dataset.token || '').toLowerCase();
@@ -176,9 +246,16 @@ export function generatePreviewJS(): string {
       const matches = !normalizedQuery || tokenPath.includes(normalizedQuery) || textContent.includes(normalizedQuery);
       row.style.display = matches ? '' : 'none';
     });
-    
+
     // Update section visibility
     updateSectionVisibility();
+  }
+
+  function getActiveMode(collection) {
+    const storageKey = collection
+      ? \`synkio-docs-mode-\${collection}\`
+      : 'synkio-docs-mode';
+    return localStorage.getItem(storageKey) || document.documentElement.getAttribute('data-mode') || 'default';
   }
 
   function updateSectionVisibility() {
@@ -196,7 +273,7 @@ export function generatePreviewJS(): string {
     searchInput.addEventListener('input', debounce((e) => {
       searchTokens(e.target.value);
     }, 150));
-    
+
     // Clear search on Escape
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -252,11 +329,11 @@ export function generatePreviewJS(): string {
     mobileToggle.addEventListener('click', () => {
       sidebar.classList.toggle('open');
     });
-    
+
     // Close on outside click
     document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open') && 
-          !sidebar.contains(e.target) && 
+      if (sidebar.classList.contains('open') &&
+          !sidebar.contains(e.target) &&
           !mobileToggle.contains(e.target)) {
         sidebar.classList.remove('open');
       }

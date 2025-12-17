@@ -32,19 +32,6 @@
             }
           ]
         },
-        "compose": {
-          "transformGroup": "compose",
-          "buildPath": "src/tokens-mobile/platforms/compose/",
-          "files": [
-            {
-              "destination": "Tokens.kt",
-              "format": "compose/object",
-              "options": {
-                "packageName": "com.example.tokens"
-              }
-            }
-          ]
-        },
         "flutter": {
           "transformGroup": "flutter",
           "buildPath": "src/tokens-mobile/platforms/flutter/",

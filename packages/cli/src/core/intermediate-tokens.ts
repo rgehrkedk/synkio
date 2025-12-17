@@ -10,6 +10,7 @@
  * - Resolved references in {path} format
  * - Metadata from tokensrc.json configuration
  * - Output format information for docs display
+ * - Platform-specific naming conventions (derived from Style Dictionary when available)
  */
 
 import { writeFile, mkdir } from 'fs/promises';
@@ -17,6 +18,7 @@ import { join } from 'path';
 import { BaselineData, BaselineEntry } from '../types/index.js';
 import { Config } from './config.js';
 import { mapToDTCGType } from './tokens.js';
+import { getSDPlatformsInfo } from './sd-hooks.js';
 
 /**
  * Extended intermediate format with metadata
@@ -60,7 +62,14 @@ export interface IntermediateTokenFormat {
       /** Style Dictionary configuration if in SD mode */
       styleDictionary?: {
         buildPath?: string;
-        platforms?: string[];
+        /** Platform info with name transforms (derived from SD hooks when available) */
+        platforms?: Record<string, {
+          transformGroup: string;
+          /** The SD name transform (e.g., 'name/camel', 'name/snake') - used by SD's actual transform function */
+          nameTransform?: string;
+          buildPath?: string;
+          files?: Array<{ destination: string; format: string }>;
+        }>;
         outputReferences?: boolean;
       };
     };
@@ -224,19 +233,47 @@ function extractModes(baseline: BaselineData): string[] {
 /**
  * Generate the complete intermediate token format with metadata
  */
-export function generateIntermediateFormat(
+export async function generateIntermediateFormat(
   baseline: BaselineData,
   config: Config
-): IntermediateTokenFormat {
+): Promise<IntermediateTokenFormat> {
   const tokens = convertToIntermediateFormat(baseline, config);
   const variableNaming = generateVariableNaming(config);
   const collections = extractCollections(baseline);
   const modes = extractModes(baseline);
 
   // Build Style Dictionary platform info if in SD mode
-  let sdPlatforms: string[] | undefined;
+  let sdPlatformsInfo: IntermediateTokenFormat['$metadata']['output']['styleDictionary'] | undefined;
+
   if (config.output.mode === 'style-dictionary' && config.output.styleDictionary?.platforms) {
-    sdPlatforms = Object.keys(config.output.styleDictionary.platforms);
+    const configPlatforms = config.output.styleDictionary.platforms;
+
+    // Try to get naming conventions from Style Dictionary hooks
+    const sdHooksInfo = await getSDPlatformsInfo(configPlatforms);
+
+    // Build enriched platform info
+    const platforms: NonNullable<typeof sdPlatformsInfo>['platforms'] = {};
+
+    for (const [platformName, platformConfig] of Object.entries(configPlatforms)) {
+      const transformGroup = platformConfig.transformGroup || platformName;
+      const sdInfo = sdHooksInfo[platformName];
+
+      platforms[platformName] = {
+        transformGroup,
+        nameTransform: sdInfo?.nameTransform,
+        buildPath: platformConfig.buildPath,
+        files: platformConfig.files?.map(f => ({
+          destination: f.destination,
+          format: f.format,
+        })),
+      };
+    }
+
+    sdPlatformsInfo = {
+      buildPath: config.output.styleDictionary.buildPath,
+      platforms,
+      outputReferences: config.output.styleDictionary.outputReferences,
+    };
   }
 
   return {
@@ -258,12 +295,8 @@ export function generateIntermediateFormat(
             transforms: config.css.transforms,
           },
         }),
-        ...(config.output.mode === 'style-dictionary' && {
-          styleDictionary: {
-            buildPath: config.output.styleDictionary?.buildPath,
-            platforms: sdPlatforms,
-            outputReferences: config.output.styleDictionary?.outputReferences,
-          },
+        ...(sdPlatformsInfo && {
+          styleDictionary: sdPlatformsInfo,
         }),
       },
       variableNaming,
@@ -284,7 +317,7 @@ export async function writeIntermediateFormat(
 ): Promise<string> {
   await mkdir(outputDir, { recursive: true });
 
-  const intermediate = generateIntermediateFormat(baseline, config);
+  const intermediate = await generateIntermediateFormat(baseline, config);
   const tokensPath = join(outputDir, '.tokens-source.json');
 
   await writeFile(tokensPath, JSON.stringify(intermediate, null, 2), 'utf-8');

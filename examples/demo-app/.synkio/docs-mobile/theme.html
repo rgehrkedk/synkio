@@ -10,6 +10,7 @@
 </head>
 <body>
   <div class="docs-layout">
+    
     <!-- Sidebar -->
     <aside class="docs-sidebar">
       <a href="index.html" class="docs-logo">
@@ -27,8 +28,8 @@
 
         <div class="docs-nav-section">Collections</div>
         
-        <a href="primitives.html" class="">
-          Primitives
+        <a href="base.html" class="">
+          Base
           <span class="docs-nav-count">12</span>
         </a>
         
@@ -64,9 +65,10 @@
       <header class="docs-header">
         <div>
           <h1 class="docs-title">Design Tokens</h1>
-          <p class="docs-subtitle">Last synced: Dec 17, 2025, 12:39 AM</p>
+          <p class="docs-subtitle">Last synced: Dec 17, 2025, 11:32 PM</p>
         </div>
 
+        
         <div class="docs-controls">
           <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
 
@@ -83,37 +85,11 @@
                   ANDROID
                 </option>
               
-                <option value="compose" >
-                  COMPOSE
-                </option>
-              
                 <option value="flutter" >
                   FLUTTER
                 </option>
               
             </select>
-          </div>
-          
-
-          
-          <div class="docs-mode-switcher">
-            
-              <button class="docs-mode-btn active" data-mode="value">
-                Value
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="default">
-                Default
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="light">
-                Light
-              </button>
-            
-              <button class="docs-mode-btn " data-mode="dark">
-                Dark
-              </button>
-            
           </div>
           
 
@@ -127,13 +103,29 @@
       </header>
 
       
+    <div class="docs-mode-row">
+      
+      <div class="docs-mode-switcher" data-collection="theme">
+        
+          <button class="docs-mode-btn " data-mode="light">
+            Light
+          </button>
+        
+          <button class="docs-mode-btn " data-mode="dark">
+            Dark
+          </button>
+        
+      </div>
+    </div>
+
+      
     
-      <section class="docs-section">
+      <section class="docs-section" data-collection="theme">
         <div class="docs-section-header">
           <h2 class="docs-section-title">Bg</h2>
           <span class="docs-section-count">16 tokens</span>
         </div>
-        
+
         
           
           <div class="docs-subsection">
@@ -155,10 +147,9 @@
           <div class="docs-token-value" data-copy="#fafafa">
             #fafafa
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="display: none;">bg.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #171717"></div>
@@ -169,10 +160,9 @@
           <div class="docs-token-value" data-copy="#171717">
             #171717
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="display: none;">bg.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
@@ -183,10 +173,9 @@
           <div class="docs-token-value" data-copy="#f5f5f5">
             #f5f5f5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="display: none;">bg.primary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #262626"></div>
@@ -197,10 +186,9 @@
           <div class="docs-token-value" data-copy="#262626">
             #262626
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="display: none;">bg.primary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -223,10 +211,9 @@
           <div class="docs-token-value" data-copy="#f5f5f5">
             #f5f5f5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryDefault" style="">bgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_default" style="display: none;">bg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="display: none;">bg.secondary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryDefault" style="">bgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_default" style="display: none;">bg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #262626"></div>
@@ -237,10 +224,9 @@
           <div class="docs-token-value" data-copy="#262626">
             #262626
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryDefault" style="">bgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_default" style="display: none;">bg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="display: none;">bg.secondary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryDefault" style="">bgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_default" style="display: none;">bg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryDefault" style="display: none;">bgSecondaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
@@ -251,10 +237,9 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryHover" style="">bgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_hover" style="display: none;">bg_secondary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="display: none;">bg.secondary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryHover" style="">bgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_hover" style="display: none;">bg_secondary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -265,10 +250,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryHover" style="">bgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_hover" style="display: none;">bg_secondary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="display: none;">bg.secondary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgSecondaryHover" style="">bgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_secondary_hover" style="display: none;">bg_secondary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgSecondaryHover" style="display: none;">bgSecondaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -291,10 +275,9 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryDefault" style="">bgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_default" style="display: none;">bg_tertiary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="display: none;">bg.tertiary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryDefault" style="">bgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_default" style="display: none;">bg_tertiary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -305,10 +288,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryDefault" style="">bgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_default" style="display: none;">bg_tertiary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="display: none;">bg.tertiary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryDefault" style="">bgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_default" style="display: none;">bg_tertiary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryDefault" style="display: none;">bgTertiaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
@@ -319,10 +301,9 @@
           <div class="docs-token-value" data-copy="#d4d4d4">
             #d4d4d4
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryHover" style="">bgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_hover" style="display: none;">bg_tertiary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="display: none;">bg.tertiary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryHover" style="">bgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_hover" style="display: none;">bg_tertiary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #525252"></div>
@@ -333,10 +314,9 @@
           <div class="docs-token-value" data-copy="#525252">
             #525252
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryHover" style="">bgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_hover" style="display: none;">bg_tertiary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="display: none;">bg.tertiary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgTertiaryHover" style="">bgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_tertiary_hover" style="display: none;">bg_tertiary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgTertiaryHover" style="display: none;">bgTertiaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -359,10 +339,9 @@
           <div class="docs-token-value" data-copy="#4f46e5">
             #4f46e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandDefault" style="">bgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_brand_default" style="display: none;">bg_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="display: none;">bg.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandDefault" style="">bgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_brand_default" style="display: none;">bg_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #6366f1"></div>
@@ -373,10 +352,9 @@
           <div class="docs-token-value" data-copy="#6366f1">
             #6366f1
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandDefault" style="">bgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_brand_default" style="display: none;">bg_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="display: none;">bg.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandDefault" style="">bgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_brand_default" style="display: none;">bg_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandDefault" style="display: none;">bgBrandDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #4338ca"></div>
@@ -387,10 +365,9 @@
           <div class="docs-token-value" data-copy="#4338ca">
             #4338ca
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandHover" style="">bgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_brand_hover" style="display: none;">bg_brand_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgBrandHover" style="display: none;">bgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandHover" style="display: none;">bgBrandHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="display: none;">bg.brand.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandHover" style="">bgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_brand_hover" style="display: none;">bg_brand_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandHover" style="display: none;">bgBrandHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
@@ -401,20 +378,19 @@
           <div class="docs-token-value" data-copy="#4f46e5">
             #4f46e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandHover" style="">bgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_brand_hover" style="display: none;">bg_brand_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgBrandHover" style="display: none;">bgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandHover" style="display: none;">bgBrandHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="display: none;">bg.brand.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgBrandHover" style="">bgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_brand_hover" style="display: none;">bg_brand_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgBrandHover" style="display: none;">bgBrandHover</div>
         </div>
       </div>
-    
           </div>
           
       </section>
     
-      <section class="docs-section">
+      <section class="docs-section" data-collection="theme">
         <div class="docs-section-header">
           <h2 class="docs-section-title">Fg</h2>
           <span class="docs-section-count">10 tokens</span>
         </div>
-        
+
         
           
           <div class="docs-subsection">
@@ -436,10 +412,9 @@
           <div class="docs-token-value" data-copy="#171717">
             #171717
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="display: none;">fg.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #fafafa"></div>
@@ -450,10 +425,9 @@
           <div class="docs-token-value" data-copy="#fafafa">
             #fafafa
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="display: none;">fg.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -464,10 +438,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="display: none;">fg.primary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
@@ -478,10 +451,9 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="display: none;">fg.primary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -504,10 +476,9 @@
           <div class="docs-token-value" data-copy="#737373">
             #737373
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="display: none;">fg.secondary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
@@ -518,10 +489,9 @@
           <div class="docs-token-value" data-copy="#d4d4d4">
             #d4d4d4
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="display: none;">fg.secondary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.hover" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -532,10 +502,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryHover" style="">fgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_hover" style="display: none;">fg_secondary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="display: none;">fg.secondary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryHover" style="">fgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_hover" style="display: none;">fg_secondary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.hover" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
@@ -546,10 +515,9 @@
           <div class="docs-token-value" data-copy="#f5f5f5">
             #f5f5f5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryHover" style="">fgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_hover" style="display: none;">fg_secondary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="display: none;">fg.secondary.hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryHover" style="">fgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_hover" style="display: none;">fg_secondary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryHover" style="display: none;">fgSecondaryHover</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -572,10 +540,9 @@
           <div class="docs-token-value" data-copy="#4338ca">
             #4338ca
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgBrandDefault" style="">fgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_brand_default" style="display: none;">fg_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="display: none;">fg.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgBrandDefault" style="">fgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_brand_default" style="display: none;">fg_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="fg.brand.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #818cf8"></div>
@@ -586,20 +553,19 @@
           <div class="docs-token-value" data-copy="#818cf8">
             #818cf8
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgBrandDefault" style="">fgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_brand_default" style="display: none;">fg_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="display: none;">fg.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgBrandDefault" style="">fgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_brand_default" style="display: none;">fg_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgBrandDefault" style="display: none;">fgBrandDefault</div>
         </div>
       </div>
-    
           </div>
           
       </section>
     
-      <section class="docs-section">
+      <section class="docs-section" data-collection="theme">
         <div class="docs-section-header">
           <h2 class="docs-section-title">Border</h2>
           <span class="docs-section-count">8 tokens</span>
         </div>
-        
+
         
           
           <div class="docs-subsection">
@@ -621,10 +587,9 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimarySubtle" style="">borderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_primary_subtle" style="display: none;">border_primary_subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="display: none;">border.primary.subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimarySubtle" style="">borderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_primary_subtle" style="display: none;">border_primary_subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.primary.subtle" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
@@ -635,10 +600,9 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimarySubtle" style="">borderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_primary_subtle" style="display: none;">border_primary_subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="display: none;">border.primary.subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimarySubtle" style="">borderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_primary_subtle" style="display: none;">border_primary_subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimarySubtle" style="display: none;">borderPrimarySubtle</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.primary.default" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #a3a3a3"></div>
@@ -649,10 +613,9 @@
           <div class="docs-token-value" data-copy="#a3a3a3">
             #a3a3a3
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimaryDefault" style="">borderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_primary_default" style="display: none;">border_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="display: none;">border.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimaryDefault" style="">borderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_primary_default" style="display: none;">border_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.primary.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #737373"></div>
@@ -663,10 +626,9 @@
           <div class="docs-token-value" data-copy="#737373">
             #737373
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimaryDefault" style="">borderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_primary_default" style="display: none;">border_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="display: none;">border.primary.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderPrimaryDefault" style="">borderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_primary_default" style="display: none;">border_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderPrimaryDefault" style="display: none;">borderPrimaryDefault</div>
         </div>
       </div>
-    
           </div>
           
           
@@ -689,10 +651,9 @@
           <div class="docs-token-value" data-copy="#e0e7ff">
             #e0e7ff
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandSubtle" style="">borderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_brand_subtle" style="display: none;">border_brand_subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="display: none;">border.brand.subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandSubtle" style="">borderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_brand_subtle" style="display: none;">border_brand_subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.brand.subtle" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #3730a3"></div>
@@ -703,10 +664,9 @@
           <div class="docs-token-value" data-copy="#3730a3">
             #3730a3
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandSubtle" style="">borderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_brand_subtle" style="display: none;">border_brand_subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="display: none;">border.brand.subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandSubtle" style="">borderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_brand_subtle" style="display: none;">border_brand_subtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandSubtle" style="display: none;">borderBrandSubtle</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.brand.default" data-mode="light">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
@@ -717,10 +677,9 @@
           <div class="docs-token-value" data-copy="#4f46e5">
             #4f46e5
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandDefault" style="">borderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_brand_default" style="display: none;">border_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="display: none;">border.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandDefault" style="">borderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_brand_default" style="display: none;">border_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</div>
         </div>
       </div>
-    
       <div class="docs-token-card docs-token-card--reference" data-token="border.brand.default" data-mode="dark">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #6366f1"></div>
@@ -731,10 +690,9 @@
           <div class="docs-token-value" data-copy="#6366f1">
             #6366f1
           </div>
-          <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandDefault" style="">borderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_brand_default" style="display: none;">border_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="display: none;">border.brand.default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="borderBrandDefault" style="">borderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="border_brand_default" style="display: none;">border_brand_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="borderBrandDefault" style="display: none;">borderBrandDefault</div>
         </div>
       </div>
-    
           </div>
           
       </section>
@@ -743,7 +701,7 @@
 
       <footer class="docs-footer">
         <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
-        <span>Last updated: Dec 17, 2025, 12:39 AM</span>
+        <span>Last updated: Dec 17, 2025, 11:32 PM</span>
         
         <span>Output mode: Style Dictionary</span>
         

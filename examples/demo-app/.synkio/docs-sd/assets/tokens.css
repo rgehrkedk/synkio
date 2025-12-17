@@ -27,6 +27,16 @@
   --primary-700: #4338ca;
   --primary-800: #3730a3;
   --primary-900: #312e81;
+  --primary-50: #eef2ff;
+  --primary-100: #e0e7ff;
+  --primary-200: #c7d2fe;
+  --primary-300: #a5b4fc;
+  --primary-400: #818cf8;
+  --primary-500: #6366f1;
+  --primary-600: #4f46e5;
+  --primary-700: #4338ca;
+  --primary-800: #3730a3;
+  --primary-900: #312e81;
   --neutral-50: #fafafa;
   --neutral-100: #f5f5f5;
   --neutral-200: #e5e5e5;
@@ -47,7 +57,7 @@
 }
 
 [data-mode="default"] {
-  --size-xs: 10px;
+  --size-xxs: 10px;
   --size-sm: 14px;
   --size-base: 16px;
   --size-lg: 18px;
@@ -59,9 +69,9 @@
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
-  --lineheight-tight: 1.25;
-  --lineheight-normal: 1.5;
-  --lineheight-relaxed: 1.75;
+  --lineheight-tight: 1.25px;
+  --lineheight-normal: 1.5px;
+  --lineheight-relaxed: 1.75px;
   --fontfamily-default: inter;
 }
 

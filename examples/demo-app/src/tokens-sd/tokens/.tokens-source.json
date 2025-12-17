@@ -175,7 +175,7 @@
       }
     },
     "size": {
-      "xs": {
+      "xxs": {
         "$value": 10,
         "$type": "dimension"
       },
@@ -340,7 +340,7 @@
     }
   },
   "$metadata": {
-    "syncedAt": "2025-12-16T23:51:57.746Z",
+    "syncedAt": "2025-12-17T22:20:53.499Z",
     "source": {
       "figmaFileId": "2v7lEGTB8CgFbYmawBETjG"
     },
@@ -350,11 +350,38 @@
       "dir": "src/tokens-sd/tokens",
       "styleDictionary": {
         "buildPath": "src/tokens-sd/styles/",
-        "platforms": [
-          "css",
-          "scss",
-          "js"
-        ],
+        "platforms": {
+          "css": {
+            "transformGroup": "css",
+            "nameTransform": "name/kebab",
+            "files": [
+              {
+                "destination": "tokens.css",
+                "format": "css/variables"
+              }
+            ]
+          },
+          "scss": {
+            "transformGroup": "scss",
+            "nameTransform": "name/kebab",
+            "files": [
+              {
+                "destination": "_tokens.scss",
+                "format": "scss/variables"
+              }
+            ]
+          },
+          "js": {
+            "transformGroup": "js",
+            "nameTransform": "name/pascal",
+            "files": [
+              {
+                "destination": "tokens.js",
+                "format": "javascript/es6"
+              }
+            ]
+          }
+        },
         "outputReferences": true
       }
     },

@@ -8,6 +8,7 @@ import { rollbackCommand } from './commands/rollback.js';
 import { validateCommand } from './commands/validate.js';
 import { tokensCommand } from './commands/tokens.js';
 import { docsCommand } from './commands/docs.js';
+import { importCommand } from './commands/import.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
@@ -110,12 +111,31 @@ function showHelp(command?: string) {
             console.log('  --title=<name>   Documentation title');
             console.log('  --open           Open in browser after generating');
             break;
+        case 'import':
+            console.log('Usage: synkio import <path> [options]\n');
+            console.log('Import tokens from Figma native JSON export files.\n');
+            console.log('Supports importing directly from Figma\'s built-in variable export');
+            console.log('without needing the Synkio Figma plugin.\n');
+            console.log('Arguments:');
+            console.log('  <path>              Path to JSON file or directory\n');
+            console.log('Options:');
+            console.log('  --collection=<name> Collection name (required if not in file)');
+            console.log('  --mode=<name>       Override mode name from file');
+            console.log('  --preview           Show what would change without importing');
+            console.log('  --force             Import even with breaking changes');
+            console.log('  --config=<file>     Path to config file\n');
+            console.log('Examples:');
+            console.log('  synkio import ./light.tokens.json --collection=theme');
+            console.log('  synkio import ./figma-exports/ --collection=theme');
+            console.log('  synkio import ./tokens/ --collection=theme --preview');
+            break;
         default:
             console.log(`synkio v${pkg.version}\n`);
             console.log('Usage: synkio <command> [options]\n');
             console.log('Commands:');
             console.log('  init       Initialize a new project');
             console.log('  sync       Sync tokens from Figma');
+            console.log('  import     Import tokens from Figma native JSON export');
             console.log('  docs       Generate token documentation site');
             console.log('  rollback   Revert to previous token version');
             console.log('  validate   Check configuration and connection');
@@ -192,6 +212,19 @@ switch (command) {
         title: docsOptions.title as string,
         open: docsOptions.open as boolean,
         config: docsOptions.config as string,
+    });
+    break;
+  case 'import':
+    const importOptions = parseArgs(args);
+    // First non-flag argument after 'import' is the path
+    const importPath = args.slice(1).find(arg => !arg.startsWith('--'));
+    importCommand({
+        path: importPath || importOptions.path as string,
+        collection: importOptions.collection as string,
+        mode: importOptions.mode as string,
+        preview: importOptions.preview as boolean,
+        force: importOptions.force as boolean,
+        config: importOptions.config as string,
     });
     break;
   default:
