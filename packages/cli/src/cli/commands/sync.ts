@@ -34,6 +34,20 @@ export async function syncCommand(options: SyncOptions = {}) {
     let config = loadConfig(options.config);
     logger.debug('Config loaded', config);
 
+    // Early check: If Style Dictionary mode is enabled, verify it's installed
+    if (config.output.mode === 'style-dictionary') {
+      const sdAvailable = await isStyleDictionaryAvailable();
+      if (!sdAvailable) {
+        spinner.fail(chalk.red(
+          'Style Dictionary mode is configured but style-dictionary is not installed.\n\n' +
+          '  To fix this, either:\n' +
+          '  1. Install Style Dictionary: npm install -D style-dictionary\n' +
+          '  2. Change output.mode to "json" in synkio.config.json\n'
+        ));
+        process.exit(1);
+      }
+    }
+
     // Handle --regenerate: skip Figma fetch, use existing baseline
     if (options.regenerate) {
       spinner.text = 'Regenerating files from existing baseline...';

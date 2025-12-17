@@ -1,4 +1,5 @@
 import { BaselineEntry } from '../types/index.js';
+import { SynkioPluginDataSchema, SynkioTokenEntrySchema } from '../types/schemas.js';
 
 /**
  * The raw token structure received from the Figma plugin
@@ -129,9 +130,35 @@ interface SynkioPluginData {
 export function normalizePluginData(rawData: any): RawTokens {
   // New Synkio plugin format
   if (rawData.tokens && Array.isArray(rawData.tokens)) {
-    const data = rawData as SynkioPluginData;
+    // Validate the data with Zod
+    const validationResult = SynkioPluginDataSchema.safeParse(rawData);
+
+    if (!validationResult.success) {
+      // Format user-friendly error message
+      const zodError = validationResult.error;
+      const errorDetails = zodError.issues.map((err: any) => {
+        const path = err.path.join('.');
+        return `  - ${path}: ${err.message}`;
+      }).join('\n');
+
+      throw new Error(
+        `Invalid data from Figma plugin.
+
+This could mean:
+  - The Synkio plugin has not been run on this Figma file
+  - The plugin data is corrupted or incomplete
+  - You are using an incompatible plugin version
+
+Please run the Synkio plugin in Figma and try again.
+
+Technical details:
+${errorDetails}`
+      );
+    }
+
+    const data = validationResult.data;
     const result: RawTokens = {};
-    
+
     for (const token of data.tokens) {
       // Create a unique key for each token entry: VariableID:X:X:collection.mode
       const key = `${token.variableId}:${token.collection}.${token.mode}`;
@@ -143,23 +170,23 @@ export function normalizePluginData(rawData: any): RawTokens {
         value: token.value,
         type: token.type,
       };
-      
+
       // Copy optional metadata if present
       if (token.description) entry.description = token.description;
       if (token.scopes) entry.scopes = token.scopes;
       if (token.codeSyntax) entry.codeSyntax = token.codeSyntax;
-      
+
       result[key] = entry;
     }
-    
+
     return result;
   }
-  
+
   // Legacy token_vault format (already in correct structure)
   if (rawData.baseline && typeof rawData.baseline === 'object') {
     return rawData.baseline;
   }
-  
+
   // Legacy format: might be the baseline directly
   if (typeof rawData === 'object' && !rawData.tokens && !rawData.baseline) {
     // Check if it looks like a baseline (has entries with path, value, etc.)
@@ -168,7 +195,7 @@ export function normalizePluginData(rawData: any): RawTokens {
       return rawData;
     }
   }
-  
+
   throw new Error('Unrecognized plugin data format. Run the Synkio plugin in Figma first.');
 }
 
