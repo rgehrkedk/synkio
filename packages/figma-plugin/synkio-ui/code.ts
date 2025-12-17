@@ -6,7 +6,7 @@
 import { chunkData, reassembleChunks } from './shared';
 import { compareSnapshots } from './shared';
 import { addHistoryEntry, parseHistory, serializeHistory } from './shared';
-import type { SyncData, TokenEntry, DiffEntry, SyncEvent } from './shared';
+import type { SyncData, TokenEntry, DiffEntry, SyncEvent, ComparisonResult, CollectionRename, ModeRename } from './shared';
 
 console.log('=== SYNKIO UI PLUGIN STARTING ===');
 
@@ -170,14 +170,20 @@ async function sendDiffToUI() {
   const baseline = getBaselineSnapshot();
 
   let diffs: DiffEntry[] = [];
+  let collectionRenames: CollectionRename[] = [];
+  let modeRenames: ModeRename[] = [];
+
   if (baseline) {
-    diffs = compareSnapshots(current, baseline);
+    const result = compareSnapshots(current, baseline);
+    diffs = result.diffs;
+    collectionRenames = result.collectionRenames;
+    modeRenames = result.modeRenames;
   } else {
     // No baseline yet - all current tokens are "new"
     diffs = currentTokens.map(token => ({
       id: token.variableId + ':' + token.mode,
       name: token.path,
-      type: 'added',
+      type: 'added' as const,
       newValue: token.value,
       collection: token.collection,
       mode: token.mode,
@@ -186,11 +192,18 @@ async function sendDiffToUI() {
 
   const history = getHistory();
 
-  console.log('Sending update to UI:', { diffsCount: diffs.length, historyCount: history.length });
+  console.log('Sending update to UI:', {
+    diffsCount: diffs.length,
+    collectionRenames: collectionRenames.length,
+    modeRenames: modeRenames.length,
+    historyCount: history.length
+  });
 
   figma.ui.postMessage({
     type: 'update',
     diffs: diffs,
+    collectionRenames: collectionRenames,
+    modeRenames: modeRenames,
     history: history,
     hasBaseline: !!baseline,
   });
@@ -221,8 +234,9 @@ figma.ui.onmessage = async (msg) => {
       };
 
       const baseline = getBaselineSnapshot();
-      const changeCount = baseline
-        ? compareSnapshots(snapshot, baseline).length
+      const result = baseline ? compareSnapshots(snapshot, baseline) : null;
+      const changeCount = result
+        ? result.diffs.length + result.collectionRenames.length + result.modeRenames.length
         : currentTokens.length;
 
       // Save new baseline

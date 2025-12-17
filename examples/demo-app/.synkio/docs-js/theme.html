@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-mode="value" data-platform="json">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Tokens (CSS-in-JS) - Synkio Docs</title>
+  <link rel="stylesheet" href="assets/tokens.css">
+  <link rel="stylesheet" href="assets/utilities.css">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <!-- Sidebar -->
+    <aside class="docs-sidebar">
+      <a href="index.html" class="docs-logo">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="#6366f1"/>
+          <path d="M8 16L14 22L24 10" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Design Tokens (CSS-in-JS)
+      </a>
+
+      <nav class="docs-nav">
+        <a href="index.html" class="">
+          Overview
+        </a>
+
+        <div class="docs-nav-section">Collections</div>
+        
+        <a href="primitives.html" class="">
+          Primitives
+          <span class="docs-nav-count">12</span>
+        </a>
+        
+        <a href="colors.html" class="">
+          Colors
+          <span class="docs-nav-count">27</span>
+        </a>
+        
+        <a href="font.html" class="">
+          Font
+          <span class="docs-nav-count">16</span>
+        </a>
+        
+        <a href="theme.html" class="active">
+          Theme
+          <span class="docs-nav-count">34</span>
+        </a>
+        
+
+        <a href="all-tokens.html" class="">
+          All Tokens
+        </a>
+
+        <div class="docs-nav-section">Resources</div>
+        <a href="tokens.json" target="_blank">
+          tokens.json ↗
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="docs-main">
+      <header class="docs-header">
+        <div>
+          <h1 class="docs-title">Design Tokens</h1>
+          <p class="docs-subtitle">Last synced: Dec 17, 2025, 12:39 AM</p>
+        </div>
+
+        <div class="docs-controls">
+          <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
+
+          
+          <div class="docs-platform-switcher">
+            <label for="platformSelect" style="font-size: 12px; color: var(--docs-text-muted); margin-right: 8px;">Platform:</label>
+            <select id="platformSelect" class="docs-platform-select">
+              
+                <option value="js" >
+                  JS
+                </option>
+              
+                <option value="ts" >
+                  TS
+                </option>
+              
+                <option value="json" selected>
+                  OBJECT
+                </option>
+              
+            </select>
+          </div>
+          
+
+          
+          <div class="docs-mode-switcher">
+            
+              <button class="docs-mode-btn active" data-mode="value">
+                Value
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="default">
+                Default
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="light">
+                Light
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="dark">
+                Dark
+              </button>
+            
+          </div>
+          
+
+          <button class="docs-theme-toggle" id="themeToggle" title="Toggle theme">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Bg</h2>
+          <span class="docs-section-count">16 tokens</span>
+        </div>
+        
+        
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Primary</h3>
+              <span class="docs-subsection-count">4</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #fafafa"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.50}" title="References neutral.50">→ {neutral.50}</div>
+          <div class="docs-token-value" data-copy="#fafafa">
+            #fafafa
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="">bg.primary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #171717"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.900}" title="References neutral.900">→ {neutral.900}</div>
+          <div class="docs-token-value" data-copy="#171717">
+            #171717
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.default" style="">bg.primary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.100}" title="References neutral.100">→ {neutral.100}</div>
+          <div class="docs-token-value" data-copy="#f5f5f5">
+            #f5f5f5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="">bg.primary.hover</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #262626"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.800}" title="References neutral.800">→ {neutral.800}</div>
+          <div class="docs-token-value" data-copy="#262626">
+            #262626
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.primary.hover" style="">bg.primary.hover</div>
+        </div>
+      </div>
+    
+          </div>
+          
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Secondary</h3>
+              <span class="docs-subsection-count">4</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">secondary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.100}" title="References neutral.100">→ {neutral.100}</div>
+          <div class="docs-token-value" data-copy="#f5f5f5">
+            #f5f5f5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="">bg.secondary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #262626"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">secondary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.800}" title="References neutral.800">→ {neutral.800}</div>
+          <div class="docs-token-value" data-copy="#262626">
+            #262626
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.default" style="">bg.secondary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.hover" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">secondary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</div>
+          <div class="docs-token-value" data-copy="#e5e5e5">
+            #e5e5e5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="">bg.secondary.hover</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.secondary.hover" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #404040"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">secondary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</div>
+          <div class="docs-token-value" data-copy="#404040">
+            #404040
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.secondary.hover" style="">bg.secondary.hover</div>
+        </div>
+      </div>
+    
+          </div>
+          
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Tertiary</h3>
+              <span class="docs-subsection-count">4</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">tertiary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</div>
+          <div class="docs-token-value" data-copy="#e5e5e5">
+            #e5e5e5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="">bg.tertiary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #404040"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">tertiary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</div>
+          <div class="docs-token-value" data-copy="#404040">
+            #404040
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.default" style="">bg.tertiary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.hover" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">tertiary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.300}" title="References neutral.300">→ {neutral.300}</div>
+          <div class="docs-token-value" data-copy="#d4d4d4">
+            #d4d4d4
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="">bg.tertiary.hover</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.tertiary.hover" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #525252"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">tertiary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.600}" title="References neutral.600">→ {neutral.600}</div>
+          <div class="docs-token-value" data-copy="#525252">
+            #525252
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.tertiary.hover" style="">bg.tertiary.hover</div>
+        </div>
+      </div>
+    
+          </div>
+          
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Brand</h3>
+              <span class="docs-subsection-count">4</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.default</div>
+          <div class="docs-token-reference" data-copy="{primary.600}" title="References primary.600">→ {primary.600}</div>
+          <div class="docs-token-value" data-copy="#4f46e5">
+            #4f46e5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="">bg.brand.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #6366f1"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.default</div>
+          <div class="docs-token-reference" data-copy="{primary.500}" title="References primary.500">→ {primary.500}</div>
+          <div class="docs-token-value" data-copy="#6366f1">
+            #6366f1
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.default" style="">bg.brand.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.hover" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #4338ca"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.hover</div>
+          <div class="docs-token-reference" data-copy="{primary.700}" title="References primary.700">→ {primary.700}</div>
+          <div class="docs-token-value" data-copy="#4338ca">
+            #4338ca
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgBrandHover" style="display: none;">BgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="">bg.brand.hover</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="bg.brand.hover" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.hover</div>
+          <div class="docs-token-reference" data-copy="{primary.600}" title="References primary.600">→ {primary.600}</div>
+          <div class="docs-token-value" data-copy="#4f46e5">
+            #4f46e5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BgBrandHover" style="display: none;">BgBrandHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="bg.brand.hover" style="">bg.brand.hover</div>
+        </div>
+      </div>
+    
+          </div>
+          
+      </section>
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Fg</h2>
+          <span class="docs-section-count">10 tokens</span>
+        </div>
+        
+        
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Primary</h3>
+              <span class="docs-subsection-count">4</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #171717"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.900}" title="References neutral.900">→ {neutral.900}</div>
+          <div class="docs-token-value" data-copy="#171717">
+            #171717
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="">fg.primary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #fafafa"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.50}" title="References neutral.50">→ {neutral.50}</div>
+          <div class="docs-token-value" data-copy="#fafafa">
+            #fafafa
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.default" style="">fg.primary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #404040"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</div>
+          <div class="docs-token-value" data-copy="#404040">
+            #404040
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="">fg.primary.hover</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</div>
+          <div class="docs-token-value" data-copy="#e5e5e5">
+            #e5e5e5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.primary.hover" style="">fg.primary.hover</div>
+        </div>
+      </div>
+    
+          </div>
+          
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Secondary</h3>
+              <span class="docs-subsection-count">4</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #737373"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">secondary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.500}" title="References neutral.500">→ {neutral.500}</div>
+          <div class="docs-token-value" data-copy="#737373">
+            #737373
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="">fg.secondary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">secondary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.300}" title="References neutral.300">→ {neutral.300}</div>
+          <div class="docs-token-value" data-copy="#d4d4d4">
+            #d4d4d4
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.default" style="">fg.secondary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.hover" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #404040"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">secondary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</div>
+          <div class="docs-token-value" data-copy="#404040">
+            #404040
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="">fg.secondary.hover</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.hover" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">secondary.hover</div>
+          <div class="docs-token-reference" data-copy="{neutral.100}" title="References neutral.100">→ {neutral.100}</div>
+          <div class="docs-token-value" data-copy="#f5f5f5">
+            #f5f5f5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.secondary.hover" style="">fg.secondary.hover</div>
+        </div>
+      </div>
+    
+          </div>
+          
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Brand</h3>
+              <span class="docs-subsection-count">2</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.brand.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #4338ca"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.default</div>
+          <div class="docs-token-reference" data-copy="{primary.700}" title="References primary.700">→ {primary.700}</div>
+          <div class="docs-token-value" data-copy="#4338ca">
+            #4338ca
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="">fg.brand.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="fg.brand.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #818cf8"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.default</div>
+          <div class="docs-token-reference" data-copy="{primary.400}" title="References primary.400">→ {primary.400}</div>
+          <div class="docs-token-value" data-copy="#818cf8">
+            #818cf8
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="fg.brand.default" style="">fg.brand.default</div>
+        </div>
+      </div>
+    
+          </div>
+          
+      </section>
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Border</h2>
+          <span class="docs-section-count">8 tokens</span>
+        </div>
+        
+        
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Primary</h3>
+              <span class="docs-subsection-count">4</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="border.primary.subtle" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.subtle</div>
+          <div class="docs-token-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</div>
+          <div class="docs-token-value" data-copy="#e5e5e5">
+            #e5e5e5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="">border.primary.subtle</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="border.primary.subtle" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #404040"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.subtle</div>
+          <div class="docs-token-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</div>
+          <div class="docs-token-value" data-copy="#404040">
+            #404040
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.subtle" style="">border.primary.subtle</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="border.primary.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #a3a3a3"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.400}" title="References neutral.400">→ {neutral.400}</div>
+          <div class="docs-token-value" data-copy="#a3a3a3">
+            #a3a3a3
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="">border.primary.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="border.primary.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #737373"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">primary.default</div>
+          <div class="docs-token-reference" data-copy="{neutral.500}" title="References neutral.500">→ {neutral.500}</div>
+          <div class="docs-token-value" data-copy="#737373">
+            #737373
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.primary.default" style="">border.primary.default</div>
+        </div>
+      </div>
+    
+          </div>
+          
+          
+          <div class="docs-subsection">
+            <div class="docs-subsection-header">
+              <h3 class="docs-subsection-title">Brand</h3>
+              <span class="docs-subsection-count">4</span>
+            </div>
+          </div>
+          
+          <div class="docs-token-grid docs-token-grid--subsection">
+            
+      <div class="docs-token-card docs-token-card--reference" data-token="border.brand.subtle" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #e0e7ff"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.subtle</div>
+          <div class="docs-token-reference" data-copy="{primary.100}" title="References primary.100">→ {primary.100}</div>
+          <div class="docs-token-value" data-copy="#e0e7ff">
+            #e0e7ff
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="">border.brand.subtle</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="border.brand.subtle" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #3730a3"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.subtle</div>
+          <div class="docs-token-reference" data-copy="{primary.800}" title="References primary.800">→ {primary.800}</div>
+          <div class="docs-token-value" data-copy="#3730a3">
+            #3730a3
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.subtle" style="">border.brand.subtle</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="border.brand.default" data-mode="light">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.default</div>
+          <div class="docs-token-reference" data-copy="{primary.600}" title="References primary.600">→ {primary.600}</div>
+          <div class="docs-token-value" data-copy="#4f46e5">
+            #4f46e5
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="">border.brand.default</div>
+        </div>
+      </div>
+    
+      <div class="docs-token-card docs-token-card--reference" data-token="border.brand.default" data-mode="dark">
+        <div class="docs-color-preview">
+          <div class="docs-color-preview-inner" style="background: #6366f1"></div>
+        </div>
+        <div class="docs-token-info">
+          <div class="docs-token-name">brand.default</div>
+          <div class="docs-token-reference" data-copy="{primary.500}" title="References primary.500">→ {primary.500}</div>
+          <div class="docs-token-value" data-copy="#6366f1">
+            #6366f1
+          </div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="ts" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="json" data-copy="border.brand.default" style="">border.brand.default</div>
+        </div>
+      </div>
+    
+          </div>
+          
+      </section>
+    
+  
+
+      <footer class="docs-footer">
+        <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
+        <span>Last updated: Dec 17, 2025, 12:39 AM</span>
+        
+        <span>Output mode: Style Dictionary</span>
+        
+        
+      </footer>
+    </main>
+  </div>
+
+  <button class="docs-mobile-toggle" id="mobileToggle">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <div class="docs-copied" id="copiedToast">Copied to clipboard!</div>
+
+  <script src="assets/preview.js"></script>
+</body>
+</html>

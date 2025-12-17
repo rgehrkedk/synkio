@@ -1,5 +1,5 @@
 {
-  "default": {
+  "tokens": {
     "spacing": {
       "xs": {
         "$value": 4,
@@ -52,76 +52,6 @@
         "$type": "dimension"
       }
     },
-    "font": {
-      "size": {
-        "xs": {
-          "$value": 12,
-          "$type": "dimension"
-        },
-        "sm": {
-          "$value": 14,
-          "$type": "dimension"
-        },
-        "base": {
-          "$value": 16,
-          "$type": "dimension"
-        },
-        "lg": {
-          "$value": 18,
-          "$type": "dimension"
-        },
-        "xl": {
-          "$value": 20,
-          "$type": "dimension"
-        },
-        "2xl": {
-          "$value": 24,
-          "$type": "dimension"
-        },
-        "3xl": {
-          "$value": 30,
-          "$type": "dimension"
-        },
-        "4xl": {
-          "$value": 36,
-          "$type": "dimension"
-        }
-      },
-      "weight": {
-        "normal": {
-          "$value": 400,
-          "$type": "number"
-        },
-        "medium": {
-          "$value": 500,
-          "$type": "number"
-        },
-        "semibold": {
-          "$value": 600,
-          "$type": "number"
-        },
-        "bold": {
-          "$value": 700,
-          "$type": "number"
-        }
-      },
-      "lineHeight": {
-        "tight": {
-          "$value": 1.25,
-          "$type": "dimension"
-        },
-        "normal": {
-          "$value": 1.5,
-          "$type": "dimension"
-        },
-        "relaxed": {
-          "$value": 1.75,
-          "$type": "dimension"
-        }
-      }
-    }
-  },
-  "color": {
     "primary": {
       "50": {
         "$value": "#eef2ff",
@@ -243,14 +173,207 @@
         "$value": "#525252",
         "$type": "color"
       }
-    }
-  },
-  "bg": {
-    "primary": {
+    },
+    "size": {
+      "xs": {
+        "$value": 10,
+        "$type": "dimension"
+      },
+      "sm": {
+        "$value": 14,
+        "$type": "dimension"
+      },
+      "base": {
+        "$value": 16,
+        "$type": "dimension"
+      },
+      "lg": {
+        "$value": 18,
+        "$type": "dimension"
+      },
+      "xl": {
+        "$value": 20,
+        "$type": "dimension"
+      },
+      "2xl": {
+        "$value": 24,
+        "$type": "dimension"
+      },
+      "3xl": {
+        "$value": 30,
+        "$type": "dimension"
+      },
+      "4xl": {
+        "$value": 36,
+        "$type": "dimension"
+      }
+    },
+    "weight": {
+      "normal": {
+        "$value": 400,
+        "$type": "number"
+      },
+      "medium": {
+        "$value": 500,
+        "$type": "number"
+      },
+      "semibold": {
+        "$value": 600,
+        "$type": "number"
+      },
+      "bold": {
+        "$value": 700,
+        "$type": "number"
+      }
+    },
+    "lineHeight": {
+      "tight": {
+        "$value": 1.25,
+        "$type": "dimension"
+      },
+      "normal": {
+        "$value": 1.5,
+        "$type": "dimension"
+      },
+      "relaxed": {
+        "$value": 1.75,
+        "$type": "dimension"
+      }
+    },
+    "fontFamily": {
       "default": {
-        "$value": "{color.neutral.800}",
-        "$type": "color"
+        "$value": "inter",
+        "$type": "string"
+      }
+    },
+    "bg": {
+      "primary": {
+        "default": {
+          "$value": "{neutral.900}",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{neutral.800}",
+          "$type": "color"
+        }
+      },
+      "secondary": {
+        "default": {
+          "$value": "{neutral.800}",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{neutral.700}",
+          "$type": "color"
+        }
+      },
+      "tertiary": {
+        "default": {
+          "$value": "{neutral.700}",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{neutral.600}",
+          "$type": "color"
+        }
+      },
+      "brand": {
+        "default": {
+          "$value": "{primary.500}",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{primary.600}",
+          "$type": "color"
+        }
+      }
+    },
+    "fg": {
+      "primary": {
+        "default": {
+          "$value": "{neutral.50}",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{neutral.200}",
+          "$type": "color"
+        }
+      },
+      "secondary": {
+        "default": {
+          "$value": "{neutral.300}",
+          "$type": "color"
+        },
+        "hover": {
+          "$value": "{neutral.100}",
+          "$type": "color"
+        }
+      },
+      "brand": {
+        "default": {
+          "$value": "{primary.400}",
+          "$type": "color"
+        }
+      }
+    },
+    "border": {
+      "primary": {
+        "subtle": {
+          "$value": "{neutral.700}",
+          "$type": "color"
+        },
+        "default": {
+          "$value": "{neutral.500}",
+          "$type": "color"
+        }
+      },
+      "brand": {
+        "subtle": {
+          "$value": "{primary.800}",
+          "$type": "color"
+        },
+        "default": {
+          "$value": "{primary.500}",
+          "$type": "color"
+        }
       }
     }
+  },
+  "$metadata": {
+    "syncedAt": "2025-12-16T23:51:57.746Z",
+    "source": {
+      "figmaFileId": "2v7lEGTB8CgFbYmawBETjG"
+    },
+    "output": {
+      "mode": "style-dictionary",
+      "dtcg": true,
+      "dir": "src/tokens-sd/tokens",
+      "styleDictionary": {
+        "buildPath": "src/tokens-sd/styles/",
+        "platforms": [
+          "css",
+          "scss",
+          "js"
+        ],
+        "outputReferences": true
+      }
+    },
+    "variableNaming": {
+      "prefix": "--",
+      "separator": "-",
+      "example": "--color-primary-500"
+    },
+    "collections": [
+      "base",
+      "colors",
+      "font",
+      "theme"
+    ],
+    "modes": [
+      "dark",
+      "default",
+      "light",
+      "value"
+    ]
   }
 }

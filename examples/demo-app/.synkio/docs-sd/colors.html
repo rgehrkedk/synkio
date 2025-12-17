@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" data-mode="default">
+<html lang="en" data-theme="dark" data-mode="value" data-platform="css">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,16 +19,16 @@
         </svg>
         Design Tokens
       </a>
-      
+
       <nav class="docs-nav">
         <a href="index.html" class="">
           Overview
         </a>
-        
+
         <div class="docs-nav-section">Collections</div>
         
-        <a href="primitives.html" class="">
-          Primitives
+        <a href="base.html" class="">
+          Base
           <span class="docs-nav-count">12</span>
         </a>
         
@@ -37,43 +37,68 @@
           <span class="docs-nav-count">27</span>
         </a>
         
-        <a href="typography.html" class="">
-          Typography
-          <span class="docs-nav-count">15</span>
+        <a href="font.html" class="">
+          Font
+          <span class="docs-nav-count">16</span>
         </a>
         
         <a href="theme.html" class="">
           Theme
-          <span class="docs-nav-count">2</span>
+          <span class="docs-nav-count">34</span>
         </a>
         
-        
+
         <a href="all-tokens.html" class="">
           All Tokens
         </a>
-        
+
         <div class="docs-nav-section">Resources</div>
         <a href="tokens.json" target="_blank">
           tokens.json ↗
         </a>
       </nav>
     </aside>
-    
+
     <!-- Main content -->
     <main class="docs-main">
       <header class="docs-header">
         <div>
           <h1 class="docs-title">Colors</h1>
-          <p class="docs-subtitle">Last synced: Dec 15, 2025, 11:38 AM</p>
+          <p class="docs-subtitle">Last synced: Dec 17, 2025, 12:51 AM</p>
         </div>
-        
+
         <div class="docs-controls">
           <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
+
           
+          <div class="docs-platform-switcher">
+            <label for="platformSelect" style="font-size: 12px; color: var(--docs-text-muted); margin-right: 8px;">Platform:</label>
+            <select id="platformSelect" class="docs-platform-select">
+              
+                <option value="css" selected>
+                  CSS
+                </option>
+              
+                <option value="scss" >
+                  SCSS
+                </option>
+              
+                <option value="js" >
+                  JS
+                </option>
+              
+            </select>
+          </div>
+          
+
           
           <div class="docs-mode-switcher">
             
-              <button class="docs-mode-btn active" data-mode="default">
+              <button class="docs-mode-btn active" data-mode="value">
+                Value
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="default">
                 Default
               </button>
             
@@ -87,7 +112,7 @@
             
           </div>
           
-          
+
           <button class="docs-theme-toggle" id="themeToggle" title="Toggle theme">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"/>
@@ -96,27 +121,20 @@
           </button>
         </div>
       </header>
-      
+
       
     
       <section class="docs-section">
         <div class="docs-section-header">
-          <h2 class="docs-section-title">Color</h2>
-          <span class="docs-section-count">27 tokens</span>
+          <h2 class="docs-section-title">Primary</h2>
+          <span class="docs-section-count">10 tokens</span>
         </div>
         
         
           
-          <div class="docs-subsection">
-            <div class="docs-subsection-header">
-              <h3 class="docs-subsection-title">Primary</h3>
-              <span class="docs-subsection-count">10</span>
-            </div>
-          </div>
-          
-          <div class="docs-token-grid docs-token-grid--subsection">
+          <div class="docs-token-grid">
             
-      <div class="docs-token-card" data-token="color.primary.50" data-mode="default">
+      <div class="docs-token-card" data-token="primary.50" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #eef2ff"></div>
         </div>
@@ -126,11 +144,11 @@
           <div class="docs-token-value" data-copy="#eef2ff">
             #eef2ff
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-50">--color-primary-50</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-50" style="">--primary-50</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-50" style="display: none;">--primary-50</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary50" style="display: none;">Primary50</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.100" data-mode="default">
+      <div class="docs-token-card" data-token="primary.100" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #e0e7ff"></div>
         </div>
@@ -140,11 +158,11 @@
           <div class="docs-token-value" data-copy="#e0e7ff">
             #e0e7ff
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-100">--color-primary-100</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-100" style="">--primary-100</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-100" style="display: none;">--primary-100</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary100" style="display: none;">Primary100</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.200" data-mode="default">
+      <div class="docs-token-card" data-token="primary.200" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #c7d2fe"></div>
         </div>
@@ -154,11 +172,11 @@
           <div class="docs-token-value" data-copy="#c7d2fe">
             #c7d2fe
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-200">--color-primary-200</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-200" style="">--primary-200</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-200" style="display: none;">--primary-200</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary200" style="display: none;">Primary200</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.300" data-mode="default">
+      <div class="docs-token-card" data-token="primary.300" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #a5b4fc"></div>
         </div>
@@ -168,11 +186,11 @@
           <div class="docs-token-value" data-copy="#a5b4fc">
             #a5b4fc
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-300">--color-primary-300</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-300" style="">--primary-300</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-300" style="display: none;">--primary-300</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary300" style="display: none;">Primary300</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.400" data-mode="default">
+      <div class="docs-token-card" data-token="primary.400" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #818cf8"></div>
         </div>
@@ -182,11 +200,11 @@
           <div class="docs-token-value" data-copy="#818cf8">
             #818cf8
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-400">--color-primary-400</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-400" style="">--primary-400</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-400" style="display: none;">--primary-400</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary400" style="display: none;">Primary400</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.500" data-mode="default">
+      <div class="docs-token-card" data-token="primary.500" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #6366f1"></div>
         </div>
@@ -196,11 +214,11 @@
           <div class="docs-token-value" data-copy="#6366f1">
             #6366f1
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-500">--color-primary-500</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-500" style="">--primary-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-500" style="display: none;">--primary-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary500" style="display: none;">Primary500</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.600" data-mode="default">
+      <div class="docs-token-card" data-token="primary.600" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
         </div>
@@ -210,11 +228,11 @@
           <div class="docs-token-value" data-copy="#4f46e5">
             #4f46e5
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-600">--color-primary-600</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-600" style="">--primary-600</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-600" style="display: none;">--primary-600</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary600" style="display: none;">Primary600</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.700" data-mode="default">
+      <div class="docs-token-card" data-token="primary.700" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #4338ca"></div>
         </div>
@@ -224,11 +242,11 @@
           <div class="docs-token-value" data-copy="#4338ca">
             #4338ca
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-700">--color-primary-700</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-700" style="">--primary-700</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-700" style="display: none;">--primary-700</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary700" style="display: none;">Primary700</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.800" data-mode="default">
+      <div class="docs-token-card" data-token="primary.800" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #3730a3"></div>
         </div>
@@ -238,11 +256,11 @@
           <div class="docs-token-value" data-copy="#3730a3">
             #3730a3
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-800">--color-primary-800</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-800" style="">--primary-800</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-800" style="display: none;">--primary-800</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary800" style="display: none;">Primary800</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.primary.900" data-mode="default">
+      <div class="docs-token-card" data-token="primary.900" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #312e81"></div>
         </div>
@@ -252,23 +270,25 @@
           <div class="docs-token-value" data-copy="#312e81">
             #312e81
           </div>
-          <div class="docs-token-variable" data-copy="--color-primary-900">--color-primary-900</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--primary-900" style="">--primary-900</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--primary-900" style="display: none;">--primary-900</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Primary900" style="display: none;">Primary900</div>
         </div>
       </div>
     
           </div>
           
+      </section>
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Neutral</h2>
+          <span class="docs-section-count">10 tokens</span>
+        </div>
+        
+        
           
-          <div class="docs-subsection">
-            <div class="docs-subsection-header">
-              <h3 class="docs-subsection-title">Neutral</h3>
-              <span class="docs-subsection-count">10</span>
-            </div>
-          </div>
-          
-          <div class="docs-token-grid docs-token-grid--subsection">
+          <div class="docs-token-grid">
             
-      <div class="docs-token-card" data-token="color.neutral.50" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.50" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #fafafa"></div>
         </div>
@@ -278,11 +298,11 @@
           <div class="docs-token-value" data-copy="#fafafa">
             #fafafa
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-50">--color-neutral-50</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-50" style="">--neutral-50</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-50" style="display: none;">--neutral-50</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral50" style="display: none;">Neutral50</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.100" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.100" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
         </div>
@@ -292,11 +312,11 @@
           <div class="docs-token-value" data-copy="#f5f5f5">
             #f5f5f5
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-100">--color-neutral-100</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-100" style="">--neutral-100</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-100" style="display: none;">--neutral-100</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral100" style="display: none;">Neutral100</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.200" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.200" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
         </div>
@@ -306,11 +326,11 @@
           <div class="docs-token-value" data-copy="#e5e5e5">
             #e5e5e5
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-200">--color-neutral-200</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-200" style="">--neutral-200</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-200" style="display: none;">--neutral-200</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral200" style="display: none;">Neutral200</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.300" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.300" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
         </div>
@@ -320,11 +340,11 @@
           <div class="docs-token-value" data-copy="#d4d4d4">
             #d4d4d4
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-300">--color-neutral-300</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-300" style="">--neutral-300</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-300" style="display: none;">--neutral-300</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral300" style="display: none;">Neutral300</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.400" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.400" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #a3a3a3"></div>
         </div>
@@ -334,11 +354,11 @@
           <div class="docs-token-value" data-copy="#a3a3a3">
             #a3a3a3
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-400">--color-neutral-400</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-400" style="">--neutral-400</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-400" style="display: none;">--neutral-400</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral400" style="display: none;">Neutral400</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.500" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.500" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #737373"></div>
         </div>
@@ -348,11 +368,11 @@
           <div class="docs-token-value" data-copy="#737373">
             #737373
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-500">--color-neutral-500</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-500" style="">--neutral-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-500" style="display: none;">--neutral-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral500" style="display: none;">Neutral500</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.600" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.600" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #525252"></div>
         </div>
@@ -362,11 +382,11 @@
           <div class="docs-token-value" data-copy="#525252">
             #525252
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-600">--color-neutral-600</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-600" style="">--neutral-600</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-600" style="display: none;">--neutral-600</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral600" style="display: none;">Neutral600</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.700" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.700" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #404040"></div>
         </div>
@@ -376,11 +396,11 @@
           <div class="docs-token-value" data-copy="#404040">
             #404040
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-700">--color-neutral-700</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-700" style="">--neutral-700</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-700" style="display: none;">--neutral-700</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral700" style="display: none;">Neutral700</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.800" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.800" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #262626"></div>
         </div>
@@ -390,11 +410,11 @@
           <div class="docs-token-value" data-copy="#262626">
             #262626
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-800">--color-neutral-800</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-800" style="">--neutral-800</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-800" style="display: none;">--neutral-800</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral800" style="display: none;">Neutral800</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.neutral.900" data-mode="default">
+      <div class="docs-token-card" data-token="neutral.900" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #171717"></div>
         </div>
@@ -404,23 +424,25 @@
           <div class="docs-token-value" data-copy="#171717">
             #171717
           </div>
-          <div class="docs-token-variable" data-copy="--color-neutral-900">--color-neutral-900</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--neutral-900" style="">--neutral-900</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--neutral-900" style="display: none;">--neutral-900</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Neutral900" style="display: none;">Neutral900</div>
         </div>
       </div>
     
           </div>
           
+      </section>
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Success</h2>
+          <span class="docs-section-count">1 tokens</span>
+        </div>
+        
+        
           
-          <div class="docs-subsection">
-            <div class="docs-subsection-header">
-              <h3 class="docs-subsection-title">Success</h3>
-              <span class="docs-subsection-count">1</span>
-            </div>
-          </div>
-          
-          <div class="docs-token-grid docs-token-grid--subsection">
+          <div class="docs-token-grid">
             
-      <div class="docs-token-card" data-token="color.success.500" data-mode="default">
+      <div class="docs-token-card" data-token="success.500" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #22c55e"></div>
         </div>
@@ -430,23 +452,25 @@
           <div class="docs-token-value" data-copy="#22c55e">
             #22c55e
           </div>
-          <div class="docs-token-variable" data-copy="--color-success-500">--color-success-500</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--success-500" style="">--success-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--success-500" style="display: none;">--success-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Success500" style="display: none;">Success500</div>
         </div>
       </div>
     
           </div>
           
+      </section>
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Warning</h2>
+          <span class="docs-section-count">1 tokens</span>
+        </div>
+        
+        
           
-          <div class="docs-subsection">
-            <div class="docs-subsection-header">
-              <h3 class="docs-subsection-title">Warning</h3>
-              <span class="docs-subsection-count">1</span>
-            </div>
-          </div>
-          
-          <div class="docs-token-grid docs-token-grid--subsection">
+          <div class="docs-token-grid">
             
-      <div class="docs-token-card" data-token="color.warning.500" data-mode="default">
+      <div class="docs-token-card" data-token="warning.500" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #f59e0b"></div>
         </div>
@@ -456,23 +480,25 @@
           <div class="docs-token-value" data-copy="#f59e0b">
             #f59e0b
           </div>
-          <div class="docs-token-variable" data-copy="--color-warning-500">--color-warning-500</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--warning-500" style="">--warning-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--warning-500" style="display: none;">--warning-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Warning500" style="display: none;">Warning500</div>
         </div>
       </div>
     
           </div>
           
+      </section>
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Error</h2>
+          <span class="docs-section-count">1 tokens</span>
+        </div>
+        
+        
           
-          <div class="docs-subsection">
-            <div class="docs-subsection-header">
-              <h3 class="docs-subsection-title">Error</h3>
-              <span class="docs-subsection-count">1</span>
-            </div>
-          </div>
-          
-          <div class="docs-token-grid docs-token-grid--subsection">
+          <div class="docs-token-grid">
             
-      <div class="docs-token-card" data-token="color.error.500" data-mode="default">
+      <div class="docs-token-card" data-token="error.500" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #ef4444"></div>
         </div>
@@ -482,23 +508,25 @@
           <div class="docs-token-value" data-copy="#ef4444">
             #ef4444
           </div>
-          <div class="docs-token-variable" data-copy="--color-error-500">--color-error-500</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--error-500" style="">--error-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--error-500" style="display: none;">--error-500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="Error500" style="display: none;">Error500</div>
         </div>
       </div>
     
           </div>
           
+      </section>
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Background</h2>
+          <span class="docs-section-count">2 tokens</span>
+        </div>
+        
+        
           
-          <div class="docs-subsection">
-            <div class="docs-subsection-header">
-              <h3 class="docs-subsection-title">Background</h3>
-              <span class="docs-subsection-count">2</span>
-            </div>
-          </div>
-          
-          <div class="docs-token-grid docs-token-grid--subsection">
+          <div class="docs-token-grid">
             
-      <div class="docs-token-card" data-token="color.background.primary" data-mode="default">
+      <div class="docs-token-card" data-token="background.primary" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #ffffff"></div>
         </div>
@@ -508,11 +536,11 @@
           <div class="docs-token-value" data-copy="#ffffff">
             #ffffff
           </div>
-          <div class="docs-token-variable" data-copy="--color-background-primary">--color-background-primary</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--background-primary" style="">--background-primary</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--background-primary" style="display: none;">--background-primary</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BackgroundPrimary" style="display: none;">BackgroundPrimary</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.background.secondary" data-mode="default">
+      <div class="docs-token-card" data-token="background.secondary" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
         </div>
@@ -522,23 +550,25 @@
           <div class="docs-token-value" data-copy="#f5f5f5">
             #f5f5f5
           </div>
-          <div class="docs-token-variable" data-copy="--color-background-secondary">--color-background-secondary</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--background-secondary" style="">--background-secondary</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--background-secondary" style="display: none;">--background-secondary</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="BackgroundSecondary" style="display: none;">BackgroundSecondary</div>
         </div>
       </div>
     
           </div>
           
+      </section>
+    
+      <section class="docs-section">
+        <div class="docs-section-header">
+          <h2 class="docs-section-title">Text</h2>
+          <span class="docs-section-count">2 tokens</span>
+        </div>
+        
+        
           
-          <div class="docs-subsection">
-            <div class="docs-subsection-header">
-              <h3 class="docs-subsection-title">Text</h3>
-              <span class="docs-subsection-count">2</span>
-            </div>
-          </div>
-          
-          <div class="docs-token-grid docs-token-grid--subsection">
+          <div class="docs-token-grid">
             
-      <div class="docs-token-card" data-token="color.text.primary" data-mode="default">
+      <div class="docs-token-card" data-token="text.primary" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #171717"></div>
         </div>
@@ -548,11 +578,11 @@
           <div class="docs-token-value" data-copy="#171717">
             #171717
           </div>
-          <div class="docs-token-variable" data-copy="--color-text-primary">--color-text-primary</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--text-primary" style="">--text-primary</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--text-primary" style="display: none;">--text-primary</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="TextPrimary" style="display: none;">TextPrimary</div>
         </div>
       </div>
     
-      <div class="docs-token-card" data-token="color.text.secondary" data-mode="default">
+      <div class="docs-token-card" data-token="text.secondary" data-mode="value">
         <div class="docs-color-preview">
           <div class="docs-color-preview-inner" style="background: #525252"></div>
         </div>
@@ -562,7 +592,7 @@
           <div class="docs-token-value" data-copy="#525252">
             #525252
           </div>
-          <div class="docs-token-variable" data-copy="--color-text-secondary">--color-text-secondary</div>
+          <div class="docs-token-variable docs-token-variable--platform" data-platform="css" data-copy="--text-secondary" style="">--text-secondary</div><div class="docs-token-variable docs-token-variable--platform" data-platform="scss" data-copy="--text-secondary" style="display: none;">--text-secondary</div><div class="docs-token-variable docs-token-variable--platform" data-platform="js" data-copy="TextSecondary" style="display: none;">TextSecondary</div>
         </div>
       </div>
     
@@ -571,14 +601,18 @@
       </section>
     
   
-      
+
       <footer class="docs-footer">
         <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
-        <span>Last updated: Dec 15, 2025, 11:38 AM</span>
+        <span>Last updated: Dec 17, 2025, 12:51 AM</span>
+        
+        <span>Output mode: Style Dictionary</span>
+        
+        
       </footer>
     </main>
   </div>
-  
+
   <button class="docs-mobile-toggle" id="mobileToggle">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <line x1="3" y1="12" x2="21" y2="12"/>
@@ -586,9 +620,9 @@
       <line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
   </button>
-  
+
   <div class="docs-copied" id="copiedToast">Copied to clipboard!</div>
-  
+
   <script src="assets/preview.js"></script>
 </body>
 </html>

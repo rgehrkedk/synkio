@@ -39,35 +39,94 @@ This gives you the accuracy of an internal plugin with the automation speed of a
 
 ## Quick Start
 
-### 1. Install
+### Using the npm Package
+
+#### 1. Install
 
 ```bash
 npm install synkio --save-dev
 ```
 
-### 2. Initialize
+#### 2. Initialize
 
 ```bash
 npx synkio init
 ```
 
-This creates `tokensrc.json` and adds `.env` to your `.gitignore`.
+This creates:
+- `tokensrc.json` - Configuration file with your Figma file ID
+- `.env` - Contains your `FIGMA_TOKEN` (in project root, added to `.gitignore`)
 
-### 3. Prepare Figma File
+**Important:** Make sure `.env` is in your project root, not in a subdirectory.
+
+#### 3. Prepare Figma File
 
 1. Open your Figma file
-2. Run the [Synkio plugin](packages/figma-plugin/synkio-sync/)
+2. Install and run the [Synkio Sync plugin](packages/figma-plugin/synkio-sync/)
 3. Click **"Prepare for Sync"**
 
 This snapshots your variables so the CLI can access them.
 
-### 4. Sync
+#### 4. Sync
 
 ```bash
 npx synkio sync
 ```
 
 Your tokens are now in your project! 🎉
+
+**Optional:** If using Style Dictionary output mode, install it as a peer dependency:
+
+```bash
+npm install -D style-dictionary
+```
+
+### Cloning the Repository
+
+If you're cloning this repo for development:
+
+#### 1. Install dependencies
+
+```bash
+# From repo root
+cd packages/cli
+npm install
+npm run build
+```
+
+#### 2. Link the CLI locally
+
+```bash
+npm link
+```
+
+#### 3. Build the Figma plugin
+
+```bash
+cd ../../packages/figma-plugin/synkio-sync
+npm install
+npm run build
+```
+
+#### 4. Set up the demo app
+
+```bash
+cd ../../../examples/demo-app
+npm install
+
+# Create .env file in the demo-app root (not in .synkio/)
+echo "FIGMA_TOKEN=your_figma_token_here" > .env
+```
+
+#### 5. Run sync
+
+```bash
+# Use the linked CLI
+synkio sync
+
+# Or use the built CLI directly
+node ../../packages/cli/dist/cli/bin.js sync
+```
 
 ## Commands
 
@@ -111,6 +170,45 @@ Synkio is configured via `tokensrc.json`:
 ```
 
 See the [User Guide](packages/cli/USER_GUIDE.md) for full configuration options.
+
+## Troubleshooting
+
+### "FIGMA_TOKEN environment variable is not set"
+
+Make sure your `.env` file is in the **project root** (where you run `npx synkio sync`), not in subdirectories. The CLI uses [dotenv](https://www.npmjs.com/package/dotenv) which loads from the current working directory.
+
+```bash
+# Correct location
+my-project/
+├── .env              ← Here
+├── tokensrc.json
+└── tokens/
+
+# Wrong location
+my-project/
+├── .synkio/
+│   └── .env          ← Not here
+├── tokensrc.json
+└── tokens/
+```
+
+### "Style Dictionary is required but is not installed"
+
+If using `output.mode: "style-dictionary"` in your config, install Style Dictionary:
+
+```bash
+npm install -D style-dictionary
+```
+
+**Note for repo contributors:** When developing locally (cloning the repo), `npx synkio` fetches from npm instead of using your local build. Use one of these instead:
+
+```bash
+# After running npm link in packages/cli
+synkio sync
+
+# Or run the built CLI directly
+node ../../packages/cli/dist/cli/bin.js sync
+```
 
 ## Documentation
 

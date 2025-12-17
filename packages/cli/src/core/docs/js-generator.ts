@@ -91,6 +91,58 @@ export function generatePreviewJS(): string {
   initMode();
 
   // ============================================
+  // Platform Switcher (CSS, iOS, Android, etc.)
+  // ============================================
+
+  const platformSelect = document.getElementById('platformSelect');
+
+  function initPlatform() {
+    const savedPlatform = localStorage.getItem('synkio-docs-platform');
+    const defaultPlatform = document.documentElement.getAttribute('data-platform');
+
+    if (savedPlatform && platformSelect) {
+      // Check if saved platform still exists in the select
+      const option = platformSelect.querySelector(\`option[value="\${savedPlatform}"]\`);
+      if (option) {
+        platformSelect.value = savedPlatform;
+        document.documentElement.setAttribute('data-platform', savedPlatform);
+        filterByPlatform(savedPlatform);
+      } else if (defaultPlatform) {
+        // Fall back to default platform
+        filterByPlatform(defaultPlatform);
+      }
+    } else if (defaultPlatform) {
+      filterByPlatform(defaultPlatform);
+    }
+  }
+
+  function setPlatform(platform) {
+    document.documentElement.setAttribute('data-platform', platform);
+    localStorage.setItem('synkio-docs-platform', platform);
+    filterByPlatform(platform);
+  }
+
+  function filterByPlatform(platform) {
+    // Show/hide platform-specific variable names
+    const platformVariables = document.querySelectorAll('.docs-token-variable--platform, code.docs-token-variable--platform');
+    platformVariables.forEach(el => {
+      if (el.dataset.platform === platform) {
+        el.style.display = '';
+      } else {
+        el.style.display = 'none';
+      }
+    });
+  }
+
+  if (platformSelect) {
+    platformSelect.addEventListener('change', (e) => {
+      setPlatform(e.target.value);
+    });
+  }
+
+  initPlatform();
+
+  // ============================================
   // Search
   // ============================================
 

@@ -1,9 +1,12 @@
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { BaselineData, BaselineEntry } from '../../types/index.js';
 import { Config } from '../config.js';
 import { generateTokensCSS, generateUtilitiesCSS } from '../css/index.js';
 import { generateDocsCSS } from './css-generator.js';
 import { generateIndexHTML, generateCollectionPage, generateAllTokensPage } from './html-generator.js';
 import { generatePreviewJS } from './js-generator.js';
+import type { IntermediateTokenFormat } from '../intermediate-tokens.js';
 
 export interface DocsGeneratorOptions {
   outputDir: string;
@@ -32,6 +35,8 @@ export interface ParsedToken {
   referencePath?: string;
   /** If this token is a reference, this is the resolved value */
   resolvedValue?: any;
+  /** Platform-specific variable names (generated per Style Dictionary conventions) */
+  platformVariables?: Record<string, string>;
 }
 
 /**
@@ -48,9 +53,103 @@ export interface ParsedTokens {
 }
 
 /**
+ * Generate platform-specific variable names based on Style Dictionary's transform conventions
+ * See: https://amzn.github.io/style-dictionary/#/transforms?id=pre-defined-transforms
+ */
+function generatePlatformVariableNames(tokenPath: string, platforms?: string[]): Record<string, string> {
+  if (!platforms || platforms.length === 0) {
+    return {};
+  }
+
+  const result: Record<string, string> = {};
+  const parts = tokenPath.split('.');
+
+  for (const platform of platforms) {
+    switch (platform.toLowerCase()) {
+      // iOS Swift uses camelCase (name/camel transform)
+      case 'ios-swift':
+      case 'ios':
+      case 'swift':
+        result[platform] = parts.map((part, i) =>
+          i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+        ).join('');
+        break;
+
+      // Android uses snake_case (name/snake transform)
+      case 'android':
+        result[platform] = parts.join('_').toLowerCase();
+        break;
+
+      // Compose uses camelCase (name/camel transform)
+      case 'compose':
+        result[platform] = parts.map((part, i) =>
+          i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+        ).join('');
+        break;
+
+      // Flutter/Dart uses camelCase (name/camel transform)
+      case 'flutter':
+      case 'dart':
+        result[platform] = parts.map((part, i) =>
+          i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+        ).join('');
+        break;
+
+      // CSS/SCSS/JS use kebab-case with prefix (name/kebab transform)
+      case 'css':
+      case 'scss':
+      case 'sass':
+        result[platform] = `--${parts.join('-').toLowerCase()}`;
+        break;
+
+      // JavaScript uses PascalCase (name/pascal transform in SD)
+      case 'js':
+      case 'javascript':
+        result[platform] = parts.map(part =>
+          part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+        ).join('');
+        break;
+
+      // TypeScript uses PascalCase (same as JS)
+      case 'ts':
+      case 'typescript':
+        result[platform] = parts.map(part =>
+          part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+        ).join('');
+        break;
+
+      // JSON uses nested path with dot notation
+      // e.g., color.primary["50"] or color.primary.50
+      case 'json':
+        // Use bracket notation for parts that start with numbers or have special chars
+        const formattedParts = parts.map(part => {
+          // If part starts with a number or contains special chars, use bracket notation
+          if (/^\d/.test(part) || /[^a-zA-Z0-9_]/.test(part)) {
+            return `["${part}"]`;
+          }
+          return part;
+        });
+        // Join with dots, but brackets are already included where needed
+        result[platform] = formattedParts.join('.').replace(/\.\[/g, '[');
+        break;
+
+      default:
+        // Default to kebab-case
+        result[platform] = `--${parts.join('-').toLowerCase()}`;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Parse baseline data into categorized tokens
  */
-export function parseTokens(baseline: BaselineData): ParsedTokens {
+export function parseTokens(
+  baseline: BaselineData,
+  variableNaming?: { prefix: string; separator: string },
+  platforms?: string[]
+): ParsedTokens {
   const colors: ParsedToken[] = [];
   const typography: ParsedToken[] = [];
   const spacing: ParsedToken[] = [];
@@ -68,7 +167,7 @@ export function parseTokens(baseline: BaselineData): ParsedTokens {
   }
 
   for (const [key, entry] of Object.entries(baseline.baseline)) {
-    const parsed = parseToken(entry, variableIdLookup);
+    const parsed = parseToken(entry, variableIdLookup, variableNaming, platforms);
     all.push(parsed);
 
     // Group by collection
@@ -124,15 +223,22 @@ export function parseTokens(baseline: BaselineData): ParsedTokens {
  */
 function parseToken(
   entry: BaselineEntry,
-  variableIdLookup: Map<string, { path: string; value: any }>
+  variableIdLookup: Map<string, { path: string; value: any }>,
+  variableNaming?: { prefix: string; separator: string },
+  platforms?: string[]
 ): ParsedToken {
-  // Generate CSS variable name from path
-  const cssVariable = `--${entry.path.replace(/\./g, '-').toLowerCase()}`;
-  
+  // Generate CSS variable name from path using metadata or defaults
+  const prefix = variableNaming?.prefix || '--';
+  const separator = variableNaming?.separator || '-';
+  const cssVariable = `${prefix}${entry.path.replace(/\./g, separator).toLowerCase()}`;
+
+  // Generate platform-specific variable names
+  const platformVariables = generatePlatformVariableNames(entry.path, platforms);
+
   // Check if value is a reference
   let referencePath: string | undefined;
   let resolvedValue: any;
-  
+
   if (entry.value && typeof entry.value === 'object' && '$ref' in entry.value) {
     const refVariableId = entry.value.$ref;
     const refData = variableIdLookup.get(refVariableId);
@@ -142,7 +248,7 @@ function parseToken(
       resolvedValue = resolveValue(refData.value, variableIdLookup);
     }
   }
-  
+
   return {
     path: entry.path,
     value: entry.value,
@@ -153,6 +259,7 @@ function parseToken(
     description: entry.description,
     referencePath,
     resolvedValue,
+    platformVariables,
   };
 }
 
@@ -179,9 +286,16 @@ export async function generateDocs(
   baseline: BaselineData,
   options: DocsGeneratorOptions
 ): Promise<DocsResult> {
-  const tokens = parseTokens(baseline);
+  // Try to load intermediate format for enhanced metadata
+  const intermediateFormat = await tryLoadIntermediateFormat(options.config);
+
+  const tokens = parseTokens(
+    baseline,
+    intermediateFormat?.$metadata?.variableNaming,
+    intermediateFormat?.$metadata?.output?.styleDictionary?.platforms
+  );
   const files: Record<string, string> = {};
-  
+
   // Get unique modes for mode switcher
   const modeNames = Array.from(tokens.modes.keys());
   const defaultMode = modeNames[0] || 'default';
@@ -209,6 +323,7 @@ export async function generateDocs(
     defaultMode,
     syncedAt: baseline.metadata.syncedAt,
     navItems,
+    metadata: intermediateFormat?.$metadata, // Pass metadata if available
   };
   
   files['index.html'] = generateIndexHTML(tokens, templateOptions);
@@ -229,4 +344,26 @@ export async function generateDocs(
 
 function capitalizeFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Try to load intermediate token format if it exists
+ * Returns null if not found (falls back to baseline-only mode)
+ */
+async function tryLoadIntermediateFormat(config: Config): Promise<IntermediateTokenFormat | null> {
+  try {
+    const tokensPath = join(process.cwd(), config.output.dir, '.tokens-source.json');
+    const content = await readFile(tokensPath, 'utf-8');
+    const data = JSON.parse(content);
+
+    // Check if it has the new metadata structure
+    if (data.$metadata) {
+      return data as IntermediateTokenFormat;
+    }
+
+    return null;
+  } catch (error) {
+    // File doesn't exist or couldn't be read - that's fine, use baseline
+    return null;
+  }
 }

@@ -205,6 +205,20 @@
     .diff-badge.added { background: #d1fae5; color: #059669; }
     .diff-badge.modified { background: #fed7aa; color: #ea580c; }
     .diff-badge.deleted { background: #fee2e2; color: #dc2626; }
+    .diff-badge.renamed { background: #dbeafe; color: #2563eb; }
+
+    .rename-section {
+      margin-bottom: 16px;
+    }
+
+    .rename-section-header {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
 
     .diff-info {
       flex: 1;
@@ -383,15 +397,13 @@
     </div>
   </div>
 
-  <script>
-    console.log('=== INLINE SCRIPT RUNNING ===');
-    document.getElementById('statusText').textContent = 'Script loading...';
-  </script>
   <script>"use strict";
 (() => {
   // ui.ts
   console.log("=== UI.JS LOADING ===");
   var currentDiffs = [];
+  var currentCollectionRenames = [];
+  var currentModeRenames = [];
   var currentHistory = [];
   var isSyncing = false;
   var syncButton = document.getElementById("syncButton");
@@ -430,10 +442,13 @@
     console.log("Sending sync message to plugin");
     parent.postMessage({ pluginMessage: { type: "sync" } }, "*");
   });
-  function renderDiffs(diffs) {
+  function renderDiffs(diffs, collectionRenames = [], modeRenames = []) {
     currentDiffs = diffs;
-    diffHeader.textContent = `Pending Changes (${diffs.length})`;
-    if (diffs.length === 0) {
+    currentCollectionRenames = collectionRenames;
+    currentModeRenames = modeRenames;
+    const totalChanges = diffs.length + collectionRenames.length + modeRenames.length;
+    diffHeader.textContent = `Pending Changes (${totalChanges})`;
+    if (totalChanges === 0) {
       diffContent.innerHTML = `
       <div class="empty-state dashed">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -445,42 +460,77 @@
     `;
       return;
     }
-    const html = diffs.map((diff) => {
-      const iconMap = {
-        added: "+",
-        modified: "~",
-        deleted: "\u2212"
-      };
-      let valuesHtml = "";
-      if (diff.type === "modified") {
-        valuesHtml = `
-        <div class="diff-values">
-          <span class="old">${formatValue(diff.oldValue)}</span>
-          <span class="arrow">\u2192</span>
-          <span class="new">${formatValue(diff.newValue)}</span>
-        </div>
-      `;
-      } else if (diff.type === "added") {
-        valuesHtml = `
-        <div class="diff-values">
-          <span style="font-size: 9px; text-transform: uppercase; color: #999;">Value:</span>
-          <span class="new">${formatValue(diff.newValue)}</span>
-        </div>
-      `;
-      }
-      return `
-      <div class="diff-item">
-        <div class="diff-header">
-          <div class="diff-badge ${diff.type}">${iconMap[diff.type]}</div>
-          <div class="diff-info">
-            <div class="diff-name">${diff.name}</div>
-            <div class="diff-collection">${diff.collection}</div>
+    let html = "";
+    if (collectionRenames.length > 0) {
+      html += `<div class="rename-section">
+      <div class="rename-section-header">Collection Renames (${collectionRenames.length})</div>
+      ${collectionRenames.map((rename) => `
+        <div class="diff-item">
+          <div class="diff-header">
+            <div class="diff-badge renamed">\u2194</div>
+            <div class="diff-info">
+              <div class="diff-name">${rename.oldCollection} \u2192 ${rename.newCollection}</div>
+              <div class="diff-collection">Collection renamed</div>
+            </div>
           </div>
         </div>
-        ${valuesHtml}
-      </div>
-    `;
-    }).join("");
+      `).join("")}
+    </div>`;
+    }
+    if (modeRenames.length > 0) {
+      html += `<div class="rename-section">
+      <div class="rename-section-header">Mode Renames (${modeRenames.length})</div>
+      ${modeRenames.map((rename) => `
+        <div class="diff-item">
+          <div class="diff-header">
+            <div class="diff-badge renamed">\u2194</div>
+            <div class="diff-info">
+              <div class="diff-name">${rename.oldMode} \u2192 ${rename.newMode}</div>
+              <div class="diff-collection">${rename.collection}</div>
+            </div>
+          </div>
+        </div>
+      `).join("")}
+    </div>`;
+    }
+    if (diffs.length > 0) {
+      html += diffs.map((diff) => {
+        const iconMap = {
+          added: "+",
+          modified: "~",
+          deleted: "\u2212"
+        };
+        let valuesHtml = "";
+        if (diff.type === "modified") {
+          valuesHtml = `
+          <div class="diff-values">
+            <span class="old">${formatValue(diff.oldValue)}</span>
+            <span class="arrow">\u2192</span>
+            <span class="new">${formatValue(diff.newValue)}</span>
+          </div>
+        `;
+        } else if (diff.type === "added") {
+          valuesHtml = `
+          <div class="diff-values">
+            <span style="font-size: 9px; text-transform: uppercase; color: #999;">Value:</span>
+            <span class="new">${formatValue(diff.newValue)}</span>
+          </div>
+        `;
+        }
+        return `
+        <div class="diff-item">
+          <div class="diff-header">
+            <div class="diff-badge ${diff.type}">${iconMap[diff.type]}</div>
+            <div class="diff-info">
+              <div class="diff-name">${diff.name}</div>
+              <div class="diff-collection">${diff.collection}</div>
+            </div>
+          </div>
+          ${valuesHtml}
+        </div>
+      `;
+      }).join("");
+    }
     diffContent.innerHTML = `<div class="diff-list">${html}</div>`;
   }
   function renderHistory(history) {
@@ -544,16 +594,18 @@
   }
   console.log("Setting up window.onmessage handler");
   window.onmessage = (event) => {
+    var _a, _b, _c, _d;
     console.log("=== UI RECEIVED MESSAGE ===");
     console.log("Event:", event);
     console.log("Event data:", event.data);
     console.log("Plugin message:", event.data.pluginMessage);
     const msg = event.data.pluginMessage;
     if (msg && msg.type === "update") {
-      console.log("Update received, diffs:", msg.diffs.length, "history:", msg.history.length);
-      renderDiffs(msg.diffs);
+      const totalChanges = msg.diffs.length + (((_a = msg.collectionRenames) == null ? void 0 : _a.length) || 0) + (((_b = msg.modeRenames) == null ? void 0 : _b.length) || 0);
+      console.log("Update received, diffs:", msg.diffs.length, "collectionRenames:", ((_c = msg.collectionRenames) == null ? void 0 : _c.length) || 0, "modeRenames:", ((_d = msg.modeRenames) == null ? void 0 : _d.length) || 0, "history:", msg.history.length);
+      renderDiffs(msg.diffs, msg.collectionRenames || [], msg.modeRenames || []);
       renderHistory(msg.history);
-      updateStatus(msg.diffs.length);
+      updateStatus(totalChanges);
       isSyncing = false;
       syncButton.disabled = false;
       syncIcon.textContent = "\u2713";
@@ -568,8 +620,5 @@
   parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
 })();
 </script>
-  <script>
-    console.log('=== AFTER UI.JS ===');
-  </script>
 </body>
 </html>

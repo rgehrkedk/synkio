@@ -4,7 +4,7 @@
       "font": {
         "size": {
           "xs": {
-            "$value": "12px",
+            "$value": "10px",
             "$type": "dimension"
           },
           "sm": {

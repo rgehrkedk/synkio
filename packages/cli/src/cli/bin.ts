@@ -18,16 +18,28 @@ const command = args[0];
 function parseArgs(args: string[]) {
     const options: { [key: string]: string | boolean } = {};
     const commandArgs = args.slice(1);
-    
-    for (const arg of commandArgs) {
+
+    for (let i = 0; i < commandArgs.length; i++) {
+        const arg = commandArgs[i];
+
         if (arg.startsWith('--')) {
             const [key, value] = arg.slice(2).split('=');
             const camelCaseKey = key.replace(/-([a-z])/g, g => g[1].toUpperCase());
-            
+
             if (value !== undefined) {
+                // --key=value format
                 options[camelCaseKey] = value;
             } else {
-                options[camelCaseKey] = true;
+                // Check if next arg is a value (doesn't start with --)
+                const nextArg = commandArgs[i + 1];
+                if (nextArg && !nextArg.startsWith('--')) {
+                    // --key value format
+                    options[camelCaseKey] = nextArg;
+                    i++; // Skip the next arg since we consumed it
+                } else {
+                    // Boolean flag
+                    options[camelCaseKey] = true;
+                }
             }
         }
     }
@@ -179,6 +191,7 @@ switch (command) {
         output: docsOptions.output as string,
         title: docsOptions.title as string,
         open: docsOptions.open as boolean,
+        config: docsOptions.config as string,
     });
     break;
   default:

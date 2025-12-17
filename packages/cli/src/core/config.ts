@@ -1,6 +1,7 @@
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { z } from 'zod';
+import type { CollectionRename } from '../types/index.js';
 
 const FigmaConfigSchema = z.object({
   fileId: z.string(),
@@ -146,4 +147,79 @@ export function loadConfig(filePath: string = 'tokensrc.json'): Config {
   }
 
   return result.data;
+}
+
+/**
+ * Update tokensrc.json with collection renames
+ * This preserves comments and formatting as much as possible by doing targeted replacements
+ */
+export function updateConfigWithCollectionRenames(
+  collectionRenames: CollectionRename[],
+  filePath: string = 'tokensrc.json'
+): { updated: boolean; renames: { old: string; new: string }[] } {
+  if (collectionRenames.length === 0) {
+    return { updated: false, renames: [] };
+  }
+
+  const fullPath = resolve(process.cwd(), filePath);
+  let content: string;
+
+  try {
+    content = readFileSync(fullPath, 'utf-8');
+  } catch {
+    return { updated: false, renames: [] };
+  }
+
+  let json: any;
+  try {
+    json = JSON.parse(content);
+  } catch {
+    return { updated: false, renames: [] };
+  }
+
+  // Check if there's a collections section
+  if (!json.collections) {
+    return { updated: false, renames: [] };
+  }
+
+  const appliedRenames: { old: string; new: string }[] = [];
+
+  // Apply collection renames
+  for (const rename of collectionRenames) {
+    const { oldCollection, newCollection } = rename;
+
+    // Check if old collection exists in config
+    if (json.collections[oldCollection]) {
+      // Get the old config
+      const oldConfig = json.collections[oldCollection];
+
+      // Delete old key and add new one
+      delete json.collections[oldCollection];
+      json.collections[newCollection] = oldConfig;
+
+      // Update the file name if it matches the old collection name
+      if (oldConfig.file === oldCollection) {
+        oldConfig.file = newCollection;
+      }
+
+      // Update the dir if it contains the old collection name
+      if (oldConfig.dir && oldConfig.dir.includes(oldCollection)) {
+        oldConfig.dir = oldConfig.dir.replace(oldCollection, newCollection);
+      }
+
+      appliedRenames.push({ old: oldCollection, new: newCollection });
+    }
+  }
+
+  if (appliedRenames.length === 0) {
+    return { updated: false, renames: [] };
+  }
+
+  // Write updated config back
+  try {
+    writeFileSync(fullPath, JSON.stringify(json, null, 2) + '\n', 'utf-8');
+    return { updated: true, renames: appliedRenames };
+  } catch {
+    return { updated: false, renames: appliedRenames };
+  }
 }

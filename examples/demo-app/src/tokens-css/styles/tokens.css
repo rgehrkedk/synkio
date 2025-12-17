@@ -5,18 +5,18 @@
  */
 
 :root {
-  --default-spacing-xs: 4px;
-  --default-spacing-sm: 8px;
-  --default-spacing-md: 16px;
-  --default-spacing-lg: 24px;
-  --default-spacing-xl: 32px;
-  --default-spacing-2xl: 48px;
-  --default-spacing-3xl: 64px;
+  --default-spacing-xs: 0.25rem;
+  --default-spacing-sm: 0.5rem;
+  --default-spacing-md: 1rem;
+  --default-spacing-lg: 1.5rem;
+  --default-spacing-xl: 2rem;
+  --default-spacing-2xl: 3rem;
+  --default-spacing-3xl: 4rem;
   --default-radius-none: 0;
-  --default-radius-sm: 4px;
-  --default-radius-md: 8px;
-  --default-radius-lg: 12px;
-  --default-radius-full: 9999px;
+  --default-radius-sm: 0.25rem;
+  --default-radius-md: 0.5rem;
+  --default-radius-lg: 0.75rem;
+  --default-radius-full: 624.9375rem;
   --color-primary-50: #eef2ff;
   --color-primary-100: #e0e7ff;
   --color-primary-200: #c7d2fe;
@@ -44,14 +44,14 @@
   --color-background-secondary: #f5f5f5;
   --color-text-primary: #171717;
   --color-text-secondary: #525252;
-  --default-font-size-xs: 12px;
-  --default-font-size-sm: 14px;
-  --default-font-size-base: 16px;
-  --default-font-size-lg: 18px;
-  --default-font-size-xl: 20px;
-  --default-font-size-2xl: 24px;
-  --default-font-size-3xl: 30px;
-  --default-font-size-4xl: 36px;
+  --default-font-size-xs: 0.625rem;
+  --default-font-size-sm: 0.875rem;
+  --default-font-size-base: 1rem;
+  --default-font-size-lg: 1.125rem;
+  --default-font-size-xl: 1.25rem;
+  --default-font-size-2xl: 1.5rem;
+  --default-font-size-3xl: 1.875rem;
+  --default-font-size-4xl: 2.25rem;
   --default-font-weight-normal: 400;
   --default-font-weight-medium: 500;
   --default-font-weight-semibold: 600;
@@ -63,8 +63,40 @@
 
 [data-mode="light"] {
   --bg-primary-default: [object Object];
+  --bg-primary-hover: [object Object];
+  --fg-primary-default: [object Object];
+  --fg-primary-hover: [object Object];
+  --fg-secondary-default: [object Object];
+  --fg-secondary-hover: [object Object];
+  --fg-brand-default: [object Object];
+  --bg-secondary-default: [object Object];
+  --bg-secondary-hover: [object Object];
+  --bg-tertiary-default: [object Object];
+  --bg-tertiary-hover: [object Object];
+  --border-primary-subtle: [object Object];
+  --border-primary-default: [object Object];
+  --bg-brand-default: [object Object];
+  --bg-brand-hover: [object Object];
+  --border-brand-subtle: [object Object];
+  --border-brand-default: [object Object];
 }
 
 [data-mode="dark"] {
   --bg-primary-default: [object Object];
+  --bg-primary-hover: [object Object];
+  --fg-primary-default: [object Object];
+  --fg-primary-hover: [object Object];
+  --fg-secondary-default: [object Object];
+  --fg-secondary-hover: [object Object];
+  --fg-brand-default: [object Object];
+  --bg-secondary-default: [object Object];
+  --bg-secondary-hover: [object Object];
+  --bg-tertiary-default: [object Object];
+  --bg-tertiary-hover: [object Object];
+  --border-primary-subtle: [object Object];
+  --border-primary-default: [object Object];
+  --bg-brand-default: [object Object];
+  --bg-brand-hover: [object Object];
+  --border-brand-subtle: [object Object];
+  --border-brand-default: [object Object];
 }

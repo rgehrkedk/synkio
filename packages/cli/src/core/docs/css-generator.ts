@@ -262,6 +262,33 @@ body {
   color: white;
 }
 
+.docs-platform-switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--docs-space-xs);
+}
+
+.docs-platform-select {
+  background: var(--docs-bg-secondary);
+  border: 1px solid var(--docs-border);
+  border-radius: var(--docs-radius-md);
+  padding: var(--docs-space-xs) var(--docs-space-md);
+  color: var(--docs-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.docs-platform-select:hover {
+  border-color: var(--docs-accent);
+}
+
+.docs-platform-select:focus {
+  border-color: var(--docs-accent);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
 .docs-theme-toggle {
   background: var(--docs-bg-secondary);
   border: 1px solid var(--docs-border);
@@ -425,7 +452,7 @@ body {
 }
 
 .docs-token-card--reference {
-  border-left: 3px solid var(--docs-accent);
+  border: 1px solid var(--docs-border);
 }
 
 /* Typography preview */

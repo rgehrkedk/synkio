@@ -14,6 +14,17 @@ interface DiffEntry {
   mode: string;
 }
 
+interface CollectionRename {
+  oldCollection: string;
+  newCollection: string;
+}
+
+interface ModeRename {
+  collection: string;
+  oldMode: string;
+  newMode: string;
+}
+
 interface SyncEvent {
   u: string;
   t: number;
@@ -21,6 +32,8 @@ interface SyncEvent {
 }
 
 let currentDiffs: DiffEntry[] = [];
+let currentCollectionRenames: CollectionRename[] = [];
+let currentModeRenames: ModeRename[] = [];
 let currentHistory: SyncEvent[] = [];
 let isSyncing = false;
 
@@ -71,12 +84,15 @@ syncButton.addEventListener('click', () => {
 });
 
 // Render diff view
-function renderDiffs(diffs: DiffEntry[]) {
+function renderDiffs(diffs: DiffEntry[], collectionRenames: CollectionRename[] = [], modeRenames: ModeRename[] = []) {
   currentDiffs = diffs;
+  currentCollectionRenames = collectionRenames;
+  currentModeRenames = modeRenames;
 
-  diffHeader.textContent = `Pending Changes (${diffs.length})`;
+  const totalChanges = diffs.length + collectionRenames.length + modeRenames.length;
+  diffHeader.textContent = `Pending Changes (${totalChanges})`;
 
-  if (diffs.length === 0) {
+  if (totalChanges === 0) {
     diffContent.innerHTML = `
       <div class="empty-state dashed">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -89,44 +105,85 @@ function renderDiffs(diffs: DiffEntry[]) {
     return;
   }
 
-  const html = diffs.map(diff => {
-    const iconMap = {
-      added: '+',
-      modified: '~',
-      deleted: '−'
-    };
+  let html = '';
 
-    let valuesHtml = '';
-    if (diff.type === 'modified') {
-      valuesHtml = `
-        <div class="diff-values">
-          <span class="old">${formatValue(diff.oldValue)}</span>
-          <span class="arrow">→</span>
-          <span class="new">${formatValue(diff.newValue)}</span>
-        </div>
-      `;
-    } else if (diff.type === 'added') {
-      valuesHtml = `
-        <div class="diff-values">
-          <span style="font-size: 9px; text-transform: uppercase; color: #999;">Value:</span>
-          <span class="new">${formatValue(diff.newValue)}</span>
-        </div>
-      `;
-    }
-
-    return `
-      <div class="diff-item">
-        <div class="diff-header">
-          <div class="diff-badge ${diff.type}">${iconMap[diff.type]}</div>
-          <div class="diff-info">
-            <div class="diff-name">${diff.name}</div>
-            <div class="diff-collection">${diff.collection}</div>
+  // Render collection renames first (most significant)
+  if (collectionRenames.length > 0) {
+    html += `<div class="rename-section">
+      <div class="rename-section-header">Collection Renames (${collectionRenames.length})</div>
+      ${collectionRenames.map(rename => `
+        <div class="diff-item">
+          <div class="diff-header">
+            <div class="diff-badge renamed">↔</div>
+            <div class="diff-info">
+              <div class="diff-name">${rename.oldCollection} → ${rename.newCollection}</div>
+              <div class="diff-collection">Collection renamed</div>
+            </div>
           </div>
         </div>
-        ${valuesHtml}
-      </div>
-    `;
-  }).join('');
+      `).join('')}
+    </div>`;
+  }
+
+  // Render mode renames
+  if (modeRenames.length > 0) {
+    html += `<div class="rename-section">
+      <div class="rename-section-header">Mode Renames (${modeRenames.length})</div>
+      ${modeRenames.map(rename => `
+        <div class="diff-item">
+          <div class="diff-header">
+            <div class="diff-badge renamed">↔</div>
+            <div class="diff-info">
+              <div class="diff-name">${rename.oldMode} → ${rename.newMode}</div>
+              <div class="diff-collection">${rename.collection}</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
+  // Render token diffs
+  if (diffs.length > 0) {
+    html += diffs.map(diff => {
+      const iconMap = {
+        added: '+',
+        modified: '~',
+        deleted: '−'
+      };
+
+      let valuesHtml = '';
+      if (diff.type === 'modified') {
+        valuesHtml = `
+          <div class="diff-values">
+            <span class="old">${formatValue(diff.oldValue)}</span>
+            <span class="arrow">→</span>
+            <span class="new">${formatValue(diff.newValue)}</span>
+          </div>
+        `;
+      } else if (diff.type === 'added') {
+        valuesHtml = `
+          <div class="diff-values">
+            <span style="font-size: 9px; text-transform: uppercase; color: #999;">Value:</span>
+            <span class="new">${formatValue(diff.newValue)}</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="diff-item">
+          <div class="diff-header">
+            <div class="diff-badge ${diff.type}">${iconMap[diff.type]}</div>
+            <div class="diff-info">
+              <div class="diff-name">${diff.name}</div>
+              <div class="diff-collection">${diff.collection}</div>
+            </div>
+          </div>
+          ${valuesHtml}
+        </div>
+      `;
+    }).join('');
+  }
 
   diffContent.innerHTML = `<div class="diff-list">${html}</div>`;
 }
@@ -211,10 +268,11 @@ window.onmessage = (event) => {
   const msg = event.data.pluginMessage;
 
   if (msg && msg.type === 'update') {
-    console.log('Update received, diffs:', msg.diffs.length, 'history:', msg.history.length);
-    renderDiffs(msg.diffs);
+    const totalChanges = msg.diffs.length + (msg.collectionRenames?.length || 0) + (msg.modeRenames?.length || 0);
+    console.log('Update received, diffs:', msg.diffs.length, 'collectionRenames:', msg.collectionRenames?.length || 0, 'modeRenames:', msg.modeRenames?.length || 0, 'history:', msg.history.length);
+    renderDiffs(msg.diffs, msg.collectionRenames || [], msg.modeRenames || []);
     renderHistory(msg.history);
-    updateStatus(msg.diffs.length);
+    updateStatus(totalChanges);
 
     // Reset sync button
     isSyncing = false;

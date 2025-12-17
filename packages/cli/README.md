@@ -35,17 +35,33 @@ npm install synkio --save-dev
 npx synkio init
 ```
 
-This creates `tokensrc.json` and adds `.env` to your `.gitignore`.
+This creates:
+- `tokensrc.json` - Configuration file with your Figma file ID
+- `.env` - Contains your `FIGMA_TOKEN` (must be in project root)
 
-### 3. Prepare Figma File
+The `.env` file is automatically added to your `.gitignore` to keep your token secure.
+
+**Important:** The CLI loads `.env` from your current working directory (where you run the command). Do not place it in subdirectories like `.synkio/`.
+
+### 3. Install Style Dictionary (Optional)
+
+If you're using Style Dictionary output mode (`output.mode: "style-dictionary"`), install it as a peer dependency:
+
+```bash
+npm install -D style-dictionary
+```
+
+For simple projects using JSON or CSS output, this is not required.
+
+### 4. Prepare Figma File
 
 1. Open your Figma file
-2. Run the [Synkio plugin](https://github.com/rgehrkedk/synkio/tree/main/packages/figma-plugin/synkio-sync)
+2. Install and run the [Synkio Sync plugin](https://github.com/rgehrkedk/synkio/tree/main/packages/figma-plugin/synkio-sync)
 3. Click **"Prepare for Sync"**
 
 This snapshots your variables so the CLI can access them.
 
-### 4. Sync
+### 5. Sync
 
 ```bash
 npx synkio sync

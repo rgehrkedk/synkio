@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" data-mode="default">
+<html lang="en" data-theme="dark" data-mode="value" data-platform="css">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,16 +19,16 @@
         </svg>
         Design Tokens
       </a>
-      
+
       <nav class="docs-nav">
         <a href="index.html" class="">
           Overview
         </a>
-        
+
         <div class="docs-nav-section">Collections</div>
         
-        <a href="primitives.html" class="">
-          Primitives
+        <a href="base.html" class="">
+          Base
           <span class="docs-nav-count">12</span>
         </a>
         
@@ -37,43 +37,68 @@
           <span class="docs-nav-count">27</span>
         </a>
         
-        <a href="typography.html" class="">
-          Typography
-          <span class="docs-nav-count">15</span>
+        <a href="font.html" class="">
+          Font
+          <span class="docs-nav-count">16</span>
         </a>
         
         <a href="theme.html" class="">
           Theme
-          <span class="docs-nav-count">2</span>
+          <span class="docs-nav-count">34</span>
         </a>
         
-        
+
         <a href="all-tokens.html" class="active">
           All Tokens
         </a>
-        
+
         <div class="docs-nav-section">Resources</div>
         <a href="tokens.json" target="_blank">
           tokens.json ↗
         </a>
       </nav>
     </aside>
-    
+
     <!-- Main content -->
     <main class="docs-main">
       <header class="docs-header">
         <div>
           <h1 class="docs-title">All Tokens</h1>
-          <p class="docs-subtitle">Last synced: Dec 15, 2025, 11:38 AM</p>
+          <p class="docs-subtitle">Last synced: Dec 17, 2025, 12:51 AM</p>
         </div>
-        
+
         <div class="docs-controls">
           <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
+
           
+          <div class="docs-platform-switcher">
+            <label for="platformSelect" style="font-size: 12px; color: var(--docs-text-muted); margin-right: 8px;">Platform:</label>
+            <select id="platformSelect" class="docs-platform-select">
+              
+                <option value="css" selected>
+                  CSS
+                </option>
+              
+                <option value="scss" >
+                  SCSS
+                </option>
+              
+                <option value="js" >
+                  JS
+                </option>
+              
+            </select>
+          </div>
+          
+
           
           <div class="docs-mode-switcher">
             
-              <button class="docs-mode-btn active" data-mode="default">
+              <button class="docs-mode-btn active" data-mode="value">
+                Value
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="default">
                 Default
               </button>
             
@@ -87,7 +112,7 @@
             
           </div>
           
-          
+
           <button class="docs-theme-toggle" id="themeToggle" title="Toggle theme">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="5"/>
@@ -96,12 +121,12 @@
           </button>
         </div>
       </header>
-      
+
       
     <section class="docs-section">
       <div class="docs-section-header">
         <h2 class="docs-section-title">All Tokens</h2>
-        <span class="docs-section-count">56 tokens</span>
+        <span class="docs-section-count">89 tokens</span>
       </div>
       
       <table class="docs-token-table">
@@ -118,8 +143,8 @@
         </thead>
         <tbody>
           
-            <tr data-token="default.spacing.xs" data-mode="default">
-              <td><strong>default.spacing.xs</strong></td>
+            <tr data-token="spacing.xs" data-mode="value">
+              <td><strong>spacing.xs</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="4">4</code>
@@ -127,15 +152,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-spacing-xs">--default-spacing-xs</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--spacing-xs" style="">--spacing-xs</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--spacing-xs" style="display: none;">--spacing-xs</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingXs" style="display: none;">SpacingXs</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.sm" data-mode="default">
-              <td><strong>default.spacing.sm</strong></td>
+            <tr data-token="spacing.sm" data-mode="value">
+              <td><strong>spacing.sm</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="8">8</code>
@@ -143,15 +168,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-spacing-sm">--default-spacing-sm</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--spacing-sm" style="">--spacing-sm</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--spacing-sm" style="display: none;">--spacing-sm</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingSm" style="display: none;">SpacingSm</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.md" data-mode="default">
-              <td><strong>default.spacing.md</strong></td>
+            <tr data-token="spacing.md" data-mode="value">
+              <td><strong>spacing.md</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="16">16</code>
@@ -159,15 +184,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-spacing-md">--default-spacing-md</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--spacing-md" style="">--spacing-md</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--spacing-md" style="display: none;">--spacing-md</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingMd" style="display: none;">SpacingMd</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.lg" data-mode="default">
-              <td><strong>default.spacing.lg</strong></td>
+            <tr data-token="spacing.lg" data-mode="value">
+              <td><strong>spacing.lg</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="24">24</code>
@@ -175,15 +200,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-spacing-lg">--default-spacing-lg</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--spacing-lg" style="">--spacing-lg</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--spacing-lg" style="display: none;">--spacing-lg</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingLg" style="display: none;">SpacingLg</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.xl" data-mode="default">
-              <td><strong>default.spacing.xl</strong></td>
+            <tr data-token="spacing.xl" data-mode="value">
+              <td><strong>spacing.xl</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="32">32</code>
@@ -191,15 +216,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-spacing-xl">--default-spacing-xl</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--spacing-xl" style="">--spacing-xl</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--spacing-xl" style="display: none;">--spacing-xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SpacingXl" style="display: none;">SpacingXl</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.2xl" data-mode="default">
-              <td><strong>default.spacing.2xl</strong></td>
+            <tr data-token="spacing.2xl" data-mode="value">
+              <td><strong>spacing.2xl</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="48">48</code>
@@ -207,15 +232,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-spacing-2xl">--default-spacing-2xl</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--spacing-2xl" style="">--spacing-2xl</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--spacing-2xl" style="display: none;">--spacing-2xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Spacing2xl" style="display: none;">Spacing2xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.spacing.3xl" data-mode="default">
-              <td><strong>default.spacing.3xl</strong></td>
+            <tr data-token="spacing.3xl" data-mode="value">
+              <td><strong>spacing.3xl</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="64">64</code>
@@ -223,15 +248,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-spacing-3xl">--default-spacing-3xl</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--spacing-3xl" style="">--spacing-3xl</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--spacing-3xl" style="display: none;">--spacing-3xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Spacing3xl" style="display: none;">Spacing3xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.none" data-mode="default">
-              <td><strong>default.radius.none</strong></td>
+            <tr data-token="radius.none" data-mode="value">
+              <td><strong>radius.none</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="0">0</code>
@@ -239,15 +264,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-radius-none">--default-radius-none</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--radius-none" style="">--radius-none</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--radius-none" style="display: none;">--radius-none</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusNone" style="display: none;">RadiusNone</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.sm" data-mode="default">
-              <td><strong>default.radius.sm</strong></td>
+            <tr data-token="radius.sm" data-mode="value">
+              <td><strong>radius.sm</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="4">4</code>
@@ -255,15 +280,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-radius-sm">--default-radius-sm</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--radius-sm" style="">--radius-sm</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--radius-sm" style="display: none;">--radius-sm</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusSm" style="display: none;">RadiusSm</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.md" data-mode="default">
-              <td><strong>default.radius.md</strong></td>
+            <tr data-token="radius.md" data-mode="value">
+              <td><strong>radius.md</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="8">8</code>
@@ -271,15 +296,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-radius-md">--default-radius-md</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--radius-md" style="">--radius-md</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--radius-md" style="display: none;">--radius-md</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusMd" style="display: none;">RadiusMd</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.lg" data-mode="default">
-              <td><strong>default.radius.lg</strong></td>
+            <tr data-token="radius.lg" data-mode="value">
+              <td><strong>radius.lg</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="12">12</code>
@@ -287,15 +312,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-radius-lg">--default-radius-lg</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--radius-lg" style="">--radius-lg</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--radius-lg" style="display: none;">--radius-lg</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusLg" style="display: none;">RadiusLg</code>
               </td>
             </tr>
           
-            <tr data-token="default.radius.full" data-mode="default">
-              <td><strong>default.radius.full</strong></td>
+            <tr data-token="radius.full" data-mode="value">
+              <td><strong>radius.full</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="9999">9999</code>
@@ -303,15 +328,15 @@
               <td>
                 –
               </td>
-              <td>primitives</td>
-              <td>default</td>
+              <td>base</td>
+              <td>value</td>
               <td>
-                <code data-copy="--default-radius-full">--default-radius-full</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--radius-full" style="">--radius-full</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--radius-full" style="display: none;">--radius-full</code><code class="docs-token-variable--platform" data-platform="js" data-copy="RadiusFull" style="display: none;">RadiusFull</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.50" data-mode="default">
-              <td><strong>color.primary.50</strong></td>
+            <tr data-token="primary.50" data-mode="value">
+              <td><strong>primary.50</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -323,14 +348,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-50">--color-primary-50</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-50" style="">--primary-50</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-50" style="display: none;">--primary-50</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary50" style="display: none;">Primary50</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.100" data-mode="default">
-              <td><strong>color.primary.100</strong></td>
+            <tr data-token="primary.100" data-mode="value">
+              <td><strong>primary.100</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -342,14 +367,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-100">--color-primary-100</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-100" style="">--primary-100</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-100" style="display: none;">--primary-100</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary100" style="display: none;">Primary100</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.200" data-mode="default">
-              <td><strong>color.primary.200</strong></td>
+            <tr data-token="primary.200" data-mode="value">
+              <td><strong>primary.200</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -361,14 +386,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-200">--color-primary-200</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-200" style="">--primary-200</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-200" style="display: none;">--primary-200</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary200" style="display: none;">Primary200</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.300" data-mode="default">
-              <td><strong>color.primary.300</strong></td>
+            <tr data-token="primary.300" data-mode="value">
+              <td><strong>primary.300</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -380,14 +405,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-300">--color-primary-300</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-300" style="">--primary-300</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-300" style="display: none;">--primary-300</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary300" style="display: none;">Primary300</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.400" data-mode="default">
-              <td><strong>color.primary.400</strong></td>
+            <tr data-token="primary.400" data-mode="value">
+              <td><strong>primary.400</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -399,14 +424,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-400">--color-primary-400</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-400" style="">--primary-400</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-400" style="display: none;">--primary-400</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary400" style="display: none;">Primary400</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.500" data-mode="default">
-              <td><strong>color.primary.500</strong></td>
+            <tr data-token="primary.500" data-mode="value">
+              <td><strong>primary.500</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -418,14 +443,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-500">--color-primary-500</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-500" style="">--primary-500</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-500" style="display: none;">--primary-500</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary500" style="display: none;">Primary500</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.600" data-mode="default">
-              <td><strong>color.primary.600</strong></td>
+            <tr data-token="primary.600" data-mode="value">
+              <td><strong>primary.600</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -437,14 +462,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-600">--color-primary-600</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-600" style="">--primary-600</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-600" style="display: none;">--primary-600</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary600" style="display: none;">Primary600</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.700" data-mode="default">
-              <td><strong>color.primary.700</strong></td>
+            <tr data-token="primary.700" data-mode="value">
+              <td><strong>primary.700</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -456,14 +481,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-700">--color-primary-700</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-700" style="">--primary-700</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-700" style="display: none;">--primary-700</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary700" style="display: none;">Primary700</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.800" data-mode="default">
-              <td><strong>color.primary.800</strong></td>
+            <tr data-token="primary.800" data-mode="value">
+              <td><strong>primary.800</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -475,14 +500,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-800">--color-primary-800</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-800" style="">--primary-800</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-800" style="display: none;">--primary-800</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary800" style="display: none;">Primary800</code>
               </td>
             </tr>
           
-            <tr data-token="color.primary.900" data-mode="default">
-              <td><strong>color.primary.900</strong></td>
+            <tr data-token="primary.900" data-mode="value">
+              <td><strong>primary.900</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -494,14 +519,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-primary-900">--color-primary-900</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--primary-900" style="">--primary-900</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--primary-900" style="display: none;">--primary-900</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Primary900" style="display: none;">Primary900</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.50" data-mode="default">
-              <td><strong>color.neutral.50</strong></td>
+            <tr data-token="neutral.50" data-mode="value">
+              <td><strong>neutral.50</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -513,14 +538,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-50">--color-neutral-50</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-50" style="">--neutral-50</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-50" style="display: none;">--neutral-50</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral50" style="display: none;">Neutral50</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.100" data-mode="default">
-              <td><strong>color.neutral.100</strong></td>
+            <tr data-token="neutral.100" data-mode="value">
+              <td><strong>neutral.100</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -532,14 +557,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-100">--color-neutral-100</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-100" style="">--neutral-100</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-100" style="display: none;">--neutral-100</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral100" style="display: none;">Neutral100</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.200" data-mode="default">
-              <td><strong>color.neutral.200</strong></td>
+            <tr data-token="neutral.200" data-mode="value">
+              <td><strong>neutral.200</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -551,14 +576,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-200">--color-neutral-200</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-200" style="">--neutral-200</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-200" style="display: none;">--neutral-200</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral200" style="display: none;">Neutral200</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.300" data-mode="default">
-              <td><strong>color.neutral.300</strong></td>
+            <tr data-token="neutral.300" data-mode="value">
+              <td><strong>neutral.300</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -570,14 +595,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-300">--color-neutral-300</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-300" style="">--neutral-300</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-300" style="display: none;">--neutral-300</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral300" style="display: none;">Neutral300</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.400" data-mode="default">
-              <td><strong>color.neutral.400</strong></td>
+            <tr data-token="neutral.400" data-mode="value">
+              <td><strong>neutral.400</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -589,14 +614,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-400">--color-neutral-400</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-400" style="">--neutral-400</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-400" style="display: none;">--neutral-400</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral400" style="display: none;">Neutral400</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.500" data-mode="default">
-              <td><strong>color.neutral.500</strong></td>
+            <tr data-token="neutral.500" data-mode="value">
+              <td><strong>neutral.500</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -608,14 +633,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-500">--color-neutral-500</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-500" style="">--neutral-500</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-500" style="display: none;">--neutral-500</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral500" style="display: none;">Neutral500</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.600" data-mode="default">
-              <td><strong>color.neutral.600</strong></td>
+            <tr data-token="neutral.600" data-mode="value">
+              <td><strong>neutral.600</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -627,14 +652,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-600">--color-neutral-600</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-600" style="">--neutral-600</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-600" style="display: none;">--neutral-600</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral600" style="display: none;">Neutral600</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.700" data-mode="default">
-              <td><strong>color.neutral.700</strong></td>
+            <tr data-token="neutral.700" data-mode="value">
+              <td><strong>neutral.700</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -646,14 +671,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-700">--color-neutral-700</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-700" style="">--neutral-700</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-700" style="display: none;">--neutral-700</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral700" style="display: none;">Neutral700</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.800" data-mode="default">
-              <td><strong>color.neutral.800</strong></td>
+            <tr data-token="neutral.800" data-mode="value">
+              <td><strong>neutral.800</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -665,14 +690,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-800">--color-neutral-800</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-800" style="">--neutral-800</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-800" style="display: none;">--neutral-800</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral800" style="display: none;">Neutral800</code>
               </td>
             </tr>
           
-            <tr data-token="color.neutral.900" data-mode="default">
-              <td><strong>color.neutral.900</strong></td>
+            <tr data-token="neutral.900" data-mode="value">
+              <td><strong>neutral.900</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -684,14 +709,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-neutral-900">--color-neutral-900</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--neutral-900" style="">--neutral-900</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--neutral-900" style="display: none;">--neutral-900</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Neutral900" style="display: none;">Neutral900</code>
               </td>
             </tr>
           
-            <tr data-token="color.success.500" data-mode="default">
-              <td><strong>color.success.500</strong></td>
+            <tr data-token="success.500" data-mode="value">
+              <td><strong>success.500</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -703,14 +728,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-success-500">--color-success-500</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--success-500" style="">--success-500</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--success-500" style="display: none;">--success-500</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Success500" style="display: none;">Success500</code>
               </td>
             </tr>
           
-            <tr data-token="color.warning.500" data-mode="default">
-              <td><strong>color.warning.500</strong></td>
+            <tr data-token="warning.500" data-mode="value">
+              <td><strong>warning.500</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -722,14 +747,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-warning-500">--color-warning-500</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--warning-500" style="">--warning-500</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--warning-500" style="display: none;">--warning-500</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Warning500" style="display: none;">Warning500</code>
               </td>
             </tr>
           
-            <tr data-token="color.error.500" data-mode="default">
-              <td><strong>color.error.500</strong></td>
+            <tr data-token="error.500" data-mode="value">
+              <td><strong>error.500</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -741,14 +766,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-error-500">--color-error-500</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--error-500" style="">--error-500</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--error-500" style="display: none;">--error-500</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Error500" style="display: none;">Error500</code>
               </td>
             </tr>
           
-            <tr data-token="color.background.primary" data-mode="default">
-              <td><strong>color.background.primary</strong></td>
+            <tr data-token="background.primary" data-mode="value">
+              <td><strong>background.primary</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -760,14 +785,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-background-primary">--color-background-primary</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--background-primary" style="">--background-primary</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--background-primary" style="display: none;">--background-primary</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BackgroundPrimary" style="display: none;">BackgroundPrimary</code>
               </td>
             </tr>
           
-            <tr data-token="color.background.secondary" data-mode="default">
-              <td><strong>color.background.secondary</strong></td>
+            <tr data-token="background.secondary" data-mode="value">
+              <td><strong>background.secondary</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -779,14 +804,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-background-secondary">--color-background-secondary</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--background-secondary" style="">--background-secondary</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--background-secondary" style="display: none;">--background-secondary</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BackgroundSecondary" style="display: none;">BackgroundSecondary</code>
               </td>
             </tr>
           
-            <tr data-token="color.text.primary" data-mode="default">
-              <td><strong>color.text.primary</strong></td>
+            <tr data-token="text.primary" data-mode="value">
+              <td><strong>text.primary</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -798,14 +823,14 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-text-primary">--color-text-primary</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--text-primary" style="">--text-primary</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--text-primary" style="display: none;">--text-primary</code><code class="docs-token-variable--platform" data-platform="js" data-copy="TextPrimary" style="display: none;">TextPrimary</code>
               </td>
             </tr>
           
-            <tr data-token="color.text.secondary" data-mode="default">
-              <td><strong>color.text.secondary</strong></td>
+            <tr data-token="text.secondary" data-mode="value">
+              <td><strong>text.secondary</strong></td>
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
@@ -817,30 +842,30 @@
                 –
               </td>
               <td>colors</td>
-              <td>default</td>
+              <td>value</td>
               <td>
-                <code data-copy="--color-text-secondary">--color-text-secondary</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--text-secondary" style="">--text-secondary</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--text-secondary" style="display: none;">--text-secondary</code><code class="docs-token-variable--platform" data-platform="js" data-copy="TextSecondary" style="display: none;">TextSecondary</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.size.xs" data-mode="default">
-              <td><strong>default.font.size.xs</strong></td>
+            <tr data-token="size.xs" data-mode="default">
+              <td><strong>size.xs</strong></td>
               <td><code>float</code></td>
               <td>
-                <code data-copy="12">12</code>
+                <code data-copy="10">10</code>
               </td>
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-size-xs">--default-font-size-xs</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--size-xs" style="">--size-xs</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--size-xs" style="display: none;">--size-xs</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeXs" style="display: none;">SizeXs</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.size.sm" data-mode="default">
-              <td><strong>default.font.size.sm</strong></td>
+            <tr data-token="size.sm" data-mode="default">
+              <td><strong>size.sm</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="14">14</code>
@@ -848,15 +873,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-size-sm">--default-font-size-sm</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--size-sm" style="">--size-sm</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--size-sm" style="display: none;">--size-sm</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeSm" style="display: none;">SizeSm</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.size.base" data-mode="default">
-              <td><strong>default.font.size.base</strong></td>
+            <tr data-token="size.base" data-mode="default">
+              <td><strong>size.base</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="16">16</code>
@@ -864,15 +889,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-size-base">--default-font-size-base</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--size-base" style="">--size-base</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--size-base" style="display: none;">--size-base</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeBase" style="display: none;">SizeBase</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.size.lg" data-mode="default">
-              <td><strong>default.font.size.lg</strong></td>
+            <tr data-token="size.lg" data-mode="default">
+              <td><strong>size.lg</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="18">18</code>
@@ -880,15 +905,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-size-lg">--default-font-size-lg</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--size-lg" style="">--size-lg</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--size-lg" style="display: none;">--size-lg</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeLg" style="display: none;">SizeLg</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.size.xl" data-mode="default">
-              <td><strong>default.font.size.xl</strong></td>
+            <tr data-token="size.xl" data-mode="default">
+              <td><strong>size.xl</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="20">20</code>
@@ -896,15 +921,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-size-xl">--default-font-size-xl</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--size-xl" style="">--size-xl</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--size-xl" style="display: none;">--size-xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="SizeXl" style="display: none;">SizeXl</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.size.2xl" data-mode="default">
-              <td><strong>default.font.size.2xl</strong></td>
+            <tr data-token="size.2xl" data-mode="default">
+              <td><strong>size.2xl</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="24">24</code>
@@ -912,15 +937,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-size-2xl">--default-font-size-2xl</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--size-2xl" style="">--size-2xl</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--size-2xl" style="display: none;">--size-2xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Size2xl" style="display: none;">Size2xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.size.3xl" data-mode="default">
-              <td><strong>default.font.size.3xl</strong></td>
+            <tr data-token="size.3xl" data-mode="default">
+              <td><strong>size.3xl</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="30">30</code>
@@ -928,15 +953,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-size-3xl">--default-font-size-3xl</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--size-3xl" style="">--size-3xl</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--size-3xl" style="display: none;">--size-3xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Size3xl" style="display: none;">Size3xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.size.4xl" data-mode="default">
-              <td><strong>default.font.size.4xl</strong></td>
+            <tr data-token="size.4xl" data-mode="default">
+              <td><strong>size.4xl</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="36">36</code>
@@ -944,15 +969,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-size-4xl">--default-font-size-4xl</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--size-4xl" style="">--size-4xl</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--size-4xl" style="display: none;">--size-4xl</code><code class="docs-token-variable--platform" data-platform="js" data-copy="Size4xl" style="display: none;">Size4xl</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.weight.normal" data-mode="default">
-              <td><strong>default.font.weight.normal</strong></td>
+            <tr data-token="weight.normal" data-mode="default">
+              <td><strong>weight.normal</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="400">400</code>
@@ -960,15 +985,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-weight-normal">--default-font-weight-normal</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--weight-normal" style="">--weight-normal</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--weight-normal" style="display: none;">--weight-normal</code><code class="docs-token-variable--platform" data-platform="js" data-copy="WeightNormal" style="display: none;">WeightNormal</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.weight.medium" data-mode="default">
-              <td><strong>default.font.weight.medium</strong></td>
+            <tr data-token="weight.medium" data-mode="default">
+              <td><strong>weight.medium</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="500">500</code>
@@ -976,15 +1001,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-weight-medium">--default-font-weight-medium</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--weight-medium" style="">--weight-medium</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--weight-medium" style="display: none;">--weight-medium</code><code class="docs-token-variable--platform" data-platform="js" data-copy="WeightMedium" style="display: none;">WeightMedium</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.weight.semibold" data-mode="default">
-              <td><strong>default.font.weight.semibold</strong></td>
+            <tr data-token="weight.semibold" data-mode="default">
+              <td><strong>weight.semibold</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="600">600</code>
@@ -992,15 +1017,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-weight-semibold">--default-font-weight-semibold</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--weight-semibold" style="">--weight-semibold</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--weight-semibold" style="display: none;">--weight-semibold</code><code class="docs-token-variable--platform" data-platform="js" data-copy="WeightSemibold" style="display: none;">WeightSemibold</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.weight.bold" data-mode="default">
-              <td><strong>default.font.weight.bold</strong></td>
+            <tr data-token="weight.bold" data-mode="default">
+              <td><strong>weight.bold</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="700">700</code>
@@ -1008,15 +1033,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-weight-bold">--default-font-weight-bold</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--weight-bold" style="">--weight-bold</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--weight-bold" style="display: none;">--weight-bold</code><code class="docs-token-variable--platform" data-platform="js" data-copy="WeightBold" style="display: none;">WeightBold</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.lineHeight.tight" data-mode="default">
-              <td><strong>default.font.lineHeight.tight</strong></td>
+            <tr data-token="lineHeight.tight" data-mode="default">
+              <td><strong>lineHeight.tight</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="1.25">1.25</code>
@@ -1024,15 +1049,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-lineheight-tight">--default-font-lineheight-tight</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--lineheight-tight" style="">--lineheight-tight</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--lineheight-tight" style="display: none;">--lineheight-tight</code><code class="docs-token-variable--platform" data-platform="js" data-copy="LineheightTight" style="display: none;">LineheightTight</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.lineHeight.normal" data-mode="default">
-              <td><strong>default.font.lineHeight.normal</strong></td>
+            <tr data-token="lineHeight.normal" data-mode="default">
+              <td><strong>lineHeight.normal</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="1.5">1.5</code>
@@ -1040,15 +1065,15 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-lineheight-normal">--default-font-lineheight-normal</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--lineheight-normal" style="">--lineheight-normal</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--lineheight-normal" style="display: none;">--lineheight-normal</code><code class="docs-token-variable--platform" data-platform="js" data-copy="LineheightNormal" style="display: none;">LineheightNormal</code>
               </td>
             </tr>
           
-            <tr data-token="default.font.lineHeight.relaxed" data-mode="default">
-              <td><strong>default.font.lineHeight.relaxed</strong></td>
+            <tr data-token="lineHeight.relaxed" data-mode="default">
+              <td><strong>lineHeight.relaxed</strong></td>
               <td><code>float</code></td>
               <td>
                 <code data-copy="1.75">1.75</code>
@@ -1056,10 +1081,26 @@
               <td>
                 –
               </td>
-              <td>typography</td>
+              <td>font</td>
               <td>default</td>
               <td>
-                <code data-copy="--default-font-lineheight-relaxed">--default-font-lineheight-relaxed</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--lineheight-relaxed" style="">--lineheight-relaxed</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--lineheight-relaxed" style="display: none;">--lineheight-relaxed</code><code class="docs-token-variable--platform" data-platform="js" data-copy="LineheightRelaxed" style="display: none;">LineheightRelaxed</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fontFamily.default" data-mode="default">
+              <td><strong>fontFamily.default</strong></td>
+              <td><code>string</code></td>
+              <td>
+                <code data-copy="inter">inter</code>
+              </td>
+              <td>
+                –
+              </td>
+              <td>font</td>
+              <td>default</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fontfamily-default" style="">--fontfamily-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fontfamily-default" style="display: none;">--fontfamily-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FontfamilyDefault" style="display: none;">FontfamilyDefault</code>
               </td>
             </tr>
           
@@ -1068,17 +1109,17 @@
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
-                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #f5f5f5; border: 1px solid var(--docs-border);"></span>
-                    <code data-copy="#f5f5f5">#f5f5f5</code>
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #fafafa; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#fafafa">#fafafa</code>
                   </span>
               </td>
               <td>
-                <code class="docs-table-reference" data-copy="{color.neutral.100}" title="References color.neutral.100">→ {color.neutral.100}</code>
+                <code class="docs-table-reference" data-copy="{neutral.50}" title="References neutral.50">→ {neutral.50}</code>
               </td>
               <td>theme</td>
               <td>light</td>
               <td>
-                <code data-copy="--bg-primary-default">--bg-primary-default</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-primary-default" style="">--bg-primary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-primary-default" style="display: none;">--bg-primary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code>
               </td>
             </tr>
           
@@ -1087,17 +1128,625 @@
               <td><code>color</code></td>
               <td>
                 <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #171717; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#171717">#171717</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.900}" title="References neutral.900">→ {neutral.900}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-primary-default" style="">--bg-primary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-primary-default" style="display: none;">--bg-primary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryDefault" style="display: none;">BgPrimaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.primary.hover" data-mode="light" class="docs-table-row--reference">
+              <td><strong>bg.primary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #f5f5f5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#f5f5f5">#f5f5f5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.100}" title="References neutral.100">→ {neutral.100}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-primary-hover" style="">--bg-primary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-primary-hover" style="display: none;">--bg-primary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.primary.hover" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>bg.primary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
                     <span style="width: 16px; height: 16px; border-radius: 4px; background: #262626; border: 1px solid var(--docs-border);"></span>
                     <code data-copy="#262626">#262626</code>
                   </span>
               </td>
               <td>
-                <code class="docs-table-reference" data-copy="{color.neutral.800}" title="References color.neutral.800">→ {color.neutral.800}</code>
+                <code class="docs-table-reference" data-copy="{neutral.800}" title="References neutral.800">→ {neutral.800}</code>
               </td>
               <td>theme</td>
               <td>dark</td>
               <td>
-                <code data-copy="--bg-primary-default">--bg-primary-default</code>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-primary-hover" style="">--bg-primary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-primary-hover" style="display: none;">--bg-primary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgPrimaryHover" style="display: none;">BgPrimaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.primary.default" data-mode="light" class="docs-table-row--reference">
+              <td><strong>fg.primary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #171717; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#171717">#171717</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.900}" title="References neutral.900">→ {neutral.900}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-primary-default" style="">--fg-primary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-primary-default" style="display: none;">--fg-primary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.primary.default" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>fg.primary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #fafafa; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#fafafa">#fafafa</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.50}" title="References neutral.50">→ {neutral.50}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-primary-default" style="">--fg-primary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-primary-default" style="display: none;">--fg-primary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryDefault" style="display: none;">FgPrimaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.primary.hover" data-mode="light" class="docs-table-row--reference">
+              <td><strong>fg.primary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #404040; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#404040">#404040</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-primary-hover" style="">--fg-primary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-primary-hover" style="display: none;">--fg-primary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.primary.hover" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>fg.primary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #e5e5e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#e5e5e5">#e5e5e5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-primary-hover" style="">--fg-primary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-primary-hover" style="display: none;">--fg-primary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgPrimaryHover" style="display: none;">FgPrimaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.secondary.default" data-mode="light" class="docs-table-row--reference">
+              <td><strong>fg.secondary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #737373; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#737373">#737373</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.500}" title="References neutral.500">→ {neutral.500}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-secondary-default" style="">--fg-secondary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-secondary-default" style="display: none;">--fg-secondary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.secondary.default" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>fg.secondary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #d4d4d4; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#d4d4d4">#d4d4d4</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.300}" title="References neutral.300">→ {neutral.300}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-secondary-default" style="">--fg-secondary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-secondary-default" style="display: none;">--fg-secondary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryDefault" style="display: none;">FgSecondaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.secondary.hover" data-mode="light" class="docs-table-row--reference">
+              <td><strong>fg.secondary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #404040; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#404040">#404040</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-secondary-hover" style="">--fg-secondary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-secondary-hover" style="display: none;">--fg-secondary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.secondary.hover" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>fg.secondary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #f5f5f5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#f5f5f5">#f5f5f5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.100}" title="References neutral.100">→ {neutral.100}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-secondary-hover" style="">--fg-secondary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-secondary-hover" style="display: none;">--fg-secondary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgSecondaryHover" style="display: none;">FgSecondaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.brand.default" data-mode="light" class="docs-table-row--reference">
+              <td><strong>fg.brand.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #4338ca; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#4338ca">#4338ca</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.700}" title="References primary.700">→ {primary.700}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-brand-default" style="">--fg-brand-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-brand-default" style="display: none;">--fg-brand-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="fg.brand.default" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>fg.brand.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #818cf8; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#818cf8">#818cf8</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.400}" title="References primary.400">→ {primary.400}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--fg-brand-default" style="">--fg-brand-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--fg-brand-default" style="display: none;">--fg-brand-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="FgBrandDefault" style="display: none;">FgBrandDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.secondary.default" data-mode="light" class="docs-table-row--reference">
+              <td><strong>bg.secondary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #f5f5f5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#f5f5f5">#f5f5f5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.100}" title="References neutral.100">→ {neutral.100}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-secondary-default" style="">--bg-secondary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-secondary-default" style="display: none;">--bg-secondary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.secondary.default" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>bg.secondary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #262626; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#262626">#262626</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.800}" title="References neutral.800">→ {neutral.800}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-secondary-default" style="">--bg-secondary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-secondary-default" style="display: none;">--bg-secondary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryDefault" style="display: none;">BgSecondaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.secondary.hover" data-mode="light" class="docs-table-row--reference">
+              <td><strong>bg.secondary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #e5e5e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#e5e5e5">#e5e5e5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-secondary-hover" style="">--bg-secondary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-secondary-hover" style="display: none;">--bg-secondary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.secondary.hover" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>bg.secondary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #404040; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#404040">#404040</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-secondary-hover" style="">--bg-secondary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-secondary-hover" style="display: none;">--bg-secondary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgSecondaryHover" style="display: none;">BgSecondaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.tertiary.default" data-mode="light" class="docs-table-row--reference">
+              <td><strong>bg.tertiary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #e5e5e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#e5e5e5">#e5e5e5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-tertiary-default" style="">--bg-tertiary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-tertiary-default" style="display: none;">--bg-tertiary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.tertiary.default" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>bg.tertiary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #404040; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#404040">#404040</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-tertiary-default" style="">--bg-tertiary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-tertiary-default" style="display: none;">--bg-tertiary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryDefault" style="display: none;">BgTertiaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.tertiary.hover" data-mode="light" class="docs-table-row--reference">
+              <td><strong>bg.tertiary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #d4d4d4; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#d4d4d4">#d4d4d4</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.300}" title="References neutral.300">→ {neutral.300}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-tertiary-hover" style="">--bg-tertiary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-tertiary-hover" style="display: none;">--bg-tertiary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.tertiary.hover" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>bg.tertiary.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #525252; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#525252">#525252</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.600}" title="References neutral.600">→ {neutral.600}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-tertiary-hover" style="">--bg-tertiary-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-tertiary-hover" style="display: none;">--bg-tertiary-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgTertiaryHover" style="display: none;">BgTertiaryHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="border.primary.subtle" data-mode="light" class="docs-table-row--reference">
+              <td><strong>border.primary.subtle</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #e5e5e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#e5e5e5">#e5e5e5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--border-primary-subtle" style="">--border-primary-subtle</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--border-primary-subtle" style="display: none;">--border-primary-subtle</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code>
+              </td>
+            </tr>
+          
+            <tr data-token="border.primary.subtle" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>border.primary.subtle</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #404040; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#404040">#404040</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--border-primary-subtle" style="">--border-primary-subtle</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--border-primary-subtle" style="display: none;">--border-primary-subtle</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimarySubtle" style="display: none;">BorderPrimarySubtle</code>
+              </td>
+            </tr>
+          
+            <tr data-token="border.primary.default" data-mode="light" class="docs-table-row--reference">
+              <td><strong>border.primary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #a3a3a3; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#a3a3a3">#a3a3a3</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.400}" title="References neutral.400">→ {neutral.400}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--border-primary-default" style="">--border-primary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--border-primary-default" style="display: none;">--border-primary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="border.primary.default" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>border.primary.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #737373; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#737373">#737373</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{neutral.500}" title="References neutral.500">→ {neutral.500}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--border-primary-default" style="">--border-primary-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--border-primary-default" style="display: none;">--border-primary-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderPrimaryDefault" style="display: none;">BorderPrimaryDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.brand.default" data-mode="light" class="docs-table-row--reference">
+              <td><strong>bg.brand.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #4f46e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#4f46e5">#4f46e5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.600}" title="References primary.600">→ {primary.600}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-brand-default" style="">--bg-brand-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-brand-default" style="display: none;">--bg-brand-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.brand.default" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>bg.brand.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #6366f1; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#6366f1">#6366f1</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.500}" title="References primary.500">→ {primary.500}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-brand-default" style="">--bg-brand-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-brand-default" style="display: none;">--bg-brand-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandDefault" style="display: none;">BgBrandDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.brand.hover" data-mode="light" class="docs-table-row--reference">
+              <td><strong>bg.brand.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #4338ca; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#4338ca">#4338ca</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.700}" title="References primary.700">→ {primary.700}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-brand-hover" style="">--bg-brand-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-brand-hover" style="display: none;">--bg-brand-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="bg.brand.hover" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>bg.brand.hover</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #4f46e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#4f46e5">#4f46e5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.600}" title="References primary.600">→ {primary.600}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--bg-brand-hover" style="">--bg-brand-hover</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--bg-brand-hover" style="display: none;">--bg-brand-hover</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BgBrandHover" style="display: none;">BgBrandHover</code>
+              </td>
+            </tr>
+          
+            <tr data-token="border.brand.subtle" data-mode="light" class="docs-table-row--reference">
+              <td><strong>border.brand.subtle</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #e0e7ff; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#e0e7ff">#e0e7ff</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.100}" title="References primary.100">→ {primary.100}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--border-brand-subtle" style="">--border-brand-subtle</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--border-brand-subtle" style="display: none;">--border-brand-subtle</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code>
+              </td>
+            </tr>
+          
+            <tr data-token="border.brand.subtle" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>border.brand.subtle</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #3730a3; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#3730a3">#3730a3</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.800}" title="References primary.800">→ {primary.800}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--border-brand-subtle" style="">--border-brand-subtle</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--border-brand-subtle" style="display: none;">--border-brand-subtle</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandSubtle" style="display: none;">BorderBrandSubtle</code>
+              </td>
+            </tr>
+          
+            <tr data-token="border.brand.default" data-mode="light" class="docs-table-row--reference">
+              <td><strong>border.brand.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #4f46e5; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#4f46e5">#4f46e5</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.600}" title="References primary.600">→ {primary.600}</code>
+              </td>
+              <td>theme</td>
+              <td>light</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--border-brand-default" style="">--border-brand-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--border-brand-default" style="display: none;">--border-brand-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code>
+              </td>
+            </tr>
+          
+            <tr data-token="border.brand.default" data-mode="dark" class="docs-table-row--reference">
+              <td><strong>border.brand.default</strong></td>
+              <td><code>color</code></td>
+              <td>
+                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                    <span style="width: 16px; height: 16px; border-radius: 4px; background: #6366f1; border: 1px solid var(--docs-border);"></span>
+                    <code data-copy="#6366f1">#6366f1</code>
+                  </span>
+              </td>
+              <td>
+                <code class="docs-table-reference" data-copy="{primary.500}" title="References primary.500">→ {primary.500}</code>
+              </td>
+              <td>theme</td>
+              <td>dark</td>
+              <td>
+                <code class="docs-token-variable--platform" data-platform="css" data-copy="--border-brand-default" style="">--border-brand-default</code><code class="docs-token-variable--platform" data-platform="scss" data-copy="--border-brand-default" style="display: none;">--border-brand-default</code><code class="docs-token-variable--platform" data-platform="js" data-copy="BorderBrandDefault" style="display: none;">BorderBrandDefault</code>
               </td>
             </tr>
           
@@ -1105,14 +1754,18 @@
       </table>
     </section>
   
-      
+
       <footer class="docs-footer">
         <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
-        <span>Last updated: Dec 15, 2025, 11:38 AM</span>
+        <span>Last updated: Dec 17, 2025, 12:51 AM</span>
+        
+        <span>Output mode: Style Dictionary</span>
+        
+        
       </footer>
     </main>
   </div>
-  
+
   <button class="docs-mobile-toggle" id="mobileToggle">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <line x1="3" y1="12" x2="21" y2="12"/>
@@ -1120,9 +1773,9 @@
       <line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
   </button>
-  
+
   <div class="docs-copied" id="copiedToast">Copied to clipboard!</div>
-  
+
   <script src="assets/preview.js"></script>
 </body>
 </html>

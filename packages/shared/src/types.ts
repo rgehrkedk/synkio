@@ -37,3 +37,20 @@ export interface SyncEvent {
   t: number;      // timestamp (ms)
   c: number;      // changeCount
 }
+
+export interface CollectionRename {
+  oldCollection: string;
+  newCollection: string;
+}
+
+export interface ModeRename {
+  collection: string;
+  oldMode: string;
+  newMode: string;
+}
+
+export interface ComparisonResult {
+  diffs: DiffEntry[];
+  collectionRenames: CollectionRename[];
+  modeRenames: ModeRename[];
+}

@@ -13,6 +13,8 @@ import type {
   NewVariable,
   DeletedVariable,
   ModeRename,
+  ModeChange,
+  CollectionRename,
 } from '../types/index.js';
 
 import { parseVariableId } from './tokens.js';
@@ -24,9 +26,10 @@ export function compareBaselines(baseline: BaselineData, fetched: BaselineData):
   const result: ComparisonResult = {
     valueChanges: [],
     pathChanges: [],
+    collectionRenames: [],
     modeRenames: [],
-    newModeNames: [],
-    deletedModeNames: [],
+    newModes: [],
+    deletedModes: [],
     newVariables: [],
     deletedVariables: [],
   };
@@ -129,17 +132,86 @@ export function compareBaselines(baseline: BaselineData, fetched: BaselineData):
     }
   }
 
-  // Detect mode renames, new modes, and deleted modes per collection
-  const allCollections = new Set([...baselineModesByCollection.keys(), ...fetchedModesByCollection.keys()]);
+  // Detect collection renames first, then mode renames within unchanged collections
+  const baselineOnlyCollections = [...baselineModesByCollection.keys()].filter(c => !fetchedModesByCollection.has(c));
+  const fetchedOnlyCollections = [...fetchedModesByCollection.keys()].filter(c => !baselineModesByCollection.has(c));
   const renamedModes = new Set<string>(); // Track renamed old mode names to exclude from deleted
-  
-  for (const collection of allCollections) {
+  const renamedCollections = new Set<string>(); // Track renamed old collection names
+
+  // Try to match deleted collections with new collections (collection renames)
+  // Match by same number of modes - this is a heuristic
+  const unmatchedBaseline = [...baselineOnlyCollections];
+  const unmatchedFetched = [...fetchedOnlyCollections];
+
+  for (const oldCollection of baselineOnlyCollections) {
+    const oldModes = [...(baselineModesByCollection.get(oldCollection) || new Set<string>())];
+
+    // Find a new collection with the same number of modes
+    const matchIndex = unmatchedFetched.findIndex(newCollection => {
+      const newModes = fetchedModesByCollection.get(newCollection) || new Set<string>();
+      return newModes.size === oldModes.length;
+    });
+
+    if (matchIndex !== -1) {
+      const newCollection = unmatchedFetched[matchIndex];
+      const newModes = [...(fetchedModesByCollection.get(newCollection) || new Set<string>())];
+
+      // Record collection rename (without mode mapping - modes are tracked separately)
+      result.collectionRenames.push({
+        oldCollection,
+        newCollection,
+        modeMapping: [], // Mode changes are tracked as modeRenames instead
+      });
+
+      // Track mode renames within the renamed collection
+      for (let i = 0; i < oldModes.length; i++) {
+        const oldMode = oldModes[i];
+        const newMode = newModes[i];
+
+        // Always track as renamed to exclude from deleted variables check
+        renamedModes.add(`${oldCollection}:${oldMode}`);
+
+        // Only add to modeRenames if the mode name actually changed
+        if (oldMode !== newMode) {
+          result.modeRenames.push({
+            collection: newCollection, // Use the new collection name
+            oldMode,
+            newMode,
+          });
+        }
+      }
+
+      renamedCollections.add(oldCollection);
+      unmatchedBaseline.splice(unmatchedBaseline.indexOf(oldCollection), 1);
+      unmatchedFetched.splice(matchIndex, 1);
+    }
+  }
+
+  // Handle remaining unmatched collections as truly new/deleted
+  for (const collection of unmatchedBaseline) {
+    const modes = baselineModesByCollection.get(collection) || new Set<string>();
+    for (const mode of modes) {
+      result.deletedModes.push({ collection, mode });
+    }
+  }
+
+  for (const collection of unmatchedFetched) {
+    const modes = fetchedModesByCollection.get(collection) || new Set<string>();
+    for (const mode of modes) {
+      result.newModes.push({ collection, mode });
+    }
+  }
+
+  // Now handle mode renames within collections that exist in both baseline and fetched
+  const sharedCollections = [...baselineModesByCollection.keys()].filter(c => fetchedModesByCollection.has(c));
+
+  for (const collection of sharedCollections) {
     const baselineModes = baselineModesByCollection.get(collection) || new Set<string>();
     const fetchedModes = fetchedModesByCollection.get(collection) || new Set<string>();
-    
+
     const deletedInCollection = [...baselineModes].filter(m => !fetchedModes.has(m));
     const newInCollection = [...fetchedModes].filter(m => !baselineModes.has(m));
-    
+
     // If same number of modes deleted and added in a collection, it's likely a rename
     if (deletedInCollection.length === newInCollection.length && deletedInCollection.length > 0) {
       // Pair them up as renames (for single mode rename, this is straightforward)
@@ -149,30 +221,27 @@ export function compareBaselines(baseline: BaselineData, fetched: BaselineData):
           oldMode: deletedInCollection[i],
           newMode: newInCollection[i],
         });
-        renamedModes.add(deletedInCollection[i]);
+        renamedModes.add(`${collection}:${deletedInCollection[i]}`);
       }
     } else {
-      // Not a simple rename - track as deleted/new
+      // Not a simple rename - track as deleted/new with collection context
       for (const mode of deletedInCollection) {
-        if (!result.deletedModeNames.includes(mode)) {
-          result.deletedModeNames.push(mode);
-        }
+        result.deletedModes.push({ collection, mode });
       }
       for (const mode of newInCollection) {
-        if (!result.newModeNames.includes(mode)) {
-          result.newModeNames.push(mode);
-        }
+        result.newModes.push({ collection, mode });
       }
     }
   }
 
   // Check for deleted variables (in baseline but not in fetched)
   // BUT: Don't count variables that belong to deleted or renamed modes
-  const deletedModeSet = new Set(result.deletedModeNames);
+  const deletedModeSet = new Set(result.deletedModes.map(m => `${m.collection}:${m.mode}`));
   for (const [prefixedId, baselineEntry] of Object.entries(baselineEntries)) {
     if (!fetchedEntries[prefixedId]) {
       // Skip if this variable belongs to a deleted or renamed mode
-      if (deletedModeSet.has(baselineEntry.mode) || renamedModes.has(baselineEntry.mode)) {
+      const modeKey = `${baselineEntry.collection}:${baselineEntry.mode}`;
+      if (deletedModeSet.has(modeKey) || renamedModes.has(modeKey)) {
         continue;
       }
 
@@ -197,9 +266,10 @@ export function hasChanges(result: ComparisonResult): boolean {
   return (
     result.valueChanges.length > 0 ||
     result.pathChanges.length > 0 ||
+    result.collectionRenames.length > 0 ||
     result.modeRenames.length > 0 ||
-    result.newModeNames.length > 0 ||
-    result.deletedModeNames.length > 0 ||
+    result.newModes.length > 0 ||
+    result.deletedModes.length > 0 ||
     result.newVariables.length > 0 ||
     result.deletedVariables.length > 0
   );
@@ -212,9 +282,10 @@ export function hasChanges(result: ComparisonResult): boolean {
 export function hasBreakingChanges(result: ComparisonResult): boolean {
   return (
     result.pathChanges.length > 0 ||
+    result.collectionRenames.length > 0 ||
     result.modeRenames.length > 0 ||
-    result.newModeNames.length > 0 ||
-    result.deletedModeNames.length > 0 ||
+    result.newModes.length > 0 ||
+    result.deletedModes.length > 0 ||
     result.deletedVariables.length > 0
   );
 }
@@ -226,24 +297,27 @@ export function getChangeCounts(result: ComparisonResult) {
   return {
     valueChanges: result.valueChanges.length,
     pathChanges: result.pathChanges.length,
+    collectionRenames: result.collectionRenames.length,
     modeRenames: result.modeRenames.length,
-    newModes: result.newModeNames.length,
-    deletedModes: result.deletedModeNames.length,
+    newModes: result.newModes.length,
+    deletedModes: result.deletedModes.length,
     newVariables: result.newVariables.length,
     deletedVariables: result.deletedVariables.length,
     total:
       result.valueChanges.length +
       result.pathChanges.length +
+      result.collectionRenames.length +
       result.modeRenames.length +
-      result.newModeNames.length +
-      result.deletedModeNames.length +
+      result.newModes.length +
+      result.deletedModes.length +
       result.newVariables.length +
       result.deletedVariables.length,
     breaking:
       result.pathChanges.length +
+      result.collectionRenames.length +
       result.modeRenames.length +
-      result.newModeNames.length +
-      result.deletedModeNames.length +
+      result.newModes.length +
+      result.deletedModes.length +
       result.deletedVariables.length,
   };
 }
@@ -266,6 +340,7 @@ export function generateDiffReport(result: ComparisonResult, metadata?: { fileNa
   md += `|----------|-------|\n`;
   md += `| Value Changes | ${counts.valueChanges} |\n`;
   md += `| Path Changes (BREAKING) | ${counts.pathChanges} |\n`;
+  md += `| Collection Renames (BREAKING) | ${counts.collectionRenames} |\n`;
   md += `| Mode Renames (BREAKING) | ${counts.modeRenames} |\n`;
   md += `| New Modes (BREAKING) | ${counts.newModes} |\n`;
   md += `| Deleted Modes (BREAKING) | ${counts.deletedModes} |\n`;
@@ -306,6 +381,17 @@ export function generateDiffReport(result: ComparisonResult, metadata?: { fileNa
     }
   }
 
+  // Collection Renames (BREAKING)
+  if (result.collectionRenames.length > 0) {
+    md += `## Collection Renames - BREAKING (${result.collectionRenames.length})\n\n`;
+    md += `Collections that have been renamed. Output folder names will change.\n\n`;
+
+    for (const rename of result.collectionRenames) {
+      md += `- \`${rename.oldCollection}\` → \`${rename.newCollection}\`\n`;
+    }
+    md += `\n`;
+  }
+
   // Mode Renames (BREAKING)
   if (result.modeRenames.length > 0) {
     md += `## Mode Renames - BREAKING (${result.modeRenames.length})\n\n`;
@@ -318,23 +404,23 @@ export function generateDiffReport(result: ComparisonResult, metadata?: { fileNa
   }
 
   // New Modes (BREAKING)
-  if (result.newModeNames.length > 0) {
-    md += `## New Modes - BREAKING (${result.newModeNames.length})\n\n`;
+  if (result.newModes.length > 0) {
+    md += `## New Modes - BREAKING (${result.newModes.length})\n\n`;
     md += `New mode names that will create new files. Developers may need to handle these.\n\n`;
 
-    for (const modeName of result.newModeNames) {
-      md += `- \`${modeName}\`\n`;
+    for (const modeChange of result.newModes) {
+      md += `- **${modeChange.collection}:** \`${modeChange.mode}\`\n`;
     }
     md += `\n`;
   }
 
   // Deleted Modes (BREAKING)
-  if (result.deletedModeNames.length > 0) {
-    md += `## Deleted Modes - BREAKING (${result.deletedModeNames.length})\n\n`;
+  if (result.deletedModes.length > 0) {
+    md += `## Deleted Modes - BREAKING (${result.deletedModes.length})\n\n`;
     md += `Mode names that existed in the baseline but are now deleted.\n\n`;
 
-    for (const modeName of result.deletedModeNames) {
-      md += `- \`${modeName}\`\n`;
+    for (const modeChange of result.deletedModes) {
+      md += `- **${modeChange.collection}:** \`${modeChange.mode}\`\n`;
     }
     md += `\n`;
   }
@@ -387,13 +473,14 @@ export function printDiffSummary(result: ComparisonResult): void {
     return;
   }
 
-  console.log(`  Value changes:      ${counts.valueChanges}`);
-  console.log(`  Path changes:       ${counts.pathChanges} ${counts.pathChanges > 0 ? '(BREAKING)' : ''}`);
-  console.log(`  Mode renames:       ${counts.modeRenames} ${counts.modeRenames > 0 ? '(BREAKING)' : ''}`);
-  console.log(`  New modes:          ${counts.newModes} ${counts.newModes > 0 ? '(BREAKING)' : ''}`);
-  console.log(`  Deleted modes:      ${counts.deletedModes} ${counts.deletedModes > 0 ? '(BREAKING)' : ''}`);
-  console.log(`  New variables:      ${counts.newVariables}`);
-  console.log(`  Deleted variables:  ${counts.deletedVariables} ${counts.deletedVariables > 0 ? '(BREAKING)' : ''}`);
+  console.log(`  Value changes:        ${counts.valueChanges}`);
+  console.log(`  Path changes:         ${counts.pathChanges} ${counts.pathChanges > 0 ? '(BREAKING)' : ''}`);
+  console.log(`  Collection renames:   ${counts.collectionRenames} ${counts.collectionRenames > 0 ? '(BREAKING)' : ''}`);
+  console.log(`  Mode renames:         ${counts.modeRenames} ${counts.modeRenames > 0 ? '(BREAKING)' : ''}`);
+  console.log(`  New modes:            ${counts.newModes} ${counts.newModes > 0 ? '(BREAKING)' : ''}`);
+  console.log(`  Deleted modes:        ${counts.deletedModes} ${counts.deletedModes > 0 ? '(BREAKING)' : ''}`);
+  console.log(`  New variables:        ${counts.newVariables}`);
+  console.log(`  Deleted variables:    ${counts.deletedVariables} ${counts.deletedVariables > 0 ? '(BREAKING)' : ''}`);
   console.log('');
   console.log(`  Total changes: ${counts.total}`);
 
@@ -419,6 +506,15 @@ export function printDiffSummary(result: ComparisonResult): void {
       console.log('');
     }
 
+    // Collection renames
+    if (result.collectionRenames.length > 0) {
+      console.log(`  Collection renames (${result.collectionRenames.length}):`);
+      result.collectionRenames.forEach(rename => {
+        console.log(`    ${rename.oldCollection} → ${rename.newCollection}`);
+      });
+      console.log('');
+    }
+
     // Mode renames
     if (result.modeRenames.length > 0) {
       console.log(`  Mode renames (${result.modeRenames.length}):`);
@@ -429,10 +525,10 @@ export function printDiffSummary(result: ComparisonResult): void {
     }
 
     // New modes
-    if (result.newModeNames.length > 0) {
-      console.log(`  New modes (${result.newModeNames.length}):`);
-      result.newModeNames.forEach(mode => {
-        console.log(`    + ${mode}`);
+    if (result.newModes.length > 0) {
+      console.log(`  New modes (${result.newModes.length}):`);
+      result.newModes.forEach(m => {
+        console.log(`    + ${m.collection}: ${m.mode}`);
       });
       console.log('');
     }
@@ -447,10 +543,10 @@ export function printDiffSummary(result: ComparisonResult): void {
     }
 
     // Deleted modes
-    if (result.deletedModeNames.length > 0) {
-      console.log(`  Deleted modes (${result.deletedModeNames.length}):`);
-      result.deletedModeNames.forEach(mode => {
-        console.log(`    - ${mode}`);
+    if (result.deletedModes.length > 0) {
+      console.log(`  Deleted modes (${result.deletedModes.length}):`);
+      result.deletedModes.forEach(m => {
+        console.log(`    - ${m.collection}: ${m.mode}`);
       });
       console.log('');
     }

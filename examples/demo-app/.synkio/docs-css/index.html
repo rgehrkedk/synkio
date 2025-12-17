@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Design Tokens - Synkio Docs</title>
+  <title>Design Tokens (CSS Mode) - Synkio Docs</title>
   <link rel="stylesheet" href="assets/tokens.css">
   <link rel="stylesheet" href="assets/utilities.css">
   <link rel="stylesheet" href="assets/docs.css">
@@ -17,7 +17,7 @@
           <rect width="32" height="32" rx="8" fill="#6366f1"/>
           <path d="M8 16L14 22L24 10" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Design Tokens
+        Design Tokens (CSS Mode)
       </a>
       
       <nav class="docs-nav">
@@ -44,7 +44,7 @@
         
         <a href="theme.html" class="">
           Theme
-          <span class="docs-nav-count">2</span>
+          <span class="docs-nav-count">34</span>
         </a>
         
         
@@ -64,7 +64,7 @@
       <header class="docs-header">
         <div>
           <h1 class="docs-title">Overview</h1>
-          <p class="docs-subtitle">Last synced: Dec 15, 2025, 11:38 AM</p>
+          <p class="docs-subtitle">Last synced: Dec 16, 2025, 02:27 PM</p>
         </div>
         
         <div class="docs-controls">
@@ -98,10 +98,24 @@
       </header>
       
       
+    
+    <!-- Output Info -->
+    <div class="docs-section" style="background: var(--docs-bg-elevated); border: 1px solid var(--docs-border); border-radius: 8px; padding: var(--docs-space-lg); margin-bottom: var(--docs-space-xl);">
+      <h3 style="margin-top: 0; margin-bottom: var(--docs-space-md);">Output Configuration</h3>
+      <div style="display: grid; gap: var(--docs-space-sm); font-size: 14px;">
+        <div><strong>Mode:</strong> JSON</div>
+        <div><strong>CSS Variable Format:</strong> <code>--color-primary-500</code></div>
+        <div><strong>Prefix:</strong> <code>--</code></div>
+        
+        <div><strong>CSS Output:</strong> Enabled (using rem units)</div>
+      </div>
+    </div>
+    
+
     <!-- Stats -->
     <div class="docs-stats">
       <div class="docs-stat-card">
-        <div class="docs-stat-value">56</div>
+        <div class="docs-stat-value">88</div>
         <div class="docs-stat-label">Total Tokens</div>
       </div>
       
@@ -121,7 +135,7 @@
         </div>
       
         <div class="docs-stat-card docs-stat-card--clickable" onclick="window.location='theme.html'">
-          <div class="docs-stat-value">2</div>
+          <div class="docs-stat-value">34</div>
           <div class="docs-stat-label">Theme</div>
         </div>
       
@@ -356,8 +370,8 @@
             <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
               <div class="docs-token-name">size.xs</div>
               
-              <div class="docs-token-value" data-copy="12">
-                12
+              <div class="docs-token-value" data-copy="10">
+                10
               </div>
               <div class="docs-token-variable" data-copy="--default-font-size-xs">--default-font-size-xs</div>
             </div>
@@ -419,45 +433,153 @@
     <section class="docs-section">
       <div class="docs-section-header">
         <h2 class="docs-section-title">Theme</h2>
-        <span class="docs-section-count">2 tokens</span>
+        <span class="docs-section-count">34 tokens</span>
       </div>
       <div class="docs-token-grid">
         
           <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.default">
             <div class="docs-color-preview">
-              <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
+              <div class="docs-color-preview-inner" style="background: #fafafa"></div>
             </div>
             <div class="docs-token-info">
               <div class="docs-token-name">primary.default</div>
-              <div class="docs-token-reference" data-copy="{color.neutral.100}" title="References color.neutral.100">→ {color.neutral.100}</div>
-              <div class="docs-token-value" data-copy="#f5f5f5">
-                #f5f5f5
+              <div class="docs-token-reference" data-copy="{color.neutral.50}" title="References color.neutral.50">→ {color.neutral.50}</div>
+              <div class="docs-token-value" data-copy="#fafafa">
+                #fafafa
               </div>
               <div class="docs-token-variable" data-copy="--bg-primary-default">--bg-primary-default</div>
             </div>
           </div>
           <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.default">
             <div class="docs-color-preview">
-              <div class="docs-color-preview-inner" style="background: #262626"></div>
+              <div class="docs-color-preview-inner" style="background: #171717"></div>
             </div>
             <div class="docs-token-info">
               <div class="docs-token-name">primary.default</div>
-              <div class="docs-token-reference" data-copy="{color.neutral.800}" title="References color.neutral.800">→ {color.neutral.800}</div>
-              <div class="docs-token-value" data-copy="#262626">
-                #262626
+              <div class="docs-token-reference" data-copy="{color.neutral.900}" title="References color.neutral.900">→ {color.neutral.900}</div>
+              <div class="docs-token-value" data-copy="#171717">
+                #171717
               </div>
               <div class="docs-token-variable" data-copy="--bg-primary-default">--bg-primary-default</div>
             </div>
           </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.hover</div>
+              <div class="docs-token-reference" data-copy="{color.neutral.100}" title="References color.neutral.100">→ {color.neutral.100}</div>
+              <div class="docs-token-value" data-copy="#f5f5f5">
+                #f5f5f5
+              </div>
+              <div class="docs-token-variable" data-copy="--bg-primary-hover">--bg-primary-hover</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #262626"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.hover</div>
+              <div class="docs-token-reference" data-copy="{color.neutral.800}" title="References color.neutral.800">→ {color.neutral.800}</div>
+              <div class="docs-token-value" data-copy="#262626">
+                #262626
+              </div>
+              <div class="docs-token-variable" data-copy="--bg-primary-hover">--bg-primary-hover</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #171717"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.default</div>
+              <div class="docs-token-reference" data-copy="{color.neutral.900}" title="References color.neutral.900">→ {color.neutral.900}</div>
+              <div class="docs-token-value" data-copy="#171717">
+                #171717
+              </div>
+              <div class="docs-token-variable" data-copy="--fg-primary-default">--fg-primary-default</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #fafafa"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.default</div>
+              <div class="docs-token-reference" data-copy="{color.neutral.50}" title="References color.neutral.50">→ {color.neutral.50}</div>
+              <div class="docs-token-value" data-copy="#fafafa">
+                #fafafa
+              </div>
+              <div class="docs-token-variable" data-copy="--fg-primary-default">--fg-primary-default</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #404040"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.hover</div>
+              <div class="docs-token-reference" data-copy="{color.neutral.700}" title="References color.neutral.700">→ {color.neutral.700}</div>
+              <div class="docs-token-value" data-copy="#404040">
+                #404040
+              </div>
+              <div class="docs-token-variable" data-copy="--fg-primary-hover">--fg-primary-hover</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.hover</div>
+              <div class="docs-token-reference" data-copy="{color.neutral.200}" title="References color.neutral.200">→ {color.neutral.200}</div>
+              <div class="docs-token-value" data-copy="#e5e5e5">
+                #e5e5e5
+              </div>
+              <div class="docs-token-variable" data-copy="--fg-primary-hover">--fg-primary-hover</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #737373"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">secondary.default</div>
+              <div class="docs-token-reference" data-copy="{color.neutral.500}" title="References color.neutral.500">→ {color.neutral.500}</div>
+              <div class="docs-token-value" data-copy="#737373">
+                #737373
+              </div>
+              <div class="docs-token-variable" data-copy="--fg-secondary-default">--fg-secondary-default</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">secondary.default</div>
+              <div class="docs-token-reference" data-copy="{color.neutral.300}" title="References color.neutral.300">→ {color.neutral.300}</div>
+              <div class="docs-token-value" data-copy="#d4d4d4">
+                #d4d4d4
+              </div>
+              <div class="docs-token-variable" data-copy="--fg-secondary-default">--fg-secondary-default</div>
+            </div>
+          </div>
       </div>
-      
+      <p style="margin-top: var(--docs-space-md); color: var(--docs-text-muted);">+ 24 more tokens. <a href="theme.html">View all →</a></p>
     </section>
     
   
       
       <footer class="docs-footer">
         <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
-        <span>Last updated: Dec 15, 2025, 11:38 AM</span>
+        <span>Last updated: Dec 16, 2025, 02:27 PM</span>
+        
+        <span>Output mode: JSON</span>
+        <span>CSS transforms enabled</span>
+        
       </footer>
     </main>
   </div>

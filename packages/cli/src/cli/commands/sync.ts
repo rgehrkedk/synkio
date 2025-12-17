@@ -1,6 +1,6 @@
 import { mkdir, writeFile, readdir, unlink } from 'fs/promises';
 import { resolve, join } from 'path';
-import { loadConfig } from '../../core/config.js';
+import { loadConfig, updateConfigWithCollectionRenames } from '../../core/config.js';
 import { FigmaClient } from '../../core/figma.js';
 import { splitTokens, SplitTokensOptions, normalizePluginData } from '../../core/tokens.js';
 import { createLogger } from '../../utils/logger.js';
@@ -31,7 +31,7 @@ export async function syncCommand(options: SyncOptions = {}) {
   try {
     // 1. Load config
     spinner.text = 'Loading configuration...';
-    const config = loadConfig(options.config);
+    let config = loadConfig(options.config);
     logger.debug('Config loaded', config);
 
     // Handle --regenerate: skip Figma fetch, use existing baseline
@@ -164,9 +164,11 @@ export async function syncCommand(options: SyncOptions = {}) {
 
     // 5. Compare if we have a local baseline
     let hasBaselineChanges = false;
+    let collectionRenames: { oldCollection: string; newCollection: string; modeMapping: { oldMode: string; newMode: string }[] }[] = [];
     if (localBaseline) {
       spinner.text = 'Comparing with local tokens...';
       const result = compareBaselines(localBaseline, newBaseline);
+      collectionRenames = result.collectionRenames;
       const counts = getChangeCounts(result);
       
       // No changes from Figma - but still regenerate files (config may have changed)
@@ -202,17 +204,24 @@ export async function syncCommand(options: SyncOptions = {}) {
           }
         }
         
+        if (result.collectionRenames.length > 0) {
+          console.log(chalk.red(`  Collection renames: ${result.collectionRenames.length}`));
+          result.collectionRenames.forEach(rename => {
+            console.log(chalk.dim(`    ${rename.oldCollection} → ${rename.newCollection}`));
+          });
+        }
+
         if (result.modeRenames.length > 0) {
           console.log(chalk.red(`  Mode renames: ${result.modeRenames.length}`));
           result.modeRenames.forEach(rename => {
             console.log(chalk.dim(`    ${rename.collection}: ${rename.oldMode} → ${rename.newMode}`));
           });
         }
-        
-        if (result.newModeNames.length > 0) {
-          console.log(chalk.red(`  New modes: ${result.newModeNames.join(', ')}`));
+
+        if (result.newModes.length > 0) {
+          console.log(chalk.red(`  New modes: ${result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ')}`));
         }
-        
+
         if (result.deletedVariables.length > 0) {
           console.log(chalk.red(`  Deleted variables: ${result.deletedVariables.length}`));
           result.deletedVariables.slice(0, 5).forEach(v => {
@@ -222,9 +231,9 @@ export async function syncCommand(options: SyncOptions = {}) {
             console.log(chalk.dim(`    ... and ${result.deletedVariables.length - 5} more`));
           }
         }
-        
-        if (result.deletedModeNames.length > 0) {
-          console.log(chalk.red(`  Deleted modes: ${result.deletedModeNames.join(', ')}`));
+
+        if (result.deletedModes.length > 0) {
+          console.log(chalk.red(`  Deleted modes: ${result.deletedModes.map(m => `${m.collection}:${m.mode}`).join(', ')}`));
         }
 
         console.log(chalk.yellow('\n  These changes may break your code.\n'));
@@ -261,8 +270,8 @@ export async function syncCommand(options: SyncOptions = {}) {
       }
       
       // Show new modes
-      if (result.newModeNames.length > 0) {
-        console.log(chalk.green(`  New modes: ${result.newModeNames.join(', ')}`));
+      if (result.newModes.length > 0) {
+        console.log(chalk.green(`  New modes: ${result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ')}`));
       }
       
       console.log('');
@@ -273,6 +282,21 @@ export async function syncCommand(options: SyncOptions = {}) {
     // 6. Write baseline
     spinner.start('Writing baseline...');
     await writeBaseline(newBaseline);
+
+    // 6.5. Update config with collection renames (if any)
+    if (collectionRenames.length > 0) {
+      spinner.text = 'Updating config with collection renames...';
+      const configUpdateResult = updateConfigWithCollectionRenames(collectionRenames, options.config);
+      if (configUpdateResult.updated) {
+        // Reload config with updated collection names
+        config = loadConfig(options.config);
+        console.log(chalk.cyan(`\n  Updated ${options.config || 'tokensrc.json'} with collection renames:`));
+        configUpdateResult.renames.forEach(r => {
+          console.log(chalk.dim(`    ${r.old} → ${r.new}`));
+        });
+        console.log('');
+      }
+    }
 
     // 7. Split tokens into files
     spinner.text = 'Processing tokens...';

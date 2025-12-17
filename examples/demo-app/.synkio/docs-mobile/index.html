@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-mode="value" data-platform="ios-swift">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Tokens (Mobile Platforms) - Synkio Docs</title>
+  <link rel="stylesheet" href="assets/tokens.css">
+  <link rel="stylesheet" href="assets/utilities.css">
+  <link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+  <div class="docs-layout">
+    <!-- Sidebar -->
+    <aside class="docs-sidebar">
+      <a href="index.html" class="docs-logo">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="#6366f1"/>
+          <path d="M8 16L14 22L24 10" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Design Tokens (Mobile Platforms)
+      </a>
+
+      <nav class="docs-nav">
+        <a href="index.html" class="active">
+          Overview
+        </a>
+
+        <div class="docs-nav-section">Collections</div>
+        
+        <a href="primitives.html" class="">
+          Primitives
+          <span class="docs-nav-count">12</span>
+        </a>
+        
+        <a href="colors.html" class="">
+          Colors
+          <span class="docs-nav-count">27</span>
+        </a>
+        
+        <a href="font.html" class="">
+          Font
+          <span class="docs-nav-count">16</span>
+        </a>
+        
+        <a href="theme.html" class="">
+          Theme
+          <span class="docs-nav-count">34</span>
+        </a>
+        
+
+        <a href="all-tokens.html" class="">
+          All Tokens
+        </a>
+
+        <div class="docs-nav-section">Resources</div>
+        <a href="tokens.json" target="_blank">
+          tokens.json ↗
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="docs-main">
+      <header class="docs-header">
+        <div>
+          <h1 class="docs-title">Overview</h1>
+          <p class="docs-subtitle">Last synced: Dec 17, 2025, 12:39 AM</p>
+        </div>
+
+        <div class="docs-controls">
+          <input type="text" class="docs-search" placeholder="Search tokens..." id="searchInput">
+
+          
+          <div class="docs-platform-switcher">
+            <label for="platformSelect" style="font-size: 12px; color: var(--docs-text-muted); margin-right: 8px;">Platform:</label>
+            <select id="platformSelect" class="docs-platform-select">
+              
+                <option value="ios-swift" selected>
+                  IOS-SWIFT
+                </option>
+              
+                <option value="android" >
+                  ANDROID
+                </option>
+              
+                <option value="compose" >
+                  COMPOSE
+                </option>
+              
+                <option value="flutter" >
+                  FLUTTER
+                </option>
+              
+            </select>
+          </div>
+          
+
+          
+          <div class="docs-mode-switcher">
+            
+              <button class="docs-mode-btn active" data-mode="value">
+                Value
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="default">
+                Default
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="light">
+                Light
+              </button>
+            
+              <button class="docs-mode-btn " data-mode="dark">
+                Dark
+              </button>
+            
+          </div>
+          
+
+          <button class="docs-theme-toggle" id="themeToggle" title="Toggle theme">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      
+    
+    <!-- Output Info -->
+    <div class="docs-section" style="background: var(--docs-bg-elevated); border: 1px solid var(--docs-border); border-radius: 8px; padding: var(--docs-space-lg); margin-bottom: var(--docs-space-xl);">
+      <h3 style="margin-top: 0; margin-bottom: var(--docs-space-md);">Output Configuration</h3>
+      <div style="display: grid; gap: var(--docs-space-sm); font-size: 14px;">
+        <div><strong>Mode:</strong> Style Dictionary</div>
+        <div><strong>CSS Variable Format:</strong> <code>--color-primary-500</code></div>
+        <div><strong>Prefix:</strong> <code>--</code></div>
+        <div><strong>Platforms:</strong> ios-swift, android, compose, flutter</div>
+        
+      </div>
+    </div>
+    
+
+    <!-- Stats -->
+    <div class="docs-stats">
+      <div class="docs-stat-card">
+        <div class="docs-stat-value">89</div>
+        <div class="docs-stat-label">Total Tokens</div>
+      </div>
+      
+        <div class="docs-stat-card docs-stat-card--clickable" onclick="window.location='primitives.html'">
+          <div class="docs-stat-value">12</div>
+          <div class="docs-stat-label">Primitives</div>
+        </div>
+      
+        <div class="docs-stat-card docs-stat-card--clickable" onclick="window.location='colors.html'">
+          <div class="docs-stat-value">27</div>
+          <div class="docs-stat-label">Colors</div>
+        </div>
+      
+        <div class="docs-stat-card docs-stat-card--clickable" onclick="window.location='font.html'">
+          <div class="docs-stat-value">16</div>
+          <div class="docs-stat-label">Font</div>
+        </div>
+      
+        <div class="docs-stat-card docs-stat-card--clickable" onclick="window.location='theme.html'">
+          <div class="docs-stat-value">34</div>
+          <div class="docs-stat-label">Theme</div>
+        </div>
+      
+      <div class="docs-stat-card">
+        <div class="docs-stat-value">4</div>
+        <div class="docs-stat-label">Modes</div>
+      </div>
+    </div>
+    
+    <!-- Collection previews -->
+    
+    <section class="docs-section">
+      <div class="docs-section-header">
+        <h2 class="docs-section-title">Primitives</h2>
+        <span class="docs-section-count">12 tokens</span>
+      </div>
+      <div class="docs-token-grid">
+        
+          <div class="docs-token-card" data-token="default.spacing.xs">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">spacing.xs</div>
+              
+              <div class="docs-token-value" data-copy="4">
+                4
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingXs" style="">defaultSpacingXs</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="default_spacing_xs" style="display: none;">default_spacing_xs</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingXs" style="display: none;">defaultSpacingXs</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingXs" style="display: none;">defaultSpacingXs</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="default.spacing.sm">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">spacing.sm</div>
+              
+              <div class="docs-token-value" data-copy="8">
+                8
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingSm" style="">defaultSpacingSm</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="default_spacing_sm" style="display: none;">default_spacing_sm</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingSm" style="display: none;">defaultSpacingSm</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingSm" style="display: none;">defaultSpacingSm</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="default.spacing.md">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">spacing.md</div>
+              
+              <div class="docs-token-value" data-copy="16">
+                16
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingMd" style="">defaultSpacingMd</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="default_spacing_md" style="display: none;">default_spacing_md</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingMd" style="display: none;">defaultSpacingMd</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingMd" style="display: none;">defaultSpacingMd</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="default.spacing.lg">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">spacing.lg</div>
+              
+              <div class="docs-token-value" data-copy="24">
+                24
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingLg" style="">defaultSpacingLg</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="default_spacing_lg" style="display: none;">default_spacing_lg</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingLg" style="display: none;">defaultSpacingLg</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingLg" style="display: none;">defaultSpacingLg</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="default.spacing.xl">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">spacing.xl</div>
+              
+              <div class="docs-token-value" data-copy="32">
+                32
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacingXl" style="">defaultSpacingXl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="default_spacing_xl" style="display: none;">default_spacing_xl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacingXl" style="display: none;">defaultSpacingXl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacingXl" style="display: none;">defaultSpacingXl</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="default.spacing.2xl">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">spacing.2xl</div>
+              
+              <div class="docs-token-value" data-copy="48">
+                48
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="defaultSpacing2xl" style="">defaultSpacing2xl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="default_spacing_2xl" style="display: none;">default_spacing_2xl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="defaultSpacing2xl" style="display: none;">defaultSpacing2xl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="defaultSpacing2xl" style="display: none;">defaultSpacing2xl</div>
+            </div>
+          </div>
+      </div>
+      <p style="margin-top: var(--docs-space-md); color: var(--docs-text-muted);">+ 6 more tokens. <a href="primitives.html">View all →</a></p>
+    </section>
+    
+    <section class="docs-section">
+      <div class="docs-section-header">
+        <h2 class="docs-section-title">Colors</h2>
+        <span class="docs-section-count">27 tokens</span>
+      </div>
+      <div class="docs-token-grid">
+        
+          <div class="docs-token-card" data-token="primary.50">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #eef2ff"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.50</div>
+              
+              <div class="docs-token-value" data-copy="#eef2ff">
+                #eef2ff
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary50" style="">primary50</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_50" style="display: none;">primary_50</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary50" style="display: none;">primary50</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary50" style="display: none;">primary50</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.100">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #e0e7ff"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.100</div>
+              
+              <div class="docs-token-value" data-copy="#e0e7ff">
+                #e0e7ff
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary100" style="">primary100</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_100" style="display: none;">primary_100</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary100" style="display: none;">primary100</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary100" style="display: none;">primary100</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.200">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #c7d2fe"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.200</div>
+              
+              <div class="docs-token-value" data-copy="#c7d2fe">
+                #c7d2fe
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary200" style="">primary200</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_200" style="display: none;">primary_200</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary200" style="display: none;">primary200</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary200" style="display: none;">primary200</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.300">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #a5b4fc"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.300</div>
+              
+              <div class="docs-token-value" data-copy="#a5b4fc">
+                #a5b4fc
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary300" style="">primary300</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_300" style="display: none;">primary_300</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary300" style="display: none;">primary300</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary300" style="display: none;">primary300</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.400">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #818cf8"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.400</div>
+              
+              <div class="docs-token-value" data-copy="#818cf8">
+                #818cf8
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary400" style="">primary400</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_400" style="display: none;">primary_400</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary400" style="display: none;">primary400</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary400" style="display: none;">primary400</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.500">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #6366f1"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.500</div>
+              
+              <div class="docs-token-value" data-copy="#6366f1">
+                #6366f1
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary500" style="">primary500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_500" style="display: none;">primary_500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary500" style="display: none;">primary500</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary500" style="display: none;">primary500</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.600">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #4f46e5"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.600</div>
+              
+              <div class="docs-token-value" data-copy="#4f46e5">
+                #4f46e5
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary600" style="">primary600</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_600" style="display: none;">primary_600</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary600" style="display: none;">primary600</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary600" style="display: none;">primary600</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.700">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #4338ca"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.700</div>
+              
+              <div class="docs-token-value" data-copy="#4338ca">
+                #4338ca
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary700" style="">primary700</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_700" style="display: none;">primary_700</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary700" style="display: none;">primary700</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary700" style="display: none;">primary700</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.800">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #3730a3"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.800</div>
+              
+              <div class="docs-token-value" data-copy="#3730a3">
+                #3730a3
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary800" style="">primary800</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_800" style="display: none;">primary_800</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary800" style="display: none;">primary800</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary800" style="display: none;">primary800</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="primary.900">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #312e81"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.900</div>
+              
+              <div class="docs-token-value" data-copy="#312e81">
+                #312e81
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="primary900" style="">primary900</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="primary_900" style="display: none;">primary_900</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="primary900" style="display: none;">primary900</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="primary900" style="display: none;">primary900</div>
+            </div>
+          </div>
+      </div>
+      <p style="margin-top: var(--docs-space-md); color: var(--docs-text-muted);">+ 17 more tokens. <a href="colors.html">View all →</a></p>
+    </section>
+    
+    <section class="docs-section">
+      <div class="docs-section-header">
+        <h2 class="docs-section-title">Font</h2>
+        <span class="docs-section-count">16 tokens</span>
+      </div>
+      <div class="docs-token-grid">
+        
+          <div class="docs-token-card" data-token="size.xs">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">size.xs</div>
+              
+              <div class="docs-token-value" data-copy="10">
+                10
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeXs" style="">sizeXs</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="size_xs" style="display: none;">size_xs</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="sizeXs" style="display: none;">sizeXs</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="sizeXs" style="display: none;">sizeXs</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="size.sm">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">size.sm</div>
+              
+              <div class="docs-token-value" data-copy="14">
+                14
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeSm" style="">sizeSm</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="size_sm" style="display: none;">size_sm</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="sizeSm" style="display: none;">sizeSm</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="sizeSm" style="display: none;">sizeSm</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="size.base">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">size.base</div>
+              
+              <div class="docs-token-value" data-copy="16">
+                16
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeBase" style="">sizeBase</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="size_base" style="display: none;">size_base</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="sizeBase" style="display: none;">sizeBase</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="sizeBase" style="display: none;">sizeBase</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="size.lg">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">size.lg</div>
+              
+              <div class="docs-token-value" data-copy="18">
+                18
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeLg" style="">sizeLg</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="size_lg" style="display: none;">size_lg</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="sizeLg" style="display: none;">sizeLg</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="sizeLg" style="display: none;">sizeLg</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="size.xl">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">size.xl</div>
+              
+              <div class="docs-token-value" data-copy="20">
+                20
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="sizeXl" style="">sizeXl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="size_xl" style="display: none;">size_xl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="sizeXl" style="display: none;">sizeXl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="sizeXl" style="display: none;">sizeXl</div>
+            </div>
+          </div>
+          <div class="docs-token-card" data-token="size.2xl">
+            <div class="docs-token-info" style="padding-top: var(--docs-space-lg);">
+              <div class="docs-token-name">size.2xl</div>
+              
+              <div class="docs-token-value" data-copy="24">
+                24
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="size2xl" style="">size2xl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="size_2xl" style="display: none;">size_2xl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="size2xl" style="display: none;">size2xl</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="size2xl" style="display: none;">size2xl</div>
+            </div>
+          </div>
+      </div>
+      <p style="margin-top: var(--docs-space-md); color: var(--docs-text-muted);">+ 10 more tokens. <a href="font.html">View all →</a></p>
+    </section>
+    
+    <section class="docs-section">
+      <div class="docs-section-header">
+        <h2 class="docs-section-title">Theme</h2>
+        <span class="docs-section-count">34 tokens</span>
+      </div>
+      <div class="docs-token-grid">
+        
+          <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #fafafa"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.default</div>
+              <div class="docs-token-reference" data-copy="{neutral.50}" title="References neutral.50">→ {neutral.50}</div>
+              <div class="docs-token-value" data-copy="#fafafa">
+                #fafafa
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #171717"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.default</div>
+              <div class="docs-token-reference" data-copy="{neutral.900}" title="References neutral.900">→ {neutral.900}</div>
+              <div class="docs-token-value" data-copy="#171717">
+                #171717
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryDefault" style="">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_default" style="display: none;">bg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryDefault" style="display: none;">bgPrimaryDefault</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #f5f5f5"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.hover</div>
+              <div class="docs-token-reference" data-copy="{neutral.100}" title="References neutral.100">→ {neutral.100}</div>
+              <div class="docs-token-value" data-copy="#f5f5f5">
+                #f5f5f5
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="bg.primary.hover">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #262626"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.hover</div>
+              <div class="docs-token-reference" data-copy="{neutral.800}" title="References neutral.800">→ {neutral.800}</div>
+              <div class="docs-token-value" data-copy="#262626">
+                #262626
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="bgPrimaryHover" style="">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="bg_primary_hover" style="display: none;">bg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="bgPrimaryHover" style="display: none;">bgPrimaryHover</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #171717"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.default</div>
+              <div class="docs-token-reference" data-copy="{neutral.900}" title="References neutral.900">→ {neutral.900}</div>
+              <div class="docs-token-value" data-copy="#171717">
+                #171717
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #fafafa"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.default</div>
+              <div class="docs-token-reference" data-copy="{neutral.50}" title="References neutral.50">→ {neutral.50}</div>
+              <div class="docs-token-value" data-copy="#fafafa">
+                #fafafa
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryDefault" style="">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_default" style="display: none;">fg_primary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryDefault" style="display: none;">fgPrimaryDefault</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #404040"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.hover</div>
+              <div class="docs-token-reference" data-copy="{neutral.700}" title="References neutral.700">→ {neutral.700}</div>
+              <div class="docs-token-value" data-copy="#404040">
+                #404040
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.primary.hover">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #e5e5e5"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">primary.hover</div>
+              <div class="docs-token-reference" data-copy="{neutral.200}" title="References neutral.200">→ {neutral.200}</div>
+              <div class="docs-token-value" data-copy="#e5e5e5">
+                #e5e5e5
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgPrimaryHover" style="">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_primary_hover" style="display: none;">fg_primary_hover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgPrimaryHover" style="display: none;">fgPrimaryHover</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #737373"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">secondary.default</div>
+              <div class="docs-token-reference" data-copy="{neutral.500}" title="References neutral.500">→ {neutral.500}</div>
+              <div class="docs-token-value" data-copy="#737373">
+                #737373
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div>
+            </div>
+          </div>
+          <div class="docs-token-card docs-token-card--reference" data-token="fg.secondary.default">
+            <div class="docs-color-preview">
+              <div class="docs-color-preview-inner" style="background: #d4d4d4"></div>
+            </div>
+            <div class="docs-token-info">
+              <div class="docs-token-name">secondary.default</div>
+              <div class="docs-token-reference" data-copy="{neutral.300}" title="References neutral.300">→ {neutral.300}</div>
+              <div class="docs-token-value" data-copy="#d4d4d4">
+                #d4d4d4
+              </div>
+              <div class="docs-token-variable docs-token-variable--platform" data-platform="ios-swift" data-copy="fgSecondaryDefault" style="">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="android" data-copy="fg_secondary_default" style="display: none;">fg_secondary_default</div><div class="docs-token-variable docs-token-variable--platform" data-platform="compose" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div><div class="docs-token-variable docs-token-variable--platform" data-platform="flutter" data-copy="fgSecondaryDefault" style="display: none;">fgSecondaryDefault</div>
+            </div>
+          </div>
+      </div>
+      <p style="margin-top: var(--docs-space-md); color: var(--docs-text-muted);">+ 24 more tokens. <a href="theme.html">View all →</a></p>
+    </section>
+    
+  
+
+      <footer class="docs-footer">
+        <span>Generated by <a href="https://github.com/rgehrkedk/synkio" target="_blank">Synkio</a></span>
+        <span>Last updated: Dec 17, 2025, 12:39 AM</span>
+        
+        <span>Output mode: Style Dictionary</span>
+        
+        
+      </footer>
+    </main>
+  </div>
+
+  <button class="docs-mobile-toggle" id="mobileToggle">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <div class="docs-copied" id="copiedToast">Copied to clipboard!</div>
+
+  <script src="assets/preview.js"></script>
+</body>
+</html>

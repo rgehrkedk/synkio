@@ -64,12 +64,24 @@ export interface ModeRename {
   newMode: string;
 }
 
+export interface ModeChange {
+  collection: string;
+  mode: string;
+}
+
+export interface CollectionRename {
+  oldCollection: string;
+  newCollection: string;
+  modeMapping: { oldMode: string; newMode: string }[];
+}
+
 export interface ComparisonResult {
   valueChanges: ValueChange[];
   pathChanges: PathChange[];
+  collectionRenames: CollectionRename[];
   modeRenames: ModeRename[];
-  newModeNames: string[];
-  deletedModeNames: string[];
+  newModes: ModeChange[];
+  deletedModes: ModeChange[];
   newVariables: NewVariable[];
   deletedVariables: DeletedVariable[];
 }

@@ -13,6 +13,7 @@ export interface DocsOptions {
   title?: string;       // Documentation title
   open?: boolean;       // Open in browser after generating
   watch?: boolean;      // Watch for changes and regenerate
+  config?: string;      // Config file path (default: 'tokensrc.json')
 }
 
 export async function docsCommand(options: DocsOptions = {}) {
@@ -22,7 +23,7 @@ export async function docsCommand(options: DocsOptions = {}) {
   try {
     // 1. Load config
     spinner.text = 'Loading configuration...';
-    const config = loadConfig();
+    const config = loadConfig(options.config);
     
     // 2. Read baseline data
     spinner.text = 'Reading token data...';
@@ -33,14 +34,14 @@ export async function docsCommand(options: DocsOptions = {}) {
       process.exit(1);
     }
 
-    // 3. Determine output directory
-    const outputDir = resolve(process.cwd(), options.output || '.synkio/docs');
+    // 3. Determine output directory (use CLI option > config.docs.dir > default)
+    const outputDir = resolve(process.cwd(), options.output || config.docs?.dir || '.synkio/docs');
     
     // 4. Generate documentation
     spinner.text = 'Building documentation...';
     const result = await generateDocs(baseline, {
       outputDir,
-      title: options.title || 'Design Tokens',
+      title: options.title || config.docs?.title || 'Design Tokens',
       config,
     });
 

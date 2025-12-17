@@ -12,6 +12,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join, dirname } from 'path';
 import { BaselineData, BaselineEntry } from '../../types/index.js';
 import { mapToDTCGType } from '../tokens.js';
+import { convertToIntermediateFormat } from '../intermediate-tokens.js';
 
 // Type definitions for Style Dictionary (to avoid requiring the package at parse time)
 interface SDFile {
@@ -73,6 +74,8 @@ export interface StyleDictionaryBuildOptions {
     /** Prefix for all token names */
     prefix?: string;
   };
+  /** Config object (optional, for intermediate format metadata) */
+  config?: any;
 }
 
 export interface StyleDictionaryBuildResult {
@@ -204,7 +207,10 @@ export async function buildWithStyleDictionary(
   
   // Write DTCG tokens as Style Dictionary source
   const tokensPath = join(outputDir, '.tokens-source.json');
-  const dtcgTokens = convertToDTCG(baseline);
+  // Use shared conversion if config is provided, otherwise fall back to local function
+  const dtcgTokens = options.config
+    ? convertToIntermediateFormat(baseline, options.config)
+    : convertToDTCG(baseline);
   await writeFile(tokensPath, JSON.stringify(dtcgTokens, null, 2), 'utf-8');
   
   // Try to load Style Dictionary

@@ -6,11 +6,12 @@ import { parseTokens, ParsedTokens } from './docs/index.js';
 import { generateTokensCSS, generateUtilitiesCSS } from './css/index.js';
 import type { CSSTransformOptions } from './css/index.js';
 import { generateDocs } from './docs/index.js';
-import { 
-  buildWithStyleDictionary, 
+import {
+  buildWithStyleDictionary,
   StyleDictionaryNotInstalledError,
   isStyleDictionaryAvailable
 } from './style-dictionary/index.js';
+import { writeIntermediateFormat } from './intermediate-tokens.js';
 
 /**
  * Result of a transform generation
@@ -148,9 +149,12 @@ export async function generateDocsFromBaseline(
 
 /**
  * Generate all enabled output formats from baseline
- * 
+ *
  * For simple use cases, use mode: "css" (zero-dependency)
  * For advanced needs (SCSS, JS, TS, etc.), use mode: "style-dictionary"
+ *
+ * IMPORTANT: Always generates .tokens-source.json in the output directory
+ * for use by the docs generator and other tools.
  */
 export async function generateAllFromBaseline(
   baseline: BaselineData,
@@ -159,13 +163,19 @@ export async function generateAllFromBaseline(
   css: TransformResult;
   docs: TransformResult;
   styleDictionary?: TransformResult;
+  intermediateFormat?: string;
 }> {
+  // Generate intermediate format for ALL modes (not just SD)
+  // This provides clean DTCG tokens with metadata for docs
+  const outputDir = resolve(process.cwd(), config.output.dir);
+  const intermediateFormatPath = await writeIntermediateFormat(baseline, config, outputDir);
+
   const [css, docs] = await Promise.all([
     generateCssFromBaseline(baseline, config),
     generateDocsFromBaseline(baseline, config),
   ]);
-  
-  return { css, docs };
+
+  return { css, docs, intermediateFormat: intermediateFormatPath };
 }
 
 /**
@@ -201,7 +211,8 @@ export async function generateWithStyleDictionary(
       options: {
         outputReferences: sdConfig?.outputReferences ?? true,
         prefix: sdConfig?.prefix,
-      }
+      },
+      config, // Pass config for intermediate format generation
     });
     
     return {
