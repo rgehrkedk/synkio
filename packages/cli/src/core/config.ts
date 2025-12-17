@@ -1,7 +1,13 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { z } from 'zod';
 import type { CollectionRename } from '../types/index.js';
+
+/** Config file names in priority order (first found wins) */
+export const CONFIG_FILES = ['synkio.config.json', 'tokensrc.json'] as const;
+
+/** Default config file name for new projects */
+export const DEFAULT_CONFIG_FILE = 'synkio.config.json';
 
 const FigmaConfigSchema = z.object({
   fileId: z.string(),
@@ -113,14 +119,65 @@ export const ConfigSchema = z.object({
 
 export type Config = z.infer<typeof ConfigSchema>;
 
-// A simple config loader
-export function loadConfig(filePath: string = 'tokensrc.json'): Config {
-  const fullPath = resolve(process.cwd(), filePath);
+/**
+ * Find config file in current directory
+ * Returns the path and whether it's using a deprecated filename
+ */
+export function findConfigFile(explicitPath?: string): { path: string; isDeprecated: boolean } | null {
+  if (explicitPath) {
+    const fullPath = resolve(process.cwd(), explicitPath);
+    if (existsSync(fullPath)) {
+      return { path: fullPath, isDeprecated: false };
+    }
+    return null;
+  }
+
+  // Auto-discover config file
+  for (const filename of CONFIG_FILES) {
+    const fullPath = resolve(process.cwd(), filename);
+    if (existsSync(fullPath)) {
+      const isDeprecated = filename === 'tokensrc.json';
+      return { path: fullPath, isDeprecated };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Load and validate config from file
+ * @param explicitPath - Optional explicit path to config file
+ * @returns Parsed and validated config
+ */
+export function loadConfig(explicitPath?: string): Config {
+  const found = findConfigFile(explicitPath);
+
+  if (!found) {
+    if (explicitPath) {
+      throw new Error(`Config file not found at ${resolve(process.cwd(), explicitPath)}`);
+    }
+    throw new Error(
+      `No config file found. Looked for:\n` +
+      CONFIG_FILES.map(f => `  - ${f}`).join('\n') +
+      `\n\nRun 'synkio init' to create a config file.`
+    );
+  }
+
+  const { path: fullPath, isDeprecated } = found;
+
+  // Warn about deprecated filename
+  if (isDeprecated) {
+    console.warn(
+      `\n⚠️  Warning: 'tokensrc.json' is deprecated.\n` +
+      `   Rename to 'synkio.config.json' for future compatibility.\n`
+    );
+  }
+
   let content: string;
   try {
     content = readFileSync(fullPath, 'utf-8');
   } catch (error) {
-    throw new Error(`Config file not found at ${fullPath}`);
+    throw new Error(`Could not read config file at ${fullPath}`);
   }
 
   let json: any;
@@ -129,13 +186,16 @@ export function loadConfig(filePath: string = 'tokensrc.json'): Config {
   } catch (error) {
     throw new Error(`Could not parse JSON in ${fullPath}`);
   }
-  
+
   // Replace env var placeholder
   if (json.figma?.accessToken === '${FIGMA_TOKEN}') {
     if (process.env.FIGMA_TOKEN) {
       json.figma.accessToken = process.env.FIGMA_TOKEN;
     } else {
-      throw new Error('FIGMA_TOKEN environment variable is not set, but is required by tokensrc.json.');
+      throw new Error(
+        `FIGMA_TOKEN environment variable is not set.\n` +
+        `Set it in your .env file or environment, or replace \${FIGMA_TOKEN} in ${fullPath}.`
+      );
     }
   }
 
@@ -150,18 +210,23 @@ export function loadConfig(filePath: string = 'tokensrc.json'): Config {
 }
 
 /**
- * Update tokensrc.json with collection renames
+ * Update config file with collection renames
  * This preserves comments and formatting as much as possible by doing targeted replacements
  */
 export function updateConfigWithCollectionRenames(
   collectionRenames: CollectionRename[],
-  filePath: string = 'tokensrc.json'
-): { updated: boolean; renames: { old: string; new: string }[] } {
+  explicitPath?: string
+): { updated: boolean; renames: { old: string; new: string }[]; configPath?: string } {
   if (collectionRenames.length === 0) {
     return { updated: false, renames: [] };
   }
 
-  const fullPath = resolve(process.cwd(), filePath);
+  const found = findConfigFile(explicitPath);
+  if (!found) {
+    return { updated: false, renames: [] };
+  }
+
+  const fullPath = found.path;
   let content: string;
 
   try {
@@ -218,7 +283,7 @@ export function updateConfigWithCollectionRenames(
   // Write updated config back
   try {
     writeFileSync(fullPath, JSON.stringify(json, null, 2) + '\n', 'utf-8');
-    return { updated: true, renames: appliedRenames };
+    return { updated: true, renames: appliedRenames, configPath: fullPath };
   } catch {
     return { updated: false, renames: appliedRenames };
   }

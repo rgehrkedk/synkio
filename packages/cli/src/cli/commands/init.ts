@@ -1,6 +1,7 @@
 import { writeFile, readFile, access } from 'fs/promises';
 import { resolve } from 'path';
 import { detectProject } from '../../core/detect.js';
+import { DEFAULT_CONFIG_FILE } from '../../core/config.js';
 import { prompt } from '../utils.js';
 import { FigmaClient } from '../../core/figma.js';
 import { createLogger } from '../../utils/logger.js';
@@ -127,7 +128,7 @@ export async function initCommand(options: InitOptions = {}) {
         docsTitle = await prompt('? Documentation title?', 'Design Tokens');
     }
 
-    // Create minimal tokensrc.json - no nodeId needed (defaults to document root)
+    // Create config file - no nodeId needed (defaults to document root)
     const config: any = {
         version: '1.0.0',
         figma: {
@@ -150,14 +151,14 @@ export async function initCommand(options: InitOptions = {}) {
             title: docsTitle
         }
     };
-    
+
     if (options.baseUrl) {
         config.figma.baseUrl = options.baseUrl;
     }
 
-    const configPath = resolve(process.cwd(), 'tokensrc.json');
+    const configPath = resolve(process.cwd(), DEFAULT_CONFIG_FILE);
     await writeFile(configPath, JSON.stringify(config, null, 2));
-    console.log(chalk.green('✓ Created tokensrc.json'));
+    console.log(chalk.green(`✓ Created ${DEFAULT_CONFIG_FILE}`));
 
     // Handle token storage if provided via CLI
     if (options.token) {

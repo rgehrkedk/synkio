@@ -1,4 +1,4 @@
-import { loadConfig } from '../../core/config.js';
+import { loadConfig, findConfigFile } from '../../core/config.js';
 import { FigmaClient } from '../../core/figma.js';
 import { createLogger } from '../../utils/logger.js';
 import chalk from 'chalk';
@@ -9,10 +9,12 @@ export async function validateCommand() {
   const spinner = ora('Validating configuration and Figma connection...').start();
 
   try {
-    // 1. Validate and load config
-    spinner.text = 'Validating tokensrc.json...';
+    // 1. Find and validate config
+    const found = findConfigFile();
+    const configFileName = found?.path.split('/').pop() || 'config';
+    spinner.text = `Validating ${configFileName}...`;
     const config = loadConfig();
-    spinner.succeed('tokensrc.json is valid.');
+    spinner.succeed(`${configFileName} is valid.`);
 
     // 2. Validate Figma connection
     spinner.start('Connecting to Figma...');

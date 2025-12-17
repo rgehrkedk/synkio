@@ -21,7 +21,7 @@ export interface SyncOptions {
   interval?: number;    // Watch interval in seconds (default 30)
   collection?: string;  // Sync only specific collection(s), comma-separated
   regenerate?: boolean; // Regenerate files from existing baseline (no Figma fetch)
-  config?: string;      // Path to config file (default: tokensrc.json)
+  config?: string;      // Path to config file (auto-discovered if not specified)
 }
 
 export async function syncCommand(options: SyncOptions = {}) {
@@ -287,10 +287,11 @@ export async function syncCommand(options: SyncOptions = {}) {
     if (collectionRenames.length > 0) {
       spinner.text = 'Updating config with collection renames...';
       const configUpdateResult = updateConfigWithCollectionRenames(collectionRenames, options.config);
-      if (configUpdateResult.updated) {
+      if (configUpdateResult.updated && configUpdateResult.configPath) {
         // Reload config with updated collection names
         config = loadConfig(options.config);
-        console.log(chalk.cyan(`\n  Updated ${options.config || 'tokensrc.json'} with collection renames:`));
+        const configFileName = configUpdateResult.configPath.split('/').pop();
+        console.log(chalk.cyan(`\n  Updated ${configFileName} with collection renames:`));
         configUpdateResult.renames.forEach(r => {
           console.log(chalk.dim(`    ${r.old} → ${r.new}`));
         });

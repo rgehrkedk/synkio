@@ -36,7 +36,7 @@ npx synkio init
 ```
 
 This creates:
-- `tokensrc.json` - Configuration file with your Figma file ID
+- `synkio.config.json` - Configuration file with your Figma file ID
 - `.env` - Contains your `FIGMA_TOKEN` (must be in project root)
 
 The `.env` file is automatically added to your `.gitignore` to keep your token secure.
@@ -100,7 +100,9 @@ Use `npx synkio sync --preview` to see a full report of changes without writing 
 
 ## Configuration
 
-Synkio is configured via `tokensrc.json`:
+Synkio is configured via `synkio.config.json`:
+
+> **Note:** Legacy `tokensrc.json` files are still supported but deprecated. You'll see a warning when using the old filename.
 
 ```json
 {
