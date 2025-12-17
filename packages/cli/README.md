@@ -73,6 +73,7 @@ Your tokens are now in your project! 🎉
 
 | Command | Description |
 |---------|-------------|
+| `synkio --version` | Show CLI version |
 | `synkio init` | Initialize project with Figma credentials |
 | `synkio sync` | Fetch tokens from Figma |
 | `synkio sync --preview` | Preview changes without applying |

@@ -63,8 +63,10 @@ The CLI will ask for:
 - **Output directory** — Where token files will be saved (e.g., `tokens/`)
 
 This creates:
-- `tokensrc.json` — Configuration file
+- `synkio.config.json` — Configuration file
 - `.env` — Stores your `FIGMA_TOKEN` securely
+
+> **Note:** Legacy `tokensrc.json` files are still supported but deprecated.
 
 ### 3. Run the Figma Plugin
 
@@ -83,6 +85,16 @@ Your tokens are now in your project!
 ---
 
 ## Commands
+
+### --version
+
+Show the CLI version.
+
+```bash
+npx synkio --version
+```
+
+---
 
 ### init
 
@@ -249,7 +261,9 @@ See the full [Hosting Guide](../../docs/HOSTING.md) for detailed setup instructi
 
 ## Configuration
 
-Configuration is stored in `tokensrc.json` in your project root.
+Configuration is stored in `synkio.config.json` in your project root.
+
+> **Note:** Legacy `tokensrc.json` files are still supported but deprecated. You'll see a warning when using the old filename.
 
 ### Basic Config
 
