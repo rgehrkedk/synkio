@@ -18,12 +18,11 @@ vi.mock('../../core/baseline.js', () => ({
 }));
 
 vi.mock('../../core/output.js', () => ({
-  generateAllFromBaseline: vi.fn().mockResolvedValue({
-    css: { files: [], outputDir: '' },
-    docs: { files: [], outputDir: '' }
-  }),
-  generateWithStyleDictionary: vi.fn().mockResolvedValue({ files: [], outputDir: '' }),
-  isStyleDictionaryAvailable: vi.fn().mockResolvedValue(false)
+  generateIntermediateFromBaseline: vi.fn().mockResolvedValue(''),
+  generateDocsFromBaseline: vi.fn().mockResolvedValue({ files: [], outputDir: '' }),
+  generateCssFromBaseline: vi.fn().mockResolvedValue({ files: [], outputDir: '' }),
+  hasBuildConfig: vi.fn().mockReturnValue(false),
+  getBuildStepsSummary: vi.fn().mockReturnValue([]),
 }));
 
 import { loadConfig, ConfigSchema, updateConfigWithCollections } from '../../core/config.js';
@@ -61,29 +60,6 @@ describe('Sync command - new config structure', () => {
 
     expect(loaded.tokens.dir).toBe('src/design-tokens');
     expect(loaded.tokens.collections?.theme?.splitModes).toBe(true);
-  });
-
-  it('should read build.styleDictionary.configFile for SD mode detection', () => {
-    const configWithSD = {
-      version: '1.0.0',
-      figma: { fileId: 'abc123', accessToken: 'test-token' },
-      tokens: { dir: 'tokens' },
-      build: {
-        styleDictionary: {
-          configFile: './sd.config.js'
-        }
-      }
-    };
-    writeFileSync('synkio.config.json', JSON.stringify(configWithSD));
-
-    const loaded = loadConfig();
-
-    // SD mode is detected via build.styleDictionary.configFile
-    expect(loaded.build?.styleDictionary?.configFile).toBe('./sd.config.js');
-
-    // Helper to check if SD mode is enabled
-    const isSDMode = !!loaded.build?.styleDictionary?.configFile;
-    expect(isSDMode).toBe(true);
   });
 
   it('should read build.css configuration instead of old css section', () => {

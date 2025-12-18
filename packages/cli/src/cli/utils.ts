@@ -19,3 +19,13 @@ export function prompt(question: string, defaultValue?: string): Promise<string>
     });
   });
 }
+
+/**
+ * Prompt for yes/no confirmation
+ * Returns true for 'y' or 'yes', false otherwise
+ */
+export async function confirmPrompt(question: string): Promise<boolean> {
+  const answer = await prompt(question);
+  const normalized = answer.toLowerCase().trim();
+  return normalized === 'y' || normalized === 'yes';
+}

@@ -11,10 +11,10 @@ Synkio is a developer-friendly CLI that bridges the gap between Figma design var
 
 Most token sync tools require expensive Figma Enterprise licenses to access variables via the REST API. Synkio takes a smarter approach:
 
-- 🔓 **No Enterprise Needed** — Works with Free, Professional, and Organization plans
-- 🛡️ **Breaking Change Protection** — Intelligent diffing based on permanent Variable IDs prevents accidental production breaks
-- ⚡ **Developer Experience** — A simple CLI workflow that lives in your terminal, not a 3rd party dashboard
-- 📦 **Standard Output** — Generates W3C DTCG-compliant tokens ready for Style Dictionary or direct use
+- **No Enterprise Needed** — Works with Free, Professional, and Organization plans
+- **Breaking Change Protection** — Intelligent diffing based on permanent Variable IDs prevents accidental production breaks
+- **Developer Experience** — A simple CLI workflow that lives in your terminal, not a 3rd party dashboard
+- **Standard Output** — Generates W3C DTCG-compliant tokens ready for Style Dictionary or direct use
 
 ### Comparison
 
@@ -54,10 +54,10 @@ npx synkio init
 ```
 
 This creates:
-- `tokensrc.json` - Configuration file with your Figma file ID
-- `.env` - Contains your `FIGMA_TOKEN` (in project root, added to `.gitignore`)
+- `synkio.config.json` - Configuration file with your Figma file ID
+- `.env.example` - Template for your `FIGMA_TOKEN`
 
-**Important:** Make sure `.env` is in your project root, not in a subdirectory.
+**Important:** Copy `.env.example` to `.env` and add your Figma token.
 
 #### 3. Prepare Figma File
 
@@ -73,13 +73,7 @@ This snapshots your variables so the CLI can access them.
 npx synkio sync
 ```
 
-Your tokens are now in your project! 🎉
-
-**Optional:** If using Style Dictionary output mode, install it as a peer dependency:
-
-```bash
-npm install -D style-dictionary
-```
+Your tokens are now in your project!
 
 ### Cloning the Repository
 
@@ -114,7 +108,7 @@ npm run build
 cd ../../../examples/demo-app
 npm install
 
-# Create .env file in the demo-app root (not in .synkio/)
+# Create .env file in the demo-app root
 echo "FIGMA_TOKEN=your_figma_token_here" > .env
 ```
 
@@ -138,8 +132,9 @@ node ../../packages/cli/dist/cli/bin.js sync
 | `synkio sync --watch` | Poll for changes automatically |
 | `synkio sync --collection=<name>` | Sync specific collection(s) |
 | `synkio sync --force` | Overwrite local files, ignoring safety warnings |
+| `synkio sync --regenerate` | Regenerate files from existing baseline |
+| `synkio docs` | Generate documentation site |
 | `synkio rollback` | Revert to previous sync |
-| `synkio rollback --preview` | Preview rollback changes |
 | `synkio validate` | Check config and connection |
 
 ## Smart Safety Checks
@@ -154,7 +149,7 @@ Use `npx synkio sync --preview` to see a full report of changes without writing 
 
 ## Configuration
 
-Synkio is configured via `tokensrc.json`:
+Synkio is configured via `synkio.config.json`:
 
 ```json
 {
@@ -163,11 +158,25 @@ Synkio is configured via `tokensrc.json`:
     "fileId": "your-file-id",
     "accessToken": "${FIGMA_TOKEN}"
   },
-  "output": {
+  "tokens": {
     "dir": "tokens"
   }
 }
 ```
+
+### Build Pipeline
+
+Synkio focuses on syncing tokens. For build pipelines, use the `build.script` option:
+
+```json
+{
+  "build": {
+    "script": "npm run build:tokens"
+  }
+}
+```
+
+This runs your custom build command after sync, letting you integrate Style Dictionary or any other tool.
 
 See the [User Guide](packages/cli/USER_GUIDE.md) for full configuration options.
 
@@ -180,24 +189,16 @@ Make sure your `.env` file is in the **project root** (where you run `npx synkio
 ```bash
 # Correct location
 my-project/
-├── .env              ← Here
-├── tokensrc.json
+├── .env
+├── synkio.config.json
 └── tokens/
 
 # Wrong location
 my-project/
 ├── .synkio/
-│   └── .env          ← Not here
-├── tokensrc.json
+│   └── .env
+├── synkio.config.json
 └── tokens/
-```
-
-### "Style Dictionary is required but is not installed"
-
-If using `output.mode: "style-dictionary"` in your config, install Style Dictionary:
-
-```bash
-npm install -D style-dictionary
 ```
 
 **Note for repo contributors:** When developing locally (cloning the repo), `npx synkio` fetches from npm instead of using your local build. Use one of these instead:

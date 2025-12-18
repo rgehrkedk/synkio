@@ -15,17 +15,15 @@ describe('tokens', () => {
       const result = splitTokens(rawTokens);
 
       expect(result.size).toBe(2);
-      // File key is "collection.mode", nested path includes mode + full path
+      // File key is "collection.mode", nested path does NOT include mode by default (includeMode: false)
       const colorsFile = result.get('colors.value.json');
       expect(colorsFile).toBeDefined();
       expect(colorsFile!.collection).toBe('colors');
       expect(colorsFile!.content).toEqual({
-        value: {
-          colors: {
-            primary: {
-              base: { '$value': '#0000ff', '$type': 'color' },
-              hover: { '$value': '#0000dd', '$type': 'color' },
-            },
+        colors: {
+          primary: {
+            base: { '$value': '#0000ff', '$type': 'color' },
+            hover: { '$value': '#0000dd', '$type': 'color' },
           },
         },
       });
@@ -35,10 +33,8 @@ describe('tokens', () => {
       expect(spacingFile!.collection).toBe('spacing');
       // Type is inferred from path: "spacing" in path → dimension type
       expect(spacingFile!.content).toEqual({
-        value: {
-          spacing: {
-            small: { '$value': '8px', '$type': 'dimension' },
-          },
+        spacing: {
+          small: { '$value': '8px', '$type': 'dimension' },
         },
       });
     });
@@ -75,7 +71,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).toHaveProperty('$value', '#0066cc');
         expect(token).toHaveProperty('$type', 'color');
         expect(token).not.toHaveProperty('value');
@@ -91,7 +87,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).toHaveProperty('value', '#0066cc');
         expect(token).toHaveProperty('type', 'color');
         expect(token).not.toHaveProperty('$value');
@@ -109,7 +105,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).not.toHaveProperty('$extensions');
       });
 
@@ -122,7 +118,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).toHaveProperty('$extensions');
         expect(token.$extensions).toHaveProperty('com.figma');
         expect(token.$extensions['com.figma']).toHaveProperty('variableId', 'VariableID:123:456');
@@ -137,7 +133,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).toHaveProperty('extensions');
         expect(token).not.toHaveProperty('$extensions');
         expect(token.extensions['com.figma']).toHaveProperty('variableId', 'VariableID:123:456');
@@ -162,7 +158,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).not.toHaveProperty('$description');
         expect(token).not.toHaveProperty('description');
       });
@@ -184,7 +180,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).toHaveProperty('$description', 'Primary brand color');
       });
 
@@ -205,7 +201,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).toHaveProperty('description', 'Primary brand color');
         expect(token).not.toHaveProperty('$description');
       });
@@ -229,7 +225,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).not.toHaveProperty('$extensions');
       });
 
@@ -250,7 +246,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).toHaveProperty('$extensions');
         expect(token.$extensions['com.figma']).toHaveProperty('scopes', ['FRAME_FILL', 'TEXT_FILL']);
       });
@@ -272,7 +268,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).not.toHaveProperty('$extensions');
       });
     });
@@ -295,7 +291,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).not.toHaveProperty('$extensions');
       });
 
@@ -316,7 +312,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).toHaveProperty('$extensions');
         expect(token.$extensions['com.figma']).toHaveProperty('codeSyntax');
         expect(token.$extensions['com.figma'].codeSyntax).toEqual({ WEB: 'var(--colors-primary)', ANDROID: 'colorsPrimary' });
@@ -339,7 +335,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
         expect(token).not.toHaveProperty('$extensions');
       });
     });
@@ -371,7 +367,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
 
         // Check DTCG format
         expect(token).toHaveProperty('$value', '#0066cc');
@@ -412,7 +408,7 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
 
         // Check expected output structure
         expect(token.$value).toBe('#0066cc'); // Color converted from Figma format
@@ -448,13 +444,13 @@ describe('tokens', () => {
         const colorsFile = result.get('colors.default.json');
 
         expect(colorsFile).toBeDefined();
-        const token = colorsFile!.content.default.colors.primary;
+        const token = colorsFile!.content.colors.primary;
 
         // Default: dtcg = true
         expect(token).toHaveProperty('$value');
         expect(token).toHaveProperty('$type');
 
-        // Default: includeVariableId = false, extensions.* = false
+        // Default: includeVariableId = false, extensions.* = false, includeMode = false
         expect(token).not.toHaveProperty('$description');
         expect(token).not.toHaveProperty('$extensions');
       });

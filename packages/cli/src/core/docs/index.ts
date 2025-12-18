@@ -1,13 +1,12 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { BaselineData, BaselineEntry } from '../../types/index.js';
-import { Config } from '../config.js';
+import { Config, DocsPlatform } from '../config.js';
 import { generateTokensCSS, generateUtilitiesCSS } from '../css/index.js';
 import { generateDocsCSS } from './css-generator.js';
 import { generateIndexHTML, generateCollectionPage, generateAllTokensPage } from './html-generator.js';
 import { generatePreviewJS } from './js-generator.js';
 import { mapToDTCGType } from '../tokens.js';
-import { applySDNameTransform } from '../sd-hooks.js';
 import type { IntermediateTokenFormat } from '../intermediate-tokens.js';
 
 export interface DocsGeneratorOptions {
@@ -54,20 +53,74 @@ export interface ParsedTokens {
   modes: Map<string, ParsedToken[]>;
 }
 
-/** Platform info from intermediate format metadata */
-type PlatformInfo = NonNullable<IntermediateTokenFormat['$metadata']['output']['styleDictionary']>['platforms'];
+/**
+ * Format a token path for a custom platform definition
+ */
+function formatForCustomPlatform(parts: string[], platform: DocsPlatform): string {
+  const prefix = platform.prefix ?? '';
+  const suffix = platform.suffix ?? '';
+
+  // Apply case transformation
+  let formattedParts: string[];
+  const caseType = platform.case ?? 'kebab';
+
+  switch (caseType) {
+    case 'camel':
+      formattedParts = parts.map((part, i) =>
+        i === 0 ? part.toLowerCase() : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+      );
+      break;
+    case 'pascal':
+      formattedParts = parts.map(part =>
+        part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+      );
+      break;
+    case 'snake':
+      formattedParts = parts.map(part => part.toLowerCase());
+      break;
+    case 'constant':
+      formattedParts = parts.map(part => part.toUpperCase());
+      break;
+    case 'kebab':
+    default:
+      formattedParts = parts.map(part => part.toLowerCase());
+  }
+
+  // Determine separator based on case or custom separator
+  let separator: string;
+  if (platform.separator !== undefined) {
+    separator = platform.separator;
+  } else {
+    switch (caseType) {
+      case 'camel':
+      case 'pascal':
+        separator = '';
+        break;
+      case 'snake':
+      case 'constant':
+        separator = '_';
+        break;
+      case 'kebab':
+      default:
+        separator = '-';
+    }
+  }
+
+  return `${prefix}${formattedParts.join(separator)}${suffix}`;
+}
 
 /**
- * Generate platform-specific variable names using SD's actual transform functions.
+ * Generate platform-specific variable names.
  *
- * When SD is configured: Uses SD's native name/* transforms
- * When SD is not configured: Only shows JSON nested path and CSS variable (if CSS enabled)
+ * Priority:
+ * 1. Custom platforms from config.docsPages.platforms (if provided)
+ * 2. Defaults: JSON path + CSS variable (if CSS enabled)
  */
-async function generatePlatformVariableNames(
+function generatePlatformVariableNames(
   tokenPath: string,
-  platforms?: PlatformInfo,
+  customPlatforms?: DocsPlatform[],
   cssEnabled?: boolean
-): Promise<Record<string, string>> {
+): Record<string, string> {
   const result: Record<string, string> = {};
   const parts = tokenPath.split('.');
 
@@ -80,31 +133,30 @@ async function generatePlatformVariableNames(
   });
   result['json'] = formattedParts.join('.').replace(/\.\[/g, '[');
 
+  // If custom platforms are defined, use them
+  if (customPlatforms && customPlatforms.length > 0) {
+    for (const platform of customPlatforms) {
+      const key = platform.name.toLowerCase();
+      result[key] = formatForCustomPlatform(parts, platform);
+    }
+    return result;
+  }
+
   // Include CSS variable if CSS output is enabled
   if (cssEnabled) {
     result['css'] = `--${parts.join('-').toLowerCase()}`;
   }
 
-  // If no SD platforms configured, return just JSON (and optionally CSS)
-  if (!platforms) {
-    return result;
-  }
-
-  // Generate variable names for each SD platform using SD's actual transforms
-  // Skip 'json' since we always want to show the nested path format for JSON access
-  for (const [platformName, platformConfig] of Object.entries(platforms)) {
-    if (platformName === 'json') {
-      continue; // Don't override our JSON nested path format
-    }
-    if (platformConfig.nameTransform) {
-      const transformed = await applySDNameTransform(tokenPath, platformConfig.nameTransform);
-      if (transformed) {
-        result[platformName] = transformed;
-      }
-    }
-  }
-
   return result;
+}
+
+/**
+ * Options for parsing tokens
+ */
+interface ParseTokensOptions {
+  variableNaming?: { prefix: string; separator: string };
+  customPlatforms?: DocsPlatform[];
+  cssEnabled?: boolean;
 }
 
 /**
@@ -112,9 +164,7 @@ async function generatePlatformVariableNames(
  */
 export async function parseTokens(
   baseline: BaselineData,
-  variableNaming?: { prefix: string; separator: string },
-  platforms?: PlatformInfo,
-  cssEnabled?: boolean
+  options: ParseTokensOptions = {}
 ): Promise<ParsedTokens> {
   const colors: ParsedToken[] = [];
   const typography: ParsedToken[] = [];
@@ -133,7 +183,7 @@ export async function parseTokens(
   }
 
   for (const [key, entry] of Object.entries(baseline.baseline)) {
-    const parsed = await parseToken(entry, variableIdLookup, variableNaming, platforms, cssEnabled);
+    const parsed = await parseToken(entry, variableIdLookup, options);
     all.push(parsed);
 
     // Group by collection
@@ -190,17 +240,19 @@ export async function parseTokens(
 async function parseToken(
   entry: BaselineEntry,
   variableIdLookup: Map<string, { path: string; value: any }>,
-  variableNaming?: { prefix: string; separator: string },
-  platforms?: PlatformInfo,
-  cssEnabled?: boolean
+  options: ParseTokensOptions = {}
 ): Promise<ParsedToken> {
   // Generate CSS variable name from path using metadata or defaults
-  const prefix = variableNaming?.prefix || '--';
-  const separator = variableNaming?.separator || '-';
+  const prefix = options.variableNaming?.prefix || '--';
+  const separator = options.variableNaming?.separator || '-';
   const cssVariable = `${prefix}${entry.path.replace(/\./g, separator).toLowerCase()}`;
 
   // Generate platform-specific variable names
-  const platformVariables = await generatePlatformVariableNames(entry.path, platforms, cssEnabled);
+  const platformVariables = generatePlatformVariableNames(
+    entry.path,
+    options.customPlatforms,
+    options.cssEnabled
+  );
 
   // Check if value is a reference
   let referencePath: string | undefined;
@@ -262,12 +314,14 @@ export async function generateDocs(
   // Determine if CSS output is enabled using new config structure: build.css
   const cssEnabled = intermediateFormat?.$metadata?.output?.css?.enabled || options.config.build?.css?.enabled;
 
-  const tokens = await parseTokens(
-    baseline,
-    intermediateFormat?.$metadata?.variableNaming,
-    intermediateFormat?.$metadata?.output?.styleDictionary?.platforms,
-    cssEnabled
-  );
+  // Get custom platforms from config
+  const customPlatforms = options.config.docsPages?.platforms;
+
+  const tokens = await parseTokens(baseline, {
+    variableNaming: intermediateFormat?.$metadata?.variableNaming,
+    customPlatforms,
+    cssEnabled,
+  });
   const files: Record<string, string> = {};
 
   // Get unique modes for mode switcher

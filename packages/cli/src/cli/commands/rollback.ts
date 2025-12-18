@@ -67,6 +67,8 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
       collections: config.tokens.collections || {},
       dtcg: config.tokens.dtcg !== false,
       includeVariableId: config.tokens.includeVariableId === true,
+      splitModes: config.tokens.splitModes,
+      includeMode: config.tokens.includeMode,
       extensions: config.tokens.extensions || {},
     });
 

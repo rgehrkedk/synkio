@@ -1,0 +1,179 @@
+{
+  "bg": {
+    "primary": {
+      "default": {
+        "$value": "{neutral.50}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:2:64"
+          }
+        }
+      },
+      "hover": {
+        "$value": "{neutral.100}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:17"
+          }
+        }
+      }
+    },
+    "secondary": {
+      "default": {
+        "$value": "{neutral.100}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:3"
+          }
+        }
+      },
+      "hover": {
+        "$value": "{neutral.200}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:18"
+          }
+        }
+      }
+    },
+    "tertiary": {
+      "default": {
+        "$value": "{neutral.200}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:4"
+          }
+        }
+      },
+      "hover": {
+        "$value": "{neutral.300}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:19"
+          }
+        }
+      }
+    },
+    "brand": {
+      "default": {
+        "$value": "{primary.600}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:10"
+          }
+        }
+      },
+      "hover": {
+        "$value": "{primary.700}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:20"
+          }
+        }
+      }
+    }
+  },
+  "fg": {
+    "primary": {
+      "default": {
+        "$value": "{neutral.900}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:2"
+          }
+        }
+      },
+      "hover": {
+        "$value": "{neutral.700}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:21"
+          }
+        }
+      }
+    },
+    "secondary": {
+      "default": {
+        "$value": "{neutral.500}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:5"
+          }
+        }
+      },
+      "hover": {
+        "$value": "{neutral.700}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:22"
+          }
+        }
+      }
+    },
+    "brand": {
+      "default": {
+        "$value": "{primary.700}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:11"
+          }
+        }
+      }
+    }
+  },
+  "border": {
+    "primary": {
+      "subtle": {
+        "$value": "{neutral.200}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:7"
+          }
+        }
+      },
+      "default": {
+        "$value": "{neutral.400}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:6"
+          }
+        }
+      }
+    },
+    "brand": {
+      "subtle": {
+        "$value": "{primary.100}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:12"
+          }
+        }
+      },
+      "default": {
+        "$value": "{primary.600}",
+        "$type": "color",
+        "$extensions": {
+          "com.figma": {
+            "variableId": "VariableID:10:16"
+          }
+        }
+      }
+    }
+  }
+}

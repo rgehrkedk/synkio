@@ -10,7 +10,6 @@ import {
   layout,
   escapeHtml,
   capitalizeFirst,
-  getDefaultPlatform,
   formatDisplayValue,
   formatReferencePath,
   getColorBackground,
@@ -51,12 +50,10 @@ function groupTokensHierarchically(tokens: ParsedToken[]): Map<string, Map<strin
 
 /**
  * Helper to get default platform from options
+ * Returns 'json' as default since we always have JSON path format
  */
-function resolveDefaultPlatform(options: TemplateOptions): string | undefined {
-  const platforms = options.metadata?.output.styleDictionary?.platforms;
-  const platformNames = platforms ? Object.keys(platforms) : [];
-  const outputMode = options.metadata?.output.mode || 'json';
-  return platformNames.length > 0 ? getDefaultPlatform(platformNames, outputMode) : undefined;
+function resolveDefaultPlatform(_options: TemplateOptions): string {
+  return 'json';
 }
 
 /**
@@ -117,16 +114,10 @@ export function generateIndexHTML(
       <div class="docs-config-card">
         <h4 class="docs-config-title">Output Format</h4>
         <dl class="docs-config-list">
-          <dt>Mode</dt>
-          <dd><span class="docs-tag docs-tag--primary">${options.metadata.output.mode === 'style-dictionary' ? 'Style Dictionary' : 'Default'}</span></dd>
           <dt>DTCG Format</dt>
           <dd>${options.metadata.output.dtcg ? '<span class="docs-tag docs-tag--success">Enabled</span>' : '<span class="docs-tag">Disabled</span>'}</dd>
           <dt>Output Directory</dt>
           <dd><code>${escapeHtml(options.metadata.output.dir)}</code></dd>
-          ${options.metadata.output.styleDictionary?.buildPath ? `
-          <dt>Build Path</dt>
-          <dd><code>${escapeHtml(options.metadata.output.styleDictionary.buildPath)}</code></dd>
-          ` : ''}
         </dl>
       </div>
 
@@ -140,20 +131,6 @@ export function generateIndexHTML(
           <dd><code>${escapeHtml(options.metadata.variableNaming.separator)}</code></dd>
           <dt>Example</dt>
           <dd><code>${escapeHtml(options.metadata.variableNaming.example)}</code></dd>
-        </dl>
-      </div>
-      ` : ''}
-
-      ${options.metadata.output.styleDictionary?.platforms && Object.keys(options.metadata.output.styleDictionary.platforms).length ? `
-      <div class="docs-config-card">
-        <h4 class="docs-config-title">Platforms</h4>
-        <dl class="docs-config-list">
-          <dt>Targets</dt>
-          <dd>${Object.keys(options.metadata.output.styleDictionary.platforms).map(p => `<span class="docs-tag">${escapeHtml(p.toUpperCase())}</span>`).join(' ')}</dd>
-          ${options.metadata.output.styleDictionary.outputReferences !== undefined ? `
-          <dt>Output References</dt>
-          <dd>${options.metadata.output.styleDictionary.outputReferences ? '<span class="docs-tag docs-tag--success">Enabled</span>' : '<span class="docs-tag">Disabled</span>'}</dd>
-          ` : ''}
         </dl>
       </div>
       ` : ''}

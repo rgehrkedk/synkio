@@ -53,7 +53,7 @@ describe('Init + Sync Integration', () => {
 
       // Generate config using init's generateConfig
       const { generateConfig } = await import('./init.js');
-      const config = await generateConfig('ABC123');
+      const config = generateConfig('ABC123');
 
       // Write config to file
       writeFileSync('synkio.config.json', JSON.stringify(config, null, 2));
@@ -68,39 +68,34 @@ describe('Init + Sync Integration', () => {
       // Verify config loaded correctly
       expect(loadedConfig.figma.fileId).toBe('ABC123');
       expect(loadedConfig.figma.accessToken).toBe('test-token');
-      expect(loadedConfig.tokens.dir).toBeDefined();
-      expect(loadedConfig.docsPages?.enabled).toBe(true);
+      expect(loadedConfig.tokens.dir).toBe('tokens');
+      // Note: init no longer enables docsPages by default
+      expect(loadedConfig.docsPages?.enabled).toBeUndefined();
     });
 
-    it('init with SD detection generates config that sync recognizes as SD mode', async () => {
-      // Create package.json with style-dictionary
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: {
-          'style-dictionary': '^5.0.0'
-        }
-      }));
-
-      // Create SD config file
-      writeFileSync('sd.config.js', `
-module.exports = {
-  source: ['src/tokens/**/*.json'],
-  platforms: {
-    css: {
-      transformGroup: 'css',
-      buildPath: 'dist/',
-      files: [{ destination: 'tokens.css', format: 'css/variables' }]
-    }
-  }
-};
-`);
-
+    it('init generates minimal config that can be manually extended', async () => {
       // Generate config
       const { generateConfig } = await import('./init.js');
-      const config = await generateConfig('ABC123');
+      const config = generateConfig('ABC123');
+
+      // Manually extend config with build options (as user would do)
+      const extendedConfig = {
+        ...config,
+        build: {
+          css: {
+            enabled: true,
+            file: 'tokens.css',
+          }
+        },
+        docsPages: {
+          enabled: true,
+          dir: '.synkio/docs',
+          title: 'Design Tokens',
+        }
+      };
 
       // Write config to file
-      writeFileSync('synkio.config.json', JSON.stringify(config, null, 2));
+      writeFileSync('synkio.config.json', JSON.stringify(extendedConfig, null, 2));
 
       // Set FIGMA_TOKEN for loadConfig
       process.env.FIGMA_TOKEN = 'test-token';
@@ -109,49 +104,9 @@ module.exports = {
       const { loadConfig } = await import('../../core/config.js');
       const loadedConfig = loadConfig();
 
-      // Verify SD mode is detected
-      const isSDMode = !!loadedConfig.build?.styleDictionary?.configFile;
-      expect(isSDMode).toBe(true);
-      expect(loadedConfig.build?.styleDictionary?.configFile).toBe('sd.config.js');
-
-      // Verify tokens.dir was derived from SD source pattern
-      expect(loadedConfig.tokens.dir).toBe('src/tokens');
-
-      // Verify CSS build is NOT enabled when SD is detected
-      expect(loadedConfig.build?.css).toBeUndefined();
-    });
-
-    it('init without SD generates config with CSS enabled for sync', async () => {
-      // Create package.json without style-dictionary
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: {
-          'react': '^18.0.0'
-        }
-      }));
-
-      // Generate config
-      const { generateConfig } = await import('./init.js');
-      const config = await generateConfig('ABC123');
-
-      // Write config to file
-      writeFileSync('synkio.config.json', JSON.stringify(config, null, 2));
-
-      // Set FIGMA_TOKEN for loadConfig
-      process.env.FIGMA_TOKEN = 'test-token';
-
-      // Load config
-      const { loadConfig } = await import('../../core/config.js');
-      const loadedConfig = loadConfig();
-
-      // Verify SD mode is NOT enabled
-      const isSDMode = !!loadedConfig.build?.styleDictionary?.configFile;
-      expect(isSDMode).toBe(false);
-
-      // Verify CSS build IS enabled
+      // Verify extended config works
       expect(loadedConfig.build?.css?.enabled).toBe(true);
-      expect(loadedConfig.build?.css?.file).toBe('tokens.css');
-      expect(loadedConfig.build?.css?.utilities).toBe(true);
+      expect(loadedConfig.docsPages?.enabled).toBe(true);
     });
   });
 
@@ -328,41 +283,39 @@ module.exports = {
   });
 
   describe('End-to-end workflow', () => {
-    it('complete init -> sync flow works with detected SD config', async () => {
-      // Setup: Create package.json with style-dictionary
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: { 'style-dictionary': '^5.0.0' }
-      }));
-
-      // Setup: Create SD config
-      writeFileSync('sd.config.js', `
-module.exports = {
-  source: ['design-tokens/**/*.json'],
-  platforms: {
-    web: {
-      transformGroup: 'css',
-      buildPath: 'build/',
-      files: [{ destination: 'variables.css', format: 'css/variables' }]
-    }
-  }
-};
-`);
-
-      // Step 1: Generate config (init phase)
+    it('complete init -> manual config -> sync flow works', async () => {
+      // Step 1: Generate minimal config (init phase)
       const { generateConfig } = await import('./init.js');
-      const config = await generateConfig('FILE123');
-      writeFileSync('synkio.config.json', JSON.stringify(config, null, 2));
+      const config = generateConfig('FILE123');
 
-      // Step 2: Set token and load config (sync phase)
+      // Step 2: User manually extends config with build options
+      const extendedConfig = {
+        ...config,
+        tokens: {
+          ...config.tokens,
+          dir: 'design-tokens', // User sets custom tokens dir
+        },
+        build: {
+          script: 'npm run build:tokens', // User adds build script
+        },
+        docsPages: {
+          enabled: true,
+          dir: '.synkio/docs',
+          title: 'Design Tokens',
+        }
+      };
+
+      writeFileSync('synkio.config.json', JSON.stringify(extendedConfig, null, 2));
+
+      // Step 3: Set token and load config (sync phase)
       process.env.FIGMA_TOKEN = 'test-token';
       const { loadConfig } = await import('../../core/config.js');
       const loadedConfig = loadConfig();
 
       // Verify complete workflow
       expect(loadedConfig.figma.fileId).toBe('FILE123');
-      expect(loadedConfig.tokens.dir).toBe('design-tokens'); // Derived from SD source
-      expect(loadedConfig.build?.styleDictionary?.configFile).toBe('sd.config.js');
+      expect(loadedConfig.tokens.dir).toBe('design-tokens');
+      expect(loadedConfig.build?.script).toBe('npm run build:tokens');
       expect(loadedConfig.docsPages?.enabled).toBe(true);
       expect(loadedConfig.docsPages?.dir).toBe('.synkio/docs');
     });

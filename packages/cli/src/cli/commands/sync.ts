@@ -8,9 +8,15 @@ import { createLogger } from '../../utils/logger.js';
 import { isPhantomMode, filterPhantomModes } from '../../utils/figma.js';
 import { readBaseline, writeBaseline } from '../../core/baseline.js';
 import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary } from '../../core/compare.js';
-import { generateAllFromBaseline, generateWithStyleDictionary, isStyleDictionaryAvailable } from '../../core/output.js';
-import { StyleDictionaryNotInstalledError } from '../../core/style-dictionary/index.js';
+import {
+  generateIntermediateFromBaseline,
+  generateDocsFromBaseline,
+  generateCssFromBaseline,
+  hasBuildConfig,
+  getBuildStepsSummary,
+} from '../../core/output.js';
 import { BaselineData } from '../../types/index.js';
+import { confirmPrompt } from '../utils.js';
 import chalk from 'chalk';
 import ora from 'ora';
 
@@ -25,6 +31,8 @@ export interface SyncOptions {
   regenerate?: boolean; // Regenerate files from existing baseline (no Figma fetch)
   config?: string;      // Path to config file (auto-discovered if not specified)
   timeout?: number;     // Figma API timeout in seconds (default 60)
+  build?: boolean;      // Force run build without prompting
+  noBuild?: boolean;    // Skip build entirely (even if configured)
 }
 
 /**
@@ -66,13 +74,6 @@ function discoverCollectionsFromTokens(
 }
 
 /**
- * Check if Style Dictionary mode is enabled based on new config structure
- */
-function isStyleDictionaryMode(config: ReturnType<typeof loadConfig>): boolean {
-  return !!config.build?.styleDictionary?.configFile;
-}
-
-/**
  * Run the build script if configured
  * Returns true if script ran successfully, false otherwise
  */
@@ -100,6 +101,84 @@ async function runBuildScript(
   }
 }
 
+/**
+ * Prompt user to confirm build step
+ * Returns true if build should run, false to skip
+ */
+async function shouldRunBuild(
+  config: ReturnType<typeof loadConfig>,
+  options: SyncOptions
+): Promise<boolean> {
+  // --no-build flag: always skip
+  if (options.noBuild) {
+    return false;
+  }
+
+  // No build config: nothing to run
+  if (!hasBuildConfig(config)) {
+    return false;
+  }
+
+  // --build flag: always run without prompting
+  if (options.build) {
+    return true;
+  }
+
+  // config.build.autoRun: run without prompting
+  if (config.build?.autoRun) {
+    return true;
+  }
+
+  // Show what build steps would run and ask for confirmation
+  const steps = getBuildStepsSummary(config);
+  console.log(chalk.cyan('\n  Build configuration detected:'));
+  for (const step of steps) {
+    console.log(chalk.dim(`    - ${step}`));
+  }
+
+  return await confirmPrompt('\n  Run build after sync? (y/n): ');
+}
+
+/**
+ * Run the complete build pipeline
+ * Executes: build.script, CSS output
+ */
+async function runBuildPipeline(
+  baseline: BaselineData,
+  config: ReturnType<typeof loadConfig>,
+  spinner: ReturnType<typeof ora>
+): Promise<{
+  scriptRan: boolean;
+  cssFilesWritten: number;
+}> {
+  let scriptRan = false;
+  let cssFilesWritten = 0;
+
+  // 1. Run build script if configured
+  if (config.build?.script) {
+    spinner.stop();
+    console.log(chalk.cyan(`\n  Running build script: ${config.build.script}\n`));
+
+    const buildResult = await runBuildScript(config, spinner);
+    scriptRan = buildResult.ran;
+
+    if (!buildResult.success) {
+      throw new Error('Build script failed');
+    }
+
+    spinner.start('Running build pipeline...');
+  }
+
+  // 2. Generate CSS if enabled
+  if (config.build?.css?.enabled) {
+    spinner.text = 'Generating CSS output...';
+    const cssResult = await generateCssFromBaseline(baseline, config);
+    cssFilesWritten = cssResult.files.length;
+  }
+
+  return { scriptRan, cssFilesWritten };
+}
+
 export async function syncCommand(options: SyncOptions = {}) {
   const logger = createLogger();
   const spinner = ora('Syncing design tokens...').start();
@@ -109,20 +188,6 @@ export async function syncCommand(options: SyncOptions = {}) {
     spinner.text = 'Loading configuration...';
     let config = loadConfig(options.config);
     logger.debug('Config loaded', config);
-
-    // Early check: If Style Dictionary mode is enabled, verify it's installed
-    if (isStyleDictionaryMode(config)) {
-      const sdAvailable = await isStyleDictionaryAvailable();
-      if (!sdAvailable) {
-        spinner.fail(chalk.red(
-          'Style Dictionary mode is configured but style-dictionary is not installed.\n\n' +
-          '  To fix this, either:\n' +
-          '  1. Install Style Dictionary: npm install -D style-dictionary\n' +
-          '  2. Remove build.styleDictionary from synkio.config.json\n'
-        ));
-        process.exit(1);
-      }
-    }
 
     // Handle --regenerate: skip Figma fetch, use existing baseline
     if (options.regenerate) {
@@ -142,6 +207,8 @@ export async function syncCommand(options: SyncOptions = {}) {
         collections: config.tokens.collections || {},
         dtcg: config.tokens.dtcg !== false,
         includeVariableId: config.tokens.includeVariableId === true,
+        splitModes: config.tokens.splitModes,
+        includeMode: config.tokens.includeMode,
         extensions: config.tokens.extensions || {},
       };
       const processedTokens = splitTokens(normalizedTokens, splitOptions);
@@ -172,52 +239,39 @@ export async function syncCommand(options: SyncOptions = {}) {
         }
       }
 
-      // Run build script if configured (for factory function SD configs)
+      // Always generate intermediate format (used by docs and other tools)
+      spinner.text = 'Generating intermediate format...';
+      await generateIntermediateFromBaseline(localBaseline, config);
+
+      // Generate docs if enabled (not a build step)
+      let docsFilesWritten = 0;
+      if (config.docsPages?.enabled) {
+        spinner.text = 'Generating documentation...';
+        const docsResult = await generateDocsFromBaseline(localBaseline, config);
+        docsFilesWritten = docsResult.files.length;
+      }
+
+      // Check if build should run
+      spinner.stop();
+      const runBuild = await shouldRunBuild(config, options);
+
       let buildScriptRan = false;
-      if (config.build?.script) {
-        spinner.stop();
-        console.log(chalk.cyan(`\n  Running build script: ${config.build.script}\n`));
+      let cssFilesWritten = 0;
 
-        const buildResult = await runBuildScript(config, spinner);
-        buildScriptRan = buildResult.ran;
-
-        if (!buildResult.success) {
+      if (runBuild) {
+        spinner.start('Running build pipeline...');
+        try {
+          const buildResult = await runBuildPipeline(localBaseline, config, spinner);
+          buildScriptRan = buildResult.scriptRan;
+          cssFilesWritten = buildResult.cssFilesWritten;
+        } catch (error: any) {
+          spinner.fail(chalk.red(error.message));
           process.exit(1);
         }
-
-        spinner.start('Generating output files...');
       }
-
-      // Generate all enabled output formats
-      spinner.text = 'Generating output files...';
-
-      // Check if using Style Dictionary mode
-      let outputs;
-      let sdFilesWritten = 0;
-
-      if (isStyleDictionaryMode(config)) {
-        try {
-          const sdResult = await generateWithStyleDictionary(localBaseline, config);
-          sdFilesWritten = sdResult.files.length;
-          // Still generate docs and CSS if enabled (independent of SD mode)
-          outputs = await generateAllFromBaseline(localBaseline, config);
-        } catch (error) {
-          if (error instanceof StyleDictionaryNotInstalledError) {
-            spinner.fail(chalk.red(error.message));
-            process.exit(1);
-          }
-          throw error;
-        }
-      } else {
-        outputs = await generateAllFromBaseline(localBaseline, config);
-      }
-
-      const cssFilesWritten = outputs.css.files.length;
-      const docsFilesWritten = outputs.docs.files.length;
 
       const extras: string[] = [];
       if (buildScriptRan) extras.push('build script');
-      if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
       if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
       if (docsFilesWritten > 0) extras.push(`${docsFilesWritten} docs`);
       const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';
@@ -447,6 +501,8 @@ export async function syncCommand(options: SyncOptions = {}) {
       collections: config.tokens.collections || {},
       dtcg: config.tokens.dtcg !== false,                    // default true
       includeVariableId: config.tokens.includeVariableId === true, // default false
+      splitModes: config.tokens.splitModes,                  // parent-level default
+      includeMode: config.tokens.includeMode,                // parent-level default
       extensions: config.tokens.extensions || {},            // optional metadata
     };
     const processedTokens = splitTokens(normalizedTokens, splitOptions);
@@ -505,52 +561,41 @@ export async function syncCommand(options: SyncOptions = {}) {
       }
     }
 
-    // 8. Run build script if configured (for factory function SD configs)
+    // 8. Always generate intermediate format (used by docs and other tools)
+    spinner.text = 'Generating intermediate format...';
+    await generateIntermediateFromBaseline(newBaseline, config);
+
+    // 9. Generate docs if enabled (not a build step)
+    let docsFilesWritten = 0;
+    let docsDir = '';
+    if (config.docsPages?.enabled) {
+      spinner.text = 'Generating documentation...';
+      const docsResult = await generateDocsFromBaseline(newBaseline, config);
+      docsFilesWritten = docsResult.files.length;
+      docsDir = docsResult.outputDir;
+    }
+
+    // 10. Check if build should run (with confirmation)
+    spinner.stop();
+    const runBuild = await shouldRunBuild(config, options);
+
     let buildScriptRan = false;
-    if (config.build?.script) {
-      spinner.stop();
-      console.log(chalk.cyan(`\n  Running build script: ${config.build.script}\n`));
+    let cssFilesWritten = 0;
 
-      const buildResult = await runBuildScript(config, spinner);
-      buildScriptRan = buildResult.ran;
-
-      if (!buildResult.success) {
+    if (runBuild) {
+      spinner.start('Running build pipeline...');
+      try {
+        const buildResult = await runBuildPipeline(newBaseline, config, spinner);
+        buildScriptRan = buildResult.scriptRan;
+        cssFilesWritten = buildResult.cssFilesWritten;
+        spinner.stop();
+      } catch (error: any) {
+        spinner.fail(chalk.red(error.message));
         process.exit(1);
       }
-
-      spinner.start('Generating output files...');
     }
 
-    // 9. Generate CSS if enabled in config
-    // Generate all enabled output formats (CSS, SCSS, JS, Tailwind, docs)
-    spinner.text = 'Generating output files...';
-
-    // Check if using Style Dictionary mode
-    let outputs;
-    let sdFilesWritten = 0;
-
-    if (isStyleDictionaryMode(config)) {
-      try {
-        const sdResult = await generateWithStyleDictionary(newBaseline, config);
-        sdFilesWritten = sdResult.files.length;
-        // Still generate docs and CSS if enabled (independent of SD mode)
-        outputs = await generateAllFromBaseline(newBaseline, config);
-      } catch (error) {
-        if (error instanceof StyleDictionaryNotInstalledError) {
-          spinner.fail(chalk.red(error.message));
-          process.exit(1);
-        }
-        throw error;
-      }
-    } else {
-      outputs = await generateAllFromBaseline(newBaseline, config);
-    }
-
-    const cssFilesWritten = outputs.css.files.length;
-    const docsFilesWritten = outputs.docs.files.length;
-    const docsDir = outputs.docs.outputDir;
-
-    // 9. Generate report based on config and flags
+    // 11. Generate report based on config and flags
     // CLI flags override config: --report forces, --no-report skips
     const syncConfig = config.sync || { report: true, reportHistory: false };
     const shouldGenerateReport = options.noReport ? false : (options.report || syncConfig.report !== false);
@@ -587,7 +632,6 @@ export async function syncCommand(options: SyncOptions = {}) {
         // Show additional outputs
         const allOutputs = [
           buildScriptRan ? 'build script' : null,
-          sdFilesWritten > 0 ? `${sdFilesWritten} Style Dictionary` : null,
           cssFilesWritten > 0 ? `${cssFilesWritten} CSS` : null,
         ].filter(Boolean);
 
@@ -604,7 +648,6 @@ export async function syncCommand(options: SyncOptions = {}) {
     // Build output summary
     const extras: string[] = [];
     if (buildScriptRan) extras.push('build script');
-    if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
     if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
     if (docsFilesWritten > 0) extras.push('docs');
     const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';

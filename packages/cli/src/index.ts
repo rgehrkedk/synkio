@@ -86,9 +86,11 @@ export type { ParseFigmaNativeOptions, ParsedFigmaNativeFile } from './core/figm
 
 // Output generation
 export {
-  generateAllFromBaseline,
-  generateWithStyleDictionary,
-  isStyleDictionaryAvailable,
+  generateIntermediateFromBaseline,
+  generateDocsFromBaseline,
+  generateCssFromBaseline,
+  hasBuildConfig,
+  getBuildStepsSummary,
 } from './core/output.js';
 
 // Documentation generation

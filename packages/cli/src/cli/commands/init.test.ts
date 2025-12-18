@@ -27,118 +27,6 @@ describe('init command', () => {
     vi.resetModules();
   });
 
-  describe('Style Dictionary detection', () => {
-    it('should detect Style Dictionary from package.json dependencies', async () => {
-      // Create package.json with style-dictionary dependency
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: {
-          'style-dictionary': '^5.0.0'
-        }
-      }));
-
-      // Import detect module
-      const { hasStyleDictionary } = await import('../../core/detect.js');
-
-      expect(hasStyleDictionary()).toBe(true);
-    });
-
-    it('should detect Style Dictionary from package.json devDependencies', async () => {
-      // Create package.json with style-dictionary in devDependencies
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        devDependencies: {
-          'style-dictionary': '^5.0.0'
-        }
-      }));
-
-      const { hasStyleDictionary } = await import('../../core/detect.js');
-
-      expect(hasStyleDictionary()).toBe(true);
-    });
-
-    it('should return false when style-dictionary is not in package.json', async () => {
-      // Create package.json without style-dictionary
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: {
-          'react': '^18.0.0'
-        }
-      }));
-
-      const { hasStyleDictionary } = await import('../../core/detect.js');
-
-      expect(hasStyleDictionary()).toBe(false);
-    });
-
-    it('should find Style Dictionary config file with content-based search', async () => {
-      // Create package.json with style-dictionary
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: {
-          'style-dictionary': '^5.0.0'
-        }
-      }));
-
-      // Create a Style Dictionary config file with source and platforms
-      const sdConfig = `
-module.exports = {
-  source: ['src/tokens/**/*.json'],
-  platforms: {
-    css: {
-      transformGroup: 'css',
-      buildPath: 'dist/',
-      files: [{
-        destination: 'tokens.css',
-        format: 'css/variables'
-      }]
-    }
-  }
-};
-`;
-      writeFileSync('sd.config.js', sdConfig);
-
-      const { findStyleDictionaryConfig } = await import('../../core/detect.js');
-
-      const result = findStyleDictionaryConfig();
-      expect(result).not.toBeNull();
-      expect(result?.configFile).toBe('sd.config.js');
-    });
-
-    it('should extract tokens.dir from Style Dictionary source glob patterns', async () => {
-      const { parseSourceGlob } = await import('../../core/detect.js');
-
-      // Test various glob patterns
-      expect(parseSourceGlob('src/tokens/**/*.json')).toBe('src/tokens');
-      expect(parseSourceGlob('tokens/**/*.json')).toBe('tokens');
-      expect(parseSourceGlob('tokens/*.json')).toBe('tokens');
-      expect(parseSourceGlob('./src/design-tokens/**/*.json')).toBe('src/design-tokens');
-    });
-
-    it('should not find SD config in non-matching files', async () => {
-      // Create package.json with style-dictionary
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: {
-          'style-dictionary': '^5.0.0'
-        }
-      }));
-
-      // Create a file that only has source but not platforms
-      writeFileSync('config.js', `
-module.exports = {
-  source: ['src/**/*.ts'],
-  output: 'dist'
-};
-`);
-
-      const { findStyleDictionaryConfig } = await import('../../core/detect.js');
-
-      const result = findStyleDictionaryConfig();
-      expect(result).toBeNull();
-    });
-  });
-
   describe('.env.example creation', () => {
     it('should create .env.example with FIGMA_TOKEN placeholder', async () => {
       // Create package.json
@@ -188,73 +76,37 @@ module.exports = {
   });
 
   describe('config generation', () => {
-    it('should generate config with build.styleDictionary when SD is detected', async () => {
-      // Create package.json with style-dictionary
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: {
-          'style-dictionary': '^5.0.0'
-        }
-      }));
-
-      // Create SD config
-      writeFileSync('sd.config.js', `
-module.exports = {
-  source: ['src/tokens/**/*.json'],
-  platforms: {
-    css: {
-      transformGroup: 'css',
-      buildPath: 'dist/',
-      files: [{ destination: 'tokens.css', format: 'css/variables' }]
-    }
-  }
-};
-`);
-
+    it('should generate minimal config without SD detection', async () => {
+      // Note: init no longer detects SD - it creates a minimal config
+      // Users configure build options manually after init
       const { generateConfig } = await import('./init.js');
 
-      const config = await generateConfig('ABC123');
+      const config = generateConfig('ABC123');
 
-      expect(config.tokens.dir).toBe('src/tokens');
-      expect(config.build?.styleDictionary?.configFile).toBe('sd.config.js');
-      // Should NOT have build.css when SD is detected
-      expect(config.build?.css).toBeUndefined();
+      // Should have default tokens.dir
+      expect(config.tokens.dir).toBe('tokens');
+      // Should NOT have any build config by default
+      expect(config.build).toBeUndefined();
+      // Should NOT have docsPages by default
+      expect(config.docsPages).toBeUndefined();
     });
 
-    it('should generate config with build.css when SD is NOT detected', async () => {
-      // Create package.json without style-dictionary
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project',
-        dependencies: {
-          'react': '^18.0.0'
-        }
-      }));
-
+    it('should include baseUrl when provided', async () => {
       const { generateConfig } = await import('./init.js');
 
-      const config = await generateConfig('ABC123');
+      const config = generateConfig('ABC123', 'https://custom.figma.com');
 
-      expect(config.tokens.dir).toBe('tokens'); // Default
-      expect(config.build?.css?.enabled).toBe(true);
-      expect(config.build?.css?.file).toBe('tokens.css');
-      expect(config.build?.css?.utilities).toBe(true);
-      // Should NOT have build.styleDictionary when SD is not detected
-      expect(config.build?.styleDictionary).toBeUndefined();
+      expect(config.figma.baseUrl).toBe('https://custom.figma.com');
     });
 
-    it('should always include docsPages with defaults', async () => {
-      // Create package.json
-      writeFileSync('package.json', JSON.stringify({
-        name: 'test-project'
-      }));
-
+    it('should set correct figma config', async () => {
       const { generateConfig } = await import('./init.js');
 
-      const config = await generateConfig('ABC123');
+      const config = generateConfig('FILE123');
 
-      expect(config.docsPages?.enabled).toBe(true);
-      expect(config.docsPages?.dir).toBe('.synkio/docs');
-      expect(config.docsPages?.title).toBe('Design Tokens');
+      expect(config.version).toBe('1.0.0');
+      expect(config.figma.fileId).toBe('FILE123');
+      expect(config.figma.accessToken).toBe('${FIGMA_TOKEN}');
     });
   });
 

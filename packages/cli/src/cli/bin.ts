@@ -71,6 +71,8 @@ function showHelp(command?: string) {
             console.log('Options:');
             console.log('  --preview           Show what would change without syncing');
             console.log('  --force             Apply changes even if breaking');
+            console.log('  --build             Run build pipeline without prompting');
+            console.log('  --no-build          Skip build pipeline entirely');
             console.log('  --report            Force generate markdown report');
             console.log('  --no-report         Skip report generation');
             console.log('  --watch             Watch for changes (poll Figma)');
@@ -203,6 +205,8 @@ switch (command) {
             collection: syncOptions.collection as string,
             config: syncOptions.config as string,
             timeout: syncOptions.timeout ? parseInt(syncOptions.timeout as string) : undefined,
+            build: syncOptions.build as boolean,
+            noBuild: syncOptions.noBuild as boolean,
         });
     } else {
         syncCommand({
@@ -214,6 +218,8 @@ switch (command) {
             regenerate: syncOptions.regenerate as boolean,
             config: syncOptions.config as string,
             timeout: syncOptions.timeout ? parseInt(syncOptions.timeout as string) : undefined,
+            build: syncOptions.build as boolean,
+            noBuild: syncOptions.noBuild as boolean,
         });
     }
     break;

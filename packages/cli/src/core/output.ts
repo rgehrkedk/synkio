@@ -6,11 +6,6 @@ import { parseTokens, ParsedTokens } from './docs/index.js';
 import { generateTokensCSS, generateUtilitiesCSS } from './css/index.js';
 import type { CSSTransformOptions } from './css/index.js';
 import { generateDocs } from './docs/index.js';
-import {
-  buildWithStyleDictionary,
-  StyleDictionaryNotInstalledError,
-  isStyleDictionaryAvailable
-} from './style-dictionary/index.js';
 import { writeIntermediateFormat } from './intermediate-tokens.js';
 
 /**
@@ -153,87 +148,38 @@ export async function generateDocsFromBaseline(
 }
 
 /**
- * Generate all enabled output formats from baseline
- *
- * For simple use cases, use build.css (zero-dependency)
- * For advanced needs (SCSS, JS, TS, etc.), use build.styleDictionary
- *
- * IMPORTANT: Always generates .tokens-source.json in the output directory
- * for use by the docs generator and other tools.
+ * Generate intermediate format (.tokens-source.json)
+ * This is ALWAYS generated during sync - not a "build" step.
+ * Used by docs generator and downstream tooling (like Style Dictionary).
  */
-export async function generateAllFromBaseline(
+export async function generateIntermediateFromBaseline(
   baseline: BaselineData,
   config: Config
-): Promise<{
-  css: TransformResult;
-  docs: TransformResult;
-  styleDictionary?: TransformResult;
-  intermediateFormat?: string;
-}> {
-  // Generate intermediate format for ALL modes (not just SD)
-  // This provides clean DTCG tokens with metadata for docs
+): Promise<string> {
   const outputDir = resolve(process.cwd(), config.tokens.dir);
-  const intermediateFormatPath = await writeIntermediateFormat(baseline, config, outputDir);
-
-  const [css, docs] = await Promise.all([
-    generateCssFromBaseline(baseline, config),
-    generateDocsFromBaseline(baseline, config),
-  ]);
-
-  return { css, docs, intermediateFormat: intermediateFormatPath };
+  return await writeIntermediateFormat(baseline, config, outputDir);
 }
 
 /**
- * Generate outputs using Style Dictionary
- * This provides full platform support: CSS, SCSS, JS, TS, iOS, Android, etc.
- * Uses new config structure: build.styleDictionary
+ * Check if any build configuration is present
  */
-export async function generateWithStyleDictionary(
-  baseline: BaselineData,
-  config: Config
-): Promise<TransformResult> {
-  // Use new config structure: build.styleDictionary
-  const sdConfig = config.build?.styleDictionary;
-
-  // Check if Style Dictionary mode is enabled via configFile
-  if (!sdConfig?.configFile) {
-    return EMPTY_RESULT;
-  }
-
-  const outputDir = resolve(process.cwd(), config.tokens.dir);
-
-  try {
-    const result = await buildWithStyleDictionary(baseline, {
-      outputDir,
-      configFile: sdConfig.configFile,
-      // Pass inline Style Dictionary config
-      inlineConfig: sdConfig ? {
-        transformGroup: sdConfig.transformGroup,
-        transforms: sdConfig.transforms,
-        buildPath: sdConfig.buildPath,
-        files: sdConfig.files as { destination: string; format: string; filter?: unknown; options?: Record<string, unknown> }[] | undefined,
-        platforms: sdConfig.platforms as Record<string, { transformGroup?: string; transforms?: string[]; buildPath?: string; prefix?: string; files: { destination: string; format: string; filter?: unknown; options?: Record<string, unknown> }[] }> | undefined,
-      } : undefined,
-      options: {
-        outputReferences: sdConfig.outputReferences ?? true,
-        prefix: sdConfig.prefix,
-      },
-      config, // Pass config for intermediate format generation
-    });
-
-    return {
-      files: result.files,
-      outputDir: result.outputDir
-    };
-  } catch (error) {
-    if (error instanceof StyleDictionaryNotInstalledError) {
-      throw error;
-    }
-    throw new Error(`Style Dictionary build failed: ${error}`);
-  }
+export function hasBuildConfig(config: Config): boolean {
+  return !!(
+    config.build?.script ||
+    config.build?.css?.enabled
+  );
 }
 
 /**
- * Check if Style Dictionary is available as a peer dependency
+ * Get a summary of configured build steps
  */
-export { isStyleDictionaryAvailable };
+export function getBuildStepsSummary(config: Config): string[] {
+  const steps: string[] = [];
+  if (config.build?.script) {
+    steps.push(`Script: ${config.build.script}`);
+  }
+  if (config.build?.css?.enabled) {
+    steps.push(`CSS output: ${config.build.css.file || 'tokens.css'}`);
+  }
+  return steps;
+}

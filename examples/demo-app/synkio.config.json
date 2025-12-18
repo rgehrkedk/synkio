@@ -4,71 +4,25 @@
     "fileId": "2v7lEGTB8CgFbYmawBETjG",
     "accessToken": "${FIGMA_TOKEN}"
   },
-  "output": {
-    "dir": "src/tokens-sd/tokens",
-    "format": "json",
-    "mode": "style-dictionary",
-    "styleDictionary": {
-      "buildPath": "src/tokens-sd/styles/",
-      "platforms": {
-        "css": {
-          "transformGroup": "css",
-          "files": [
-            {
-              "destination": "tokens.css",
-              "format": "css/variables",
-              "options": {
-                "outputReferences": true
-              }
-            }
-          ]
-        },
-        "scss": {
-          "transformGroup": "scss",
-          "files": [
-            {
-              "destination": "_tokens.scss",
-              "format": "scss/variables"
-            }
-          ]
-        },
-        "js": {
-          "transformGroup": "js",
-          "files": [
-            {
-              "destination": "tokens.js",
-              "format": "javascript/es6"
-            }
-          ]
-        }
+  "tokens": {
+    "dir": "tokens",
+    "includeVariableId": true,
+    "collections": {
+      "base": {
+        "splitModes": false
+      },
+      "colors": {
+        "splitModes": false
+      },
+      "font": {
+        "splitModes": false,
+        "dir": "tokens/typography",
+        "file": "typography.tokens",
+        "includeMode": true
+      },
+      "theme": {
+        "splitModes": true
       }
-    }
-  },
-  "docs": {
-    "enabled": true,
-    "dir": ".synkio/docs-sd",
-    "title": "Design Tokens"
-  },
-  "collections": {
-    "theme": {
-      "dir": "src/tokens-sd/tokens/themes",
-      "file": "theme",
-      "splitModes": true
-    },
-    "colors": {
-      "dir": "src/tokens-sd/tokens/colors",
-      "file": "colors",
-      "splitModes": false
-    },
-    "font": {
-      "dir": "src/tokens-sd/tokens/font",
-      "file": "font",
-      "splitModes": true
-    },
-    "base": {
-      "dir": "src/tokens-sd/tokens/base",
-      "file": "base",
-      "splitModes": false
     }
   }
 }

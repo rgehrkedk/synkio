@@ -7,8 +7,11 @@ import { readBaseline, writeBaseline } from '../../core/baseline.js';
 import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, printDiffSummary } from '../../core/compare.js';
 import { splitTokens, SplitTokensOptions } from '../../core/tokens.js';
 import { loadConfig } from '../../core/config.js';
-import { generateAllFromBaseline, generateWithStyleDictionary, isStyleDictionaryAvailable } from '../../core/output.js';
-import { StyleDictionaryNotInstalledError } from '../../core/style-dictionary/index.js';
+import {
+  generateIntermediateFromBaseline,
+  generateDocsFromBaseline,
+  generateCssFromBaseline,
+} from '../../core/output.js';
 import { BaselineData, BaselineEntry } from '../../types/index.js';
 import { createLogger } from '../../utils/logger.js';
 import { mkdir, writeFile } from 'fs/promises';
@@ -26,13 +29,6 @@ export interface ImportOptions {
   force?: boolean;
   /** Path to config file */
   config?: string;
-}
-
-/**
- * Check if Style Dictionary mode is enabled based on new config structure
- */
-function isStyleDictionaryMode(config: ReturnType<typeof loadConfig>): boolean {
-  return !!config.build?.styleDictionary?.configFile;
 }
 
 /**
@@ -300,6 +296,8 @@ export async function importCommand(options: ImportOptions): Promise<void> {
         collections: config.tokens.collections || {},
         dtcg: config.tokens.dtcg !== false,
         includeVariableId: config.tokens.includeVariableId === true,
+        splitModes: config.tokens.splitModes,
+        includeMode: config.tokens.includeMode,
         extensions: config.tokens.extensions || {},
       };
       const processedTokens = splitTokens(baseline, splitOptions);
@@ -330,31 +328,27 @@ export async function importCommand(options: ImportOptions): Promise<void> {
         }
       }
 
-      // Generate additional outputs
-      let outputs;
-      let sdFilesWritten = 0;
+      // Always generate intermediate format (used by docs and other tools)
+      await generateIntermediateFromBaseline(newBaseline, config);
 
-      if (isStyleDictionaryMode(config)) {
-        const sdAvailable = await isStyleDictionaryAvailable();
-        if (sdAvailable) {
-          try {
-            const sdResult = await generateWithStyleDictionary(newBaseline, config);
-            sdFilesWritten = sdResult.files.length;
-          } catch (error) {
-            if (!(error instanceof StyleDictionaryNotInstalledError)) {
-              throw error;
-            }
-          }
-        }
+      // Generate additional outputs
+      let cssFilesWritten = 0;
+      let docsFilesWritten = 0;
+
+      // CSS output if enabled
+      if (config.build?.css?.enabled) {
+        const cssResult = await generateCssFromBaseline(newBaseline, config);
+        cssFilesWritten = cssResult.files.length;
       }
 
-      outputs = await generateAllFromBaseline(newBaseline, config);
-      const cssFilesWritten = outputs.css.files.length;
-      const docsFilesWritten = outputs.docs.files.length;
+      // Docs if enabled
+      if (config.docsPages?.enabled) {
+        const docsResult = await generateDocsFromBaseline(newBaseline, config);
+        docsFilesWritten = docsResult.files.length;
+      }
 
       // Build summary
       const extras: string[] = [];
-      if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
       if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
       if (docsFilesWritten > 0) extras.push('docs');
       const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';

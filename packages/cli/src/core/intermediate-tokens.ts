@@ -2,7 +2,7 @@
  * Intermediate Token Format
  *
  * This module generates a unified intermediate token format (.tokens-source.json)
- * that is used by both the documentation generator and Style Dictionary.
+ * that is used by the documentation generator.
  *
  * The intermediate format provides:
  * - DTCG-compliant token structure ($value, $type, $description)
@@ -10,15 +10,13 @@
  * - Resolved references in {path} format
  * - Metadata from synkio.config.json configuration
  * - Output format information for docs display
- * - Platform-specific naming conventions (derived from Style Dictionary when available)
  */
 
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { BaselineData, BaselineEntry } from '../types/index.js';
+import { BaselineData } from '../types/index.js';
 import { Config } from './config.js';
 import { mapToDTCGType } from './tokens.js';
-import { getSDPlatformsInfo } from './sd-hooks.js';
 
 /**
  * Extended intermediate format with metadata
@@ -40,7 +38,7 @@ export interface IntermediateTokenFormat {
 
     /** Output configuration from synkio.config.json */
     output: {
-      /** Output mode: json, style-dictionary */
+      /** Output mode (always 'json') */
       mode: string;
 
       /** Whether DTCG format is used */
@@ -57,20 +55,6 @@ export interface IntermediateTokenFormat {
           useRem?: boolean;
           basePxFontSize?: number;
         };
-      };
-
-      /** Style Dictionary configuration if in SD mode */
-      styleDictionary?: {
-        buildPath?: string;
-        /** Platform info with name transforms (derived from SD hooks when available) */
-        platforms?: Record<string, {
-          transformGroup: string;
-          /** The SD name transform (e.g., 'name/camel', 'name/snake') - used by SD's actual transform function */
-          nameTransform?: string;
-          buildPath?: string;
-          files?: Array<{ destination: string; format: string }>;
-        }>;
-        outputReferences?: boolean;
       };
     };
 
@@ -182,24 +166,16 @@ function normalizeColorValue(value: unknown, type: string): unknown {
 }
 
 /**
- * Generate variable naming conventions based on config
- * Uses new config structure: build.styleDictionary
+ * Generate variable naming conventions
+ * Returns standard CSS variable naming
  */
-function generateVariableNaming(config: Config): {
+function generateVariableNaming(): {
   prefix: string;
   separator: string;
   example: string;
 } {
-  // Determine prefix using new config structure
-  let prefix = '--';
-  if (config.build?.styleDictionary?.configFile && config.build?.styleDictionary?.prefix) {
-    prefix = `--${config.build.styleDictionary.prefix}-`;
-  }
-
-  // CSS uses dashes, JS uses camelCase, but we'll default to dashes for CSS variables
+  const prefix = '--';
   const separator = '-';
-
-  // Generate example
   const example = `${prefix}color-primary-500`;
 
   return { prefix, separator, example };
@@ -233,56 +209,16 @@ function extractModes(baseline: BaselineData): string[] {
 
 /**
  * Generate the complete intermediate token format with metadata
- * Uses new config structure: tokens.dir, build.styleDictionary, build.css
+ * Uses new config structure: tokens.dir, build.css
  */
-export async function generateIntermediateFormat(
+export function generateIntermediateFormat(
   baseline: BaselineData,
   config: Config
-): Promise<IntermediateTokenFormat> {
+): IntermediateTokenFormat {
   const tokens = convertToIntermediateFormat(baseline, config);
-  const variableNaming = generateVariableNaming(config);
+  const variableNaming = generateVariableNaming();
   const collections = extractCollections(baseline);
   const modes = extractModes(baseline);
-
-  // Check if Style Dictionary mode is enabled via configFile
-  const isSDMode = !!config.build?.styleDictionary?.configFile;
-
-  // Build Style Dictionary platform info if in SD mode
-  let sdPlatformsInfo: IntermediateTokenFormat['$metadata']['output']['styleDictionary'] | undefined;
-
-  if (isSDMode && config.build?.styleDictionary?.platforms) {
-    const configPlatforms = config.build.styleDictionary.platforms;
-
-    // Try to get naming conventions from Style Dictionary hooks
-    const sdHooksInfo = await getSDPlatformsInfo(configPlatforms);
-
-    // Build enriched platform info
-    const platforms: NonNullable<typeof sdPlatformsInfo>['platforms'] = {};
-
-    for (const [platformName, platformConfig] of Object.entries(configPlatforms)) {
-      const transformGroup = platformConfig.transformGroup || platformName;
-      const sdInfo = sdHooksInfo[platformName];
-
-      platforms[platformName] = {
-        transformGroup,
-        nameTransform: sdInfo?.nameTransform,
-        buildPath: platformConfig.buildPath,
-        files: platformConfig.files?.map(f => ({
-          destination: f.destination,
-          format: f.format,
-        })),
-      };
-    }
-
-    sdPlatformsInfo = {
-      buildPath: config.build.styleDictionary.buildPath,
-      platforms,
-      outputReferences: config.build.styleDictionary.outputReferences,
-    };
-  }
-
-  // Determine output mode
-  const outputMode = isSDMode ? 'style-dictionary' : 'json';
 
   return {
     tokens,
@@ -293,19 +229,15 @@ export async function generateIntermediateFormat(
         figmaNodeId: config.figma.nodeId,
       },
       output: {
-        mode: outputMode,
+        mode: 'json',
         dtcg: config.tokens.dtcg !== false,
         dir: config.tokens.dir,
-        // Use new config structure: build.css
         ...(config.build?.css?.enabled && {
           css: {
             enabled: true,
             file: config.build.css.file,
             transforms: config.build.css.transforms,
           },
-        }),
-        ...(sdPlatformsInfo && {
-          styleDictionary: sdPlatformsInfo,
         }),
       },
       variableNaming,
@@ -317,7 +249,7 @@ export async function generateIntermediateFormat(
 
 /**
  * Write the intermediate token format to disk
- * This file is used by both Style Dictionary and the docs generator
+ * This file is used by the docs generator
  */
 export async function writeIntermediateFormat(
   baseline: BaselineData,
@@ -326,7 +258,7 @@ export async function writeIntermediateFormat(
 ): Promise<string> {
   await mkdir(outputDir, { recursive: true });
 
-  const intermediate = await generateIntermediateFormat(baseline, config);
+  const intermediate = generateIntermediateFormat(baseline, config);
   const tokensPath = join(outputDir, '.tokens-source.json');
 
   await writeFile(tokensPath, JSON.stringify(intermediate, null, 2), 'utf-8');

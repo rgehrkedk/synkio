@@ -27,8 +27,8 @@ const TransformOptionsSchema = z.object({
 const CollectionConfigSchema = z.object({
   dir: z.string().optional(),                         // Output directory for this collection (defaults to tokens.dir)
   file: z.string().optional(),                        // Custom filename pattern (e.g., "colors" -> "colors.json", or with modes: "theme" -> "theme.light.json")
-  splitModes: z.boolean().optional().default(true),   // Whether to split multi-mode collections into separate files per mode
-  includeMode: z.boolean().optional().default(true),  // Whether to include mode as first-level key even when splitting
+  splitModes: z.boolean().optional(),                 // Whether to split multi-mode collections into separate files per mode (default: true at tokens level)
+  includeMode: z.boolean().optional(),                // Whether to include mode as first-level key (default: false at tokens level)
 });
 
 const CollectionsConfigSchema = z.record(z.string(), CollectionConfigSchema).optional();
@@ -45,40 +45,11 @@ const TokensConfigSchema = z.object({
   dir: z.string(),                                    // Output directory for token files
   dtcg: z.boolean().optional().default(true),         // Use DTCG format ($value, $type) vs legacy (value, type)
   includeVariableId: z.boolean().optional().default(false), // Include Figma variableId in $extensions
+  splitModes: z.boolean().optional().default(true),   // Default for splitModes across all collections
+  includeMode: z.boolean().optional().default(false), // Default for includeMode across all collections (false = no mode wrapper)
   extensions: TokenExtensionsConfigSchema,            // Optional metadata extensions
   collections: CollectionsConfigSchema,               // Per-collection configuration
 });
-
-// Style Dictionary configuration for build.styleDictionary
-const StyleDictionaryConfigSchema = z.object({
-  configFile: z.string().optional(),                   // Path to external Style Dictionary config file
-  outputReferences: z.boolean().optional().default(true), // Use CSS var references in output
-  prefix: z.string().optional(),                       // Prefix for all token names
-  // Inline Style Dictionary config - passed directly to SD
-  // See: https://styledictionary.com/reference/config/
-  transformGroup: z.string().optional(),               // e.g., "css", "scss", "js"
-  transforms: z.array(z.string()).optional(),          // Custom transform names
-  buildPath: z.string().optional(),                    // Output path for SD files
-  files: z.array(z.object({
-    destination: z.string(),
-    format: z.string(),
-    filter: z.any().optional(),
-    options: z.record(z.string(), z.any()).optional(),
-  })).optional(),
-  // Full platforms config for multi-platform builds
-  platforms: z.record(z.string(), z.object({
-    transformGroup: z.string().optional(),
-    transforms: z.array(z.string()).optional(),
-    buildPath: z.string().optional(),
-    prefix: z.string().optional(),
-    files: z.array(z.object({
-      destination: z.string(),
-      format: z.string(),
-      filter: z.any().optional(),
-      options: z.record(z.string(), z.any()).optional(),
-    })),
-  })).optional(),
-}).optional();
 
 // CSS output configuration for build.css
 const CssConfigSchema = z.object({
@@ -90,18 +61,28 @@ const CssConfigSchema = z.object({
   transforms: TransformOptionsSchema,
 }).optional();
 
-// Build configuration (replaces output.mode, output.styleDictionary, and css)
+// Build configuration
 const BuildConfigSchema = z.object({
+  autoRun: z.boolean().optional().default(false),      // If true, run build without prompting after sync
   script: z.string().optional(),                       // Custom build command to run after sync (e.g., "npm run build:tokens")
-  styleDictionary: StyleDictionaryConfigSchema,        // Style Dictionary build options
   css: CssConfigSchema,                                // CSS build options
 }).optional();
+
+// Platform definition for docs output (independent of Style Dictionary)
+const DocsPlatformSchema = z.object({
+  name: z.string(),                                    // Display name: "CSS", "JavaScript", "Swift"
+  prefix: z.string().optional(),                       // Variable prefix: "--", "", "k"
+  case: z.enum(['kebab', 'camel', 'snake', 'pascal', 'constant']).optional(), // Name casing
+  separator: z.string().optional(),                    // Custom separator (overrides case default)
+  suffix: z.string().optional(),                       // Optional suffix
+});
 
 // Documentation/Dashboard configuration (renamed from docs to docsPages)
 const DocsPagesConfigSchema = z.object({
   enabled: z.boolean().optional().default(false),      // Generate documentation site
   dir: z.string().optional().default('.synkio/docs'),   // Output directory
   title: z.string().optional().default('Design Tokens'), // Documentation title
+  platforms: z.array(DocsPlatformSchema).optional(),   // Custom platform definitions for variable names
 }).optional();
 
 // Sync behavior configuration
@@ -128,13 +109,14 @@ export const ConfigSchema = z.object({
   version: z.literal('1.0.0'),
   figma: FigmaConfigSchema,
   tokens: TokensConfigSchema,                          // NEW: replaces output.dir and collections
-  build: BuildConfigSchema,                            // NEW: replaces output.mode, output.styleDictionary, css
+  build: BuildConfigSchema,                            // Build configuration (script, css)
   docsPages: DocsPagesConfigSchema,                    // NEW: renamed from docs
   sync: SyncConfigSchema,
   import: ImportConfigSchema,
 }).strict(); // Reject unknown keys like output, css, docs
 
 export type Config = z.infer<typeof ConfigSchema>;
+export type DocsPlatform = z.infer<typeof DocsPlatformSchema>;
 
 /**
  * Find config file in current directory
@@ -423,10 +405,6 @@ export function updateConfigWithBuildScript(
 
   // Set the build script
   json.build.script = buildScript;
-
-  // If build.styleDictionary exists and we're setting a script,
-  // we should remove styleDictionary since script takes precedence for factory configs
-  // (keep it if user explicitly wants both)
 
   // Write updated config back
   try {

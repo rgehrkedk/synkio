@@ -16,10 +16,10 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [docs](#docs)
 - [Configuration](#configuration)
   - [Basic Config](#basic-config)
-  - [Output Options](#output-options)
+  - [Tokens Options](#tokens-options)
+  - [Build Options](#build-options)
   - [CSS Options](#css-options)
   - [Docs Options](#docs-options)
-  - [Style Dictionary Mode](#style-dictionary-mode)
   - [Sync Options](#sync-options)
   - [Collection Options](#collection-options)
   - [Import Options](#import-options)
@@ -32,6 +32,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [Watch Mode](#watch-mode)
   - [Selective Sync](#selective-sync)
   - [Rollback Preview](#rollback-preview)
+- [Using Style Dictionary](#using-style-dictionary)
 - [Hosting Documentation](#hosting-your-documentation)
 - [Figma Setup](#figma-setup)
 
@@ -62,18 +63,17 @@ npx synkio init
 
 The CLI will ask for:
 - **Figma file URL** — The file containing your design tokens
-- **Output directory** — Where token files will be saved (e.g., `tokens/`)
 
 This creates:
 - `synkio.config.json` — Configuration file
-- `.env` — Stores your `FIGMA_TOKEN` securely
+- `.env.example` — Template for your `FIGMA_TOKEN`
 
 > **Note:** Legacy `tokensrc.json` files are still supported but deprecated.
 
 ### 3. Run the Figma Plugin
 
 1. Open your Figma file
-2. Run **Plugins → Synkio**
+2. Run **Plugins > Synkio**
 3. Click "Sync" to export variables
 
 ### 4. Sync
@@ -110,7 +110,6 @@ npx synkio init
 | Flag | Description |
 |------|-------------|
 | `--figma-url=<url>` | Figma file URL |
-| `--output-dir=<dir>` | Output directory for tokens |
 | `--base-url=<url>` | Custom Figma API URL (enterprise) |
 
 ---
@@ -134,6 +133,8 @@ npx synkio sync
 | `--interval=<s>` | Watch interval in seconds (default: 30) |
 | `--collection=<name>` | Sync specific collection(s), comma-separated |
 | `--regenerate` | Regenerate files from existing baseline (no Figma fetch) |
+| `--build` | Force run build without prompting |
+| `--no-build` | Skip build entirely |
 
 **Examples:**
 
@@ -242,7 +243,7 @@ See [Import Options](#import-options) for full configuration details.
 **How Figma Native Export Works:**
 
 1. In Figma, select your variable collection
-2. Go to **File → Export → Variables → JSON**
+2. Go to **File > Export > Variables > JSON**
 3. Save the JSON file(s) to your project
 4. Run `synkio import`
 
@@ -380,7 +381,7 @@ Configuration is stored in `synkio.config.json` in your project root.
     "fileId": "ABC123xyz",
     "accessToken": "${FIGMA_TOKEN}"
   },
-  "output": {
+  "tokens": {
     "dir": "tokens"
   }
 }
@@ -392,20 +393,25 @@ Configuration is stored in `synkio.config.json` in your project root.
 | `figma.fileId` | Figma file ID (from URL) |
 | `figma.accessToken` | Token placeholder (uses `.env`) |
 | `figma.baseUrl` | Custom API URL (enterprise only) |
-| `output.dir` | Token output directory |
+| `tokens.dir` | Token output directory |
 
-### Output Options
+### Tokens Options
 
 ```json
 {
-  "output": {
+  "tokens": {
     "dir": "tokens",
     "dtcg": true,
     "includeVariableId": false,
+    "splitModes": true,
+    "includeMode": false,
     "extensions": {
       "description": false,
       "scopes": false,
       "codeSyntax": false
+    },
+    "collections": {
+      "theme": { "splitModes": true }
     }
   }
 }
@@ -413,11 +419,40 @@ Configuration is stored in `synkio.config.json` in your project root.
 
 | Option | Default | Description |
 |--------|---------|-------------|
+| `dir` | required | Output directory for token files |
 | `dtcg` | `true` | Use DTCG format (`$value`, `$type`) |
 | `includeVariableId` | `false` | Include Figma variable IDs |
+| `splitModes` | `true` | Split multi-mode collections into separate files per mode |
+| `includeMode` | `false` | Include mode name as first-level key in JSON output |
 | `extensions.description` | `false` | Include variable descriptions |
 | `extensions.scopes` | `false` | Include usage scopes |
 | `extensions.codeSyntax` | `false` | Include platform code names |
+| `collections` | - | Per-collection configuration (can override `splitModes` and `includeMode`) |
+
+### Build Options
+
+Configure custom build scripts that run after sync:
+
+```json
+{
+  "build": {
+    "autoRun": false,
+    "script": "npm run build:tokens",
+    "css": {
+      "enabled": true,
+      "file": "tokens.css"
+    }
+  }
+}
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `autoRun` | `false` | Run build without prompting |
+| `script` | - | Custom build command to run after sync |
+| `css` | - | Built-in CSS output options |
+
+The `build.script` option lets you integrate any build tool (Style Dictionary, Token Transformer, etc.) into your sync workflow.
 
 ### CSS Options
 
@@ -425,14 +460,17 @@ Generate CSS custom properties and utility classes:
 
 ```json
 {
-  "css": {
-    "enabled": true,
-    "file": "tokens.css",
-    "utilities": true,
-    "utilitiesFile": "utilities.css",
-    "transforms": {
-      "useRem": true,
-      "basePxFontSize": 16
+  "build": {
+    "css": {
+      "enabled": true,
+      "dir": "src/styles",
+      "file": "tokens.css",
+      "utilities": true,
+      "utilitiesFile": "utilities.css",
+      "transforms": {
+        "useRem": true,
+        "basePxFontSize": 16
+      }
     }
   }
 }
@@ -441,6 +479,7 @@ Generate CSS custom properties and utility classes:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `enabled` | `false` | Generate CSS custom properties |
+| `dir` | `tokens.dir` | CSS output directory |
 | `file` | `tokens.css` | CSS output filename |
 | `utilities` | `false` | Generate utility classes |
 | `utilitiesFile` | `utilities.css` | Utilities filename |
@@ -467,7 +506,7 @@ Generate a static documentation site:
 
 ```json
 {
-  "docs": {
+  "docsPages": {
     "enabled": true,
     "dir": ".synkio/docs",
     "title": "Design Tokens"
@@ -480,95 +519,6 @@ Generate a static documentation site:
 | `enabled` | `false` | Generate documentation site |
 | `dir` | `.synkio/docs` | Documentation output directory |
 | `title` | `Design Tokens` | Site title |
-
-### Style Dictionary Mode
-
-For advanced multi-platform output, use Style Dictionary mode. This provides professional-grade token transforms for all major platforms.
-
-**Step 1: Install Style Dictionary**
-
-```bash
-npm install style-dictionary --save-dev
-```
-
-**Step 2: Enable in config**
-
-You must provide either a `configFile` (path to external config) or `inlineConfig` (configuration object).
-
-**Option A: Inline Configuration (Recommended for simple setups)**
-
-```json
-{
-  "output": {
-    "dir": "src/tokens",
-    "mode": "style-dictionary",
-    "styleDictionary": {
-      "buildPath": "src/styles/",
-      "platforms": {
-        "css": {
-          "transformGroup": "css",
-          "files": [
-            {
-              "destination": "tokens.css",
-              "format": "css/variables",
-              "options": { "outputReferences": true }
-            }
-          ]
-        },
-        "scss": {
-          "transformGroup": "scss",
-          "files": [
-            {
-              "destination": "_tokens.scss",
-              "format": "scss/variables"
-            }
-          ]
-        }
-      }
-    }
-  }
-}
-```
-
-**Option B: External Configuration File**
-
-```json
-{
-  "output": {
-    "dir": "src/tokens",
-    "mode": "style-dictionary",
-    "styleDictionary": {
-      "configFile": "./sd.config.js"
-    }
-  }
-}
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `mode` | `json` | Output mode: `json` or `style-dictionary` |
-| `styleDictionary.configFile` | - | Path to custom Style Dictionary config |
-| `styleDictionary.platforms` | - | Inline platform configuration object |
-| `styleDictionary.outputReferences` | `true` | Use CSS variable references in output |
-| `styleDictionary.prefix` | `""` | Prefix for all token names |
-
-**Note on Transformations:**
-Synkio automatically maps Figma types to DTCG-compliant types before passing them to Style Dictionary. For example, a variable with path `spacing/sm` and type `FLOAT` will be mapped to type `dimension` with value `16`. This allows Style Dictionary's standard transform groups (like `css`) to automatically apply units (e.g., `16px`) without custom transforms.
-
-For full control, provide your own Style Dictionary config:
-
-```json
-{
-  "output": {
-    "mode": "style-dictionary",
-    "styleDictionary": {
-      "configFile": "./style-dictionary.config.js"
-    }
-  }
-}
-```
-
-See [Style Dictionary documentation](https://amzn.github.io/style-dictionary) for advanced configuration.
 
 ### Sync Options
 
@@ -588,22 +538,27 @@ See [Style Dictionary documentation](https://amzn.github.io/style-dictionary) fo
 
 ### Collection Options
 
-Configure per-collection output behavior:
+Configure per-collection output behavior. Collection-level settings override the parent-level `tokens.splitModes` and `tokens.includeMode` defaults:
 
 ```json
 {
-  "collections": {
-    "colors": {
-      "dir": "src/styles/tokens/colors",
-      "splitModes": false
-    },
-    "primitives": {
-      "dir": "src/styles/tokens/primitives",
-      "splitModes": false
-    },
-    "theme": {
-      "splitModes": true,
-      "includeMode": true
+  "tokens": {
+    "dir": "tokens",
+    "splitModes": true,
+    "includeMode": false,
+    "collections": {
+      "colors": {
+        "dir": "src/styles/tokens/colors",
+        "splitModes": false
+      },
+      "primitives": {
+        "dir": "src/styles/tokens/primitives",
+        "splitModes": false
+      },
+      "theme": {
+        "splitModes": true,
+        "includeMode": true
+      }
     }
   }
 }
@@ -611,9 +566,9 @@ Configure per-collection output behavior:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `dir` | `output.dir` | Custom output directory for this collection |
-| `splitModes` | `true` | Separate files per mode (`theme.light.json`, `theme.dark.json`) |
-| `includeMode` | `true` | Include mode as first-level key in JSON |
+| `dir` | `tokens.dir` | Custom output directory for this collection |
+| `splitModes` | inherits from `tokens.splitModes` | Separate files per mode (`theme.light.json`, `theme.dark.json`) |
+| `includeMode` | inherits from `tokens.includeMode` | Include mode as first-level key in JSON |
 
 After changing collection config, run `npx synkio sync --regenerate` to regenerate files without fetching from Figma.
 
@@ -718,7 +673,7 @@ Include Figma variable IDs for debugging or tooling:
 
 ```json
 {
-  "output": {
+  "tokens": {
     "includeVariableId": true
   }
 }
@@ -748,7 +703,7 @@ Include additional Figma metadata:
 
 ```json
 {
-  "output": {
+  "tokens": {
     "extensions": {
       "description": true,
       "scopes": true,
@@ -791,19 +746,19 @@ Output:
 
 Synkio detects changes that could break your code:
 
-- **Path changes** — Token renamed (e.g., `colors.primary` → `colors.brand.primary`)
+- **Path changes** — Token renamed (e.g., `colors.primary` -> `colors.brand.primary`)
 - **Deleted variables** — Token removed entirely
 - **Deleted modes** — Mode removed from collection
 - **New modes** — New mode added to collection
-- **Mode renames** — Mode renamed (e.g., `Mode 1` → `light`)
+- **Mode renames** — Mode renamed (e.g., `Mode 1` -> `light`)
 
 When detected, sync is blocked:
 
 ```
-⚠️  BREAKING CHANGES DETECTED
+BREAKING CHANGES DETECTED
 
   Path changes: 1
-    colors.primary → colors.brand.primary
+    colors.primary -> colors.brand.primary
 
   These changes may break your code.
 
@@ -824,14 +779,14 @@ npx synkio sync --watch --force        # Auto-apply breaking changes
 Output:
 
 ```
-👀 Watching for changes (every 30s)
+Watching for changes (every 30s)
 
   Press Ctrl+C to stop
 
   [10:30:30] Checking Figma... No changes
   [10:31:00] Checking Figma... Changes detected!
 
-  ✓ Sync complete. Wrote 5 token files.
+  Sync complete. Wrote 5 token files.
 ```
 
 ### Selective Sync
@@ -859,7 +814,7 @@ Output:
 Rollback Preview - showing changes if restored:
 
   Value changes (3):
-    colors.primary: #0066cc → #0055aa
+    colors.primary: #0066cc -> #0055aa
 
   Tokens that would be removed (1):
     - colors.accent
@@ -867,6 +822,76 @@ Rollback Preview - showing changes if restored:
   Tokens that would be restored (2):
     + colors.secondary
 ```
+
+---
+
+## Using Style Dictionary
+
+Synkio outputs standard DTCG-format JSON files that can be consumed by Style Dictionary or any other token build tool.
+
+### Setting Up Style Dictionary
+
+1. Install Style Dictionary:
+
+```bash
+npm install style-dictionary --save-dev
+```
+
+2. Create a Style Dictionary config (`sd.config.js`):
+
+```javascript
+export default {
+  source: ['tokens/**/*.json'],
+  platforms: {
+    css: {
+      transformGroup: 'css',
+      buildPath: 'dist/',
+      files: [{
+        destination: 'tokens.css',
+        format: 'css/variables'
+      }]
+    },
+    scss: {
+      transformGroup: 'scss',
+      buildPath: 'dist/',
+      files: [{
+        destination: '_tokens.scss',
+        format: 'scss/variables'
+      }]
+    }
+  }
+};
+```
+
+3. Add a build script to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "build:tokens": "style-dictionary build --config sd.config.js"
+  }
+}
+```
+
+4. Configure Synkio to run the build after sync:
+
+```json
+{
+  "build": {
+    "script": "npm run build:tokens"
+  }
+}
+```
+
+Now when you run `synkio sync`, it will:
+1. Fetch tokens from Figma
+2. Write DTCG JSON files to `tokens/`
+3. Run your Style Dictionary build
+4. Output CSS/SCSS/etc. to `dist/`
+
+### Advanced Style Dictionary Configuration
+
+For TypeScript configs, factory functions, and advanced setups, see the [Style Dictionary documentation](https://styledictionary.com/).
 
 ---
 

@@ -218,6 +218,8 @@ export interface SplitTokensOptions {
   collections?: CollectionSplitOptions;
   dtcg?: boolean;             // Use DTCG format with $value, $type (default: true)
   includeVariableId?: boolean; // Include Figma variableId in output (default: false)
+  splitModes?: boolean;       // Default for splitModes across all collections (default: true)
+  includeMode?: boolean;      // Default for includeMode across all collections (default: false)
   extensions?: {
     description?: boolean;    // Include variable descriptions (default: false)
     scopes?: boolean;         // Include usage scopes (default: false)
@@ -250,12 +252,15 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
     const collectionOptions = options.collections || {};
     const useDtcg = options.dtcg !== false; // default true
     const includeVariableId = options.includeVariableId === true; // default false
+    // Parent-level defaults
+    const defaultSplitModes = options.splitModes !== false; // default true
+    const defaultIncludeMode = options.includeMode === true; // default false
     const extensions = options.extensions || {};
     const valueKey = useDtcg ? '$value' : 'value';
     const typeKey = useDtcg ? '$type' : 'type';
     const extensionsKey = useDtcg ? '$extensions' : 'extensions';
     const descriptionKey = useDtcg ? '$description' : 'description';
-    
+
     // Build a lookup map from VariableID to path for resolving references
     const variableIdToPath = new Map<string, string>();
     for (const entry of Object.values(rawTokens)) {
@@ -263,17 +268,18 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
             variableIdToPath.set(entry.variableId, entry.path);
         }
     }
-    
+
     for (const entry of Object.values(rawTokens)) {
         // Use explicit collection/mode fields if available (new Synkio format)
         // Fall back to parsing from path (legacy format)
         const collection = entry.collection || entry.path.split('.')[0];
         const mode = entry.mode || entry.path.split('.')[1] || 'value';
         const pathParts = entry.path.split('.');
-        
+
         const collectionConfig = collectionOptions[collection];
-        const shouldSplitModes = collectionConfig?.splitModes !== false; // default true
-        const shouldIncludeMode = collectionConfig?.includeMode !== false; // default true
+        // Collection config overrides parent-level defaults
+        const shouldSplitModes = collectionConfig?.splitModes ?? defaultSplitModes;
+        const shouldIncludeMode = collectionConfig?.includeMode ?? defaultIncludeMode;
         
         let fileKey: string;
         let nestedPath: string[];
@@ -285,9 +291,9 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
             nestedPath = shouldIncludeMode ? [mode, ...pathParts] : pathParts;
         } else {
             // Don't split: use only collection name as file key
-            // Include mode as top-level key in the file
+            // Include mode as top-level key if configured
             fileKey = collection;
-            nestedPath = [mode, ...pathParts]; // mode + path
+            nestedPath = shouldIncludeMode ? [mode, ...pathParts] : pathParts;
         }
         
         if (!files.has(fileKey)) {

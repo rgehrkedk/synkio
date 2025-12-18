@@ -69,9 +69,6 @@ describe('ConfigSchema - new structure validation', () => {
         },
       },
       build: {
-        styleDictionary: {
-          configFile: './sd.config.js',
-        },
         css: {
           enabled: true,
           file: 'tokens.css',
@@ -90,7 +87,6 @@ describe('ConfigSchema - new structure validation', () => {
     if (result.success) {
       expect(result.data.tokens.dir).toBe('src/tokens');
       expect(result.data.tokens.collections?.theme?.splitModes).toBe(true);
-      expect(result.data.build?.styleDictionary?.configFile).toBe('./sd.config.js');
       expect(result.data.build?.css?.enabled).toBe(true);
       expect(result.data.docsPages?.enabled).toBe(true);
     }

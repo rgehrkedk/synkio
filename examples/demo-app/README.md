@@ -4,7 +4,7 @@ This is a reference implementation showing how to use Synkio with a real project
 
 ## What's included
 
-- `tokensrc.json` - Synkio configuration
+- `synkio.config.json` - Synkio configuration
 - `tokens/` - Design tokens synced from Figma (JSON + CSS)
 - `.synkio/docs/` - Generated documentation site
 - `src/` - Simple demo app using the tokens
@@ -20,7 +20,7 @@ cd examples/demo-app
 # Install dependencies
 npm install
 
-# Make sure .env exists in this directory (not in .synkio/)
+# Make sure .env exists with your Figma token
 # It should contain: FIGMA_TOKEN=your_token_here
 
 # Sync tokens
@@ -51,7 +51,7 @@ npm run build
 cd ../../../examples/demo-app
 npm install
 
-# 4. Make sure .env exists in this directory
+# 4. Make sure .env exists with your Figma token
 # It should contain: FIGMA_TOKEN=your_token_here
 
 # 5. Use the linked CLI
@@ -67,76 +67,42 @@ synkio docs --open
 npm run dev
 ```
 
-## Configuration Files
+## Configuration
 
-This demo includes **four configuration files** to showcase different output modes:
+The `synkio.config.json` configures:
 
-### 1. `tokensrc.json` (Default - Web Platforms)
-- **Mode**: Style Dictionary
-- **Output**: `src/tokens-sd/`
-- **Platforms**: CSS, SCSS, JavaScript
-- **Docs**: `.synkio/docs-sd/`
+- **Token output**: JSON files in DTCG format to `tokens/`
+- **CSS output**: Built-in CSS generation with utility classes
+- **Documentation**: Token documentation site in `.synkio/docs/`
 
-```bash
-# Use default config
-synkio sync --regenerate
-open .synkio/docs-sd/index.html
+### Using Style Dictionary
+
+Synkio outputs standard DTCG-format JSON files that can be consumed by Style Dictionary.
+To use Style Dictionary for advanced transforms:
+
+1. Install Style Dictionary: `npm install -D style-dictionary`
+2. Create your own `sd.config.js` that reads from `tokens/`
+3. Add a build script to `synkio.config.json`:
+
+```json
+{
+  "build": {
+    "script": "npx style-dictionary build"
+  }
+}
 ```
 
-### 2. `tokensrc.css.json` (CSS-Only Mode)
-- **Mode**: JSON (zero-dependency)
-- **Output**: `src/tokens-css/`
-- **Features**: CSS with rem units, utility classes
-- **Docs**: `.synkio/docs-css/`
-
-```bash
-# Use CSS-only config
-synkio sync --regenerate --config tokensrc.css.json
-open .synkio/docs-css/index.html
-```
-
-### 3. `tokensrc.js.json` (CSS-in-JS / React)
-- **Mode**: Style Dictionary
-- **Output**: `src/tokens-js/`
-- **Platforms**: JavaScript (flat + nested), TypeScript, JSON (nested)
-- **Use cases**: styled-components, Emotion, CSS Modules, theme providers
-- **Docs**: `.synkio/docs-js/`
-- **Formats**:
-  - `tokens.js` - Flat exports (`DefaultSpacingXs`)
-  - `theme.js` - Nested object (Style Dictionary format)
-  - `tokens.json` - Nested JSON (`{"default": {"spacing": {"xs": "4rem"}}}`)
-
-```bash
-# Use CSS-in-JS config
-synkio sync --regenerate --config tokensrc.js.json
-open .synkio/docs-js/index.html
-```
-
-### 4. `tokensrc.mobile.json` (Mobile Platforms)
-- **Mode**: Style Dictionary
-- **Output**: `src/tokens-mobile/`
-- **Platforms**: iOS Swift, Android XML, Jetpack Compose, Flutter
-- **Docs**: `.synkio/docs-mobile/`
-
-```bash
-# Use mobile config
-synkio sync --regenerate --config tokensrc.mobile.json
-open .synkio/docs-mobile/index.html
-```
+This approach gives you full control over Style Dictionary configuration while
+keeping Synkio focused on syncing tokens from Figma.
 
 ## Intermediate Token Format
 
-All modes generate `.tokens-source.json` with:
+Synkio generates `.tokens-source.json` with:
 - Clean DTCG tokens (`$value`, `$type`)
 - Output configuration metadata
 - CSS variable naming conventions
-- Platform/transform information
 
-The docs use this metadata to display mode-specific info. For example:
-- **Web platforms** show CSS, SCSS, JS variable names
-- **CSS-in-JS** shows JS (flat exports), TS (type declarations), and Object (nested path) formats
-- **Mobile platforms** show iOS Swift, Android XML, Compose, Flutter variable names
-- **CSS-only mode** shows CSS variables with rem unit transforms
+The docs use this metadata to display token information.
 
 ## Live Demo
 

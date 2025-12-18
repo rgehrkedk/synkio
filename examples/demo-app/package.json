@@ -10,7 +10,6 @@
     "validate": "npx synkio validate"
   },
   "devDependencies": {
-    "serve": "^14.2.0",
-    "style-dictionary": "^5.1.1"
+    "serve": "^14.2.0"
   }
 }
