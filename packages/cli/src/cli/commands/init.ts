@@ -1,8 +1,8 @@
 import { writeFile, readFile, access } from 'fs/promises';
 import { resolve, basename } from 'path';
 import { existsSync } from 'fs';
-import { detectProject, findStyleDictionaryConfig, hasStyleDictionary, findPackageJsonFiles, packageHasStyleDictionary, PackageJsonResult } from '../../core/detect.js';
-import { DEFAULT_CONFIG_FILE } from '../../core/config.js';
+import { detectProject, findStyleDictionaryConfig, hasStyleDictionary, findPackageJsonFiles, packageHasStyleDictionary, PackageJsonResult, detectBuildScript, SDSourcePattern } from '../../core/detect.js';
+import { DEFAULT_CONFIG_FILE, CollectionConfigInput } from '../../core/config.js';
 import { prompt } from '../utils.js';
 import { FigmaClient } from '../../core/figma.js';
 import { createLogger } from '../../utils/logger.js';
@@ -94,8 +94,14 @@ export interface GeneratedConfig {
     };
     tokens: {
         dir: string;
+        collections?: Record<string, {
+            splitModes?: boolean;
+            dir?: string;
+            file?: string;
+        }>;
     };
     build?: {
+        script?: string;
         styleDictionary?: {
             configFile: string;
         };
@@ -114,8 +120,27 @@ export interface GeneratedConfig {
 }
 
 /**
+ * Match SD source patterns to collection configs
+ * Maps collection names to their output dir/file patterns
+ */
+function matchSDPatternsToCollections(patterns: SDSourcePattern[]): Map<string, { dir: string; file: string; splitModes: boolean }> {
+    const collectionConfigs = new Map<string, { dir: string; file: string; splitModes: boolean }>();
+
+    for (const pattern of patterns) {
+        collectionConfigs.set(pattern.collection, {
+            dir: pattern.dir,
+            file: pattern.file,
+            splitModes: pattern.hasDynamicMode,
+        });
+    }
+
+    return collectionConfigs;
+}
+
+/**
  * Generate config object based on project detection
- * - When SD detected: set build.styleDictionary.configFile, derive tokens.dir from SD source
+ * - When SD factory function detected: use build.script + SD source patterns for collection configs
+ * - When static SD config detected: set build.styleDictionary.configFile
  * - When no SD: set build.css with enabled=true, file="tokens.css", utilities=true
  * - Always include docsPages with defaults
  */
@@ -123,6 +148,7 @@ export async function generateConfig(fileId: string, baseUrl?: string): Promise<
     const detected = detectProject();
     const sdConfig = findStyleDictionaryConfig();
     const hasSD = hasStyleDictionary();
+    const buildScript = detectBuildScript();
 
     // Determine tokens directory
     let tokensDir = 'tokens'; // Default
@@ -161,11 +187,37 @@ export async function generateConfig(fileId: string, baseUrl?: string): Promise<
 
     // Configure build section based on SD detection
     if (hasSD && sdConfig) {
-        // Style Dictionary mode
+        // Check if it's a factory function config
+        if (sdConfig.isFactoryFunction && buildScript) {
+            // Factory function - use build.script instead of direct SD integration
+            config.build = {
+                script: buildScript,
+            };
+
+            // Add collection configs from SD source patterns if available
+            if (sdConfig.sourcePatterns && sdConfig.sourcePatterns.length > 0) {
+                const collectionConfigs = matchSDPatternsToCollections(sdConfig.sourcePatterns);
+                config.tokens.collections = {};
+                for (const [name, cfg] of collectionConfigs) {
+                    config.tokens.collections[name] = {
+                        splitModes: cfg.splitModes,
+                        dir: cfg.dir,
+                        file: cfg.file,
+                    };
+                }
+            }
+        } else {
+            // Static SD config - use direct integration
+            config.build = {
+                styleDictionary: {
+                    configFile: sdConfig.configFile,
+                },
+            };
+        }
+    } else if (buildScript) {
+        // No SD but has a build script - use it
         config.build = {
-            styleDictionary: {
-                configFile: sdConfig.configFile,
-            },
+            script: buildScript,
         };
     } else {
         // No Style Dictionary - enable CSS output
@@ -277,6 +329,9 @@ export async function initCommand(options: InitOptions = {}) {
     const hasSD = hasStyleDictionary();
     const sdConfig = findStyleDictionaryConfig();
 
+    // Detect build script
+    const buildScript = detectBuildScript();
+
     // Display detection results
     console.log('Detected:');
 
@@ -288,10 +343,20 @@ export async function initCommand(options: InitOptions = {}) {
         console.log(chalk.green('  ✓ Style Dictionary installed'));
         if (sdConfig) {
             console.log(chalk.green(`  ✓ Style Dictionary config: ${sdConfig.configFile}`));
+            if (sdConfig.isFactoryFunction) {
+                console.log(chalk.yellow(`    -> Factory function config detected`));
+            }
             if (sdConfig.tokensDir) {
                 console.log(chalk.gray(`    -> tokens directory: ${sdConfig.tokensDir}`));
             }
+            if (sdConfig.sourcePatterns && sdConfig.sourcePatterns.length > 0) {
+                console.log(chalk.gray(`    -> ${sdConfig.sourcePatterns.length} source pattern(s) found`));
+            }
         }
+    }
+
+    if (buildScript) {
+        console.log(chalk.green(`  ✓ Build script: ${buildScript}`));
     }
 
     // Check for FIGMA_TOKEN in environment

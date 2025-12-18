@@ -16,6 +16,18 @@ export interface DetectedProject {
 export interface StyleDictionaryConfigResult {
   configFile: string;
   tokensDir?: string;
+  sourcePatterns?: SDSourcePattern[];
+  isFactoryFunction?: boolean;
+  buildScript?: string;
+}
+
+// Parsed SD source pattern
+export interface SDSourcePattern {
+  collection: string;      // e.g., "brand"
+  dir: string;            // e.g., "./themeGenerator/raw/{mode}"
+  file: string;           // e.g., "brand.{mode}.tokens.json"
+  hasDynamicMode: boolean; // true if has ${variable}
+  rawPattern: string;      // original source string
 }
 
 // Package.json search result
@@ -265,13 +277,29 @@ function isStyleDictionaryConfig(content: string): boolean {
 }
 
 /**
+ * Check if SD config is a factory function (exports a function that returns config)
+ * Factory functions have patterns like: export const getConfig = (...) => ({
+ */
+function isFactoryFunctionConfig(content: string): boolean {
+  // Look for function patterns that return objects with source/platforms
+  const factoryPatterns = [
+    /export\s+(const|function)\s+\w+\s*=?\s*\([^)]*\)\s*=>\s*\({?/,  // arrow function
+    /export\s+function\s+\w+\s*\([^)]*\)\s*{/,                        // regular function
+    /module\.exports\s*=\s*\([^)]*\)\s*=>/,                           // commonjs arrow
+  ];
+
+  return factoryPatterns.some(pattern => pattern.test(content));
+}
+
+/**
  * Extract source array from Style Dictionary config content
  * Returns array of source patterns or null if not found
+ * Handles both static strings and template literals
  */
 function extractSourcePatterns(content: string): string[] | null {
   // Try to match source array patterns
   // Match: source: ['...', '...'] or source: ["...", "..."]
-  // Also match: "source": ['...'] or "source": ["..."]
+  // Also match template literals: source: [`...`, `...`]
   const sourceMatch = content.match(/["']?source["']?\s*:\s*\[([^\]]+)\]/);
 
   if (!sourceMatch) {
@@ -280,15 +308,111 @@ function extractSourcePatterns(content: string): string[] | null {
 
   const arrayContent = sourceMatch[1];
 
-  // Extract string values from the array
+  // Extract string values from the array (both quotes and backticks)
   const patterns: string[] = [];
+
+  // Match regular strings: '...' or "..."
   const stringMatches = arrayContent.matchAll(/["']([^"']+)["']/g);
 
   for (const match of stringMatches) {
     patterns.push(match[1]);
   }
 
+  // Match template literals: `...` (may contain ${var})
+  const templateMatches = arrayContent.matchAll(/`([^`]+)`/g);
+
+  for (const match of templateMatches) {
+    patterns.push(match[1]);
+  }
+
   return patterns.length > 0 ? patterns : null;
+}
+
+/**
+ * Parse a single SD source path into structured components
+ * E.g., `./themeGenerator/raw/${brand}/brand.${brand}.tokens.json`
+ * → { collection: 'brand', dir: './themeGenerator/raw/{mode}', file: 'brand.{mode}.tokens.json' }
+ */
+function parseSDSourcePath(sourcePath: string): SDSourcePattern | null {
+  // Check if it has dynamic variables (${...})
+  const hasDynamicMode = /\$\{[^}]+\}/.test(sourcePath);
+
+  // Replace ${variable} with {mode} placeholder
+  const normalizedPath = sourcePath.replace(/\$\{[^}]+\}/g, '{mode}');
+
+  // Split into directory and filename
+  const lastSlashIndex = normalizedPath.lastIndexOf('/');
+  if (lastSlashIndex === -1) {
+    return null; // Invalid path
+  }
+
+  const dir = normalizedPath.substring(0, lastSlashIndex);
+  const file = normalizedPath.substring(lastSlashIndex + 1);
+
+  // Extract collection name from filename
+  // Pattern: {collection}.{mode}.tokens.json or {collection}.{mode}.json
+  // Also: {mode}.json where mode contains collection info
+  const collectionMatch = file.match(/^([a-z_-]+)\./i);
+  if (!collectionMatch) {
+    return null;
+  }
+
+  const collection = collectionMatch[1];
+
+  return {
+    collection,
+    dir,
+    file,
+    hasDynamicMode,
+    rawPattern: sourcePath,
+  };
+}
+
+/**
+ * Parse all SD source patterns from config content
+ */
+export function parseSDSourcePatternsFromContent(content: string): SDSourcePattern[] {
+  const rawPatterns = extractSourcePatterns(content);
+  if (!rawPatterns) return [];
+
+  const patterns: SDSourcePattern[] = [];
+
+  for (const raw of rawPatterns) {
+    const parsed = parseSDSourcePath(raw);
+    if (parsed) {
+      patterns.push(parsed);
+    }
+  }
+
+  return patterns;
+}
+
+/**
+ * Detect build script from package.json
+ */
+export function detectBuildScript(cwd: string = process.cwd()): string | null {
+  const pkgPath = join(cwd, 'package.json');
+  const pkg = readJsonFile<{ scripts?: Record<string, string> }>(pkgPath);
+
+  if (!pkg?.scripts) return null;
+
+  // Look for common token build script names
+  const candidates = [
+    'build:tokens',
+    'tokens:build',
+    'build:style-dictionary',
+    'sd:build',
+    'build:design-tokens',
+    'tokens',
+  ];
+
+  for (const name of candidates) {
+    if (pkg.scripts[name]) {
+      return `npm run ${name}`;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -333,15 +457,27 @@ function searchDirForSDConfig(dirPath: string, basePath: string, fileExtensions:
 
     // Check if it's a Style Dictionary config
     if (isStyleDictionaryConfig(content)) {
-      const sourcePatterns = extractSourcePatterns(content);
-      const tokensDir = sourcePatterns ? findCommonParent(sourcePatterns) : undefined;
+      const rawSourcePatterns = extractSourcePatterns(content);
+      const tokensDir = rawSourcePatterns ? findCommonParent(rawSourcePatterns) : undefined;
 
       // Calculate relative path from basePath
       const relativePath = relative(basePath, filePath);
 
+      // Parse structured source patterns
+      const parsedPatterns = parseSDSourcePatternsFromContent(content);
+
+      // Check if it's a factory function config
+      const isFactory = isFactoryFunctionConfig(content);
+
+      // Detect build script
+      const buildScript = detectBuildScript(basePath);
+
       return {
         configFile: relativePath,
         tokensDir,
+        sourcePatterns: parsedPatterns,
+        isFactoryFunction: isFactory,
+        buildScript: buildScript || undefined,
       };
     }
   }

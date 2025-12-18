@@ -1,5 +1,6 @@
 import { mkdir, writeFile, readdir, unlink } from 'fs/promises';
 import { resolve, join } from 'path';
+import { execSync } from 'child_process';
 import { loadConfig, updateConfigWithCollectionRenames, updateConfigWithCollections } from '../../core/config.js';
 import { FigmaClient } from '../../core/figma.js';
 import { splitTokens, SplitTokensOptions, normalizePluginData, RawTokens } from '../../core/tokens.js';
@@ -69,6 +70,34 @@ function discoverCollectionsFromTokens(
  */
 function isStyleDictionaryMode(config: ReturnType<typeof loadConfig>): boolean {
   return !!config.build?.styleDictionary?.configFile;
+}
+
+/**
+ * Run the build script if configured
+ * Returns true if script ran successfully, false otherwise
+ */
+async function runBuildScript(
+  config: ReturnType<typeof loadConfig>,
+  spinner: ReturnType<typeof ora>
+): Promise<{ ran: boolean; success: boolean }> {
+  const buildScript = config.build?.script;
+
+  if (!buildScript) {
+    return { ran: false, success: true };
+  }
+
+  spinner.text = `Running build script: ${buildScript}`;
+
+  try {
+    execSync(buildScript, {
+      stdio: 'inherit',
+      cwd: process.cwd(),
+    });
+    return { ran: true, success: true };
+  } catch (error: any) {
+    spinner.fail(chalk.red(`Build script failed: ${error.message}`));
+    return { ran: true, success: false };
+  }
 }
 
 export async function syncCommand(options: SyncOptions = {}) {
@@ -143,6 +172,22 @@ export async function syncCommand(options: SyncOptions = {}) {
         }
       }
 
+      // Run build script if configured (for factory function SD configs)
+      let buildScriptRan = false;
+      if (config.build?.script) {
+        spinner.stop();
+        console.log(chalk.cyan(`\n  Running build script: ${config.build.script}\n`));
+
+        const buildResult = await runBuildScript(config, spinner);
+        buildScriptRan = buildResult.ran;
+
+        if (!buildResult.success) {
+          process.exit(1);
+        }
+
+        spinner.start('Generating output files...');
+      }
+
       // Generate all enabled output formats
       spinner.text = 'Generating output files...';
 
@@ -171,10 +216,11 @@ export async function syncCommand(options: SyncOptions = {}) {
       const docsFilesWritten = outputs.docs.files.length;
 
       const extras: string[] = [];
+      if (buildScriptRan) extras.push('build script');
       if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
       if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
       if (docsFilesWritten > 0) extras.push(`${docsFilesWritten} docs`);
-      const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')} files)` : '';
+      const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';
 
       spinner.succeed(chalk.green(`Regenerated ${filesWritten} token files from baseline.${extrasStr}`));
       return;
@@ -459,8 +505,24 @@ export async function syncCommand(options: SyncOptions = {}) {
       }
     }
 
-    // 8. Generate CSS if enabled in config
-    // 8. Generate all enabled output formats (CSS, SCSS, JS, Tailwind, docs)
+    // 8. Run build script if configured (for factory function SD configs)
+    let buildScriptRan = false;
+    if (config.build?.script) {
+      spinner.stop();
+      console.log(chalk.cyan(`\n  Running build script: ${config.build.script}\n`));
+
+      const buildResult = await runBuildScript(config, spinner);
+      buildScriptRan = buildResult.ran;
+
+      if (!buildResult.success) {
+        process.exit(1);
+      }
+
+      spinner.start('Generating output files...');
+    }
+
+    // 9. Generate CSS if enabled in config
+    // Generate all enabled output formats (CSS, SCSS, JS, Tailwind, docs)
     spinner.text = 'Generating output files...';
 
     // Check if using Style Dictionary mode
@@ -524,6 +586,7 @@ export async function syncCommand(options: SyncOptions = {}) {
 
         // Show additional outputs
         const allOutputs = [
+          buildScriptRan ? 'build script' : null,
           sdFilesWritten > 0 ? `${sdFilesWritten} Style Dictionary` : null,
           cssFilesWritten > 0 ? `${cssFilesWritten} CSS` : null,
         ].filter(Boolean);
@@ -540,6 +603,7 @@ export async function syncCommand(options: SyncOptions = {}) {
 
     // Build output summary
     const extras: string[] = [];
+    if (buildScriptRan) extras.push('build script');
     if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
     if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
     if (docsFilesWritten > 0) extras.push('docs');

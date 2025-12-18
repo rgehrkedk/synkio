@@ -92,6 +92,7 @@ const CssConfigSchema = z.object({
 
 // Build configuration (replaces output.mode, output.styleDictionary, and css)
 const BuildConfigSchema = z.object({
+  script: z.string().optional(),                       // Custom build command to run after sync (e.g., "npm run build:tokens")
   styleDictionary: StyleDictionaryConfigSchema,        // Style Dictionary build options
   css: CssConfigSchema,                                // CSS build options
 }).optional();
@@ -307,11 +308,22 @@ export function updateConfigWithCollectionRenames(
 }
 
 /**
+ * Collection config with optional dir/file patterns
+ */
+export interface CollectionConfigInput {
+  name: string;
+  modes: string[];
+  splitModes: boolean;
+  dir?: string;   // Output directory (supports {mode} placeholder)
+  file?: string;  // Output filename pattern (supports {mode} placeholder)
+}
+
+/**
  * Update config file with discovered collections
  * Used during first sync to auto-populate tokens.collections
  */
 export function updateConfigWithCollections(
-  collections: { name: string; modes: string[]; splitModes: boolean }[],
+  collections: CollectionConfigInput[],
   explicitPath?: string
 ): { updated: boolean; configPath?: string } {
   if (collections.length === 0) {
@@ -345,11 +357,19 @@ export function updateConfigWithCollections(
   }
 
   // Build collections config
-  const collectionsConfig: Record<string, { splitModes: boolean }> = {};
+  const collectionsConfig: Record<string, { splitModes: boolean; dir?: string; file?: string }> = {};
   for (const collection of collections) {
-    collectionsConfig[collection.name] = {
+    const config: { splitModes: boolean; dir?: string; file?: string } = {
       splitModes: collection.splitModes,
     };
+    // Only add dir/file if they differ from defaults
+    if (collection.dir) {
+      config.dir = collection.dir;
+    }
+    if (collection.file) {
+      config.file = collection.file;
+    }
+    collectionsConfig[collection.name] = config;
   }
 
   // Set collections (merge with existing if present)
@@ -357,6 +377,56 @@ export function updateConfigWithCollections(
     ...json.tokens.collections,
     ...collectionsConfig,
   };
+
+  // Write updated config back
+  try {
+    writeFileSync(fullPath, JSON.stringify(json, null, 2) + '\n', 'utf-8');
+    return { updated: true, configPath: fullPath };
+  } catch {
+    return { updated: false };
+  }
+}
+
+/**
+ * Update config file with build script
+ * Used during init when a token build script is detected
+ */
+export function updateConfigWithBuildScript(
+  buildScript: string,
+  explicitPath?: string
+): { updated: boolean; configPath?: string } {
+  const found = findConfigFile(explicitPath);
+  if (!found) {
+    return { updated: false };
+  }
+
+  const fullPath = found.path;
+  let content: string;
+
+  try {
+    content = readFileSync(fullPath, 'utf-8');
+  } catch {
+    return { updated: false };
+  }
+
+  let json: any;
+  try {
+    json = JSON.parse(content);
+  } catch {
+    return { updated: false };
+  }
+
+  // Ensure build section exists
+  if (!json.build) {
+    json.build = {};
+  }
+
+  // Set the build script
+  json.build.script = buildScript;
+
+  // If build.styleDictionary exists and we're setting a script,
+  // we should remove styleDictionary since script takes precedence for factory configs
+  // (keep it if user explicitly wants both)
 
   // Write updated config back
   try {
