@@ -30,12 +30,12 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
     if (options.preview) {
       spinner.stop();
       console.log(chalk.cyan('\n  Rollback Preview - No changes will be applied\n'));
-      
+
       // Compare current vs previous to show what would change
       const currentBaseline = await readBaseline();
       if (currentBaseline) {
         const result = compareBaselines(currentBaseline, prevBaseline);
-        
+
         if (!hasChanges(result)) {
           console.log(chalk.dim('  No differences between current and previous baseline.\n'));
         } else {
@@ -45,7 +45,7 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
       } else {
         console.log(chalk.dim('  No current baseline found. Rollback would restore the previous version.\n'));
       }
-      
+
       // Show file count
       const processedTokens = splitTokens(prevBaseline.baseline);
       console.log(chalk.dim(`\n  Would restore ${processedTokens.size} token file(s).\n`));
@@ -61,20 +61,22 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
     spinner.text = 'Writing token files...';
     const config = loadConfig();
     const rawTokens = prevBaseline.baseline;
+
+    // Use new config structure: tokens.dir, tokens.collections, etc.
     const processedTokens = splitTokens(rawTokens, {
-      collections: config.collections || {},
-      dtcg: config.output.dtcg !== false,
-      includeVariableId: config.output.includeVariableId === true,
-      extensions: config.output.extensions || {},
+      collections: config.tokens.collections || {},
+      dtcg: config.tokens.dtcg !== false,
+      includeVariableId: config.tokens.includeVariableId === true,
+      extensions: config.tokens.extensions || {},
     });
-    
-    const defaultOutDir = resolve(process.cwd(), config.output.dir);
+
+    const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
     await mkdir(defaultOutDir, { recursive: true });
 
     let filesWritten = 0;
     for (const [fileName, fileData] of processedTokens) {
-      const outDir = fileData.dir 
-        ? resolve(process.cwd(), fileData.dir) 
+      const outDir = fileData.dir
+        ? resolve(process.cwd(), fileData.dir)
         : defaultOutDir;
       await mkdir(outDir, { recursive: true });
       const filePath = resolve(outDir, fileName);
@@ -82,7 +84,7 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
       filesWritten++;
     }
 
-    spinner.succeed(chalk.green(`✓ Rollback complete. Restored ${filesWritten} token files.`));
+    spinner.succeed(chalk.green(`Rollback complete. Restored ${filesWritten} token files.`));
 
   } catch (error: any) {
     spinner.fail(chalk.red(`Rollback failed: ${error.message}`));

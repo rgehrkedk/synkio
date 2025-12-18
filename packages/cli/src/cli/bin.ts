@@ -57,10 +57,12 @@ function showHelp(command?: string) {
             console.log('Usage: synkio init [options]\n');
             console.log('Initialize a new Synkio project.\n');
             console.log('Options:');
-            console.log('  --figma-url=<url>   Figma file URL');
-            console.log('  --token=<token>     Figma access token');
-            console.log('  --output-dir=<dir>  Output directory for tokens');
-            console.log('  --base-url=<url>    Custom Figma API base URL (enterprise)');
+            console.log('  --figma-url=<url>   Figma file URL (skip prompt)');
+            console.log('  --base-url=<url>    Custom Figma API base URL (enterprise)\n');
+            console.log('Environment:');
+            console.log('  FIGMA_TOKEN         Figma access token (required for validation)');
+            console.log('\nNon-interactive usage:');
+            console.log('  FIGMA_TOKEN=figd_xxx synkio init --figma-url=https://figma.com/design/ABC123/File');
             break;
         case 'sync':
             console.log('Usage: synkio sync [options]\n');
@@ -75,7 +77,7 @@ function showHelp(command?: string) {
             console.log('  --interval=<s>      Watch interval in seconds (default: 30)');
             console.log('  --collection=<name> Sync only specific collection(s), comma-separated');
             console.log('  --regenerate        Regenerate files from existing baseline (no Figma fetch)');
-            console.log('  --config=<file>     Path to config file (default: tokensrc.json)');
+            console.log('  --config=<file>     Path to config file (default: synkio.config.json)');
             break;
         case 'rollback':
             console.log('Usage: synkio rollback [options]\n');
@@ -88,7 +90,7 @@ function showHelp(command?: string) {
             console.log('Usage: synkio validate\n');
             console.log('Validate your configuration and Figma connection.\n');
             console.log('Checks:');
-            console.log('  - tokensrc.json exists and is valid');
+            console.log('  - synkio.config.json exists and is valid');
             console.log('  - Figma access token is set');
             console.log('  - Connection to Figma API works');
             break;
@@ -165,10 +167,29 @@ if (args.includes('--help') || args.includes('-h')) {
 switch (command) {
   case 'init':
     const options = parseArgs(args);
+
+    // Check for removed --token flag and show error
+    if (options.token) {
+        console.error('\nError: The --token flag has been removed for security reasons.');
+        console.error('CLI arguments are visible in shell history.\n');
+        console.error('Use the FIGMA_TOKEN environment variable instead:');
+        console.error('  export FIGMA_TOKEN=your-token-here');
+        console.error('  synkio init --figma-url=...\n');
+        console.error('Or in one line:');
+        console.error('  FIGMA_TOKEN=your-token-here synkio init --figma-url=...\n');
+        process.exit(1);
+    }
+
+    // Check for removed --output-dir flag
+    if (options.outputDir) {
+        console.error('\nError: The --output-dir flag has been removed.');
+        console.error('Output directory is now auto-detected from your project structure.\n');
+        console.error('After init, you can customize it in synkio.config.json under tokens.dir\n');
+        process.exit(1);
+    }
+
     initCommand({
         figmaUrl: options.figmaUrl as string,
-        token: options.token as string,
-        outputDir: options.outputDir as string,
         baseUrl: options.baseUrl as string,
     });
     break;

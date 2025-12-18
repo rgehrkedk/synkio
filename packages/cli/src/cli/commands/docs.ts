@@ -24,24 +24,25 @@ export async function docsCommand(options: DocsOptions = {}) {
     // 1. Load config
     spinner.text = 'Loading configuration...';
     const config = loadConfig(options.config);
-    
+
     // 2. Read baseline data
     spinner.text = 'Reading token data...';
     const baseline = await readBaseline();
-    
+
     if (!baseline) {
       spinner.fail(chalk.red('No token data found. Run "synkio sync" first.'));
       process.exit(1);
     }
 
-    // 3. Determine output directory (use CLI option > config.docs.dir > default)
-    const outputDir = resolve(process.cwd(), options.output || config.docs?.dir || '.synkio/docs');
-    
+    // 3. Determine output directory (use CLI option > config.docsPages.dir > default)
+    // Use new config structure: docsPages instead of docs
+    const outputDir = resolve(process.cwd(), options.output || config.docsPages?.dir || '.synkio/docs');
+
     // 4. Generate documentation
     spinner.text = 'Building documentation...';
     const result = await generateDocs(baseline, {
       outputDir,
-      title: options.title || config.docs?.title || 'Design Tokens',
+      title: options.title || config.docsPages?.title || 'Design Tokens',
       config,
     });
 
@@ -49,7 +50,7 @@ export async function docsCommand(options: DocsOptions = {}) {
     spinner.text = 'Writing files...';
     await mkdir(outputDir, { recursive: true });
     await mkdir(join(outputDir, 'assets'), { recursive: true });
-    
+
     for (const [filename, content] of Object.entries(result.files)) {
       const filePath = join(outputDir, filename);
       // Ensure directory exists for nested files
@@ -58,7 +59,7 @@ export async function docsCommand(options: DocsOptions = {}) {
     }
 
     spinner.succeed(chalk.green('Documentation generated successfully!'));
-    
+
     // Summary
     console.log('');
     console.log(chalk.dim('  Output:'), outputDir);

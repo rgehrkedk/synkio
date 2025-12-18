@@ -8,7 +8,7 @@
  * - DTCG-compliant token structure ($value, $type, $description)
  * - Clean, human-readable token paths
  * - Resolved references in {path} format
- * - Metadata from tokensrc.json configuration
+ * - Metadata from synkio.config.json configuration
  * - Output format information for docs display
  * - Platform-specific naming conventions (derived from Style Dictionary when available)
  */
@@ -38,7 +38,7 @@ export interface IntermediateTokenFormat {
       figmaNodeId?: string;
     };
 
-    /** Output configuration from tokensrc.json */
+    /** Output configuration from synkio.config.json */
     output: {
       /** Output mode: json, style-dictionary */
       mode: string;
@@ -128,7 +128,7 @@ export function convertToIntermediateFormat(
     // Set the token value using DTCG format
     const tokenName = pathParts[pathParts.length - 1];
 
-    // Resolve references to DTCG format: { "$ref": "VariableID:1:38" } → "{path.to.token}"
+    // Resolve references to DTCG format: { "$ref": "VariableID:1:38" } -> "{path.to.token}"
     let resolvedValue: unknown;
     if (entry.value && typeof entry.value === 'object' && '$ref' in entry.value) {
       const refVariableId = (entry.value as { $ref: string }).$ref;
@@ -183,16 +183,17 @@ function normalizeColorValue(value: unknown, type: string): unknown {
 
 /**
  * Generate variable naming conventions based on config
+ * Uses new config structure: build.styleDictionary
  */
 function generateVariableNaming(config: Config): {
   prefix: string;
   separator: string;
   example: string;
 } {
-  // Determine prefix
+  // Determine prefix using new config structure
   let prefix = '--';
-  if (config.output.mode === 'style-dictionary' && config.output.styleDictionary?.prefix) {
-    prefix = `--${config.output.styleDictionary.prefix}-`;
+  if (config.build?.styleDictionary?.configFile && config.build?.styleDictionary?.prefix) {
+    prefix = `--${config.build.styleDictionary.prefix}-`;
   }
 
   // CSS uses dashes, JS uses camelCase, but we'll default to dashes for CSS variables
@@ -232,6 +233,7 @@ function extractModes(baseline: BaselineData): string[] {
 
 /**
  * Generate the complete intermediate token format with metadata
+ * Uses new config structure: tokens.dir, build.styleDictionary, build.css
  */
 export async function generateIntermediateFormat(
   baseline: BaselineData,
@@ -242,11 +244,14 @@ export async function generateIntermediateFormat(
   const collections = extractCollections(baseline);
   const modes = extractModes(baseline);
 
+  // Check if Style Dictionary mode is enabled via configFile
+  const isSDMode = !!config.build?.styleDictionary?.configFile;
+
   // Build Style Dictionary platform info if in SD mode
   let sdPlatformsInfo: IntermediateTokenFormat['$metadata']['output']['styleDictionary'] | undefined;
 
-  if (config.output.mode === 'style-dictionary' && config.output.styleDictionary?.platforms) {
-    const configPlatforms = config.output.styleDictionary.platforms;
+  if (isSDMode && config.build?.styleDictionary?.platforms) {
+    const configPlatforms = config.build.styleDictionary.platforms;
 
     // Try to get naming conventions from Style Dictionary hooks
     const sdHooksInfo = await getSDPlatformsInfo(configPlatforms);
@@ -270,11 +275,14 @@ export async function generateIntermediateFormat(
     }
 
     sdPlatformsInfo = {
-      buildPath: config.output.styleDictionary.buildPath,
+      buildPath: config.build.styleDictionary.buildPath,
       platforms,
-      outputReferences: config.output.styleDictionary.outputReferences,
+      outputReferences: config.build.styleDictionary.outputReferences,
     };
   }
+
+  // Determine output mode
+  const outputMode = isSDMode ? 'style-dictionary' : 'json';
 
   return {
     tokens,
@@ -285,14 +293,15 @@ export async function generateIntermediateFormat(
         figmaNodeId: config.figma.nodeId,
       },
       output: {
-        mode: config.output.mode || 'json',
-        dtcg: config.output.dtcg !== false,
-        dir: config.output.dir,
-        ...(config.css?.enabled && {
+        mode: outputMode,
+        dtcg: config.tokens.dtcg !== false,
+        dir: config.tokens.dir,
+        // Use new config structure: build.css
+        ...(config.build?.css?.enabled && {
           css: {
             enabled: true,
-            file: config.css.file,
-            transforms: config.css.transforms,
+            file: config.build.css.file,
+            transforms: config.build.css.transforms,
           },
         }),
         ...(sdPlatformsInfo && {

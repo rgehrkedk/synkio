@@ -9,6 +9,7 @@ export const CONFIG_FILES = ['synkio.config.json', 'tokensrc.json'] as const;
 /** Default config file name for new projects */
 export const DEFAULT_CONFIG_FILE = 'synkio.config.json';
 
+// Figma configuration
 const FigmaConfigSchema = z.object({
   fileId: z.string(),
   nodeId: z.string().optional(), // Optional - defaults to document root (0:0)
@@ -16,14 +17,39 @@ const FigmaConfigSchema = z.object({
   baseUrl: z.string().optional(),
 });
 
-// Extensions configuration - optional metadata to include in output
-const ExtensionsConfigSchema = z.object({
-  description: z.boolean().optional().default(false),  // Include variable descriptions
-  scopes: z.boolean().optional().default(false),       // Include usage scopes (ALL_FILLS, STROKE_COLOR, etc.)
-  codeSyntax: z.boolean().optional().default(false),   // Include code syntax (WEB, ANDROID, iOS)
+// Shared transform options schema (useRem, basePxFontSize)
+const TransformOptionsSchema = z.object({
+  useRem: z.boolean().optional(),                      // Use rem instead of px for dimensions
+  basePxFontSize: z.number().optional().default(16),   // Base font size for rem calculations
 }).optional();
 
-// Style Dictionary configuration for advanced users
+// Collection-specific configuration
+const CollectionConfigSchema = z.object({
+  dir: z.string().optional(),                         // Output directory for this collection (defaults to tokens.dir)
+  file: z.string().optional(),                        // Custom filename pattern (e.g., "colors" -> "colors.json", or with modes: "theme" -> "theme.light.json")
+  splitModes: z.boolean().optional().default(true),   // Whether to split multi-mode collections into separate files per mode
+  includeMode: z.boolean().optional().default(true),  // Whether to include mode as first-level key even when splitting
+});
+
+const CollectionsConfigSchema = z.record(z.string(), CollectionConfigSchema).optional();
+
+// Token extensions configuration
+const TokenExtensionsConfigSchema = z.object({
+  description: z.boolean().optional().default(false),    // Include variable descriptions from Figma
+  scopes: z.boolean().optional().default(false),         // Include usage scopes (e.g., FRAME_FILL, TEXT_FILL)
+  codeSyntax: z.boolean().optional().default(false),     // Include platform code syntax (WEB, ANDROID, iOS)
+}).optional();
+
+// Tokens configuration (replaces output.dir and collections)
+const TokensConfigSchema = z.object({
+  dir: z.string(),                                    // Output directory for token files
+  dtcg: z.boolean().optional().default(true),         // Use DTCG format ($value, $type) vs legacy (value, type)
+  includeVariableId: z.boolean().optional().default(false), // Include Figma variableId in $extensions
+  extensions: TokenExtensionsConfigSchema,            // Optional metadata extensions
+  collections: CollectionsConfigSchema,               // Per-collection configuration
+});
+
+// Style Dictionary configuration for build.styleDictionary
 const StyleDictionaryConfigSchema = z.object({
   configFile: z.string().optional(),                   // Path to external Style Dictionary config file
   outputReferences: z.boolean().optional().default(true), // Use CSS var references in output
@@ -54,58 +80,34 @@ const StyleDictionaryConfigSchema = z.object({
   })).optional(),
 }).optional();
 
-const OutputConfigSchema = z.object({
-  dir: z.string(),
-  format: z.literal('json'),
-  mode: z.enum(['json', 'style-dictionary']).optional().default('json'), // Output mode
-  styleDictionary: StyleDictionaryConfigSchema,        // Style Dictionary options
-  dtcg: z.boolean().optional().default(true),          // Use DTCG format ($value, $type) - default true
-  includeVariableId: z.boolean().optional().default(false), // Include Figma variableId in output
-  extensions: ExtensionsConfigSchema,                  // Optional metadata extensions
-});
-
-// Sync behavior configuration
-const SyncConfigSchema = z.object({
-  report: z.boolean().optional().default(true),        // Auto-generate report on sync
-  reportHistory: z.boolean().optional().default(false), // Keep timestamped reports as changelog
-}).optional();
-
-// Shared transform options schema (useRem, basePxFontSize)
-const TransformOptionsSchema = z.object({
-  useRem: z.boolean().optional(),                      // Use rem instead of px for dimensions
-  basePxFontSize: z.number().optional().default(16),   // Base font size for rem calculations
-}).optional();
-
-// Base schema for transform outputs (enabled, dir, file)
-const BaseTransformSchema = z.object({
+// CSS output configuration for build.css
+const CssConfigSchema = z.object({
   enabled: z.boolean().optional().default(false),
-  dir: z.string().optional(),                          // Output directory (defaults to output.dir)
-});
-
-// CSS output configuration
-const CssConfigSchema = BaseTransformSchema.extend({
+  dir: z.string().optional(),                          // Output directory (defaults to tokens.dir)
   file: z.string().optional().default('tokens.css'),   // Output filename
   utilities: z.boolean().optional().default(false),    // Generate utility classes
   utilitiesFile: z.string().optional().default('utilities.css'), // Utilities filename
   transforms: TransformOptionsSchema,
 }).optional();
 
-// Documentation/Dashboard configuration
-const DocsConfigSchema = z.object({
+// Build configuration (replaces output.mode, output.styleDictionary, and css)
+const BuildConfigSchema = z.object({
+  styleDictionary: StyleDictionaryConfigSchema,        // Style Dictionary build options
+  css: CssConfigSchema,                                // CSS build options
+}).optional();
+
+// Documentation/Dashboard configuration (renamed from docs to docsPages)
+const DocsPagesConfigSchema = z.object({
   enabled: z.boolean().optional().default(false),      // Generate documentation site
   dir: z.string().optional().default('.synkio/docs'),   // Output directory
   title: z.string().optional().default('Design Tokens'), // Documentation title
 }).optional();
 
-// Collection-specific configuration
-const CollectionConfigSchema = z.object({
-  dir: z.string().optional(),                         // Output directory for this collection (defaults to output.dir)
-  file: z.string().optional(),                        // Custom filename pattern (e.g., "colors" → "colors.json", or with modes: "theme" → "theme.light.json")
-  splitModes: z.boolean().optional().default(true),   // Whether to split multi-mode collections into separate files per mode
-  includeMode: z.boolean().optional().default(true),  // Whether to include mode as first-level key even when splitting
-});
-
-const CollectionsConfigSchema = z.record(z.string(), CollectionConfigSchema).optional();
+// Sync behavior configuration
+const SyncConfigSchema = z.object({
+  report: z.boolean().optional().default(true),        // Auto-generate report on sync
+  reportHistory: z.boolean().optional().default(false), // Keep timestamped reports as changelog
+}).optional();
 
 // Import source configuration - maps Figma export files to collections
 // Used with `synkio import` command for importing from Figma native JSON exports
@@ -116,19 +118,20 @@ const ImportSourceSchema = z.object({
 
 const ImportConfigSchema = z.object({
   dir: z.string().optional().default('figma-exports'), // Default directory for Figma export files
-  sources: z.record(z.string(), ImportSourceSchema).optional(), // Collection name → source mapping
+  sources: z.record(z.string(), ImportSourceSchema).optional(), // Collection name -> source mapping
 }).optional();
 
+// Main config schema with new structure
+// Uses strict() to reject unknown keys (old schema structure)
 export const ConfigSchema = z.object({
   version: z.literal('1.0.0'),
   figma: FigmaConfigSchema,
-  output: OutputConfigSchema,
+  tokens: TokensConfigSchema,                          // NEW: replaces output.dir and collections
+  build: BuildConfigSchema,                            // NEW: replaces output.mode, output.styleDictionary, css
+  docsPages: DocsPagesConfigSchema,                    // NEW: renamed from docs
   sync: SyncConfigSchema,
-  css: CssConfigSchema,
-  docs: DocsConfigSchema,
-  collections: CollectionsConfigSchema,
   import: ImportConfigSchema,
-});
+}).strict(); // Reject unknown keys like output, css, docs
 
 export type Config = z.infer<typeof ConfigSchema>;
 
@@ -255,8 +258,9 @@ export function updateConfigWithCollectionRenames(
     return { updated: false, renames: [] };
   }
 
-  // Check if there's a collections section
-  if (!json.collections) {
+  // Check if there's a collections section (now under tokens.collections)
+  const collections = json.tokens?.collections;
+  if (!collections) {
     return { updated: false, renames: [] };
   }
 
@@ -267,13 +271,13 @@ export function updateConfigWithCollectionRenames(
     const { oldCollection, newCollection } = rename;
 
     // Check if old collection exists in config
-    if (json.collections[oldCollection]) {
+    if (collections[oldCollection]) {
       // Get the old config
-      const oldConfig = json.collections[oldCollection];
+      const oldConfig = collections[oldCollection];
 
       // Delete old key and add new one
-      delete json.collections[oldCollection];
-      json.collections[newCollection] = oldConfig;
+      delete collections[oldCollection];
+      collections[newCollection] = oldConfig;
 
       // Update the file name if it matches the old collection name
       if (oldConfig.file === oldCollection) {
@@ -299,5 +303,66 @@ export function updateConfigWithCollectionRenames(
     return { updated: true, renames: appliedRenames, configPath: fullPath };
   } catch {
     return { updated: false, renames: appliedRenames };
+  }
+}
+
+/**
+ * Update config file with discovered collections
+ * Used during first sync to auto-populate tokens.collections
+ */
+export function updateConfigWithCollections(
+  collections: { name: string; modes: string[]; splitModes: boolean }[],
+  explicitPath?: string
+): { updated: boolean; configPath?: string } {
+  if (collections.length === 0) {
+    return { updated: false };
+  }
+
+  const found = findConfigFile(explicitPath);
+  if (!found) {
+    return { updated: false };
+  }
+
+  const fullPath = found.path;
+  let content: string;
+
+  try {
+    content = readFileSync(fullPath, 'utf-8');
+  } catch {
+    return { updated: false };
+  }
+
+  let json: any;
+  try {
+    json = JSON.parse(content);
+  } catch {
+    return { updated: false };
+  }
+
+  // Ensure tokens section exists
+  if (!json.tokens) {
+    json.tokens = { dir: 'tokens' };
+  }
+
+  // Build collections config
+  const collectionsConfig: Record<string, { splitModes: boolean }> = {};
+  for (const collection of collections) {
+    collectionsConfig[collection.name] = {
+      splitModes: collection.splitModes,
+    };
+  }
+
+  // Set collections (merge with existing if present)
+  json.tokens.collections = {
+    ...json.tokens.collections,
+    ...collectionsConfig,
+  };
+
+  // Write updated config back
+  try {
+    writeFileSync(fullPath, JSON.stringify(json, null, 2) + '\n', 'utf-8');
+    return { updated: true, configPath: fullPath };
+  } catch {
+    return { updated: false };
   }
 }

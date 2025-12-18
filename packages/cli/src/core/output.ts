@@ -82,56 +82,61 @@ async function writeTransformFile(
 /**
  * Generate CSS files from baseline data
  * Zero-dependency CSS output for simple use cases
+ * Uses new config structure: build.css
  */
 export async function generateCssFromBaseline(
   baseline: BaselineData,
   config: Config
 ): Promise<TransformResult> {
-  const cssConfig = config.css;
+  // Use new config structure: build.css
+  const cssConfig = config.build?.css;
   if (!cssConfig?.enabled) return EMPTY_RESULT;
-  
-  const ctx = await prepareTransformContext(baseline, cssConfig.dir, config.output.dir);
+
+  // Use css.dir if specified, otherwise fall back to tokens.dir
+  const ctx = await prepareTransformContext(baseline, cssConfig.dir, config.tokens.dir);
   const files: string[] = [];
   const transformOptions = buildTransformOptions(cssConfig.transforms);
-  
+
   // Generate tokens.css
   const tokensCSS = generateTokensCSS(ctx.tokens.all, ctx.modeNames, transformOptions);
   await writeTransformFile(ctx.outputDir, cssConfig.file || 'tokens.css', tokensCSS, files);
-  
+
   // Generate utilities.css if enabled
   if (cssConfig.utilities) {
     const utilitiesCSS = generateUtilitiesCSS(ctx.tokens.all);
     await writeTransformFile(ctx.outputDir, cssConfig.utilitiesFile || 'utilities.css', utilitiesCSS, files);
   }
-  
+
   return { files, outputDir: ctx.outputDir };
 }
 
 /**
  * Generate documentation site from baseline data
+ * Uses new config structure: docsPages
  */
 export async function generateDocsFromBaseline(
   baseline: BaselineData,
   config: Config
 ): Promise<TransformResult> {
-  const docsConfig = config.docs;
-  
+  // Use new config structure: docsPages
+  const docsConfig = config.docsPages;
+
   if (!docsConfig?.enabled) {
     return EMPTY_RESULT;
   }
-  
+
   const outputDir = resolve(process.cwd(), docsConfig.dir || '.synkio/docs');
-  
+
   const result = await generateDocs(baseline, {
     outputDir,
     title: docsConfig.title || 'Design Tokens',
     config,
   });
-  
+
   // Write files
   await mkdir(outputDir, { recursive: true });
   await mkdir(join(outputDir, 'assets'), { recursive: true });
-  
+
   const files: string[] = [];
   for (const [filename, content] of Object.entries(result.files)) {
     const filePath = join(outputDir, filename);
@@ -143,15 +148,15 @@ export async function generateDocsFromBaseline(
     await writeFile(filePath, content, 'utf-8');
     files.push(filename);
   }
-  
+
   return { files, outputDir };
 }
 
 /**
  * Generate all enabled output formats from baseline
  *
- * For simple use cases, use mode: "css" (zero-dependency)
- * For advanced needs (SCSS, JS, TS, etc.), use mode: "style-dictionary"
+ * For simple use cases, use build.css (zero-dependency)
+ * For advanced needs (SCSS, JS, TS, etc.), use build.styleDictionary
  *
  * IMPORTANT: Always generates .tokens-source.json in the output directory
  * for use by the docs generator and other tools.
@@ -167,7 +172,7 @@ export async function generateAllFromBaseline(
 }> {
   // Generate intermediate format for ALL modes (not just SD)
   // This provides clean DTCG tokens with metadata for docs
-  const outputDir = resolve(process.cwd(), config.output.dir);
+  const outputDir = resolve(process.cwd(), config.tokens.dir);
   const intermediateFormatPath = await writeIntermediateFormat(baseline, config, outputDir);
 
   const [css, docs] = await Promise.all([
@@ -181,26 +186,27 @@ export async function generateAllFromBaseline(
 /**
  * Generate outputs using Style Dictionary
  * This provides full platform support: CSS, SCSS, JS, TS, iOS, Android, etc.
+ * Uses new config structure: build.styleDictionary
  */
 export async function generateWithStyleDictionary(
   baseline: BaselineData,
   config: Config
 ): Promise<TransformResult> {
-  const outputConfig = config.output;
-  
-  // Check if Style Dictionary mode is enabled
-  if (outputConfig.mode !== 'style-dictionary') {
+  // Use new config structure: build.styleDictionary
+  const sdConfig = config.build?.styleDictionary;
+
+  // Check if Style Dictionary mode is enabled via configFile
+  if (!sdConfig?.configFile) {
     return EMPTY_RESULT;
   }
-  
-  const outputDir = resolve(process.cwd(), outputConfig.dir);
-  const sdConfig = outputConfig.styleDictionary;
-  
+
+  const outputDir = resolve(process.cwd(), config.tokens.dir);
+
   try {
     const result = await buildWithStyleDictionary(baseline, {
       outputDir,
-      configFile: sdConfig?.configFile,
-      // Pass inline Style Dictionary config from tokensrc.json
+      configFile: sdConfig.configFile,
+      // Pass inline Style Dictionary config
       inlineConfig: sdConfig ? {
         transformGroup: sdConfig.transformGroup,
         transforms: sdConfig.transforms,
@@ -209,12 +215,12 @@ export async function generateWithStyleDictionary(
         platforms: sdConfig.platforms as Record<string, { transformGroup?: string; transforms?: string[]; buildPath?: string; prefix?: string; files: { destination: string; format: string; filter?: unknown; options?: Record<string, unknown> }[] }> | undefined,
       } : undefined,
       options: {
-        outputReferences: sdConfig?.outputReferences ?? true,
-        prefix: sdConfig?.prefix,
+        outputReferences: sdConfig.outputReferences ?? true,
+        prefix: sdConfig.prefix,
       },
       config, // Pass config for intermediate format generation
     });
-    
+
     return {
       files: result.files,
       outputDir: result.outputDir

@@ -47,3 +47,7 @@ tokensrc.json
 
 # Development notes (not for public repo)
 ROADMAP.md
+
+# Claude Code
+.claude/
+agent-os/

@@ -29,6 +29,13 @@ export interface ImportOptions {
 }
 
 /**
+ * Check if Style Dictionary mode is enabled based on new config structure
+ */
+function isStyleDictionaryMode(config: ReturnType<typeof loadConfig>): boolean {
+  return !!config.build?.styleDictionary?.configFile;
+}
+
+/**
  * Import design tokens from Figma native JSON export files.
  *
  * Supports:
@@ -187,7 +194,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
         spinner.fail(chalk.red(
           `File "${filename}" is not in Figma native export format.\n\n` +
           '  Expected format with $type, $value, and $extensions.com.figma.variableId\n' +
-          '  Export from Figma: File → Export → Variables → JSON'
+          '  Export from Figma: File -> Export -> Variables -> JSON'
         ));
         process.exit(1);
       }
@@ -264,7 +271,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
       // Breaking changes check
       if (hasBreakingChanges(result) && !options.force) {
         spinner.stop();
-        console.log(chalk.yellow('\n  ⚠️  BREAKING CHANGES DETECTED\n'));
+        console.log(chalk.yellow('\n  BREAKING CHANGES DETECTED\n'));
         printDiffSummary(result);
         console.log(chalk.yellow('\n  These changes may break your code.\n'));
         console.log(`  Run with ${chalk.cyan('--force')} to apply anyway.`);
@@ -288,17 +295,17 @@ export async function importCommand(options: ImportOptions): Promise<void> {
     if (config) {
       spinner.text = 'Generating output files...';
 
-      // Split tokens
+      // Split tokens using new config structure
       const splitOptions: SplitTokensOptions = {
-        collections: config.collections || {},
-        dtcg: config.output.dtcg !== false,
-        includeVariableId: config.output.includeVariableId === true,
-        extensions: config.output.extensions || {},
+        collections: config.tokens.collections || {},
+        dtcg: config.tokens.dtcg !== false,
+        includeVariableId: config.tokens.includeVariableId === true,
+        extensions: config.tokens.extensions || {},
       };
       const processedTokens = splitTokens(baseline, splitOptions);
 
-      // Write token files
-      const defaultOutDir = resolve(process.cwd(), config.output.dir);
+      // Write token files using tokens.dir
+      const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
       await mkdir(defaultOutDir, { recursive: true });
 
       const filesByDir = new Map<string, Map<string, unknown>>();
@@ -327,7 +334,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
       let outputs;
       let sdFilesWritten = 0;
 
-      if (config.output.mode === 'style-dictionary') {
+      if (isStyleDictionaryMode(config)) {
         const sdAvailable = await isStyleDictionaryAvailable();
         if (sdAvailable) {
           try {
@@ -353,11 +360,11 @@ export async function importCommand(options: ImportOptions): Promise<void> {
       const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';
 
       spinner.succeed(chalk.green(
-        `✓ Imported ${tokenCount} tokens. Wrote ${filesWritten} files to ${config.output.dir}.${extrasStr}`
+        `Imported ${tokenCount} tokens. Wrote ${filesWritten} files to ${config.tokens.dir}.${extrasStr}`
       ));
     } else {
       spinner.succeed(chalk.green(
-        `✓ Imported ${tokenCount} tokens from ${filesToImport.length} file(s).\n` +
+        `Imported ${tokenCount} tokens from ${filesToImport.length} file(s).\n` +
         chalk.dim('  Run synkio sync --regenerate to generate output files.')
       ));
     }

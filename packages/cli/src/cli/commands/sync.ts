@@ -1,8 +1,8 @@
 import { mkdir, writeFile, readdir, unlink } from 'fs/promises';
 import { resolve, join } from 'path';
-import { loadConfig, updateConfigWithCollectionRenames } from '../../core/config.js';
+import { loadConfig, updateConfigWithCollectionRenames, updateConfigWithCollections } from '../../core/config.js';
 import { FigmaClient } from '../../core/figma.js';
-import { splitTokens, SplitTokensOptions, normalizePluginData } from '../../core/tokens.js';
+import { splitTokens, SplitTokensOptions, normalizePluginData, RawTokens } from '../../core/tokens.js';
 import { createLogger } from '../../utils/logger.js';
 import { readBaseline, writeBaseline } from '../../core/baseline.js';
 import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary } from '../../core/compare.js';
@@ -24,6 +24,47 @@ export interface SyncOptions {
   config?: string;      // Path to config file (auto-discovered if not specified)
 }
 
+/**
+ * Extract unique collections and their modes from normalized tokens.
+ * Used during first sync to auto-populate tokens.collections.
+ */
+function discoverCollectionsFromTokens(
+  normalizedTokens: RawTokens
+): { name: string; modes: string[]; splitModes: boolean }[] {
+  // Build map of collections to their unique modes
+  const collectionModes = new Map<string, Set<string>>();
+
+  for (const entry of Object.values(normalizedTokens)) {
+    const collection = entry.collection || entry.path.split('.')[0];
+    const mode = entry.mode || 'default';
+
+    if (!collectionModes.has(collection)) {
+      collectionModes.set(collection, new Set());
+    }
+    collectionModes.get(collection)!.add(mode);
+  }
+
+  // Convert to array with splitModes determination
+  const result: { name: string; modes: string[]; splitModes: boolean }[] = [];
+  for (const [name, modesSet] of collectionModes) {
+    const modes = Array.from(modesSet).sort();
+    result.push({
+      name,
+      modes,
+      splitModes: modes.length > 1,  // false if 1 mode, true if 2+ modes
+    });
+  }
+
+  return result.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Check if Style Dictionary mode is enabled based on new config structure
+ */
+function isStyleDictionaryMode(config: ReturnType<typeof loadConfig>): boolean {
+  return !!config.build?.styleDictionary?.configFile;
+}
+
 export async function syncCommand(options: SyncOptions = {}) {
   const logger = createLogger();
   const spinner = ora('Syncing design tokens...').start();
@@ -35,14 +76,14 @@ export async function syncCommand(options: SyncOptions = {}) {
     logger.debug('Config loaded', config);
 
     // Early check: If Style Dictionary mode is enabled, verify it's installed
-    if (config.output.mode === 'style-dictionary') {
+    if (isStyleDictionaryMode(config)) {
       const sdAvailable = await isStyleDictionaryAvailable();
       if (!sdAvailable) {
         spinner.fail(chalk.red(
           'Style Dictionary mode is configured but style-dictionary is not installed.\n\n' +
           '  To fix this, either:\n' +
           '  1. Install Style Dictionary: npm install -D style-dictionary\n' +
-          '  2. Change output.mode to "json" in synkio.config.json\n'
+          '  2. Remove build.styleDictionary from synkio.config.json\n'
         ));
         process.exit(1);
       }
@@ -52,39 +93,39 @@ export async function syncCommand(options: SyncOptions = {}) {
     if (options.regenerate) {
       spinner.text = 'Regenerating files from existing baseline...';
       const localBaseline = await readBaseline();
-      
+
       if (!localBaseline) {
         spinner.fail(chalk.red('No baseline found. Run synkio sync first to fetch tokens from Figma.'));
         process.exit(1);
       }
-      
+
       // Use the existing baseline tokens
       const normalizedTokens = localBaseline.baseline;
-      
-      // Split and write token files
+
+      // Split and write token files using new config structure
       const splitOptions: SplitTokensOptions = {
-        collections: config.collections || {},
-        dtcg: config.output.dtcg !== false,
-        includeVariableId: config.output.includeVariableId === true,
-        extensions: config.output.extensions || {},
+        collections: config.tokens.collections || {},
+        dtcg: config.tokens.dtcg !== false,
+        includeVariableId: config.tokens.includeVariableId === true,
+        extensions: config.tokens.extensions || {},
       };
       const processedTokens = splitTokens(normalizedTokens, splitOptions);
-      
-      const defaultOutDir = resolve(process.cwd(), config.output.dir);
-      
+
+      const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
+
       // Build map of files per directory
       const filesByDir = new Map<string, Map<string, any>>();
       for (const [fileName, fileData] of processedTokens) {
-        const outDir = fileData.dir 
-          ? resolve(process.cwd(), fileData.dir) 
+        const outDir = fileData.dir
+          ? resolve(process.cwd(), fileData.dir)
           : defaultOutDir;
-        
+
         if (!filesByDir.has(outDir)) {
           filesByDir.set(outDir, new Map());
         }
         filesByDir.get(outDir)!.set(fileName, fileData.content);
       }
-      
+
       // Ensure all output directories exist and write files
       let filesWritten = 0;
       for (const [outDir, filesInDir] of filesByDir) {
@@ -95,15 +136,15 @@ export async function syncCommand(options: SyncOptions = {}) {
           filesWritten++;
         }
       }
-      
+
       // Generate all enabled output formats
       spinner.text = 'Generating output files...';
-      
+
       // Check if using Style Dictionary mode
       let outputs;
       let sdFilesWritten = 0;
-      
-      if (config.output.mode === 'style-dictionary') {
+
+      if (isStyleDictionaryMode(config)) {
         try {
           const sdResult = await generateWithStyleDictionary(localBaseline, config);
           sdFilesWritten = sdResult.files.length;
@@ -119,17 +160,17 @@ export async function syncCommand(options: SyncOptions = {}) {
       } else {
         outputs = await generateAllFromBaseline(localBaseline, config);
       }
-      
+
       const cssFilesWritten = outputs.css.files.length;
       const docsFilesWritten = outputs.docs.files.length;
-      
+
       const extras: string[] = [];
       if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
       if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
       if (docsFilesWritten > 0) extras.push(`${docsFilesWritten} docs`);
       const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')} files)` : '';
-      
-      spinner.succeed(chalk.green(`✓ Regenerated ${filesWritten} token files from baseline.${extrasStr}`));
+
+      spinner.succeed(chalk.green(`Regenerated ${filesWritten} token files from baseline.${extrasStr}`));
       return;
     }
 
@@ -157,7 +198,7 @@ export async function syncCommand(options: SyncOptions = {}) {
       const filteredCount = Object.keys(normalizedTokens).length;
       spinner.text = `Filtered to ${filteredCount} tokens from collection(s): ${options.collection}`;
       logger.debug(`Filtered from ${originalCount} to ${filteredCount} tokens`);
-      
+
       if (filteredCount === 0) {
         spinner.fail(chalk.red(`No tokens found for collection(s): ${options.collection}`));
         console.log(chalk.dim('\n  Available collections can be seen with: synkio tokens\n'));
@@ -167,7 +208,7 @@ export async function syncCommand(options: SyncOptions = {}) {
 
     // 4. Read existing baseline for comparison
     const localBaseline = await readBaseline();
-    
+
     // Build the new baseline object
     const newBaseline: BaselineData = {
       baseline: normalizedTokens,
@@ -175,6 +216,32 @@ export async function syncCommand(options: SyncOptions = {}) {
         syncedAt: new Date().toISOString(),
       },
     };
+
+    // 4b. First sync: discover collections and update config
+    const isFirstSync = !localBaseline;
+    if (isFirstSync) {
+      const discoveredCollections = discoverCollectionsFromTokens(normalizedTokens);
+
+      // Display discovered collections
+      spinner.stop();
+      console.log(chalk.cyan('\n  Collections from Figma:'));
+      for (const col of discoveredCollections) {
+        const modeStr = col.modes.length === 1
+          ? `1 mode: ${col.modes[0]}`
+          : `${col.modes.length} modes: ${col.modes.join(', ')}`;
+        console.log(chalk.dim(`    - ${col.name} (${modeStr})`));
+      }
+      console.log('');
+
+      // Update config with discovered collections
+      spinner.start('Updating synkio.config.json with discovered collections...');
+      const configUpdateResult = updateConfigWithCollections(discoveredCollections, options.config);
+      if (configUpdateResult.updated) {
+        // Reload config with updated collections
+        config = loadConfig(options.config);
+        spinner.text = 'Config updated with collections';
+      }
+    }
 
     // 5. Compare if we have a local baseline
     let hasBaselineChanges = false;
@@ -184,7 +251,7 @@ export async function syncCommand(options: SyncOptions = {}) {
       const result = compareBaselines(localBaseline, newBaseline);
       collectionRenames = result.collectionRenames;
       const counts = getChangeCounts(result);
-      
+
       // No changes from Figma - but still regenerate files (config may have changed)
       if (!hasChanges(result)) {
         spinner.text = 'Regenerating token files...';
@@ -204,31 +271,31 @@ export async function syncCommand(options: SyncOptions = {}) {
       // Breaking changes detected - block unless --force
       if (hasBreakingChanges(result) && !options.force) {
         spinner.stop();
-        
-        console.log(chalk.yellow('\n  ⚠️  BREAKING CHANGES DETECTED\n'));
-        
+
+        console.log(chalk.yellow('\n  BREAKING CHANGES DETECTED\n'));
+
         // Show breaking changes summary
         if (result.pathChanges.length > 0) {
           console.log(chalk.red(`  Path changes: ${result.pathChanges.length}`));
           result.pathChanges.slice(0, 5).forEach(change => {
-            console.log(chalk.dim(`    ${change.oldPath} → ${change.newPath}`));
+            console.log(chalk.dim(`    ${change.oldPath} -> ${change.newPath}`));
           });
           if (result.pathChanges.length > 5) {
             console.log(chalk.dim(`    ... and ${result.pathChanges.length - 5} more`));
           }
         }
-        
+
         if (result.collectionRenames.length > 0) {
           console.log(chalk.red(`  Collection renames: ${result.collectionRenames.length}`));
           result.collectionRenames.forEach(rename => {
-            console.log(chalk.dim(`    ${rename.oldCollection} → ${rename.newCollection}`));
+            console.log(chalk.dim(`    ${rename.oldCollection} -> ${rename.newCollection}`));
           });
         }
 
         if (result.modeRenames.length > 0) {
           console.log(chalk.red(`  Mode renames: ${result.modeRenames.length}`));
           result.modeRenames.forEach(rename => {
-            console.log(chalk.dim(`    ${rename.collection}: ${rename.oldMode} → ${rename.newMode}`));
+            console.log(chalk.dim(`    ${rename.collection}: ${rename.oldMode} -> ${rename.newMode}`));
           });
         }
 
@@ -253,25 +320,25 @@ export async function syncCommand(options: SyncOptions = {}) {
         console.log(chalk.yellow('\n  These changes may break your code.\n'));
         console.log(`  Run ${chalk.cyan('synkio sync --force')} to apply anyway.`);
         console.log(`  Run ${chalk.cyan('synkio sync --preview')} to see full details.\n`);
-        
+
         process.exit(1);
       }
 
       // Show summary of what will be synced
       spinner.stop();
       console.log(chalk.cyan(`\n  Syncing ${counts.total} change(s)...\n`));
-      
+
       // Show value changes
       if (result.valueChanges.length > 0) {
         console.log(chalk.dim(`  Value changes (${result.valueChanges.length}):`));
         result.valueChanges.slice(0, 5).forEach(change => {
-          console.log(chalk.dim(`    ${change.path}: ${JSON.stringify(change.oldValue)} → ${JSON.stringify(change.newValue)}`));
+          console.log(chalk.dim(`    ${change.path}: ${JSON.stringify(change.oldValue)} -> ${JSON.stringify(change.newValue)}`));
         });
         if (result.valueChanges.length > 5) {
           console.log(chalk.dim(`    ... and ${result.valueChanges.length - 5} more`));
         }
       }
-      
+
       // Show new variables
       if (result.newVariables.length > 0) {
         console.log(chalk.green(`  New variables (${result.newVariables.length}):`));
@@ -282,12 +349,12 @@ export async function syncCommand(options: SyncOptions = {}) {
           console.log(chalk.dim(`    ... and ${result.newVariables.length - 5} more`));
         }
       }
-      
+
       // Show new modes
       if (result.newModes.length > 0) {
         console.log(chalk.green(`  New modes: ${result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ')}`));
       }
-      
+
       console.log('');
     } else {
       spinner.info('No local baseline found. Performing initial sync.');
@@ -307,46 +374,46 @@ export async function syncCommand(options: SyncOptions = {}) {
         const configFileName = configUpdateResult.configPath.split('/').pop();
         console.log(chalk.cyan(`\n  Updated ${configFileName} with collection renames:`));
         configUpdateResult.renames.forEach(r => {
-          console.log(chalk.dim(`    ${r.old} → ${r.new}`));
+          console.log(chalk.dim(`    ${r.old} -> ${r.new}`));
         });
         console.log('');
       }
     }
 
-    // 7. Split tokens into files
+    // 7. Split tokens into files using new config structure
     spinner.text = 'Processing tokens...';
     const splitOptions: SplitTokensOptions = {
-      collections: config.collections || {},
-      dtcg: config.output.dtcg !== false,                    // default true
-      includeVariableId: config.output.includeVariableId === true, // default false
-      extensions: config.output.extensions || {},            // optional metadata
+      collections: config.tokens.collections || {},
+      dtcg: config.tokens.dtcg !== false,                    // default true
+      includeVariableId: config.tokens.includeVariableId === true, // default false
+      extensions: config.tokens.extensions || {},            // optional metadata
     };
     const processedTokens = splitTokens(normalizedTokens, splitOptions);
     logger.debug(`${processedTokens.size} token sets processed`);
 
     // 7. Write files
     spinner.text = 'Writing token files...';
-    const defaultOutDir = resolve(process.cwd(), config.output.dir);
+    const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
     await mkdir(defaultOutDir, { recursive: true });
 
     // Track all output directories for cleanup
     const outputDirs = new Set<string>([defaultOutDir]);
-    
+
     // Build map of files per directory
     const filesByDir = new Map<string, Map<string, any>>();
     for (const [fileName, fileData] of processedTokens) {
-      const outDir = fileData.dir 
-        ? resolve(process.cwd(), fileData.dir) 
+      const outDir = fileData.dir
+        ? resolve(process.cwd(), fileData.dir)
         : defaultOutDir;
-      
+
       outputDirs.add(outDir);
-      
+
       if (!filesByDir.has(outDir)) {
         filesByDir.set(outDir, new Map());
       }
       filesByDir.get(outDir)!.set(fileName, fileData.content);
     }
-    
+
     // Ensure all output directories exist
     for (const dir of outputDirs) {
       await mkdir(dir, { recursive: true });
@@ -380,12 +447,12 @@ export async function syncCommand(options: SyncOptions = {}) {
     // 8. Generate CSS if enabled in config
     // 8. Generate all enabled output formats (CSS, SCSS, JS, Tailwind, docs)
     spinner.text = 'Generating output files...';
-    
+
     // Check if using Style Dictionary mode
     let outputs;
     let sdFilesWritten = 0;
-    
-    if (config.output.mode === 'style-dictionary') {
+
+    if (isStyleDictionaryMode(config)) {
       try {
         const sdResult = await generateWithStyleDictionary(newBaseline, config);
         sdFilesWritten = sdResult.files.length;
@@ -401,7 +468,7 @@ export async function syncCommand(options: SyncOptions = {}) {
     } else {
       outputs = await generateAllFromBaseline(newBaseline, config);
     }
-    
+
     const cssFilesWritten = outputs.css.files.length;
     const docsFilesWritten = outputs.docs.files.length;
     const docsDir = outputs.docs.outputDir;
@@ -410,20 +477,20 @@ export async function syncCommand(options: SyncOptions = {}) {
     // CLI flags override config: --report forces, --no-report skips
     const syncConfig = config.sync || { report: true, reportHistory: false };
     const shouldGenerateReport = options.noReport ? false : (options.report || syncConfig.report !== false);
-    
+
     if (shouldGenerateReport && localBaseline) {
       const result = compareBaselines(localBaseline, newBaseline);
-      
+
       // Only generate if there were actual changes
       if (hasChanges(result)) {
         const report = generateDiffReport(result, {
           fileName: config.figma.fileId,
           exportedAt: newBaseline.metadata.syncedAt,
         });
-        
+
         const synkioDir = resolve(process.cwd(), '.synkio');
         await mkdir(synkioDir, { recursive: true });
-        
+
         let reportPath: string;
         if (syncConfig.reportHistory) {
           // Timestamped reports for changelog history
@@ -435,19 +502,19 @@ export async function syncCommand(options: SyncOptions = {}) {
           // Single report file, overwritten each sync
           reportPath = resolve(synkioDir, 'sync-report.md');
         }
-        
+
         await writeFile(reportPath, report);
         const relativePath = reportPath.replace(process.cwd() + '/', '');
-        spinner.succeed(chalk.green(`✓ Sync complete. Wrote ${filesWritten} token files. Report: ${relativePath}`));
-        
+        spinner.succeed(chalk.green(`Sync complete. Wrote ${filesWritten} token files. Report: ${relativePath}`));
+
         // Show additional outputs
         const allOutputs = [
           sdFilesWritten > 0 ? `${sdFilesWritten} Style Dictionary` : null,
           cssFilesWritten > 0 ? `${cssFilesWritten} CSS` : null,
         ].filter(Boolean);
-        
+
         if (allOutputs.length > 0) {
-          console.log(chalk.dim(`  + ${allOutputs.join(', ')} file(s) in ${config.output.dir}`));
+          console.log(chalk.dim(`  + ${allOutputs.join(', ')} file(s) in ${config.tokens.dir}`));
         }
         if (docsFilesWritten > 0) {
           console.log(chalk.dim(`  + Documentation: ${docsDir}`));
@@ -455,23 +522,23 @@ export async function syncCommand(options: SyncOptions = {}) {
         return;
       }
     }
-    
+
     // Build output summary
     const extras: string[] = [];
     if (sdFilesWritten > 0) extras.push(`${sdFilesWritten} Style Dictionary`);
     if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
     if (docsFilesWritten > 0) extras.push('docs');
     const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';
-    
+
     // Show appropriate message based on whether there were changes
     if (hasBaselineChanges) {
-      spinner.succeed(chalk.green(`✓ Sync complete. Wrote ${filesWritten} token files to ${config.output.dir}.${extrasStr}`));
+      spinner.succeed(chalk.green(`Sync complete. Wrote ${filesWritten} token files to ${config.tokens.dir}.${extrasStr}`));
     } else if (localBaseline) {
-      spinner.succeed(chalk.green(`✓ No changes from Figma. Regenerated ${filesWritten} token files.${extrasStr}`));
+      spinner.succeed(chalk.green(`No changes from Figma. Regenerated ${filesWritten} token files.${extrasStr}`));
     } else {
-      spinner.succeed(chalk.green(`✓ Initial sync complete. Wrote ${filesWritten} token files to ${config.output.dir}.${extrasStr}`));
+      spinner.succeed(chalk.green(`Initial sync complete. Wrote ${filesWritten} token files to ${config.tokens.dir}.${extrasStr}`));
     }
-    
+
     // Show docs location if generated
     if (docsFilesWritten > 0) {
       console.log(chalk.dim(`  Documentation: ${docsDir}`));
@@ -490,28 +557,28 @@ export async function syncCommand(options: SyncOptions = {}) {
 export async function watchCommand(options: SyncOptions = {}) {
   const interval = (options.interval || 30) * 1000; // Convert to ms
   const logger = createLogger();
-  
-  console.log(chalk.cyan(`\n  👀 Watching for changes (every ${options.interval || 30}s)\n`));
+
+  console.log(chalk.cyan(`\n  Watching for changes (every ${options.interval || 30}s)\n`));
   console.log(chalk.dim('  Press Ctrl+C to stop\n'));
-  
+
   let lastBaseline: BaselineData | undefined = undefined;
   let isRunning = true;
-  
+
   // Handle Ctrl+C gracefully
   process.on('SIGINT', () => {
     isRunning = false;
     console.log(chalk.dim('\n\n  Watch stopped.\n'));
     process.exit(0);
   });
-  
+
   // Initial sync
   try {
     const config = loadConfig(options.config);
     const figmaClient = new FigmaClient({ ...config.figma, logger });
-    
+
     // Read current baseline
     lastBaseline = await readBaseline();
-    
+
     if (!lastBaseline) {
       console.log(chalk.yellow('  No baseline found. Running initial sync...\n'));
       await syncCommand({ ...options, watch: false });
@@ -519,32 +586,32 @@ export async function watchCommand(options: SyncOptions = {}) {
     } else {
       console.log(chalk.dim(`  Baseline loaded. Last sync: ${lastBaseline.metadata.syncedAt}\n`));
     }
-    
+
     // Watch loop
     while (isRunning) {
       const checkTime = new Date().toLocaleTimeString();
       process.stdout.write(chalk.dim(`  [${checkTime}] Checking Figma... `));
-      
+
       try {
         const rawData = await figmaClient.fetchData();
         const normalizedTokens = normalizePluginData(rawData);
-        
+
         const newBaseline: BaselineData = {
           baseline: normalizedTokens,
           metadata: {
             syncedAt: new Date().toISOString(),
           },
         };
-        
+
         if (lastBaseline) {
           const result = compareBaselines(lastBaseline, newBaseline);
-          
+
           if (hasChanges(result)) {
             process.stdout.write(chalk.green('Changes detected!\n\n'));
-            
+
             // Check for breaking changes
             if (hasBreakingChanges(result) && !options.force) {
-              console.log(chalk.yellow('  ⚠️  Breaking changes detected. Use --force to apply.\n'));
+              console.log(chalk.yellow('  Breaking changes detected. Use --force to apply.\n'));
               printDiffSummary(result);
               console.log('');
             } else {
@@ -560,7 +627,7 @@ export async function watchCommand(options: SyncOptions = {}) {
       } catch (err: any) {
         process.stdout.write(chalk.red(`Error: ${err.message}\n`));
       }
-      
+
       // Wait for next interval
       await new Promise(resolve => setTimeout(resolve, interval));
     }

@@ -259,8 +259,8 @@ export async function generateDocs(
   // Try to load intermediate format for enhanced metadata
   const intermediateFormat = await tryLoadIntermediateFormat(options.config);
 
-  // Determine if CSS output is enabled
-  const cssEnabled = intermediateFormat?.$metadata?.output?.css?.enabled || options.config.css?.enabled;
+  // Determine if CSS output is enabled using new config structure: build.css
+  const cssEnabled = intermediateFormat?.$metadata?.output?.css?.enabled || options.config.build?.css?.enabled;
 
   const tokens = await parseTokens(
     baseline,
@@ -273,15 +273,15 @@ export async function generateDocs(
   // Get unique modes for mode switcher
   const modeNames = Array.from(tokens.modes.keys());
   const defaultMode = modeNames[0] || 'default';
-  
+
   // Generate CSS files
   files['assets/tokens.css'] = generateTokensCSS(tokens.all, modeNames);
   files['assets/utilities.css'] = generateUtilitiesCSS(tokens.all);
   files['assets/docs.css'] = generateDocsCSS();
-  
+
   // Generate JS
   files['assets/preview.js'] = generatePreviewJS();
-  
+
   // Build navigation items from collections
   const navItems = Array.from(tokens.collections.entries()).map(([name, collTokens]) => ({
     id: name.toLowerCase(),
@@ -289,7 +289,7 @@ export async function generateDocs(
     href: `${name.toLowerCase()}.html`,
     count: collTokens.length,
   }));
-  
+
   // Generate HTML pages
   const templateOptions = {
     title: options.title,
@@ -299,20 +299,20 @@ export async function generateDocs(
     navItems,
     metadata: intermediateFormat?.$metadata, // Pass metadata if available
   };
-  
+
   files['index.html'] = generateIndexHTML(tokens, templateOptions);
-  
+
   // Generate a page for each collection
   for (const [collectionName, collectionTokens] of tokens.collections) {
     const fileName = `${collectionName.toLowerCase()}.html`;
     files[fileName] = generateCollectionPage(collectionName, collectionTokens, templateOptions);
   }
-  
+
   files['all-tokens.html'] = generateAllTokensPage(tokens.all, templateOptions, tokens.collections);
-  
+
   // Copy of tokens.json for reference
   files['tokens.json'] = JSON.stringify(baseline, null, 2);
-  
+
   return { files };
 }
 
@@ -323,10 +323,11 @@ function capitalizeFirst(str: string): string {
 /**
  * Try to load intermediate token format if it exists
  * Returns null if not found (falls back to baseline-only mode)
+ * Uses new config structure: tokens.dir
  */
 async function tryLoadIntermediateFormat(config: Config): Promise<IntermediateTokenFormat | null> {
   try {
-    const tokensPath = join(process.cwd(), config.output.dir, '.tokens-source.json');
+    const tokensPath = join(process.cwd(), config.tokens.dir, '.tokens-source.json');
     const content = await readFile(tokensPath, 'utf-8');
     const data = JSON.parse(content);
 

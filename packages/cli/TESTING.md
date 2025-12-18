@@ -1,4 +1,4 @@
-# End-to-End Testing Guide for Synkio CLI v2
+# End-to-End Testing Guide for Synkio CLI
 
 This guide provides step-by-step instructions to test the full end-to-end workflow of the Synkio CLI using a mock Figma API server. This allows you to verify the CLI's functionality without needing real Figma credentials or a pre-existing Figma file.
 
@@ -11,7 +11,7 @@ First, you need to start the mock server. This server will act as a fake Figma A
 **Open a new terminal window** and run the following command from the root of the `synkio` repository:
 
 ```bash
-node synkio-v2/test-utils/mock-figma-server.cjs
+node packages/cli/test-utils/mock-figma-server.cjs
 ```
 
 You should see a message: `Mock Figma API server listening on http://localhost:8080`. Keep this terminal open and running.

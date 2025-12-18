@@ -1,0 +1,12 @@
+{
+  "name": "demo-scaffold",
+  "version": "1.0.0",
+  "description": "Demo app for testing synkio init",
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'No dev server configured'",
+    "build": "echo 'No build configured'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
