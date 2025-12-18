@@ -50,10 +50,11 @@ export class FigmaClient {
 
   /**
    * Performs a lightweight API call to check if the file is accessible with the given token.
+   * Uses the versions endpoint with page_size=1 to minimize data transfer - much faster
+   * for large files than fetching full file metadata.
    */
   async validateConnection(): Promise<void> {
-    // This is the most lightweight call we can make to check file access.
-    const url = `${this.baseUrl}/v1/files/${this.fileId}`;
+    const url = `${this.baseUrl}/v1/files/${this.fileId}/versions?page_size=1`;
     this.logger?.debug?.('Validating connection', { fileId: this.fileId });
     // We only care about the response status, not the body.
     await this.fetch<any>(url);
