@@ -77,6 +77,7 @@ function showHelp(command?: string) {
             console.log('  --interval=<s>      Watch interval in seconds (default: 30)');
             console.log('  --collection=<name> Sync only specific collection(s), comma-separated');
             console.log('  --regenerate        Regenerate files from existing baseline (no Figma fetch)');
+            console.log('  --timeout=<s>       Figma API timeout in seconds (default: 60)');
             console.log('  --config=<file>     Path to config file (default: synkio.config.json)');
             break;
         case 'rollback':
@@ -201,6 +202,7 @@ switch (command) {
             interval: syncOptions.interval ? parseInt(syncOptions.interval as string) : 30,
             collection: syncOptions.collection as string,
             config: syncOptions.config as string,
+            timeout: syncOptions.timeout ? parseInt(syncOptions.timeout as string) : undefined,
         });
     } else {
         syncCommand({
@@ -211,6 +213,7 @@ switch (command) {
             collection: syncOptions.collection as string,
             regenerate: syncOptions.regenerate as boolean,
             config: syncOptions.config as string,
+            timeout: syncOptions.timeout ? parseInt(syncOptions.timeout as string) : undefined,
         });
     }
     break;

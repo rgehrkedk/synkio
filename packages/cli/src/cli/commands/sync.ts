@@ -23,6 +23,7 @@ export interface SyncOptions {
   collection?: string;  // Sync only specific collection(s), comma-separated
   regenerate?: boolean; // Regenerate files from existing baseline (no Figma fetch)
   config?: string;      // Path to config file (auto-discovered if not specified)
+  timeout?: number;     // Figma API timeout in seconds (default 60)
 }
 
 /**
@@ -181,7 +182,8 @@ export async function syncCommand(options: SyncOptions = {}) {
 
     // 2. Fetch data from Figma
     spinner.text = 'Fetching data from Figma...';
-    const figmaClient = new FigmaClient({ ...config.figma, logger });
+    const timeout = options.timeout ? options.timeout * 1000 : undefined; // Convert seconds to ms
+    const figmaClient = new FigmaClient({ ...config.figma, logger, timeout });
     const rawData = await figmaClient.fetchData();
     logger.debug('Figma data fetched');
 
@@ -587,7 +589,8 @@ export async function watchCommand(options: SyncOptions = {}) {
   // Initial sync
   try {
     const config = loadConfig(options.config);
-    const figmaClient = new FigmaClient({ ...config.figma, logger });
+    const timeout = options.timeout ? options.timeout * 1000 : undefined;
+    const figmaClient = new FigmaClient({ ...config.figma, logger, timeout });
 
     // Read current baseline
     lastBaseline = await readBaseline();

@@ -15,7 +15,7 @@ export interface FigmaClientOptions {
  * FigmaClient encapsulates all Figma API calls with retry logic and timeout protection
  * Features:
  * - Exponential backoff retry (1s, 2s, 4s)
- * - 30-second default timeout
+ * - 60-second default timeout (configurable)
  * - Rate limit handling (429 responses)
  * - Request ID extraction for debugging
  */
@@ -35,7 +35,7 @@ export class FigmaClient {
     this.fileId = options.fileId;
     this.nodeId = options.nodeId || '0:0'; // Default to document root
     this.accessToken = options.accessToken;
-    this.timeout = options.timeout ?? 30000;
+    this.timeout = options.timeout ?? 60000;
     this.maxRetries = options.maxRetries ?? 3;
     this.logger = options.logger;
     this.baseUrl = options.baseUrl || 'https://api.figma.com';
