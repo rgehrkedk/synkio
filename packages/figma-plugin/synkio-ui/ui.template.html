@@ -387,6 +387,114 @@
       border: 2px dashed #e6e6e6;
       border-radius: 6px;
     }
+
+    /* Collections View */
+    .collections-header {
+      margin-bottom: 12px;
+    }
+
+    .collections-header h3 {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .collections-header .subtitle {
+      font-size: 10px;
+      color: #999;
+    }
+
+    .collections-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      background: white;
+      border: 1px solid #e6e6e6;
+      border-radius: 6px;
+      margin: 12px 0;
+    }
+
+    .collection-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .collection-item:hover {
+      background: #f5f5f5;
+    }
+
+    .collection-item input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      accent-color: #18A0FB;
+    }
+
+    .collection-name {
+      flex: 1;
+      font-weight: 500;
+      font-size: 11px;
+    }
+
+    .mode-count {
+      color: #999;
+      font-size: 10px;
+    }
+
+    .save-btn {
+      width: 100%;
+      padding: 10px;
+      background: #18A0FB;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .save-btn:hover {
+      background: #0D8EDE;
+    }
+
+    .save-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .collections-warning {
+      padding: 10px;
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      border-radius: 6px;
+      font-size: 10px;
+      color: #92400e;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .collections-info {
+      font-size: 10px;
+      color: #666;
+      margin-top: 8px;
+      padding: 0 4px;
+    }
+
+    .excluded-badge {
+      font-size: 9px;
+      color: #999;
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
@@ -396,6 +504,7 @@
         <div class="title">
           Synkio
           <span class="version">v1.0</span>
+          <span class="excluded-badge" id="excludedBadge" style="display: none;">0 excluded</span>
         </div>
         <div class="status">
           <div class="status-dot synced" id="statusDot"></div>
@@ -415,6 +524,9 @@
         <button class="tab" data-tab="history">
           History
         </button>
+        <button class="tab" data-tab="collections">
+          Collections
+        </button>
       </div>
     </div>
 
@@ -426,6 +538,23 @@
 
       <div class="view" id="historyView">
         <div id="historyContent"></div>
+      </div>
+
+      <div class="view" id="collectionsView">
+        <div class="collections-header">
+          <h3>Collections</h3>
+          <p class="subtitle">Select which collections to sync</p>
+        </div>
+        <div class="collections-warning" id="collectionsWarning">
+          At least one collection must be included for sync
+        </div>
+        <div id="collectionsList" class="collections-list">
+          <div class="empty-state">
+            <p>Loading collections...</p>
+          </div>
+        </div>
+        <button id="saveCollectionsBtn" class="save-btn">Save</button>
+        <p class="collections-info">Excluded collections will not be synced to code. Changes apply to all users.</p>
       </div>
     </div>
   </div>

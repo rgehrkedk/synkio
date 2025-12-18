@@ -1,6 +1,7 @@
 import { writeFile, readFile, access } from 'fs/promises';
-import { resolve } from 'path';
-import { detectProject, findStyleDictionaryConfig, hasStyleDictionary } from '../../core/detect.js';
+import { resolve, basename } from 'path';
+import { existsSync } from 'fs';
+import { detectProject, findStyleDictionaryConfig, hasStyleDictionary, findPackageJsonFiles, packageHasStyleDictionary, PackageJsonResult } from '../../core/detect.js';
 import { DEFAULT_CONFIG_FILE } from '../../core/config.js';
 import { prompt } from '../utils.js';
 import { FigmaClient } from '../../core/figma.js';
@@ -181,10 +182,97 @@ export async function generateConfig(fileId: string, baseUrl?: string): Promise<
     return config;
 }
 
+/**
+ * Find the best project directory to initialize
+ * Searches for package.json files up to 2 levels deep and prompts user if found in subdirectory
+ */
+async function findProjectDirectory(): Promise<{ dir: string; relativePath: string } | null> {
+    const cwd = process.cwd();
+    const packageJsonFiles = findPackageJsonFiles(cwd);
+
+    // If there's a package.json in root, use it
+    const rootPkg = packageJsonFiles.find(p => p.isRoot);
+    if (rootPkg) {
+        return { dir: cwd, relativePath: '.' };
+    }
+
+    // No root package.json, check subdirectories
+    if (packageJsonFiles.length === 0) {
+        // No package.json found anywhere
+        return null;
+    }
+
+    // Found package.json in subdirectory - prompt user
+    if (packageJsonFiles.length === 1) {
+        const pkg = packageJsonFiles[0];
+        const hasSD = packageHasStyleDictionary(pkg.path);
+        console.log(chalk.yellow(`\n  No package.json found in current directory.`));
+        console.log(chalk.green(`  Found package.json in ${chalk.cyan(pkg.relativePath)}${hasSD ? ' (has Style Dictionary)' : ''}`));
+
+        const answer = await prompt(`  Initialize in ${pkg.relativePath}? (y/n):`);
+        if (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes') {
+            return { dir: pkg.dir, relativePath: pkg.relativePath };
+        }
+        return null;
+    }
+
+    // Multiple subdirectories found - let user choose
+    console.log(chalk.yellow(`\n  No package.json found in current directory.`));
+    console.log(chalk.green(`  Found ${packageJsonFiles.length} package.json files in subdirectories:\n`));
+
+    // Sort: prefer those with style-dictionary installed
+    const sorted = [...packageJsonFiles].sort((a, b) => {
+        const aHasSD = packageHasStyleDictionary(a.path);
+        const bHasSD = packageHasStyleDictionary(b.path);
+        if (aHasSD && !bHasSD) return -1;
+        if (!aHasSD && bHasSD) return 1;
+        return 0;
+    });
+
+    sorted.forEach((pkg, i) => {
+        const hasSD = packageHasStyleDictionary(pkg.path);
+        const sdLabel = hasSD ? chalk.cyan(' (has Style Dictionary)') : '';
+        console.log(`    ${i + 1}. ${pkg.relativePath}${sdLabel}`);
+    });
+
+    console.log(`    0. Initialize in current directory anyway`);
+    console.log('');
+
+    const answer = await prompt('  Select directory (0-' + sorted.length + '):');
+    const choice = parseInt(answer, 10);
+
+    if (choice === 0) {
+        return { dir: cwd, relativePath: '.' };
+    }
+
+    if (choice >= 1 && choice <= sorted.length) {
+        const selected = sorted[choice - 1];
+        return { dir: selected.dir, relativePath: selected.relativePath };
+    }
+
+    return null;
+}
+
 export async function initCommand(options: InitOptions = {}) {
     console.log(chalk.bold('\nInitializing Synkio...\n'));
 
-    // Run project detection
+    // Find the project directory (may prompt user if package.json in subdirectory)
+    const projectDir = await findProjectDirectory();
+
+    let workingDir = process.cwd();
+    let initPath = '.';
+
+    if (projectDir) {
+        workingDir = projectDir.dir;
+        initPath = projectDir.relativePath;
+
+        if (initPath !== '.') {
+            console.log(chalk.green(`\n  Initializing in ${chalk.cyan(initPath)}\n`));
+            process.chdir(workingDir);
+        }
+    }
+
+    // Run project detection (now in the correct directory)
     const detected = detectProject();
     const hasSD = hasStyleDictionary();
     const sdConfig = findStyleDictionaryConfig();

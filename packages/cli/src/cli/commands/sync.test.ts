@@ -27,6 +27,7 @@ vi.mock('../../core/output.js', () => ({
 }));
 
 import { loadConfig, ConfigSchema, updateConfigWithCollections } from '../../core/config.js';
+import { isPhantomMode } from '../../utils/figma.js';
 
 const TEST_DIR = 'test-temp-sync';
 
@@ -248,6 +249,7 @@ describe('discoverCollectionsFromTokens helper', () => {
   /**
    * Helper function that extracts unique collections and their modes from normalized tokens.
    * Used during first sync to auto-populate tokens.collections.
+   * Filters out phantom modes (Figma internal IDs like "21598:4").
    */
   function discoverCollectionsFromTokens(
     normalizedTokens: Record<string, { collection: string; mode: string }>
@@ -258,6 +260,9 @@ describe('discoverCollectionsFromTokens helper', () => {
     for (const entry of Object.values(normalizedTokens)) {
       const collection = entry.collection;
       const mode = entry.mode;
+
+      // Skip phantom modes (Figma internal IDs)
+      if (isPhantomMode(mode)) continue;
 
       if (!collectionModes.has(collection)) {
         collectionModes.set(collection, new Set());
@@ -319,5 +324,59 @@ describe('discoverCollectionsFromTokens helper', () => {
     const multiResult = discoverCollectionsFromTokens(multiModeTokens as any);
     expect(multiResult[0].splitModes).toBe(true);
     expect(multiResult[0].modes).toHaveLength(3);
+  });
+
+  it('should filter out phantom modes from discovered collections', () => {
+    const tokensWithPhantomModes = {
+      'VariableID:1:1:theme.21598:4': { collection: 'theme', mode: '21598:4', path: 'colors.primary', value: '#000', type: 'color' },
+      'VariableID:1:2:theme.21598:5': { collection: 'theme', mode: '21598:5', path: 'colors.secondary', value: '#fff', type: 'color' },
+      'VariableID:1:3:theme.dark': { collection: 'theme', mode: 'dark', path: 'colors.tertiary', value: '#333', type: 'color' },
+      'VariableID:1:4:theme.light': { collection: 'theme', mode: 'light', path: 'colors.tertiary', value: '#ccc', type: 'color' },
+    };
+
+    const discovered = discoverCollectionsFromTokens(tokensWithPhantomModes as any);
+
+    expect(discovered).toHaveLength(1);
+    const theme = discovered[0];
+    expect(theme.name).toBe('theme');
+    // Only 'dark' and 'light' should be discovered, not '21598:4' or '21598:5'
+    expect(theme.modes).toEqual(['dark', 'light']);
+    expect(theme.modes).not.toContain('21598:4');
+    expect(theme.modes).not.toContain('21598:5');
+    expect(theme.splitModes).toBe(true);
+  });
+
+  it('should handle collections with only phantom modes', () => {
+    const tokensOnlyPhantomModes = {
+      'VariableID:1:1:phantom.21598:4': { collection: 'phantom', mode: '21598:4', path: 'a', value: 1, type: 'number' },
+      'VariableID:1:2:phantom.12345:0': { collection: 'phantom', mode: '12345:0', path: 'b', value: 2, type: 'number' },
+      'VariableID:2:1:base.default': { collection: 'base', mode: 'default', path: 'c', value: 3, type: 'number' },
+    };
+
+    const discovered = discoverCollectionsFromTokens(tokensOnlyPhantomModes as any);
+
+    // 'phantom' collection should be excluded entirely since all its modes are phantom
+    expect(discovered).toHaveLength(1);
+    expect(discovered[0].name).toBe('base');
+    expect(discovered.find(c => c.name === 'phantom')).toBeUndefined();
+  });
+
+  it('should correctly count modes after filtering phantom modes', () => {
+    const tokensWithMixedModes = {
+      'VariableID:1:1:theme.21598:4': { collection: 'theme', mode: '21598:4', path: 'a', value: 1, type: 'number' },
+      'VariableID:1:2:theme.21598:5': { collection: 'theme', mode: '21598:5', path: 'a', value: 2, type: 'number' },
+      'VariableID:1:3:theme.21598:6': { collection: 'theme', mode: '21598:6', path: 'a', value: 3, type: 'number' },
+      'VariableID:1:4:theme.dark': { collection: 'theme', mode: 'dark', path: 'a', value: 4, type: 'number' },
+      'VariableID:1:5:theme.light': { collection: 'theme', mode: 'light', path: 'a', value: 5, type: 'number' },
+    };
+
+    const discovered = discoverCollectionsFromTokens(tokensWithMixedModes as any);
+
+    expect(discovered).toHaveLength(1);
+    const theme = discovered[0];
+    // Should only count valid modes (dark, light), not phantom modes
+    expect(theme.modes).toHaveLength(2);
+    expect(theme.modes).toEqual(['dark', 'light']);
+    expect(theme.splitModes).toBe(true);
   });
 });

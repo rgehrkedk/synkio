@@ -22,6 +22,19 @@ figma.showUI(__html__, {
 let uiReady = false;
 
 /**
+ * Get excluded collections from sharedPluginData
+ */
+function getExcludedCollections(): string[] {
+  const excludedJson = figma.root.getSharedPluginData(NAMESPACE, 'excludedCollections');
+  if (!excludedJson) return [];
+  try {
+    return JSON.parse(excludedJson);
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
  * Convert Figma variable value to simple value
  */
 function resolveValue(value: VariableValue, type: string): any {
@@ -42,13 +55,19 @@ function resolveValue(value: VariableValue, type: string): any {
 }
 
 /**
- * Collect all current variables
+ * Collect all current variables (excluding excluded collections)
  */
 async function collectTokens(): Promise<TokenEntry[]> {
   const collections = await figma.variables.getLocalVariableCollectionsAsync();
   const tokens: TokenEntry[] = [];
 
-  for (const collection of collections) {
+  // Load excluded collections
+  const excludedCollections = getExcludedCollections();
+
+  // Filter out excluded collections
+  const activeCollections = collections.filter(col => !excludedCollections.includes(col.name));
+
+  for (const collection of activeCollections) {
     const isSingleMode = collection.modes.length === 1;
     const modeMap = new Map(collection.modes.map(m => {
       const normalizedName = (isSingleMode && m.name === 'Mode 1') ? 'value' : m.name;
@@ -186,12 +205,14 @@ async function sendDiffToUI() {
   }
 
   const history = getHistory();
+  const excludedCount = getExcludedCollections().length;
 
   figma.ui.postMessage({
     type: 'update',
     diffs: diffs,
     history: history,
     hasBaseline: !!baseline,
+    excludedCount: excludedCount,
   });
 }
 
@@ -223,7 +244,7 @@ figma.ui.onmessage = async (msg) => {
       let changePaths: string[] = [];
       const truncate = (v: any, max = 20): string => {
         const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
-        return s.length > max ? s.slice(0, max) + '…' : s;
+        return s.length > max ? s.slice(0, max) + '...' : s;
       };
 
       if (result) {
@@ -231,20 +252,20 @@ figma.ui.onmessage = async (msg) => {
           if (d.type === 'renamed') {
             // Show path rename
             if (d.oldValue !== undefined && d.newValue !== undefined) {
-              return `↔ ${d.oldName} → ${d.name}: ${truncate(d.oldValue)} → ${truncate(d.newValue)}`;
+              return '<-> ' + d.oldName + ' -> ' + d.name + ': ' + truncate(d.oldValue) + ' -> ' + truncate(d.newValue);
             }
-            return `↔ ${d.oldName} → ${d.name}`;
+            return '<-> ' + d.oldName + ' -> ' + d.name;
           } else if (d.type === 'modified') {
-            return `~ ${d.name}: ${truncate(d.oldValue)} → ${truncate(d.newValue)}`;
+            return '~ ' + d.name + ': ' + truncate(d.oldValue) + ' -> ' + truncate(d.newValue);
           } else if (d.type === 'added') {
-            return `+ ${d.name}: ${truncate(d.newValue)}`;
+            return '+ ' + d.name + ': ' + truncate(d.newValue);
           } else {
-            return `- ${d.name}: ${truncate(d.oldValue)}`;
+            return '- ' + d.name + ': ' + truncate(d.oldValue);
           }
         });
       } else {
         // Initial sync - show token names with values
-        changePaths = currentTokens.slice(0, 50).map(t => `+ ${t.path}: ${truncate(t.value)}`);
+        changePaths = currentTokens.slice(0, 50).map(t => '+ ' + t.path + ': ' + truncate(t.value));
         if (currentTokens.length > 50) {
           changePaths.push('... and ' + (currentTokens.length - 50) + ' more');
         }
@@ -266,6 +287,30 @@ figma.ui.onmessage = async (msg) => {
 
       // Refresh UI
       await sendDiffToUI();
+    }
+
+    if (msg.type === 'get-collections') {
+      // Get all collections with exclusion status
+      const collections = await figma.variables.getLocalVariableCollectionsAsync();
+      const excluded = getExcludedCollections();
+
+      const collectionInfos = collections.map(col => ({
+        name: col.name,
+        modeCount: col.modes.length,
+        excluded: excluded.includes(col.name)
+      }));
+
+      figma.ui.postMessage({
+        type: 'collections-update',
+        collections: collectionInfos
+      });
+    }
+
+    if (msg.type === 'save-excluded-collections') {
+      const { excluded } = msg;
+      figma.root.setSharedPluginData(NAMESPACE, 'excludedCollections', JSON.stringify(excluded));
+      figma.ui.postMessage({ type: 'collections-saved' });
+      figma.notify('Collection settings saved');
     }
 
     if (msg.type === 'close') {

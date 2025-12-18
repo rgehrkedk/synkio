@@ -1,5 +1,5 @@
-import { readFileSync, existsSync, readdirSync } from 'fs';
-import { resolve, join, dirname } from 'path';
+import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { resolve, join, dirname, relative } from 'path';
 
 // Define the structure of the detected project settings
 export interface DetectedProject {
@@ -18,6 +18,17 @@ export interface StyleDictionaryConfigResult {
   tokensDir?: string;
 }
 
+// Package.json search result
+export interface PackageJsonResult {
+  path: string;           // Full path to package.json
+  dir: string;            // Directory containing package.json
+  relativePath: string;   // Relative path from cwd (e.g., './theme')
+  isRoot: boolean;        // Whether it's in the root directory
+}
+
+// Directories to skip when searching
+const SKIP_DIRS = ['node_modules', '.git', 'dist', 'build', '.synkio', '.next', 'coverage'];
+
 // Function to safely read and parse a JSON file
 function readJsonFile<T>(filePath: string): T | undefined {
   if (!existsSync(filePath)) {
@@ -30,6 +41,94 @@ function readJsonFile<T>(filePath: string): T | undefined {
     // Silently ignore errors (e.g., malformed JSON)
     return undefined;
   }
+}
+
+/**
+ * Get all directories in a path (non-recursive, single level)
+ */
+function getDirectories(dirPath: string): string[] {
+  if (!existsSync(dirPath)) {
+    return [];
+  }
+
+  try {
+    const entries = readdirSync(dirPath);
+    return entries.filter(entry => {
+      if (SKIP_DIRS.includes(entry)) return false;
+      const fullPath = join(dirPath, entry);
+      try {
+        return statSync(fullPath).isDirectory();
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Search for package.json files up to 2 levels deep
+ * Returns all found package.json locations, sorted by depth (root first)
+ */
+export function findPackageJsonFiles(cwd: string = process.cwd()): PackageJsonResult[] {
+  const results: PackageJsonResult[] = [];
+
+  // Level 0: Check root
+  const rootPkgPath = join(cwd, 'package.json');
+  if (existsSync(rootPkgPath)) {
+    results.push({
+      path: rootPkgPath,
+      dir: cwd,
+      relativePath: '.',
+      isRoot: true,
+    });
+  }
+
+  // Level 1: Check immediate subdirectories
+  const level1Dirs = getDirectories(cwd);
+  for (const dir of level1Dirs) {
+    const dirPath = join(cwd, dir);
+    const pkgPath = join(dirPath, 'package.json');
+    if (existsSync(pkgPath)) {
+      results.push({
+        path: pkgPath,
+        dir: dirPath,
+        relativePath: `./${dir}`,
+        isRoot: false,
+      });
+    }
+
+    // Level 2: Check subdirectories of level 1
+    const level2Dirs = getDirectories(dirPath);
+    for (const subDir of level2Dirs) {
+      const subDirPath = join(dirPath, subDir);
+      const subPkgPath = join(subDirPath, 'package.json');
+      if (existsSync(subPkgPath)) {
+        results.push({
+          path: subPkgPath,
+          dir: subDirPath,
+          relativePath: `./${dir}/${subDir}`,
+          isRoot: false,
+        });
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Check if a package.json has style-dictionary as a dependency
+ */
+export function packageHasStyleDictionary(pkgPath: string): boolean {
+  const pkg = readJsonFile<{ dependencies?: Record<string, string>; devDependencies?: Record<string, string> }>(pkgPath);
+  if (!pkg) return false;
+
+  const dependencies = pkg.dependencies || {};
+  const devDependencies = pkg.devDependencies || {};
+
+  return 'style-dictionary' in dependencies || 'style-dictionary' in devDependencies;
 }
 
 // Detects the project framework from package.json
@@ -193,77 +292,96 @@ function extractSourcePatterns(content: string): string[] | null {
 }
 
 /**
+ * Search for Style Dictionary config files in a directory
+ * Checks files with valid extensions for SD config signature
+ */
+function searchDirForSDConfig(dirPath: string, basePath: string, fileExtensions: string[]): StyleDictionaryConfigResult | null {
+  if (!existsSync(dirPath)) {
+    return null;
+  }
+
+  let files: string[];
+  try {
+    files = readdirSync(dirPath);
+  } catch {
+    return null;
+  }
+
+  for (const file of files) {
+    // Skip directories and special files
+    if (SKIP_DIRS.includes(file)) continue;
+
+    const filePath = join(dirPath, file);
+
+    // Check if it's a file with valid extension
+    try {
+      if (!statSync(filePath).isFile()) continue;
+    } catch {
+      continue;
+    }
+
+    const hasValidExtension = fileExtensions.some(ext => file.endsWith(ext));
+    if (!hasValidExtension) continue;
+
+    // Read file content
+    let content: string;
+    try {
+      content = readFileSync(filePath, 'utf-8');
+    } catch {
+      continue;
+    }
+
+    // Check if it's a Style Dictionary config
+    if (isStyleDictionaryConfig(content)) {
+      const sourcePatterns = extractSourcePatterns(content);
+      const tokensDir = sourcePatterns ? findCommonParent(sourcePatterns) : undefined;
+
+      // Calculate relative path from basePath
+      const relativePath = relative(basePath, filePath);
+
+      return {
+        configFile: relativePath,
+        tokensDir,
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
  * Search for Style Dictionary config files in the project
  * Uses content-based search: files must contain both 'source' and 'platforms'
  *
- * Search paths (in order, stop at first match):
- * - ./
- * - ./config/
- * - ./src/
- *
+ * Searches up to 2 levels deep from the given base directory
  * File types: *.js, *.mjs, *.cjs, *.json, *.ts
- * Excludes: node_modules/
+ * Excludes: node_modules/, .git/, dist/, build/, etc.
  */
-export function findStyleDictionaryConfig(): StyleDictionaryConfigResult | null {
+export function findStyleDictionaryConfig(baseDir: string = process.cwd()): StyleDictionaryConfigResult | null {
   // Only search if style-dictionary is installed
   if (!hasStyleDictionary()) {
     return null;
   }
 
-  const searchPaths = ['./', './config/', './src/'];
   const fileExtensions = ['.js', '.mjs', '.cjs', '.json', '.ts'];
-  const cwd = process.cwd();
 
-  for (const searchPath of searchPaths) {
-    const fullSearchPath = resolve(cwd, searchPath);
+  // Level 0: Search root directory
+  const rootResult = searchDirForSDConfig(baseDir, baseDir, fileExtensions);
+  if (rootResult) return rootResult;
 
-    if (!existsSync(fullSearchPath)) {
-      continue;
-    }
+  // Level 1: Search immediate subdirectories
+  const level1Dirs = getDirectories(baseDir);
+  for (const dir of level1Dirs) {
+    const dirPath = join(baseDir, dir);
+    const result = searchDirForSDConfig(dirPath, baseDir, fileExtensions);
+    if (result) return result;
 
-    let files: string[];
-    try {
-      files = readdirSync(fullSearchPath);
-    } catch {
-      continue;
-    }
-
-    for (const file of files) {
-      // Skip node_modules
-      if (file === 'node_modules') {
-        continue;
-      }
-
-      // Check if file has valid extension
-      const hasValidExtension = fileExtensions.some(ext => file.endsWith(ext));
-      if (!hasValidExtension) {
-        continue;
-      }
-
-      const filePath = join(fullSearchPath, file);
-
-      // Read file content
-      let content: string;
-      try {
-        content = readFileSync(filePath, 'utf-8');
-      } catch {
-        continue;
-      }
-
-      // Check if it's a Style Dictionary config
-      if (isStyleDictionaryConfig(content)) {
-        // Extract source patterns to determine tokens directory
-        const sourcePatterns = extractSourcePatterns(content);
-        const tokensDir = sourcePatterns ? findCommonParent(sourcePatterns) : undefined;
-
-        // Return relative path from cwd
-        const relativePath = searchPath === './' ? file : join(searchPath.replace('./', ''), file);
-
-        return {
-          configFile: relativePath,
-          tokensDir,
-        };
-      }
+    // Level 2: Search subdirectories of level 1
+    const level2Dirs = getDirectories(dirPath);
+    for (const subDir of level2Dirs) {
+      const subDirPath = join(dirPath, subDir);
+      const subResult = searchDirForSDConfig(subDirPath, baseDir, fileExtensions);
+      if (subResult) return subResult;
     }
   }
 

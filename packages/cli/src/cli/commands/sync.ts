@@ -4,6 +4,7 @@ import { loadConfig, updateConfigWithCollectionRenames, updateConfigWithCollecti
 import { FigmaClient } from '../../core/figma.js';
 import { splitTokens, SplitTokensOptions, normalizePluginData, RawTokens } from '../../core/tokens.js';
 import { createLogger } from '../../utils/logger.js';
+import { isPhantomMode, filterPhantomModes } from '../../utils/figma.js';
 import { readBaseline, writeBaseline } from '../../core/baseline.js';
 import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary } from '../../core/compare.js';
 import { generateAllFromBaseline, generateWithStyleDictionary, isStyleDictionaryAvailable } from '../../core/output.js';
@@ -27,6 +28,7 @@ export interface SyncOptions {
 /**
  * Extract unique collections and their modes from normalized tokens.
  * Used during first sync to auto-populate tokens.collections.
+ * Filters out phantom modes (Figma internal IDs like "21598:4").
  */
 function discoverCollectionsFromTokens(
   normalizedTokens: RawTokens
@@ -37,6 +39,9 @@ function discoverCollectionsFromTokens(
   for (const entry of Object.values(normalizedTokens)) {
     const collection = entry.collection || entry.path.split('.')[0];
     const mode = entry.mode || 'default';
+
+    // Skip phantom modes (Figma internal IDs)
+    if (isPhantomMode(mode)) continue;
 
     if (!collectionModes.has(collection)) {
       collectionModes.set(collection, new Set());
@@ -184,6 +189,14 @@ export async function syncCommand(options: SyncOptions = {}) {
     spinner.text = 'Processing tokens...';
     let normalizedTokens = normalizePluginData(rawData);
     logger.debug(`Normalized ${Object.keys(normalizedTokens).length} token entries`);
+
+    // 3a. Filter out phantom modes (Figma internal IDs like "21598:4")
+    const preFilterCount = Object.keys(normalizedTokens).length;
+    normalizedTokens = filterPhantomModes(normalizedTokens);
+    const phantomFilteredCount = preFilterCount - Object.keys(normalizedTokens).length;
+    if (phantomFilteredCount > 0) {
+      logger.debug(`Filtered out ${phantomFilteredCount} tokens with phantom modes`);
+    }
 
     // 3b. Filter by collection if specified
     if (options.collection) {
@@ -594,7 +607,10 @@ export async function watchCommand(options: SyncOptions = {}) {
 
       try {
         const rawData = await figmaClient.fetchData();
-        const normalizedTokens = normalizePluginData(rawData);
+        let normalizedTokens = normalizePluginData(rawData);
+
+        // Filter out phantom modes in watch mode too
+        normalizedTokens = filterPhantomModes(normalizedTokens);
 
         const newBaseline: BaselineData = {
           baseline: normalizedTokens,

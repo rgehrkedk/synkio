@@ -31,10 +31,17 @@ interface SyncEvent {
   p?: string[];
 }
 
+interface CollectionInfo {
+  name: string;
+  modeCount: number;
+  excluded: boolean;
+}
+
 let currentDiffs: DiffEntry[] = [];
 let currentCollectionRenames: CollectionRename[] = [];
 let currentModeRenames: ModeRename[] = [];
 let currentHistory: SyncEvent[] = [];
+let currentCollections: CollectionInfo[] = [];
 let isSyncing = false;
 
 // Elements
@@ -48,6 +55,11 @@ const diffContent = document.getElementById('diffContent')!;
 const historyContent = document.getElementById('historyContent')!;
 const diffView = document.getElementById('diffView')!;
 const historyView = document.getElementById('historyView')!;
+const collectionsView = document.getElementById('collectionsView')!;
+const collectionsList = document.getElementById('collectionsList')!;
+const saveCollectionsBtn = document.getElementById('saveCollectionsBtn') as HTMLButtonElement;
+const collectionsWarning = document.getElementById('collectionsWarning')!;
+const excludedBadge = document.getElementById('excludedBadge')!;
 
 // Tab switching
 document.querySelectorAll('.tab').forEach(tab => {
@@ -60,8 +72,12 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     if (targetTab === 'diff') {
       diffView.classList.add('active');
-    } else {
+    } else if (targetTab === 'history') {
       historyView.classList.add('active');
+    } else if (targetTab === 'collections') {
+      collectionsView.classList.add('active');
+      // Request collections data when switching to collections tab
+      parent.postMessage({ pluginMessage: { type: 'get-collections' } }, '*');
     }
   });
 });
@@ -72,11 +88,97 @@ syncButton.addEventListener('click', () => {
 
   isSyncing = true;
   syncButton.disabled = true;
-  syncIcon.textContent = '⟳';
+  syncIcon.textContent = '...';
   syncText.textContent = 'Syncing...';
 
   parent.postMessage({ pluginMessage: { type: 'sync' } }, '*');
 });
+
+// Save collections button
+saveCollectionsBtn.addEventListener('click', () => {
+  const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+  const excluded: string[] = [];
+
+  checkboxes.forEach(checkbox => {
+    if (!checkbox.checked) {
+      excluded.push(checkbox.dataset.collection || '');
+    }
+  });
+
+  // Validate that at least one collection is included
+  if (excluded.length === checkboxes.length) {
+    collectionsWarning.style.display = 'block';
+    return;
+  }
+
+  collectionsWarning.style.display = 'none';
+  saveCollectionsBtn.disabled = true;
+  saveCollectionsBtn.textContent = 'Saving...';
+
+  parent.postMessage({ pluginMessage: { type: 'save-excluded-collections', excluded } }, '*');
+});
+
+// Render collections list
+function renderCollections(collections: CollectionInfo[]) {
+  currentCollections = collections;
+
+  if (collections.length === 0) {
+    collectionsList.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+        </svg>
+        <p>No variable collections found</p>
+      </div>
+    `;
+    return;
+  }
+
+  const html = collections.map(col => `
+    <label class="collection-item">
+      <input type="checkbox"
+             data-collection="${escapeHtml(col.name)}"
+             ${!col.excluded ? 'checked' : ''}>
+      <span class="collection-name">${escapeHtml(col.name)}</span>
+      <span class="mode-count">(${col.modeCount} mode${col.modeCount !== 1 ? 's' : ''})</span>
+    </label>
+  `).join('');
+
+  collectionsList.innerHTML = html;
+
+  // Update excluded badge
+  updateExcludedBadge(collections);
+
+  // Add change listeners to validate
+  collectionsList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', validateCollections);
+  });
+}
+
+// Validate that at least one collection is checked
+function validateCollections() {
+  const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+  const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+
+  if (checkedCount === 0) {
+    collectionsWarning.style.display = 'block';
+    saveCollectionsBtn.disabled = true;
+  } else {
+    collectionsWarning.style.display = 'none';
+    saveCollectionsBtn.disabled = false;
+  }
+}
+
+// Update the excluded badge in header
+function updateExcludedBadge(collections: CollectionInfo[]) {
+  const excludedCount = collections.filter(c => c.excluded).length;
+  if (excludedCount > 0) {
+    excludedBadge.textContent = excludedCount + ' excluded';
+    excludedBadge.style.display = 'inline';
+  } else {
+    excludedBadge.style.display = 'none';
+  }
+}
 
 // Render diff view
 function renderDiffs(diffs: DiffEntry[], collectionRenames: CollectionRename[] = [], modeRenames: ModeRename[] = []) {
@@ -144,7 +246,7 @@ function renderDiffs(diffs: DiffEntry[], collectionRenames: CollectionRename[] =
       const iconMap: Record<string, string> = {
         added: '+',
         modified: '~',
-        deleted: '−',
+        deleted: '-',
         renamed: '↔'
       };
 
@@ -317,11 +419,49 @@ window.onmessage = (event) => {
     renderHistory(msg.history);
     updateStatus(totalChanges);
 
+    // Update excluded badge if we have collection info
+    if (msg.excludedCount !== undefined) {
+      if (msg.excludedCount > 0) {
+        excludedBadge.textContent = msg.excludedCount + ' excluded';
+        excludedBadge.style.display = 'inline';
+      } else {
+        excludedBadge.style.display = 'none';
+      }
+    }
+
     // Reset sync button
     isSyncing = false;
     syncButton.disabled = false;
     syncIcon.textContent = '';
     syncText.textContent = 'Sync';
+  }
+
+  if (msg && msg.type === 'collections-update') {
+    renderCollections(msg.collections);
+  }
+
+  if (msg && msg.type === 'collections-saved') {
+    saveCollectionsBtn.disabled = false;
+    saveCollectionsBtn.textContent = 'Save';
+
+    // Show success feedback briefly
+    const originalText = saveCollectionsBtn.textContent;
+    saveCollectionsBtn.textContent = 'Saved!';
+    saveCollectionsBtn.style.background = '#10b981';
+    setTimeout(() => {
+      saveCollectionsBtn.textContent = originalText;
+      saveCollectionsBtn.style.background = '';
+    }, 1500);
+
+    // Update the excluded badge
+    const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+    const excludedCount = Array.from(checkboxes).filter(cb => !cb.checked).length;
+    if (excludedCount > 0) {
+      excludedBadge.textContent = excludedCount + ' excluded';
+      excludedBadge.style.display = 'inline';
+    } else {
+      excludedBadge.style.display = 'none';
+    }
   }
 };
 
