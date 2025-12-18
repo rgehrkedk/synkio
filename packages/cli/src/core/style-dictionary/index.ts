@@ -9,10 +9,29 @@
  */
 
 import { writeFile, mkdir } from 'fs/promises';
-import { join, resolve } from 'path';
+import { join, resolve, extname } from 'path';
 import { pathToFileURL } from 'url';
 import { BaselineData } from '../../types/index.js';
 import { convertToIntermediateFormat } from '../intermediate-tokens.js';
+
+/**
+ * Import a config file, with TypeScript support via tsx
+ */
+async function importConfigFile(absolutePath: string): Promise<any> {
+  const ext = extname(absolutePath).toLowerCase();
+
+  if (ext === '.ts' || ext === '.mts' || ext === '.cts') {
+    // Use tsx for TypeScript files
+    const { tsImport } = await import('tsx/esm/api');
+    const result = await tsImport(absolutePath, import.meta.url);
+    return result.default || result;
+  } else {
+    // Standard import for JS/JSON files
+    const configUrl = pathToFileURL(absolutePath).href;
+    const result = await import(configUrl);
+    return result.default || result;
+  }
+}
 
 // Type definitions for Style Dictionary (to avoid requiring the package at parse time)
 interface SDFile {
@@ -143,15 +162,12 @@ export async function buildWithStyleDictionary(
   let sdConfig: SDConfig;
   
   if (configFile) {
-    // 1. Load user's external config file
+    // 1. Load user's external config file (supports .ts, .mts, .js, .mjs)
     try {
-      // Resolve relative paths from cwd and convert to file:// URL for dynamic import
       const absolutePath = resolve(process.cwd(), configFile);
-      const configUrl = pathToFileURL(absolutePath).href;
-      const customConfig = await import(configUrl);
-      sdConfig = customConfig.default || customConfig;
-      // Override source to use our generated tokens file
-      sdConfig.source = [tokensPath];
+      const loadedConfig = await importConfigFile(absolutePath);
+      // Spread into new object to avoid frozen config issues, override source
+      sdConfig = { ...loadedConfig, source: [tokensPath] };
     } catch (error) {
       throw new Error(`Failed to load Style Dictionary config from ${configFile}: ${error}`);
     }
