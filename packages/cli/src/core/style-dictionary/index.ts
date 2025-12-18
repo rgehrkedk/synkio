@@ -9,7 +9,8 @@
  */
 
 import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { join, resolve } from 'path';
+import { pathToFileURL } from 'url';
 import { BaselineData } from '../../types/index.js';
 import { convertToIntermediateFormat } from '../intermediate-tokens.js';
 
@@ -144,7 +145,10 @@ export async function buildWithStyleDictionary(
   if (configFile) {
     // 1. Load user's external config file
     try {
-      const customConfig = await import(configFile);
+      // Resolve relative paths from cwd and convert to file:// URL for dynamic import
+      const absolutePath = resolve(process.cwd(), configFile);
+      const configUrl = pathToFileURL(absolutePath).href;
+      const customConfig = await import(configUrl);
       sdConfig = customConfig.default || customConfig;
       // Override source to use our generated tokens file
       sdConfig.source = [tokensPath];
