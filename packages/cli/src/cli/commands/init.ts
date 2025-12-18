@@ -239,7 +239,7 @@ export async function initCommand(options: InitOptions = {}) {
     console.log(chalk.dim('  build.script     - Custom build command (e.g., "npm run build:tokens")'));
     console.log(chalk.dim('  build.css        - Built-in CSS generation { enabled: true }'));
     console.log(chalk.dim('  docsPages        - Token documentation site { enabled: true }'));
-    console.log(chalk.dim('\n  See: https://synkio.dev/docs/configuration'));
+    console.log(chalk.dim('\n  See: https://github.com/rgehrkedk/synkio/blob/main/docs/CONFIGURATION.md'));
 
     console.log('');
 }
