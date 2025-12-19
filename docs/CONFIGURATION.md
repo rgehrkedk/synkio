@@ -2,15 +2,52 @@
 
 Complete reference for all Synkio configuration options.
 
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [Full Configuration Example](#full-configuration-example)
+- [Configuration Sections](#configuration-sections)
+  - [`version`](#version-required) - Config schema version
+  - [`figma`](#figma-required) - Figma connection settings
+    - [Finding Your File ID](#finding-your-file-id)
+    - [Using Environment Variables](#using-environment-variables)
+    - [Figma Enterprise](#figma-enterprise)
+  - [`tokens`](#tokens-required) - Token output configuration
+    - [`tokens.dtcg`](#dtcg-format) - DTCG vs legacy format
+    - [`tokens.includeVariableId`](#variable-ids) - Include Figma variable IDs
+    - [`tokens.splitModes`](#splitModes-behavior) - File splitting behavior
+    - [`tokens.includeMode`](#includeMode-behavior) - Mode wrapper in output
+    - [`tokens.extensions`](#tokensextensions) - Metadata extensions
+    - [`tokens.collections`](#tokenscollections) - Per-collection configuration
+  - [`build`](#build) - Build configuration
+    - [`build.script`](#custom-build-script) - Custom build command
+    - [`build.autoRun`](#auto-run) - Skip build prompt
+    - [`build.css`](#buildcss) - Built-in CSS generation
+  - [`docsPages`](#docspages) - Documentation site generation
+    - [`docsPages.platforms`](#platforms) - Platform naming conventions
+  - [`sync`](#sync) - Sync behavior
+  - [`import`](#import) - Figma native JSON import
+- [Environment Variables](#environment-variables)
+- [Config File Discovery](#config-file-discovery)
+- [Validation](#validation)
+- [Migration from Legacy Config](#migration-from-legacy-config)
+
+---
+
 ## Overview
 
 Synkio is configured via `synkio.config.json` in your project root.
 
 > **Note:** Legacy `tokensrc.json` files are still supported but deprecated. You'll see a warning when using the old filename.
 
+---
+
 ## Quick Start
 
-Minimal configuration:
+Minimal configuration to get started:
 
 ```json
 {
@@ -25,7 +62,18 @@ Minimal configuration:
 }
 ```
 
+| Field | Description |
+|-------|-------------|
+| `version` | Always `"1.0.0"` |
+| `figma.fileId` | Your Figma file ID from the URL |
+| `figma.accessToken` | Use `${FIGMA_TOKEN}` to read from `.env` file |
+| `tokens.dir` | Directory where token JSON files are written |
+
+---
+
 ## Full Configuration Example
+
+Complete configuration showing all available options:
 
 ```json
 {
@@ -34,7 +82,8 @@ Minimal configuration:
     "fileId": "ABC123xyz",
     "nodeId": "0:0",
     "accessToken": "${FIGMA_TOKEN}",
-    "baseUrl": "https://api.figma.com/v1"
+    "baseUrl": "https://api.figma.com/v1",
+    "timeout": 60000
   },
   "tokens": {
     "dir": "tokens",
@@ -51,7 +100,8 @@ Minimal configuration:
       "colors": {
         "dir": "tokens/colors",
         "file": "colors",
-        "splitModes": false
+        "splitModes": false,
+        "includeMode": false
       },
       "theme": {
         "splitModes": true,
@@ -113,6 +163,8 @@ Minimal configuration:
 
 ## Configuration Sections
 
+---
+
 ### `version` (required)
 
 Config schema version. Currently only `"1.0.0"` is supported.
@@ -123,11 +175,15 @@ Config schema version. Currently only `"1.0.0"` is supported.
 }
 ```
 
+| Option | Type | Required | Values | Description |
+|--------|------|----------|--------|-------------|
+| `version` | string | **Yes** | `"1.0.0"` | Schema version identifier |
+
 ---
 
 ## `figma` (required)
 
-Figma connection settings.
+Figma connection settings for fetching design tokens.
 
 ```json
 {
@@ -135,21 +191,23 @@ Figma connection settings.
     "fileId": "ABC123xyz",
     "nodeId": "0:0",
     "accessToken": "${FIGMA_TOKEN}",
-    "baseUrl": "https://api.figma.com/v1"
+    "baseUrl": "https://api.figma.com/v1",
+    "timeout": 60000
   }
 }
 ```
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
-| `fileId` | string | Yes | - | Figma file ID from the URL |
-| `nodeId` | string | No | `"0:0"` | Specific node to fetch (defaults to document root) |
-| `accessToken` | string | Yes | - | Figma API token. Use `${FIGMA_TOKEN}` to read from `.env` |
+| `fileId` | string | **Yes** | - | Figma file ID extracted from the file URL |
+| `nodeId` | string | No | `"0:0"` | Specific node ID to fetch (defaults to document root) |
+| `accessToken` | string | **Yes** | - | Figma API token. Use `${FIGMA_TOKEN}` to read from `.env` |
 | `baseUrl` | string | No | `https://api.figma.com/v1` | Custom API URL for Figma Enterprise |
+| `timeout` | number | No | `60000` | API request timeout in milliseconds |
 
 ### Finding Your File ID
 
-From your Figma URL:
+Extract the file ID from your Figma URL:
 
 ```
 https://www.figma.com/design/ABC123xyz/My-Design-System
@@ -157,20 +215,36 @@ https://www.figma.com/design/ABC123xyz/My-Design-System
                             This is your fileId
 ```
 
+Supported URL formats:
+- `https://figma.com/file/ABC123xyz/...`
+- `https://figma.com/design/ABC123xyz/...`
+- `https://figma.com/board/ABC123xyz/...`
+- `https://figma.com/proto/ABC123xyz/...`
+
 ### Using Environment Variables
 
-The `${FIGMA_TOKEN}` placeholder is replaced with the `FIGMA_TOKEN` environment variable from your `.env` file:
+The `${FIGMA_TOKEN}` placeholder is automatically replaced with the `FIGMA_TOKEN` environment variable.
+
+**Step 1:** Create a `.env` file in your project root:
 
 ```bash
 # .env
 FIGMA_TOKEN=figd_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-Add `.env` to your `.gitignore` to keep your token secure.
+**Step 2:** Add `.env` to your `.gitignore`:
+
+```bash
+echo ".env" >> .gitignore
+```
+
+**Step 3:** Get your token from [Figma Account Settings](https://www.figma.com/settings) → Personal access tokens → Generate new token
+
+> **Security:** Never commit your actual token to version control. The `${FIGMA_TOKEN}` pattern keeps secrets out of your config file.
 
 ### Figma Enterprise
 
-For Figma Enterprise with custom domains:
+For organizations using Figma Enterprise with custom domains:
 
 ```json
 {
@@ -186,7 +260,7 @@ For Figma Enterprise with custom domains:
 
 ## `tokens` (required)
 
-Token output configuration.
+Token output configuration. Controls where and how design tokens are written.
 
 ```json
 {
@@ -208,17 +282,19 @@ Token output configuration.
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
-| `dir` | string | Yes | - | Output directory for token files |
+| `dir` | string | **Yes** | - | Output directory for token JSON files |
 | `dtcg` | boolean | No | `true` | Use DTCG format (`$value`, `$type`) vs legacy (`value`, `type`) |
-| `includeVariableId` | boolean | No | `false` | Include Figma variable ID in `$extensions` |
-| `splitModes` | boolean | No | `true` | Default for all collections: split multi-mode collections into separate files |
-| `includeMode` | boolean | No | `false` | Default for all collections: include mode name as first-level key in output |
-| `extensions` | object | No | - | Metadata extensions to include |
-| `collections` | object | No | - | Per-collection configuration (can override `splitModes` and `includeMode`) |
+| `includeVariableId` | boolean | No | `false` | Include Figma variable ID in `$extensions.com.figma.variableId` |
+| `splitModes` | boolean | No | `true` | Default for all collections: split multi-mode collections into separate files per mode |
+| `includeMode` | boolean | No | `false` | Default for all collections: include mode name as first-level wrapper key in JSON output |
+| `extensions` | object | No | `{}` | Metadata extensions to include (see [tokens.extensions](#tokensextensions)) |
+| `collections` | object | No | `{}` | Per-collection configuration (see [tokens.collections](#tokenscollections)) |
 
 ### DTCG Format
 
-By default, tokens use [DTCG](https://design-tokens.github.io/community-group/format/) format:
+By default, tokens use [DTCG (Design Tokens Community Group)](https://design-tokens.github.io/community-group/format/) format with `$` prefixed keys:
+
+**With `dtcg: true` (default):**
 
 ```json
 {
@@ -231,7 +307,7 @@ By default, tokens use [DTCG](https://design-tokens.github.io/community-group/fo
 }
 ```
 
-With `dtcg: false`:
+**With `dtcg: false`:**
 
 ```json
 {
@@ -244,9 +320,11 @@ With `dtcg: false`:
 }
 ```
 
+> **Recommendation:** Use DTCG format for compatibility with modern design token tools like Style Dictionary v4.
+
 ### Variable IDs
 
-Include Figma variable IDs for debugging or custom tooling:
+Include Figma variable IDs for debugging, custom tooling, or tracking token origins:
 
 ```json
 {
@@ -256,7 +334,7 @@ Include Figma variable IDs for debugging or custom tooling:
 }
 ```
 
-Output:
+**Output:**
 
 ```json
 {
@@ -274,11 +352,64 @@ Output:
 }
 ```
 
+### splitModes Behavior
+
+Controls whether multi-mode collections (like themes with light/dark modes) are split into separate files.
+
+**With `splitModes: true` (default):**
+
+A collection named `theme` with `light` and `dark` modes outputs:
+
+```
+tokens/
+├── theme.light.json
+└── theme.dark.json
+```
+
+**With `splitModes: false`:**
+
+All modes are combined into a single file:
+
+```
+tokens/
+└── theme.json
+```
+
+> **Use Case:** Set `splitModes: false` for collections with a single mode, or when you want all modes in one file for programmatic access.
+
+### includeMode Behavior
+
+Controls whether the mode name appears as a wrapper key in the JSON output.
+
+**With `includeMode: false` (default):**
+
+```json
+{
+  "colors": {
+    "primary": { "$value": "#0066cc", "$type": "color" }
+  }
+}
+```
+
+**With `includeMode: true`:**
+
+```json
+{
+  "light": {
+    "colors": {
+      "primary": { "$value": "#0066cc", "$type": "color" }
+    }
+  }
+}
+```
+
+> **Use Case:** Enable `includeMode` when you need to distinguish which mode the tokens belong to within the file, especially when `splitModes: false`.
+
 ---
 
 ## `tokens.extensions`
 
-Include additional Figma metadata in token output.
+Include additional Figma metadata in token output. These require the metadata to be captured by the Figma plugin.
 
 ```json
 {
@@ -294,11 +425,11 @@ Include additional Figma metadata in token output.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `description` | boolean | `false` | Include variable descriptions from Figma |
-| `scopes` | boolean | `false` | Include usage scopes (e.g., `FRAME_FILL`, `TEXT_FILL`) |
+| `description` | boolean | `false` | Include variable descriptions from Figma as `$description` |
+| `scopes` | boolean | `false` | Include usage scopes (e.g., `FRAME_FILL`, `TEXT_FILL`, `STROKE_COLOR`) |
 | `codeSyntax` | boolean | `false` | Include platform code syntax (`WEB`, `ANDROID`, `iOS`) |
 
-Output with all extensions enabled:
+**Output with all extensions enabled:**
 
 ```json
 {
@@ -306,13 +437,14 @@ Output with all extensions enabled:
     "primary": {
       "$value": "#0066cc",
       "$type": "color",
-      "$description": "Primary brand color",
+      "$description": "Primary brand color used for CTAs and links",
       "$extensions": {
         "com.figma": {
           "scopes": ["ALL_FILLS", "STROKE_COLOR"],
           "codeSyntax": {
             "WEB": "--color-primary",
-            "iOS": "colorPrimary"
+            "iOS": "colorPrimary",
+            "ANDROID": "@color/primary"
           }
         }
       }
@@ -321,13 +453,13 @@ Output with all extensions enabled:
 }
 ```
 
-> **Note:** Re-run the Figma plugin after updating to capture new metadata fields.
+> **Note:** After enabling extensions in your config, re-run the Figma plugin to capture the additional metadata fields.
 
 ---
 
 ## `tokens.collections`
 
-Per-collection output configuration. These settings override the parent-level `tokens.splitModes` and `tokens.includeMode` defaults.
+Per-collection output configuration. Settings here override the parent-level `tokens.splitModes` and `tokens.includeMode` defaults.
 
 ```json
 {
@@ -339,8 +471,75 @@ Per-collection output configuration. These settings override the parent-level `t
       "colors": {
         "dir": "src/styles/tokens/colors",
         "file": "colors",
+        "splitModes": false,
+        "includeMode": false
+      },
+      "primitives": {
+        "dir": "src/styles/tokens/foundation",
         "splitModes": false
       },
+      "theme": {
+        "splitModes": true,
+        "includeMode": true
+      },
+      "typography": {
+        "dir": "tokens/typography",
+        "file": "typography.tokens"
+      }
+    }
+  }
+}
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `dir` | string | inherits `tokens.dir` | Custom output directory for this collection's files |
+| `file` | string | collection name | Custom filename pattern (without extension) |
+| `splitModes` | boolean | inherits `tokens.splitModes` | Override: split multi-mode collections into separate files per mode |
+| `includeMode` | boolean | inherits `tokens.includeMode` | Override: include mode name as first-level wrapper key |
+
+### Collection Configuration Examples
+
+**Example 1: Custom directory and filename**
+
+```json
+{
+  "tokens": {
+    "dir": "tokens",
+    "collections": {
+      "typography": {
+        "dir": "tokens/typography",
+        "file": "typography.tokens"
+      }
+    }
+  }
+}
+```
+
+Output: `tokens/typography/typography.tokens.json`
+
+**Example 2: Single-mode collection (no splitting)**
+
+```json
+{
+  "tokens": {
+    "collections": {
+      "primitives": {
+        "splitModes": false
+      }
+    }
+  }
+}
+```
+
+Output: `tokens/primitives.json` (even if the collection has modes)
+
+**Example 3: Multi-mode with mode wrapper**
+
+```json
+{
+  "tokens": {
+    "collections": {
       "theme": {
         "splitModes": true,
         "includeMode": true
@@ -350,49 +549,39 @@ Per-collection output configuration. These settings override the parent-level `t
 }
 ```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `dir` | string | `tokens.dir` | Custom output directory for this collection |
-| `file` | string | collection name | Custom filename pattern |
-| `splitModes` | boolean | inherits from `tokens.splitModes` | Split multi-mode collections into separate files per mode |
-| `includeMode` | boolean | inherits from `tokens.includeMode` | Include mode as first-level key in JSON output |
-
-### splitModes Behavior
-
-When `splitModes: true` (default), a collection with `light` and `dark` modes outputs:
-
-```
-tokens/
-├── theme.light.json
-└── theme.dark.json
-```
-
-When `splitModes: false`, all modes are combined:
-
-```
-tokens/
-└── theme.json
-```
-
-### includeMode Behavior
-
-With `includeMode: false` (default):
-
-```json
-{
-  "colors": {
-    "primary": { "$value": "#0066cc", "$type": "color" }
-  }
-}
-```
-
-With `includeMode: true`:
+Output files `theme.light.json` and `theme.dark.json`, each with mode wrapper:
 
 ```json
 {
   "light": {
     "colors": {
-      "primary": { "$value": "#0066cc", "$type": "color" }
+      "background": { "$value": "#ffffff", "$type": "color" }
+    }
+  }
+}
+```
+
+### Inheritance Behavior
+
+Collection settings use nullish coalescing (`??`) to inherit from parent:
+
+1. If collection setting is explicitly set → use collection value
+2. If collection setting is `undefined` → inherit from `tokens.*` parent level
+3. Parent defaults: `splitModes: true`, `includeMode: false`
+
+```json
+{
+  "tokens": {
+    "splitModes": false,        // Parent default: don't split
+    "includeMode": true,        // Parent default: include mode wrapper
+    "collections": {
+      "theme": {
+        "splitModes": true      // Override: split this collection only
+        // includeMode: inherited as true from parent
+      },
+      "colors": {
+        // Both inherited: splitModes: false, includeMode: true
+      }
     }
   }
 }
@@ -406,11 +595,13 @@ After modifying collection configuration, regenerate files without fetching from
 npx synkio sync --regenerate
 ```
 
+This re-processes the existing baseline using your updated configuration.
+
 ---
 
 ## `build`
 
-Build configuration for post-sync processing.
+Build configuration for post-sync processing. Run custom build scripts or use built-in CSS generation.
 
 ```json
 {
@@ -426,13 +617,13 @@ Build configuration for post-sync processing.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `autoRun` | boolean | `false` | Run build without prompting after sync |
-| `script` | string | - | Custom build command to run after sync |
-| `css` | object | - | Built-in CSS output options |
+| `autoRun` | boolean | `false` | Run build automatically without prompting after sync |
+| `script` | string | - | Custom build command to execute after sync |
+| `css` | object | - | Built-in CSS custom properties generation (see [build.css](#buildcss)) |
 
 ### Custom Build Script
 
-Integrate any build tool (Style Dictionary, Token Transformer, etc.):
+Integrate any build tool (Style Dictionary, Token Transformer, custom scripts):
 
 ```json
 {
@@ -452,14 +643,16 @@ Add the corresponding script to your `package.json`:
 }
 ```
 
-When you run `synkio sync`:
+**Sync workflow:**
+
 1. Tokens are fetched from Figma
 2. JSON files are written to `tokens.dir`
-3. Your build script is executed
+3. You're prompted to run the build script
+4. If confirmed, your build script executes
 
 ### Auto-Run
 
-Skip the build confirmation prompt:
+Skip the build confirmation prompt and run automatically:
 
 ```json
 {
@@ -470,15 +663,13 @@ Skip the build confirmation prompt:
 }
 ```
 
-Or use the CLI flag:
+**CLI overrides:**
 
 ```bash
+# Force build (override autoRun: false)
 npx synkio sync --build
-```
 
-To skip the build entirely:
-
-```bash
+# Skip build entirely (override autoRun: true)
 npx synkio sync --no-build
 ```
 
@@ -486,7 +677,7 @@ npx synkio sync --no-build
 
 ## `build.css`
 
-Built-in CSS custom properties generation.
+Built-in CSS custom properties generation. Alternative to using external tools like Style Dictionary.
 
 ```json
 {
@@ -508,23 +699,21 @@ Built-in CSS custom properties generation.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `enabled` | boolean | `false` | Generate CSS custom properties |
-| `dir` | string | `tokens.dir` | CSS output directory |
-| `file` | string | `"tokens.css"` | CSS output filename |
-| `utilities` | boolean | `false` | Generate utility classes |
-| `utilitiesFile` | string | `"utilities.css"` | Utilities filename |
-| `transforms` | object | - | Value transformation options |
+| `enabled` | boolean | `false` | Enable CSS custom properties generation |
+| `dir` | string | `tokens.dir` | Output directory for CSS files |
+| `file` | string | `"tokens.css"` | Main CSS output filename |
+| `utilities` | boolean | `false` | Generate utility classes (`.bg-primary`, `.text-sm`, etc.) |
+| `utilitiesFile` | string | `"utilities.css"` | Utilities CSS filename |
+| `transforms` | object | `{}` | Value transformation options |
 
-### transforms
+### CSS Transforms
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `useRem` | boolean | `false` | Use rem units instead of px for dimensions |
-| `basePxFontSize` | number | `16` | Base font size for rem calculations |
+| `useRem` | boolean | `false` | Convert px values to rem for dimensions |
+| `basePxFontSize` | number | `16` | Base font size for rem calculations (16px = 1rem) |
 
-### Transform Examples
-
-With `useRem: false` (default):
+**With `useRem: false` (default):**
 
 ```css
 :root {
@@ -533,7 +722,7 @@ With `useRem: false` (default):
 }
 ```
 
-With `useRem: true`:
+**With `useRem: true`:**
 
 ```css
 :root {
@@ -542,11 +731,35 @@ With `useRem: true`:
 }
 ```
 
+### CSS Output Example
+
+Input tokens:
+
+```json
+{
+  "colors": {
+    "primary": { "$value": "#0066cc", "$type": "color" }
+  },
+  "spacing": {
+    "md": { "$value": "16px", "$type": "dimension" }
+  }
+}
+```
+
+Output `tokens.css`:
+
+```css
+:root {
+  --colors-primary: #0066cc;
+  --spacing-md: 16px;
+}
+```
+
 ---
 
 ## `docsPages`
 
-Documentation site generation.
+Generate a static documentation site for your design tokens.
 
 ```json
 {
@@ -571,14 +784,14 @@ Documentation site generation.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `enabled` | boolean | `false` | Generate documentation site |
-| `dir` | string | `".synkio/docs"` | Documentation output directory |
-| `title` | string | `"Design Tokens"` | Site title |
-| `platforms` | array | - | Custom platform definitions for variable name display |
+| `enabled` | boolean | `false` | Enable documentation site generation |
+| `dir` | string | `".synkio/docs"` | Output directory for documentation files |
+| `title` | string | `"Design Tokens"` | Site title shown in the header |
+| `platforms` | array | `[]` | Custom platform definitions for variable name display |
 
 ### platforms
 
-Define how variable names are displayed for different platforms:
+Define how token names are displayed for different platforms/languages:
 
 ```json
 {
@@ -611,23 +824,23 @@ Define how variable names are displayed for different platforms:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `name` | string | required | Display name for this platform |
-| `prefix` | string | `""` | Variable prefix (e.g., `"--"` for CSS) |
-| `case` | string | - | Name casing: `"kebab"`, `"camel"`, `"snake"`, `"pascal"`, `"constant"` |
+| `name` | string | **required** | Display name for this platform |
+| `prefix` | string | `""` | Prefix added to variable names (e.g., `"--"` for CSS) |
+| `suffix` | string | `""` | Suffix appended to variable names |
+| `case` | string | - | Name casing transformation |
 | `separator` | string | - | Custom separator (overrides case default) |
-| `suffix` | string | - | Optional suffix appended to names |
 
-### Case Examples
+### Case Transformations
 
-For a token named `colors.brand.primary`:
+For a token path `colors.brand.primary`:
 
-| Case | Output |
-|------|--------|
-| `kebab` | `colors-brand-primary` |
-| `camel` | `colorsBrandPrimary` |
-| `snake` | `colors_brand_primary` |
-| `pascal` | `ColorsBrandPrimary` |
-| `constant` | `COLORS_BRAND_PRIMARY` |
+| Case | Output | Separator |
+|------|--------|-----------|
+| `kebab` | `colors-brand-primary` | `-` |
+| `camel` | `colorsBrandPrimary` | (none) |
+| `snake` | `colors_brand_primary` | `_` |
+| `pascal` | `ColorsBrandPrimary` | (none) |
+| `constant` | `COLORS_BRAND_PRIMARY` | `_` |
 
 ### Generate Documentation
 
@@ -638,7 +851,7 @@ npx synkio docs
 # Generate and open in browser
 npx synkio docs --open
 
-# Custom output directory
+# Custom output directory (overrides config)
 npx synkio docs --output=styleguide
 ```
 
@@ -646,7 +859,7 @@ npx synkio docs --output=styleguide
 
 ## `sync`
 
-Sync behavior configuration.
+Configure sync behavior and reporting.
 
 ```json
 {
@@ -662,14 +875,14 @@ Sync behavior configuration.
 | `report` | boolean | `true` | Generate markdown report after sync |
 | `reportHistory` | boolean | `false` | Keep timestamped reports as changelog |
 
-### Report Output
+### Sync Report
 
-When `report: true`, a sync report is generated at `.synkio/sync-report.md` showing:
+When `report: true`, a sync report is generated at `.synkio/sync-report.md` containing:
 
-- Added tokens
-- Modified tokens
-- Removed tokens
-- Breaking changes
+- **Added tokens** - New tokens from Figma
+- **Modified tokens** - Changed values or properties
+- **Removed tokens** - Deleted from Figma
+- **Breaking changes** - Renames or deletions that may break code
 
 ### Report History
 
@@ -677,16 +890,18 @@ When `reportHistory: true`, each sync creates a timestamped report:
 
 ```
 .synkio/
-├── sync-report.md              # Latest
+├── sync-report.md              # Latest report
 ├── sync-report.2024-01-15.md   # Historical
-└── sync-report.2024-01-10.md
+└── sync-report.2024-01-10.md   # Historical
 ```
+
+Useful for tracking changes over time and debugging regressions.
 
 ---
 
 ## `import`
 
-Configuration for importing from Figma's native JSON exports.
+Configuration for importing from Figma's native JSON variable exports (File → Export → Variables → JSON).
 
 ```json
 {
@@ -711,29 +926,29 @@ Configuration for importing from Figma's native JSON exports.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `dir` | string | `"figma-exports"` | Default directory for Figma export files |
-| `sources` | object | - | Map collection names to source files |
+| `sources` | object | `{}` | Map collection names to source file configurations |
 
-### sources.<collection>
+### sources.\<collection\>
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `dir` | string | `import.dir` | Override directory for this collection |
-| `files` | array | all `.json` | Specific JSON files to import |
+| `dir` | string | `import.dir` | Override directory for this collection's source files |
+| `files` | array | all `.json` in dir | Specific JSON files to import for this collection |
 
-### How It Works
+### Import Behavior
 
-1. Each key in `sources` becomes a collection name
+1. Each key in `sources` becomes a collection name in the output
 2. Files are loaded from the specified `dir` or the default `import.dir`
 3. If `files` is omitted, all `.json` files in the directory are imported
 4. Mode names are extracted from each file's `$extensions.com.figma.modeName`
 
-### Example Workflow
+### Import Workflow Example
 
 ```bash
-# Export from Figma: File → Export → Variables → JSON
-# Save to figma-exports/
+# 1. Export from Figma: File → Export → Variables → JSON
+# 2. Save exported files to figma-exports/
 
-# Import using config
+# 3. Import using config
 npx synkio import
 
 # Or import specific files via CLI
@@ -748,15 +963,33 @@ See the [User Guide](../packages/cli/USER_GUIDE.md#import) for detailed import w
 
 ### FIGMA_TOKEN
 
-Your Figma personal access token.
+Your Figma personal access token for API authentication.
+
+**Getting your token:**
 
 1. Go to [Figma Account Settings](https://www.figma.com/settings)
 2. Scroll to **Personal access tokens**
 3. Click **Generate new token**
-4. Copy and add to `.env`:
+4. Give it a descriptive name (e.g., "Synkio CLI")
+5. Copy the token immediately (it won't be shown again)
+
+**Setup:**
 
 ```bash
-FIGMA_TOKEN=figd_xxxxxxxxxxxxxxxxxxxxx
+# Create .env file
+echo "FIGMA_TOKEN=figd_xxxxxxxxxxxxxxxxxxxxx" > .env
+
+# Add to .gitignore (if not already)
+echo ".env" >> .gitignore
+```
+
+**Team setup:**
+
+Commit a `.env.example` file (without the actual token) so team members know which variables are needed:
+
+```bash
+# .env.example (safe to commit)
+FIGMA_TOKEN=
 ```
 
 ---
@@ -766,46 +999,86 @@ FIGMA_TOKEN=figd_xxxxxxxxxxxxxxxxxxxxx
 Synkio searches for configuration files in order:
 
 1. `synkio.config.json` (recommended)
-2. `tokensrc.json` (deprecated)
+2. `tokensrc.json` (deprecated, shows warning)
 
-You can also specify a custom path:
+### Custom Config Path
+
+Specify a custom configuration file:
 
 ```bash
 npx synkio sync --config=./config/synkio.config.json
+npx synkio sync --config=/absolute/path/to/config.json
 ```
 
 ---
 
 ## Validation
 
-Validate your configuration:
+Validate your configuration before syncing:
 
 ```bash
 npx synkio validate
 ```
 
-This checks:
-- Config file syntax
-- Required fields
-- Figma connection
-- Environment variables
+**Checks performed:**
+
+- Config file exists and is valid JSON
+- Required fields are present (`version`, `figma.fileId`, `figma.accessToken`, `tokens.dir`)
+- Schema validation passes
+- `FIGMA_TOKEN` environment variable is set
+- Figma API connection works
+
+**Example output:**
+
+```
+✓ Config file found: synkio.config.json
+✓ FIGMA_TOKEN environment variable set
+✓ Schema validation passed
+✓ Figma connection successful (file: "My Design System")
+```
 
 ---
 
 ## Migration from Legacy Config
 
-If you're using the old `tokensrc.json` format, rename it:
+If you're using the old `tokensrc.json` format:
+
+**Step 1:** Rename the file:
 
 ```bash
 mv tokensrc.json synkio.config.json
 ```
 
-Key changes in the new schema:
+**Step 2:** Update the schema (if needed):
 
-| Old | New |
-|-----|-----|
+| Old Format | New Format |
+|------------|------------|
 | `output.dir` | `tokens.dir` |
-| `output.mode` | removed (use `build.script` for Style Dictionary) |
+| `output.mode` | Removed. Use `build.script` for Style Dictionary |
 | `collections` (top-level) | `tokens.collections` |
 | `css` (top-level) | `build.css` |
 | `docs` | `docsPages` |
+
+**Example migration:**
+
+```json
+// Old format (tokensrc.json)
+{
+  "figma": { "fileId": "ABC123" },
+  "output": { "dir": "tokens", "mode": "style-dictionary" },
+  "collections": { "theme": { "splitModes": true } }
+}
+
+// New format (synkio.config.json)
+{
+  "version": "1.0.0",
+  "figma": { "fileId": "ABC123", "accessToken": "${FIGMA_TOKEN}" },
+  "tokens": {
+    "dir": "tokens",
+    "collections": { "theme": { "splitModes": true } }
+  },
+  "build": {
+    "script": "npx style-dictionary build"
+  }
+}
+```
