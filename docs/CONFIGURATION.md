@@ -8,6 +8,7 @@ Complete reference for all Synkio configuration options.
 
 - [Overview](#overview)
 - [Quick Start](#quick-start)
+- [Complete Working Example](#complete-working-example)
 - [Full Configuration Example](#full-configuration-example)
 - [Configuration Sections](#configuration-sections)
   - [`version`](#version-required) - Config schema version
@@ -18,8 +19,8 @@ Complete reference for all Synkio configuration options.
   - [`tokens`](#tokens-required) - Token output configuration
     - [`tokens.dtcg`](#dtcg-format) - DTCG vs legacy format
     - [`tokens.includeVariableId`](#variable-ids) - Include Figma variable IDs
-    - [`tokens.splitModes`](#splitModes-behavior) - File splitting behavior
-    - [`tokens.includeMode`](#includeMode-behavior) - Mode wrapper in output
+    - [`tokens.splitModes`](#splitmodes-behavior) - File splitting behavior
+    - [`tokens.includeMode`](#includemode-behavior) - Mode wrapper in output
     - [`tokens.extensions`](#tokensextensions) - Metadata extensions
     - [`tokens.collections`](#tokenscollections) - Per-collection configuration
   - [`build`](#build) - Build configuration
@@ -33,6 +34,7 @@ Complete reference for all Synkio configuration options.
 - [Environment Variables](#environment-variables)
 - [Config File Discovery](#config-file-discovery)
 - [Validation](#validation)
+- [Troubleshooting](#troubleshooting)
 - [Migration from Legacy Config](#migration-from-legacy-config)
 
 ---
@@ -43,11 +45,13 @@ Synkio is configured via `synkio.config.json` in your project root.
 
 > **Note:** Legacy `tokensrc.json` files are still supported but deprecated. You'll see a warning when using the old filename.
 
+> **Tip:** After manually editing your config file, run `npx synkio validate` to check for JSON syntax errors and missing required fields.
+
 ---
 
 ## Quick Start
 
-Minimal configuration to get started:
+The absolute minimum required configuration:
 
 ```json
 {
@@ -62,12 +66,57 @@ Minimal configuration to get started:
 }
 ```
 
-| Field | Description |
-|-------|-------------|
-| `version` | Always `"1.0.0"` |
-| `figma.fileId` | Your Figma file ID from the URL |
-| `figma.accessToken` | Use `${FIGMA_TOKEN}` to read from `.env` file |
-| `tokens.dir` | Directory where token JSON files are written |
+| Field | Required | Description |
+|-------|----------|-------------|
+| `version` | **Yes** | Always `"1.0.0"` |
+| `figma.fileId` | **Yes** | Your Figma file ID from the URL |
+| `figma.accessToken` | **Yes** | Use `${FIGMA_TOKEN}` to read from `.env` file |
+| `tokens.dir` | **Yes** | Directory where token JSON files are written |
+
+That's it! With this minimal config, Synkio will:
+- Fetch all variable collections from your Figma file
+- Output them to the `tokens/` directory
+- Use default settings (DTCG format, split modes, no mode wrapper)
+
+---
+
+## Complete Working Example
+
+A practical starting configuration with common collection settings:
+
+```json
+{
+  "version": "1.0.0",
+  "figma": {
+    "fileId": "YOUR_FILE_ID",
+    "accessToken": "${FIGMA_TOKEN}"
+  },
+  "tokens": {
+    "dir": "tokens",
+    "collections": {
+      "theme": {
+        "splitModes": true
+      },
+      "brand": {
+        "splitModes": true
+      },
+      "globals": {
+        "splitModes": false
+      }
+    }
+  }
+}
+```
+
+> **Important: Collection Name Matching**
+>
+> Collection names in config must match your Figma variable collection names **exactly** (case-sensitive).
+>
+> To find your collection names:
+> 1. Open Figma and check the Variables panel
+> 2. Or run `npx synkio sync --preview` to see detected collections
+>
+> If a collection name in your config doesn't match any Figma collection, it will be silently ignored.
 
 ---
 
@@ -223,7 +272,7 @@ Supported URL formats:
 
 ### Using Environment Variables
 
-The `${FIGMA_TOKEN}` placeholder is automatically replaced with the `FIGMA_TOKEN` environment variable.
+The `${VAR_NAME}` syntax reads values from environment variables. Currently, only `FIGMA_TOKEN` is supported.
 
 **Step 1:** Create a `.env` file in your project root:
 
@@ -239,6 +288,14 @@ echo ".env" >> .gitignore
 ```
 
 **Step 3:** Get your token from [Figma Account Settings](https://www.figma.com/settings) → Personal access tokens → Generate new token
+
+> **What happens if the variable is missing?**
+>
+> If `FIGMA_TOKEN` is not set in your environment or `.env` file, Synkio will show an error:
+> ```
+> Error: FIGMA_TOKEN environment variable is not set
+> ```
+> The config file will contain the literal string `${FIGMA_TOKEN}` until the variable is set.
 
 > **Security:** Never commit your actual token to version control. The `${FIGMA_TOKEN}` pattern keeps secrets out of your config file.
 
@@ -461,6 +518,8 @@ Include additional Figma metadata in token output. These require the metadata to
 
 Per-collection output configuration. Settings here override the parent-level `tokens.splitModes` and `tokens.includeMode` defaults.
 
+> **Important:** Collection names must match your Figma variable collection names **exactly** (case-sensitive).
+
 ```json
 {
   "tokens": {
@@ -497,6 +556,63 @@ Per-collection output configuration. Settings here override the parent-level `to
 | `file` | string | collection name | Custom filename pattern (without extension) |
 | `splitModes` | boolean | inherits `tokens.splitModes` | Override: split multi-mode collections into separate files per mode |
 | `includeMode` | boolean | inherits `tokens.includeMode` | Override: include mode name as first-level wrapper key |
+
+### Directory Inheritance Explained
+
+When you omit `dir` in a collection config, it inherits from `tokens.dir` directly—it does NOT create a subfolder with the collection name.
+
+**Example 1: Omitting `dir` (inherits parent)**
+
+```json
+{
+  "tokens": {
+    "dir": "tokens",
+    "collections": {
+      "colors": {
+        "splitModes": false
+      }
+    }
+  }
+}
+```
+
+Output: `tokens/colors.json` (file is in `tokens/` directory)
+
+**Example 2: Custom `dir` (override)**
+
+```json
+{
+  "tokens": {
+    "dir": "tokens",
+    "collections": {
+      "colors": {
+        "dir": "src/styles/colors",
+        "splitModes": false
+      }
+    }
+  }
+}
+```
+
+Output: `src/styles/colors/colors.json` (file is in custom directory)
+
+**Example 3: Subfolder of parent**
+
+```json
+{
+  "tokens": {
+    "dir": "tokens",
+    "collections": {
+      "colors": {
+        "dir": "tokens/colors",
+        "splitModes": false
+      }
+    }
+  }
+}
+```
+
+Output: `tokens/colors/colors.json` (file is in subfolder)
 
 ### Collection Configuration Examples
 
@@ -787,25 +903,32 @@ Generate a static documentation site for your design tokens.
 | `enabled` | boolean | `false` | Enable documentation site generation |
 | `dir` | string | `".synkio/docs"` | Output directory for documentation files |
 | `title` | string | `"Design Tokens"` | Site title shown in the header |
-| `platforms` | array | `[]` | Custom platform definitions for variable name display |
+| `platforms` | array | `[]` | Custom platform definitions for variable name display (optional) |
 
 ### platforms
 
-Define how token names are displayed for different platforms/languages:
+The `platforms` array is **optional**. If omitted, docs will show token names in their original format. When provided, the docs display how variable names should be written for each platform.
+
+**Common platform configurations:**
 
 ```json
 {
   "docsPages": {
+    "enabled": true,
     "platforms": [
       {
         "name": "CSS",
         "prefix": "--",
-        "case": "kebab",
-        "separator": "-"
+        "case": "kebab"
       },
       {
         "name": "JavaScript",
         "case": "camel"
+      },
+      {
+        "name": "SCSS",
+        "prefix": "$",
+        "case": "kebab"
       },
       {
         "name": "Swift",
@@ -814,8 +937,12 @@ Define how token names are displayed for different platforms/languages:
       },
       {
         "name": "Kotlin",
-        "case": "snake",
-        "suffix": "_color"
+        "case": "camel"
+      },
+      {
+        "name": "Android XML",
+        "prefix": "@color/",
+        "case": "snake"
       }
     ]
   }
@@ -1035,6 +1162,87 @@ npx synkio validate
 ✓ FIGMA_TOKEN environment variable set
 ✓ Schema validation passed
 ✓ Figma connection successful (file: "My Design System")
+```
+
+> **Tip:** Always run `npx synkio validate` after manually editing your config file to catch JSON syntax errors early.
+
+---
+
+## Troubleshooting
+
+### Common Errors
+
+#### "Config file not found"
+
+```
+Error: Config file not found
+```
+
+**Solution:** Create a `synkio.config.json` file in your project root, or run `npx synkio init` to generate one.
+
+#### "Invalid JSON syntax"
+
+```
+Error: Failed to parse config file: Unexpected token...
+```
+
+**Solution:** Your config file has a JSON syntax error. Common causes:
+- Missing closing braces `}` or brackets `]`
+- Trailing commas after the last item in an object/array
+- Missing commas between properties
+- Using single quotes instead of double quotes
+
+Run `npx synkio validate` to see the exact error location, or use a JSON validator.
+
+#### "FIGMA_TOKEN environment variable is not set"
+
+```
+Error: FIGMA_TOKEN environment variable is not set
+```
+
+**Solution:**
+1. Create a `.env` file with `FIGMA_TOKEN=your_token_here`
+2. Or set the environment variable directly: `export FIGMA_TOKEN=your_token`
+3. Ensure the `.env` file is in your project root (same directory as `synkio.config.json`)
+
+#### "Figma API error: 403 Forbidden"
+
+```
+Error: Figma API returned 403: Forbidden
+```
+
+**Solution:** Your token doesn't have access to the file. Check:
+1. The token is correct and hasn't expired
+2. You have view access to the Figma file
+3. For Figma Enterprise, ensure `baseUrl` is set correctly
+
+#### "Collection not found" / No tokens synced
+
+If your config has collection settings but no tokens are being generated for that collection:
+
+**Cause:** Collection names are case-sensitive and must match exactly.
+
+**Solution:**
+1. Check your Figma file's Variables panel for exact collection names
+2. Run `npx synkio sync --preview` to see detected collections
+3. Update your config to match the exact names (including spaces and capitalization)
+
+Example: If Figma has `Brand Colors`, your config must use `"Brand Colors"`, not `"brand-colors"` or `"brandColors"`.
+
+#### "No plugin data found"
+
+```
+Warning: No Synkio plugin data found in file
+```
+
+**Solution:** Run the Synkio Figma plugin on your file first to prepare the variable data for export.
+
+### Debug Mode
+
+For detailed logging, set the `DEBUG` environment variable:
+
+```bash
+DEBUG=synkio:* npx synkio sync
 ```
 
 ---
