@@ -22,6 +22,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [Docs Options](#docs-options)
   - [Sync Options](#sync-options)
   - [Collection Options](#collection-options)
+  - [Styles Options](#styles-options)
   - [Import Options](#import-options)
 - [Output Formats](#output-formats)
   - [DTCG Format](#dtcg-format)
@@ -135,6 +136,9 @@ npx synkio sync
 | `--regenerate` | Regenerate files from existing baseline (no Figma fetch) |
 | `--build` | Force run build without prompting |
 | `--no-build` | Skip build entirely |
+| `--open` | Open docs folder after sync (if docs enabled) |
+| `--timeout=<s>` | Figma API timeout in seconds (default: 120) |
+| `--config=<file>` | Path to config file |
 
 **Examples:**
 
@@ -403,7 +407,7 @@ Configuration is stored in `synkio.config.json` in your project root.
     "dir": "tokens",
     "dtcg": true,
     "includeVariableId": false,
-    "splitModes": true,
+    "splitBy": "mode",
     "includeMode": false,
     "extensions": {
       "description": false,
@@ -411,7 +415,11 @@ Configuration is stored in `synkio.config.json` in your project root.
       "codeSyntax": false
     },
     "collections": {
-      "theme": { "splitModes": true }
+      "theme": { "splitBy": "mode" },
+      "globals": { "splitBy": "group" }
+    },
+    "styles": {
+      "enabled": true
     }
   }
 }
@@ -422,12 +430,13 @@ Configuration is stored in `synkio.config.json` in your project root.
 | `dir` | required | Output directory for token files |
 | `dtcg` | `true` | Use DTCG format (`$value`, `$type`) |
 | `includeVariableId` | `false` | Include Figma variable IDs |
-| `splitModes` | `true` | Split multi-mode collections into separate files per mode |
+| `splitBy` | `"mode"` | Split strategy: `"mode"` (per mode), `"group"` (per top-level group), `"none"` (single file) |
 | `includeMode` | `false` | Include mode name as first-level key in JSON output |
 | `extensions.description` | `false` | Include variable descriptions |
 | `extensions.scopes` | `false` | Include usage scopes |
 | `extensions.codeSyntax` | `false` | Include platform code names |
-| `collections` | - | Per-collection configuration (can override `splitModes` and `includeMode`) |
+| `collections` | - | Per-collection configuration (can override `splitBy` and `includeMode`) |
+| `styles` | - | Figma styles configuration (paint, text, effect) |
 
 ### Build Options
 
@@ -538,25 +547,25 @@ Generate a static documentation site:
 
 ### Collection Options
 
-Configure per-collection output behavior. Collection-level settings override the parent-level `tokens.splitModes` and `tokens.includeMode` defaults:
+Configure per-collection output behavior. Collection-level settings override the parent-level `tokens.splitBy` and `tokens.includeMode` defaults:
 
 ```json
 {
   "tokens": {
     "dir": "tokens",
-    "splitModes": true,
+    "splitBy": "mode",
     "includeMode": false,
     "collections": {
       "colors": {
         "dir": "src/styles/tokens/colors",
-        "splitModes": false
+        "splitBy": "none"
       },
       "primitives": {
         "dir": "src/styles/tokens/primitives",
-        "splitModes": false
+        "splitBy": "group"
       },
       "theme": {
-        "splitModes": true,
+        "splitBy": "mode",
         "includeMode": true
       }
     }
@@ -567,10 +576,67 @@ Configure per-collection output behavior. Collection-level settings override the
 | Option | Default | Description |
 |--------|---------|-------------|
 | `dir` | `tokens.dir` | Custom output directory for this collection |
-| `splitModes` | inherits from `tokens.splitModes` | Separate files per mode (`theme.light.json`, `theme.dark.json`) |
+| `file` | collection name | Custom filename pattern (without extension) |
+| `splitBy` | inherits from `tokens.splitBy` | `"mode"` (per mode), `"group"` (per top-level group), `"none"` (single file) |
 | `includeMode` | inherits from `tokens.includeMode` | Include mode as first-level key in JSON |
+| `names` | - | Rename modes or groups in output files (e.g., `{ "light": "day" }`) |
+
+**splitBy options:**
+
+- `"mode"` — One file per mode: `theme.light.json`, `theme.dark.json`
+- `"group"` — One file per top-level group: `globals.colors.json`, `globals.spacing.json`
+- `"none"` — Single file for entire collection: `theme.json`
 
 After changing collection config, run `npx synkio sync --regenerate` to regenerate files without fetching from Figma.
+
+### Styles Options
+
+Configure Figma styles sync (paint, text, effect styles). Styles are distinct from Figma variables.
+
+```json
+{
+  "tokens": {
+    "styles": {
+      "enabled": true,
+      "paint": {
+        "enabled": true,
+        "file": "colors",
+        "mergeInto": {
+          "collection": "globals",
+          "group": "colors"
+        }
+      },
+      "text": {
+        "enabled": true,
+        "file": "typography"
+      },
+      "effect": {
+        "enabled": true,
+        "file": "effects"
+      }
+    }
+  }
+}
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `true` | Master toggle for all styles sync |
+| `paint` | - | Paint styles (solid colors, gradients) |
+| `text` | - | Text styles (typography) |
+| `effect` | - | Effect styles (shadows, blurs) |
+
+**Per-style-type options:**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `enabled` | `true` | Enable this style type |
+| `dir` | `tokens.dir` | Output directory for this style type |
+| `file` | style type name | Custom filename (without extension) |
+| `mergeInto.collection` | - | Merge into an existing variable collection output |
+| `mergeInto.group` | - | Target group (required if collection uses `splitBy: "group"`) |
+
+> **Note:** Styles sync requires the Synkio Figma plugin v3.0.0+ which captures style data alongside variables.
 
 ### Import Options
 

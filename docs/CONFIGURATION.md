@@ -19,10 +19,11 @@ Complete reference for all Synkio configuration options.
   - [`tokens`](#tokens-required) - Token output configuration
     - [`tokens.dtcg`](#dtcg-format) - DTCG vs legacy format
     - [`tokens.includeVariableId`](#variable-ids) - Include Figma variable IDs
-    - [`tokens.splitModes`](#splitmodes-behavior) - File splitting behavior
+    - [`tokens.splitBy`](#splitby-behavior) - File splitting behavior
     - [`tokens.includeMode`](#includemode-behavior) - Mode wrapper in output
     - [`tokens.extensions`](#tokensextensions) - Metadata extensions
     - [`tokens.collections`](#tokenscollections) - Per-collection configuration
+    - [`tokens.styles`](#tokensstyles) - Figma styles configuration
   - [`build`](#build) - Build configuration
     - [`build.script`](#custom-build-script) - Custom build command
     - [`build.autoRun`](#auto-run) - Skip build prompt
@@ -76,7 +77,7 @@ The absolute minimum required configuration:
 That's it! With this minimal config, Synkio will:
 - Fetch all variable collections from your Figma file
 - Output them to the `tokens/` directory
-- Use default settings (DTCG format, split modes, no mode wrapper)
+- Use default settings (DTCG format, split by mode, no mode wrapper)
 
 ---
 
@@ -95,13 +96,13 @@ A practical starting configuration with common collection settings:
     "dir": "tokens",
     "collections": {
       "theme": {
-        "splitModes": true
+        "splitBy": "mode"
       },
       "brand": {
-        "splitModes": true
+        "splitBy": "mode"
       },
       "globals": {
-        "splitModes": false
+        "splitBy": "none"
       }
     }
   }
@@ -138,7 +139,7 @@ Complete configuration showing all available options:
     "dir": "tokens",
     "dtcg": true,
     "includeVariableId": false,
-    "splitModes": true,
+    "splitBy": "mode",
     "includeMode": false,
     "extensions": {
       "description": false,
@@ -149,12 +150,27 @@ Complete configuration showing all available options:
       "colors": {
         "dir": "tokens/colors",
         "file": "colors",
-        "splitModes": false,
+        "splitBy": "none",
         "includeMode": false
       },
       "theme": {
-        "splitModes": true,
+        "splitBy": "mode",
         "includeMode": true
+      },
+      "globals": {
+        "splitBy": "group"
+      }
+    },
+    "styles": {
+      "enabled": true,
+      "paint": {
+        "file": "colors"
+      },
+      "text": {
+        "file": "typography"
+      },
+      "effect": {
+        "file": "effects"
       }
     }
   },
@@ -325,14 +341,15 @@ Token output configuration. Controls where and how design tokens are written.
     "dir": "tokens",
     "dtcg": true,
     "includeVariableId": false,
-    "splitModes": true,
+    "splitBy": "mode",
     "includeMode": false,
     "extensions": {
       "description": false,
       "scopes": false,
       "codeSyntax": false
     },
-    "collections": {}
+    "collections": {},
+    "styles": {}
   }
 }
 ```
@@ -342,10 +359,11 @@ Token output configuration. Controls where and how design tokens are written.
 | `dir` | string | **Yes** | - | Output directory for token JSON files |
 | `dtcg` | boolean | No | `true` | Use DTCG format (`$value`, `$type`) vs legacy (`value`, `type`) |
 | `includeVariableId` | boolean | No | `false` | Include Figma variable ID in `$extensions.com.figma.variableId` |
-| `splitModes` | boolean | No | `true` | Default for all collections: split multi-mode collections into separate files per mode |
+| `splitBy` | string | No | `"mode"` | Default split strategy: `"mode"` (per mode), `"group"` (per top-level group), `"none"` (single file) |
 | `includeMode` | boolean | No | `false` | Default for all collections: include mode name as first-level wrapper key in JSON output |
 | `extensions` | object | No | `{}` | Metadata extensions to include (see [tokens.extensions](#tokensextensions)) |
 | `collections` | object | No | `{}` | Per-collection configuration (see [tokens.collections](#tokenscollections)) |
+| `styles` | object | No | `{}` | Figma styles configuration (see [tokens.styles](#tokensstyles)) |
 
 ### DTCG Format
 
@@ -409,11 +427,17 @@ Include Figma variable IDs for debugging, custom tooling, or tracking token orig
 }
 ```
 
-### splitModes Behavior
+### splitBy Behavior
 
-Controls whether multi-mode collections (like themes with light/dark modes) are split into separate files.
+Controls how token files are split. Three strategies are available:
 
-**With `splitModes: true` (default):**
+| Value | Description |
+|-------|-------------|
+| `"mode"` | One file per mode (default). `theme` with light/dark → `theme.light.json`, `theme.dark.json` |
+| `"group"` | One file per top-level group. `globals` with colors/spacing → `globals.colors.json`, `globals.spacing.json` |
+| `"none"` | Single file for entire collection. `theme` → `theme.json` |
+
+**With `splitBy: "mode"` (default):**
 
 A collection named `theme` with `light` and `dark` modes outputs:
 
@@ -423,7 +447,19 @@ tokens/
 └── theme.dark.json
 ```
 
-**With `splitModes: false`:**
+**With `splitBy: "group"`:**
+
+A collection named `globals` with top-level groups `colors` and `spacing` outputs:
+
+```
+tokens/
+├── globals.colors.json
+└── globals.spacing.json
+```
+
+This is useful for primitive/foundation collections organized by category.
+
+**With `splitBy: "none"`:**
 
 All modes are combined into a single file:
 
@@ -432,7 +468,7 @@ tokens/
 └── theme.json
 ```
 
-> **Use Case:** Set `splitModes: false` for collections with a single mode, or when you want all modes in one file for programmatic access.
+> **Use Case:** Use `"none"` for single-mode collections or when you want all modes in one file. Use `"group"` for foundation collections organized by category (colors, spacing, typography).
 
 ### includeMode Behavior
 
@@ -516,7 +552,7 @@ Include additional Figma metadata in token output. These require the metadata to
 
 ## `tokens.collections`
 
-Per-collection output configuration. Settings here override the parent-level `tokens.splitModes` and `tokens.includeMode` defaults.
+Per-collection output configuration. Settings here override the parent-level `tokens.splitBy` and `tokens.includeMode` defaults.
 
 > **Important:** Collection names must match your Figma variable collection names **exactly** (case-sensitive).
 
@@ -524,21 +560,21 @@ Per-collection output configuration. Settings here override the parent-level `to
 {
   "tokens": {
     "dir": "tokens",
-    "splitModes": true,
+    "splitBy": "mode",
     "includeMode": false,
     "collections": {
       "colors": {
         "dir": "src/styles/tokens/colors",
         "file": "colors",
-        "splitModes": false,
+        "splitBy": "none",
         "includeMode": false
       },
       "primitives": {
         "dir": "src/styles/tokens/foundation",
-        "splitModes": false
+        "splitBy": "group"
       },
       "theme": {
-        "splitModes": true,
+        "splitBy": "mode",
         "includeMode": true
       },
       "typography": {
@@ -554,8 +590,9 @@ Per-collection output configuration. Settings here override the parent-level `to
 |--------|------|---------|-------------|
 | `dir` | string | inherits `tokens.dir` | Custom output directory for this collection's files |
 | `file` | string | collection name | Custom filename pattern (without extension) |
-| `splitModes` | boolean | inherits `tokens.splitModes` | Override: split multi-mode collections into separate files per mode |
+| `splitBy` | string | inherits `tokens.splitBy` | Override: `"mode"`, `"group"`, or `"none"` |
 | `includeMode` | boolean | inherits `tokens.includeMode` | Override: include mode name as first-level wrapper key |
+| `names` | object | - | Rename modes or groups in output files (e.g., `{ "light": "day" }`) |
 
 ### Directory Inheritance Explained
 
@@ -634,30 +671,52 @@ Output: `tokens/colors/colors.json` (file is in subfolder)
 
 Output: `tokens/typography/typography.tokens.json`
 
-**Example 2: Single-mode collection (no splitting)**
+**Example 2: Single file (no splitting)**
 
 ```json
 {
   "tokens": {
     "collections": {
       "primitives": {
-        "splitModes": false
+        "splitBy": "none"
       }
     }
   }
 }
 ```
 
-Output: `tokens/primitives.json` (even if the collection has modes)
+Output: `tokens/primitives.json` (all modes combined)
 
-**Example 3: Multi-mode with mode wrapper**
+**Example 3: Split by top-level group**
+
+```json
+{
+  "tokens": {
+    "collections": {
+      "globals": {
+        "splitBy": "group"
+      }
+    }
+  }
+}
+```
+
+Output (for a collection with `colors` and `spacing` groups):
+
+```
+tokens/
+├── globals.colors.json
+└── globals.spacing.json
+```
+
+**Example 4: Multi-mode with mode wrapper**
 
 ```json
 {
   "tokens": {
     "collections": {
       "theme": {
-        "splitModes": true,
+        "splitBy": "mode",
         "includeMode": true
       }
     }
@@ -683,20 +742,20 @@ Collection settings use nullish coalescing (`??`) to inherit from parent:
 
 1. If collection setting is explicitly set → use collection value
 2. If collection setting is `undefined` → inherit from `tokens.*` parent level
-3. Parent defaults: `splitModes: true`, `includeMode: false`
+3. Parent defaults: `splitBy: "mode"`, `includeMode: false`
 
 ```json
 {
   "tokens": {
-    "splitModes": false,        // Parent default: don't split
+    "splitBy": "none",          // Parent default: no splitting
     "includeMode": true,        // Parent default: include mode wrapper
     "collections": {
       "theme": {
-        "splitModes": true      // Override: split this collection only
+        "splitBy": "mode"       // Override: split this collection by mode
         // includeMode: inherited as true from parent
       },
       "colors": {
-        // Both inherited: splitModes: false, includeMode: true
+        // Both inherited: splitBy: "none", includeMode: true
       }
     }
   }
@@ -712,6 +771,135 @@ npx synkio sync --regenerate
 ```
 
 This re-processes the existing baseline using your updated configuration.
+
+---
+
+## `tokens.styles`
+
+Configuration for syncing Figma styles (paint, text, effect). Styles are distinct from Figma variables and include colors, gradients, typography, shadows, and blurs.
+
+```json
+{
+  "tokens": {
+    "styles": {
+      "enabled": true,
+      "paint": {
+        "enabled": true,
+        "file": "colors",
+        "mergeInto": {
+          "collection": "globals",
+          "group": "colors"
+        }
+      },
+      "text": {
+        "enabled": true,
+        "file": "typography"
+      },
+      "effect": {
+        "enabled": true,
+        "file": "effects"
+      }
+    }
+  }
+}
+```
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabled` | boolean | `true` | Master toggle for all styles sync |
+| `paint` | object | - | Paint styles (solid colors, gradients) |
+| `text` | object | - | Text styles (typography) |
+| `effect` | object | - | Effect styles (shadows, blurs) |
+
+### Style Type Configuration
+
+Each style type (`paint`, `text`, `effect`) accepts the same options:
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `enabled` | boolean | `true` | Enable this style type |
+| `dir` | string | `tokens.dir` | Output directory for this style type |
+| `file` | string | style type name | Custom filename (without extension) |
+| `mergeInto` | object | - | Merge into an existing variable collection file |
+
+### Merge Into Collection
+
+Instead of creating separate style files, you can merge styles into an existing variable collection output. This is useful when your paint styles should live alongside your color variables.
+
+```json
+{
+  "tokens": {
+    "styles": {
+      "paint": {
+        "mergeInto": {
+          "collection": "globals",
+          "group": "colors"
+        }
+      }
+    }
+  }
+}
+```
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `collection` | string | **Yes** | Target collection name (must match a variable collection) |
+| `group` | string | No | Target group (required if collection uses `splitBy: "group"`) |
+
+### Style Output Formats
+
+**Paint styles** output as DTCG color or gradient tokens:
+
+```json
+{
+  "brand": {
+    "primary": {
+      "$type": "color",
+      "$value": "#0066cc"
+    }
+  }
+}
+```
+
+**Text styles** output as DTCG typography composite tokens:
+
+```json
+{
+  "heading": {
+    "h1": {
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "Inter",
+        "fontSize": "32px",
+        "fontWeight": 700,
+        "lineHeight": 1.2,
+        "letterSpacing": "-0.02em"
+      }
+    }
+  }
+}
+```
+
+**Effect styles** output as shadow or blur tokens:
+
+```json
+{
+  "elevation": {
+    "md": {
+      "$type": "shadow",
+      "$value": {
+        "offsetX": "0px",
+        "offsetY": "4px",
+        "blur": "8px",
+        "spread": "0px",
+        "color": "rgba(0, 0, 0, 0.1)"
+      }
+    }
+  }
+}
+```
+
+> **Note:** Styles sync requires the Synkio Figma plugin v3.0.0+ which captures style data alongside variables.
 
 ---
 
@@ -1264,6 +1452,7 @@ mv tokensrc.json synkio.config.json
 | `output.dir` | `tokens.dir` |
 | `output.mode` | Removed. Use `build.script` for Style Dictionary |
 | `collections` (top-level) | `tokens.collections` |
+| `splitModes: true/false` | `splitBy: "mode"` / `splitBy: "none"` |
 | `css` (top-level) | `build.css` |
 | `docs` | `docsPages` |
 
@@ -1283,7 +1472,7 @@ mv tokensrc.json synkio.config.json
   "figma": { "fileId": "ABC123", "accessToken": "${FIGMA_TOKEN}" },
   "tokens": {
     "dir": "tokens",
-    "collections": { "theme": { "splitModes": true } }
+    "collections": { "theme": { "splitBy": "mode" } }
   },
   "build": {
     "script": "npx style-dictionary build"
