@@ -1,8 +1,8 @@
-import { readFile, readdir, stat } from 'fs/promises';
-import { resolve, basename, extname } from 'path';
+import { readFile, readdir, stat, mkdir, writeFile } from 'node:fs/promises';
+import { resolve, basename, extname } from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
-import { parseFigmaNativeExport, parseFigmaNativeFiles, isFigmaNativeFormat } from '../../core/figma-native.js';
+import { parseFigmaNativeFiles, isFigmaNativeFormat } from '../../core/figma-native.js';
 import { readBaseline, writeBaseline } from '../../core/baseline.js';
 import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, printDiffSummary } from '../../core/compare.js';
 import { splitTokens, SplitTokensOptions } from '../../core/tokens.js';
@@ -14,7 +14,6 @@ import {
 } from '../../core/output.js';
 import { BaselineData, BaselineEntry } from '../../types/index.js';
 import { createLogger } from '../../utils/logger.js';
-import { mkdir, writeFile } from 'fs/promises';
 
 export interface ImportOptions {
   /** Path to JSON file or directory containing JSON files (optional if using config) */
@@ -131,7 +130,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
 
         // Get files to import for this collection
         let filenames: string[];
-        if (source.files && source.files.length > 0) {
+        if (source.files?.length) {
           // Explicit file list
           filenames = source.files;
         } else {
@@ -256,10 +255,10 @@ export async function importCommand(options: ImportOptions): Promise<void> {
         spinner.stop();
         console.log(chalk.cyan('\n  Preview Mode - No changes will be applied\n'));
 
-        if (!hasChanges(result)) {
-          console.log(chalk.dim('  No changes detected.\n'));
-        } else {
+        if (hasChanges(result)) {
           printDiffSummary(result);
+        } else {
+          console.log(chalk.dim('  No changes detected.\n'));
         }
         return;
       }
@@ -296,7 +295,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
         collections: config.tokens.collections || {},
         dtcg: config.tokens.dtcg !== false,
         includeVariableId: config.tokens.includeVariableId === true,
-        splitModes: config.tokens.splitModes,
+        splitBy: config.tokens.splitBy,
         includeMode: config.tokens.includeMode,
         extensions: config.tokens.extensions || {},
       };

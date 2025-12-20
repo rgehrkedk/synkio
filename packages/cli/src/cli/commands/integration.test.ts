@@ -13,8 +13,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { writeFileSync, mkdirSync, rmSync, readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { writeFileSync, mkdirSync, rmSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Store original cwd
 const originalCwd = process.cwd();
@@ -213,9 +213,9 @@ describe('Init + Sync Integration', () => {
 
       // Simulate discovered collections from first sync
       const discoveredCollections = [
-        { name: 'primitives', modes: ['default'], splitModes: false },
-        { name: 'semantic', modes: ['light', 'dark'], splitModes: true },
-        { name: 'component', modes: ['default'], splitModes: false },
+        { name: 'primitives', modes: ['default'], splitBy: 'none' as const },
+        { name: 'semantic', modes: ['light', 'dark'], splitBy: 'mode' as const },
+        { name: 'component', modes: ['default'], splitBy: 'none' as const },
       ];
 
       // Update config with discovered collections
@@ -227,9 +227,9 @@ describe('Init + Sync Integration', () => {
       const parsedConfig = JSON.parse(configContent);
 
       expect(parsedConfig.tokens.collections).toBeDefined();
-      expect(parsedConfig.tokens.collections.primitives.splitModes).toBe(false);
-      expect(parsedConfig.tokens.collections.semantic.splitModes).toBe(true);
-      expect(parsedConfig.tokens.collections.component.splitModes).toBe(false);
+      expect(parsedConfig.tokens.collections.primitives.splitBy).toBe('none');
+      expect(parsedConfig.tokens.collections.semantic.splitBy).toBe('mode');
+      expect(parsedConfig.tokens.collections.component.splitBy).toBe('none');
 
       // Verify original config values preserved
       expect(parsedConfig.tokens.dir).toBe('src/tokens');
@@ -252,7 +252,7 @@ describe('Init + Sync Integration', () => {
           dir: 'src/tokens',
           collections: {
             existing: {
-              splitModes: true,
+              splitBy: 'mode',
               dir: 'custom/path'
             }
           }
@@ -264,7 +264,7 @@ describe('Init + Sync Integration', () => {
 
       // Add new collections (simulating new collection discovered in Figma)
       const newCollections = [
-        { name: 'newCollection', modes: ['default'], splitModes: false },
+        { name: 'newCollection', modes: ['default'], splitBy: 'none' as const },
       ];
 
       updateConfigWithCollections(newCollections);
@@ -274,11 +274,11 @@ describe('Init + Sync Integration', () => {
       const parsedConfig = JSON.parse(configContent);
 
       // Original collection preserved with custom config
-      expect(parsedConfig.tokens.collections.existing.splitModes).toBe(true);
+      expect(parsedConfig.tokens.collections.existing.splitBy).toBe('mode');
       expect(parsedConfig.tokens.collections.existing.dir).toBe('custom/path');
 
       // New collection added
-      expect(parsedConfig.tokens.collections.newCollection.splitModes).toBe(false);
+      expect(parsedConfig.tokens.collections.newCollection.splitBy).toBe('none');
     });
   });
 

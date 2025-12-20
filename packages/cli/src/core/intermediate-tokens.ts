@@ -12,8 +12,8 @@
  * - Output format information for docs display
  */
 
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { BaselineData } from '../types/index.js';
 import { Config } from './config.js';
 import { mapToDTCGType } from './tokens.js';
@@ -96,7 +96,7 @@ export function convertToIntermediateFormat(
     }
   }
 
-  for (const [key, entry] of Object.entries(baseline.baseline)) {
+  for (const entry of Object.values(baseline.baseline)) {
     const pathParts = entry.path.split('.');
     let current = result;
 
@@ -110,7 +110,7 @@ export function convertToIntermediateFormat(
     }
 
     // Set the token value using DTCG format
-    const tokenName = pathParts[pathParts.length - 1];
+    const tokenName = pathParts.at(-1)!;
 
     // Resolve references to DTCG format: { "$ref": "VariableID:1:38" } -> "{path.to.token}"
     let resolvedValue: unknown;
@@ -191,7 +191,7 @@ function extractCollections(baseline: BaselineData): string[] {
       collections.add(entry.collection);
     }
   }
-  return Array.from(collections).sort();
+  return Array.from(collections).sort((a, b) => a.localeCompare(b));
 }
 
 /**
@@ -204,7 +204,7 @@ function extractModes(baseline: BaselineData): string[] {
       modes.add(entry.mode);
     }
   }
-  return Array.from(modes).sort();
+  return Array.from(modes).sort((a, b) => a.localeCompare(b));
 }
 
 /**

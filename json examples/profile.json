@@ -1,0 +1,65 @@
+{
+  "foundation": {
+    "colors": {
+      "neutral": {
+        "0": { "value": "#FFFFFF" },
+        
+        "900": { "value": "#0B0D12" }
+      },
+      "primary": {
+        "500": { "value": "#4D7CFF" },
+        "600": { "value": "#3A66F5" }
+      }
+    },
+
+    "spacing": {
+      "sm": { "value": "4px" },
+      "md": { "value": "8px" },
+      "lg": { "value": "12px" }
+    },
+
+    "radius": {
+      "sm": { "value": "8px" },
+      "md": { "value": "12px" }
+    },
+
+    "fonts": {
+      "family": {
+        "body": { "value": "Inter" },
+        "display": { "value": "Inter" }
+      }
+    }
+  },
+
+  "theme": {
+    "light": {
+        "bg": { "default": { "value": "{foundation.palette.neutral.0}" } },
+        "fg": { "default": { "value": "{foundation.palette.neutral.900}" } },
+        "border": { "default": { "value": "rgba(11, 13, 18, 0.14)" } }
+    },
+
+    "dark": {
+      "color": {
+        "bg": { "default": { "value": "{foundation.palette.neutral.900}" } },
+        "fg": { "default": { "value": "{foundation.palette.neutral.0}" } },
+        "border": { "default": { "value": "rgba(255, 255, 255, 0.16)" } }
+      }
+    },
+
+    "hc-light": {
+      "color": {
+        "bg": { "default": { "value": "#FFFFFF" } },
+        "fg": { "default": { "value": "#000000" } },
+        "border": { "default": { "value": "#000000" } }
+      }
+    },
+
+    "hc-dark": {
+      "color": {
+        "bg": { "default": { "value": "#000000" } },
+        "fg": { "default": { "value": "#FFFFFF" } },
+        "border": { "default": { "value": "#FFFFFF" } }
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { z } from 'zod';
 import type { CollectionRename } from '../types/index.js';
 
@@ -23,15 +23,41 @@ const TransformOptionsSchema = z.object({
   basePxFontSize: z.number().optional().default(16),   // Base font size for rem calculations
 }).optional();
 
+// Split strategy for collections
+const SplitBySchema = z.enum(['mode', 'group', 'none']);
+
 // Collection-specific configuration
 const CollectionConfigSchema = z.object({
   dir: z.string().optional(),                         // Output directory for this collection (defaults to tokens.dir)
   file: z.string().optional(),                        // Custom filename pattern (e.g., "colors" -> "colors.json", or with modes: "theme" -> "theme.light.json")
-  splitModes: z.boolean().optional(),                 // Whether to split multi-mode collections into separate files per mode (default: true at tokens level)
+  splitBy: SplitBySchema.optional(),                  // How to split output: "mode" (per mode), "group" (per top-level group), "none" (single file)
   includeMode: z.boolean().optional(),                // Whether to include mode as first-level key (default: false at tokens level)
+  names: z.record(z.string(), z.string()).optional(), // Rename modes or groups in output files (e.g., { "light": "day", "dark": "night" } or { "colors": "palette" })
 });
 
 const CollectionsConfigSchema = z.record(z.string(), CollectionConfigSchema).optional();
+
+// Merge target for styles - specifies which collection/group to merge styles into
+const MergeIntoSchema = z.object({
+  collection: z.string(),                            // Target collection name (e.g., "globals")
+  group: z.string().optional(),                      // Target group within collection (e.g., "font") - required if collection uses splitBy: "group"
+});
+
+// Style type configuration (parallel to CollectionConfig but for styles)
+const StyleTypeConfigSchema = z.object({
+  enabled: z.boolean().optional().default(true),     // Whether this style type is enabled (default: true)
+  dir: z.string().optional(),                        // Output directory for this style type (defaults to tokens.dir)
+  file: z.string().optional(),                       // Custom filename (e.g., "colors" -> "colors.json")
+  mergeInto: MergeIntoSchema.optional(),             // Merge styles into a variable collection file instead of separate file
+});
+
+// Styles configuration (for Figma styles: paint, text, effect)
+const StylesConfigSchema = z.object({
+  enabled: z.boolean().optional().default(true),     // Master toggle for styles sync (default: true)
+  paint: StyleTypeConfigSchema.optional(),           // Paint styles (colors, gradients)
+  text: StyleTypeConfigSchema.optional(),            // Text styles (typography)
+  effect: StyleTypeConfigSchema.optional(),          // Effect styles (shadows, blurs)
+}).optional();
 
 // Token extensions configuration
 const TokenExtensionsConfigSchema = z.object({
@@ -45,10 +71,11 @@ const TokensConfigSchema = z.object({
   dir: z.string(),                                    // Output directory for token files
   dtcg: z.boolean().optional().default(true),         // Use DTCG format ($value, $type) vs legacy (value, type)
   includeVariableId: z.boolean().optional().default(false), // Include Figma variableId in $extensions
-  splitModes: z.boolean().optional().default(true),   // Default for splitModes across all collections
+  splitBy: SplitBySchema.optional().default('mode'),  // Default split strategy: "mode" (per mode), "group" (per top-level group), "none" (single file)
   includeMode: z.boolean().optional().default(false), // Default for includeMode across all collections (false = no mode wrapper)
   extensions: TokenExtensionsConfigSchema,            // Optional metadata extensions
   collections: CollectionsConfigSchema,               // Per-collection configuration
+  styles: StylesConfigSchema,                         // Figma styles configuration (paint, text, effect)
 });
 
 // CSS output configuration for build.css
@@ -268,7 +295,7 @@ export function updateConfigWithCollectionRenames(
       }
 
       // Update the dir if it contains the old collection name
-      if (oldConfig.dir && oldConfig.dir.includes(oldCollection)) {
+      if (oldConfig.dir?.includes(oldCollection)) {
         oldConfig.dir = oldConfig.dir.replace(oldCollection, newCollection);
       }
 
@@ -289,13 +316,16 @@ export function updateConfigWithCollectionRenames(
   }
 }
 
+/** Split strategy type */
+export type SplitBy = z.infer<typeof SplitBySchema>;
+
 /**
  * Collection config with optional dir/file patterns
  */
 export interface CollectionConfigInput {
   name: string;
   modes: string[];
-  splitModes: boolean;
+  splitBy: SplitBy;
   dir?: string;   // Output directory (supports {mode} placeholder)
   file?: string;  // Output filename pattern (supports {mode} placeholder)
 }
@@ -339,10 +369,10 @@ export function updateConfigWithCollections(
   }
 
   // Build collections config
-  const collectionsConfig: Record<string, { splitModes: boolean; dir?: string; file?: string }> = {};
+  const collectionsConfig: Record<string, { splitBy: SplitBy; dir?: string; file?: string }> = {};
   for (const collection of collections) {
-    const config: { splitModes: boolean; dir?: string; file?: string } = {
-      splitModes: collection.splitModes,
+    const config: { splitBy: SplitBy; dir?: string; file?: string } = {
+      splitBy: collection.splitBy,
     };
     // Only add dir/file if they differ from defaults
     if (collection.dir) {

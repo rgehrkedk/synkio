@@ -1,5 +1,5 @@
-import { writeFile, readFile, access } from 'fs/promises';
-import { resolve } from 'path';
+import { writeFile, readFile, access } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { DEFAULT_CONFIG_FILE } from '../../core/config.js';
 import { prompt } from '../utils.js';
 import { FigmaClient } from '../../core/figma.js';
@@ -10,7 +10,7 @@ import ora from 'ora';
 // Extracts the file ID from a Figma URL
 // Supports: /file/, /design/, /board/, /proto/
 export function extractFileId(url: string): string | undefined {
-    const match = url.match(/(?:file|design|board|proto)\/([a-zA-Z0-9]+)/);
+    const match = /(?:file|design|board|proto)\/([a-zA-Z0-9]+)/.exec(url);
     return match?.[1];
 }
 
@@ -93,7 +93,7 @@ export interface GeneratedConfig {
     tokens: {
         dir: string;
         collections?: Record<string, {
-            splitModes?: boolean;
+            splitBy?: 'mode' | 'group' | 'none';
             dir?: string;
             file?: string;
         }>;
@@ -223,14 +223,14 @@ export async function initCommand(options: InitOptions = {}) {
     // Show next steps
     console.log(chalk.bold('\nNext steps:'));
 
-    if (!figmaToken) {
+    if (figmaToken) {
+        console.log('  1. Run the Synkio plugin in Figma');
+        console.log(`  2. Run: ${chalk.cyan('npx synkio sync')}`);
+    } else {
         console.log(`  1. Copy ${chalk.cyan('.env.example')} to ${chalk.cyan('.env')} and add your FIGMA_TOKEN`);
         console.log(chalk.gray('     (Get token from your team lead or secrets manager)'));
         console.log('  2. Run the Synkio plugin in Figma');
         console.log(`  3. Run: ${chalk.cyan('npx synkio sync')}`);
-    } else {
-        console.log('  1. Run the Synkio plugin in Figma');
-        console.log(`  2. Run: ${chalk.cyan('npx synkio sync')}`);
     }
 
     // Show configuration guidance

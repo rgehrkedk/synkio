@@ -1,13 +1,13 @@
-import { mkdir, writeFile, readdir, unlink } from 'fs/promises';
-import { resolve, join } from 'path';
-import { execSync } from 'child_process';
+import { mkdir, writeFile, readdir, unlink } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { execSync } from 'node:child_process';
 import { loadConfig, updateConfigWithCollectionRenames, updateConfigWithCollections } from '../../core/config.js';
 import { FigmaClient } from '../../core/figma.js';
-import { splitTokens, SplitTokensOptions, normalizePluginData, RawTokens } from '../../core/tokens.js';
+import { splitTokens, SplitTokensOptions, normalizePluginData, RawTokens, normalizeStyleData, hasStyles, getStyleCount, splitStyles, StylesSplitOptions } from '../../core/tokens.js';
 import { createLogger } from '../../utils/logger.js';
 import { isPhantomMode, filterPhantomModes } from '../../utils/figma.js';
 import { readBaseline, writeBaseline } from '../../core/baseline.js';
-import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary } from '../../core/compare.js';
+import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary, compareStyleBaselines, hasStyleChanges, hasBreakingStyleChanges, printStyleDiffSummary, getStyleChangeCounts } from '../../core/compare.js';
 import {
   generateIntermediateFromBaseline,
   generateDocsFromBaseline,
@@ -36,13 +36,29 @@ export interface SyncOptions {
 }
 
 /**
+ * Deep merge source object into target object (mutates target)
+ */
+function deepMerge(target: any, source: any): void {
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      if (!target[key] || typeof target[key] !== 'object') {
+        target[key] = {};
+      }
+      deepMerge(target[key], source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
+}
+
+/**
  * Extract unique collections and their modes from normalized tokens.
  * Used during first sync to auto-populate tokens.collections.
  * Filters out phantom modes (Figma internal IDs like "21598:4").
  */
 function discoverCollectionsFromTokens(
   normalizedTokens: RawTokens
-): { name: string; modes: string[]; splitModes: boolean }[] {
+): { name: string; modes: string[]; splitBy: 'mode' | 'none' }[] {
   // Build map of collections to their unique modes
   const collectionModes = new Map<string, Set<string>>();
 
@@ -59,14 +75,14 @@ function discoverCollectionsFromTokens(
     collectionModes.get(collection)!.add(mode);
   }
 
-  // Convert to array with splitModes determination
-  const result: { name: string; modes: string[]; splitModes: boolean }[] = [];
+  // Convert to array with splitBy determination
+  const result: { name: string; modes: string[]; splitBy: 'mode' | 'none' }[] = [];
   for (const [name, modesSet] of collectionModes) {
-    const modes = Array.from(modesSet).sort();
+    const modes = Array.from(modesSet).sort((a, b) => a.localeCompare(b));
     result.push({
       name,
       modes,
-      splitModes: modes.length > 1,  // false if 1 mode, true if 2+ modes
+      splitBy: modes.length > 1 ? 'mode' : 'none',  // 'none' if 1 mode, 'mode' if 2+ modes
     });
   }
 
@@ -207,7 +223,7 @@ export async function syncCommand(options: SyncOptions = {}) {
         collections: config.tokens.collections || {},
         dtcg: config.tokens.dtcg !== false,
         includeVariableId: config.tokens.includeVariableId === true,
-        splitModes: config.tokens.splitModes,
+        splitBy: config.tokens.splitBy,
         includeMode: config.tokens.includeMode,
         extensions: config.tokens.extensions || {},
       };
@@ -228,7 +244,111 @@ export async function syncCommand(options: SyncOptions = {}) {
         filesByDir.get(outDir)!.set(fileName, fileData.content);
       }
 
-      // Ensure all output directories exist and write files
+      // Process style files (may merge into token files)
+      // Regenerate style files if present in baseline
+      let styleFilesWritten = 0;
+      const standaloneStyleFiles: Array<{ fileName: string; content: any; dir?: string }> = [];
+
+      if (localBaseline.styles && Object.keys(localBaseline.styles).length > 0) {
+        const stylesConfig = config.tokens.styles;
+
+        if (stylesConfig?.enabled !== false) {
+          spinner.text = 'Processing style files...';
+
+          const styleSplitOptions: StylesSplitOptions = {
+            enabled: stylesConfig?.enabled,
+            paint: stylesConfig?.paint,
+            text: stylesConfig?.text,
+            effect: stylesConfig?.effect,
+          };
+
+          const processedStyles = splitStyles(localBaseline.styles, styleSplitOptions);
+
+          for (const [fileName, fileData] of processedStyles) {
+            if (fileData.mergeInto) {
+              // Merge styles into an existing token file
+              const { collection, group } = fileData.mergeInto;
+              const collectionConfig = config.tokens.collections?.[collection];
+              const splitBy = collectionConfig?.splitBy ?? config.tokens.splitBy ?? 'mode';
+              const namesMapping = collectionConfig?.names || {};
+
+              // Determine target directory
+              const targetDir = collectionConfig?.dir
+                ? resolve(process.cwd(), collectionConfig.dir)
+                : defaultOutDir;
+
+              // Determine target filename based on collection's splitBy strategy
+              let targetFileName: string;
+              if (splitBy === 'group') {
+                // For group splitting, use the group name if specified (with names mapping)
+                const targetGroup = group || Object.keys(fileData.content)[0];
+                const mappedGroup = namesMapping[targetGroup] || targetGroup;
+                targetFileName = `${mappedGroup}.json`;
+              } else if (splitBy === 'none') {
+                // Single file per collection
+                const fileBase = collectionConfig?.file || collection;
+                targetFileName = `${fileBase}.json`;
+              } else {
+                // For mode splitting, merge into ALL mode files
+                const collectionPrefix = collectionConfig?.file || collection;
+                const filesInTargetDir = filesByDir.get(targetDir);
+                if (filesInTargetDir) {
+                  for (const [existingFileName, existingContent] of filesInTargetDir) {
+                    if (existingFileName.startsWith(`${collectionPrefix}.`) && existingFileName.endsWith('.json')) {
+                      if (group) {
+                        // Merge into the specified group path
+                        if (!existingContent[group]) {
+                          existingContent[group] = {};
+                        }
+                        deepMerge(existingContent[group], fileData.content);
+                      } else {
+                        deepMerge(existingContent, fileData.content);
+                      }
+                      logger.debug(`Merged ${fileData.styleType} styles into ${existingFileName}${group ? ` at group '${group}'` : ''}`);
+                    }
+                  }
+                }
+                continue;
+              }
+
+              // Merge into single target file
+              const filesInTargetDir = filesByDir.get(targetDir);
+              if (filesInTargetDir?.has(targetFileName)) {
+                const targetContent = filesInTargetDir.get(targetFileName);
+                if (group) {
+                  // Merge into the specified group path within the file
+                  if (!targetContent[group]) {
+                    targetContent[group] = {};
+                  }
+                  deepMerge(targetContent[group], fileData.content);
+                  logger.debug(`Merged ${fileData.styleType} styles into ${targetFileName} at group '${group}'`);
+                } else {
+                  // Merge at root level
+                  deepMerge(targetContent, fileData.content);
+                  logger.debug(`Merged ${fileData.styleType} styles into ${targetFileName}`);
+                }
+              } else {
+                // Target file doesn't exist - queue as standalone
+                logger.warn(`Target file ${targetFileName} not found for mergeInto, writing as standalone`);
+                standaloneStyleFiles.push({
+                  fileName,
+                  content: fileData.content,
+                  dir: fileData.dir,
+                });
+              }
+            } else {
+              // Queue as standalone style file
+              standaloneStyleFiles.push({
+                fileName,
+                content: fileData.content,
+                dir: fileData.dir,
+              });
+            }
+          }
+        }
+      }
+
+      // Write all token files (with merged styles if applicable)
       let filesWritten = 0;
       for (const [outDir, filesInDir] of filesByDir) {
         await mkdir(outDir, { recursive: true });
@@ -237,6 +357,19 @@ export async function syncCommand(options: SyncOptions = {}) {
           await writeFile(filePath, JSON.stringify(content, null, 2));
           filesWritten++;
         }
+      }
+
+      // Write standalone style files
+      for (const { fileName, content, dir } of standaloneStyleFiles) {
+        const outDir = dir
+          ? resolve(process.cwd(), dir)
+          : defaultOutDir;
+
+        await mkdir(outDir, { recursive: true });
+        const filePath = resolve(outDir, fileName);
+        await writeFile(filePath, JSON.stringify(content, null, 2));
+        styleFilesWritten++;
+        logger.debug(`Wrote style file: ${filePath}`);
       }
 
       // Always generate intermediate format (used by docs and other tools)
@@ -271,6 +404,7 @@ export async function syncCommand(options: SyncOptions = {}) {
       }
 
       const extras: string[] = [];
+      if (styleFilesWritten > 0) extras.push(`${styleFilesWritten} style`);
       if (buildScriptRan) extras.push('build script');
       if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
       if (docsFilesWritten > 0) extras.push(`${docsFilesWritten} docs`);
@@ -292,6 +426,13 @@ export async function syncCommand(options: SyncOptions = {}) {
     let normalizedTokens = normalizePluginData(rawData);
     logger.debug(`Normalized ${Object.keys(normalizedTokens).length} token entries`);
 
+    // 3.0 Normalize styles if present (v3.0.0+ plugin data)
+    const normalizedStyles = hasStyles(rawData) ? normalizeStyleData(rawData) : undefined;
+    if (normalizedStyles) {
+      const styleCounts = getStyleCount(rawData);
+      logger.debug(`Normalized ${styleCounts.total} styles (paint: ${styleCounts.paint}, text: ${styleCounts.text}, effect: ${styleCounts.effect})`);
+    }
+
     // 3a. Filter out phantom modes (Figma internal IDs like "21598:4")
     const preFilterCount = Object.keys(normalizedTokens).length;
     normalizedTokens = filterPhantomModes(normalizedTokens);
@@ -302,12 +443,12 @@ export async function syncCommand(options: SyncOptions = {}) {
 
     // 3b. Filter by collection if specified
     if (options.collection) {
-      const collectionsToSync = options.collection.split(',').map(c => c.trim().toLowerCase());
+      const collectionsToSync = new Set(options.collection.split(',').map(c => c.trim().toLowerCase()));
       const originalCount = Object.keys(normalizedTokens).length;
       normalizedTokens = Object.fromEntries(
         Object.entries(normalizedTokens).filter(([_, entry]) => {
           const entryCollection = (entry.collection || entry.path.split('.')[0]).toLowerCase();
-          return collectionsToSync.includes(entryCollection);
+          return collectionsToSync.has(entryCollection);
         })
       );
       const filteredCount = Object.keys(normalizedTokens).length;
@@ -327,6 +468,7 @@ export async function syncCommand(options: SyncOptions = {}) {
     // Build the new baseline object
     const newBaseline: BaselineData = {
       baseline: normalizedTokens,
+      styles: normalizedStyles,
       metadata: {
         syncedAt: new Date().toISOString(),
       },
@@ -345,6 +487,15 @@ export async function syncCommand(options: SyncOptions = {}) {
           ? `1 mode: ${col.modes[0]}`
           : `${col.modes.length} modes: ${col.modes.join(', ')}`;
         console.log(chalk.dim(`    - ${col.name} (${modeStr})`));
+      }
+
+      // Display discovered styles if present
+      if (normalizedStyles && Object.keys(normalizedStyles).length > 0) {
+        const styleCounts = getStyleCount(rawData);
+        console.log(chalk.cyan('\n  Styles from Figma:'));
+        if (styleCounts.paint > 0) console.log(chalk.dim(`    - Paint styles: ${styleCounts.paint}`));
+        if (styleCounts.text > 0) console.log(chalk.dim(`    - Text styles: ${styleCounts.text}`));
+        if (styleCounts.effect > 0) console.log(chalk.dim(`    - Effect styles: ${styleCounts.effect}`));
       }
       console.log('');
 
@@ -367,10 +518,13 @@ export async function syncCommand(options: SyncOptions = {}) {
       collectionRenames = result.collectionRenames;
       const counts = getChangeCounts(result);
 
+      // Compare styles if both baselines have styles
+      const styleResult = compareStyleBaselines(localBaseline.styles, newBaseline.styles);
+      const styleCounts = getStyleChangeCounts(styleResult);
+
       // No changes from Figma - but still regenerate files (config may have changed)
-      if (!hasChanges(result)) {
+      if (!hasChanges(result) && !hasStyleChanges(styleResult)) {
         spinner.text = 'Regenerating token files...';
-        hasBaselineChanges = false;
       } else {
         hasBaselineChanges = true;
       }
@@ -380,11 +534,15 @@ export async function syncCommand(options: SyncOptions = {}) {
         spinner.stop();
         console.log(chalk.cyan('\n  Preview Mode - No changes will be applied\n'));
         printDiffSummary(result);
+        if (hasStyleChanges(styleResult)) {
+          printStyleDiffSummary(styleResult);
+        }
         return;
       }
 
       // Breaking changes detected - block unless --force
-      if (hasBreakingChanges(result) && !options.force) {
+      const hasAnyBreakingChanges = hasBreakingChanges(result) || hasBreakingStyleChanges(styleResult);
+      if (hasAnyBreakingChanges && !options.force) {
         spinner.stop();
 
         console.log(chalk.yellow('\n  BREAKING CHANGES DETECTED\n'));
@@ -415,7 +573,8 @@ export async function syncCommand(options: SyncOptions = {}) {
         }
 
         if (result.newModes.length > 0) {
-          console.log(chalk.red(`  New modes: ${result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ')}`));
+          const newModesStr = result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ');
+          console.log(chalk.red(`  New modes: ${newModesStr}`));
         }
 
         if (result.deletedVariables.length > 0) {
@@ -429,7 +588,29 @@ export async function syncCommand(options: SyncOptions = {}) {
         }
 
         if (result.deletedModes.length > 0) {
-          console.log(chalk.red(`  Deleted modes: ${result.deletedModes.map(m => `${m.collection}:${m.mode}`).join(', ')}`));
+          const deletedModesStr = result.deletedModes.map(m => `${m.collection}:${m.mode}`).join(', ');
+          console.log(chalk.red(`  Deleted modes: ${deletedModesStr}`));
+        }
+
+        // Show breaking style changes
+        if (styleResult.pathChanges.length > 0) {
+          console.log(chalk.red(`  Style path changes: ${styleResult.pathChanges.length}`));
+          styleResult.pathChanges.slice(0, 5).forEach(change => {
+            console.log(chalk.dim(`    ${change.oldPath} -> ${change.newPath} (${change.styleType})`));
+          });
+          if (styleResult.pathChanges.length > 5) {
+            console.log(chalk.dim(`    ... and ${styleResult.pathChanges.length - 5} more`));
+          }
+        }
+
+        if (styleResult.deletedStyles.length > 0) {
+          console.log(chalk.red(`  Deleted styles: ${styleResult.deletedStyles.length}`));
+          styleResult.deletedStyles.slice(0, 5).forEach(s => {
+            console.log(chalk.dim(`    - ${s.path} (${s.styleType})`));
+          });
+          if (styleResult.deletedStyles.length > 5) {
+            console.log(chalk.dim(`    ... and ${styleResult.deletedStyles.length - 5} more`));
+          }
         }
 
         console.log(chalk.yellow('\n  These changes may break your code.\n'));
@@ -441,7 +622,8 @@ export async function syncCommand(options: SyncOptions = {}) {
 
       // Show summary of what will be synced
       spinner.stop();
-      console.log(chalk.cyan(`\n  Syncing ${counts.total} change(s)...\n`));
+      const totalChanges = counts.total + styleCounts.total;
+      console.log(chalk.cyan(`\n  Syncing ${totalChanges} change(s)...\n`));
 
       // Show value changes
       if (result.valueChanges.length > 0) {
@@ -467,7 +649,30 @@ export async function syncCommand(options: SyncOptions = {}) {
 
       // Show new modes
       if (result.newModes.length > 0) {
-        console.log(chalk.green(`  New modes: ${result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ')}`));
+        const newModesStr = result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ');
+        console.log(chalk.green(`  New modes: ${newModesStr}`));
+      }
+
+      // Show style changes
+      if (styleResult.valueChanges.length > 0) {
+        console.log(chalk.dim(`  Style value changes (${styleResult.valueChanges.length}):`));
+        styleResult.valueChanges.slice(0, 3).forEach(change => {
+          console.log(chalk.dim(`    ${change.path} (${change.styleType})`));
+        });
+        if (styleResult.valueChanges.length > 3) {
+          console.log(chalk.dim(`    ... and ${styleResult.valueChanges.length - 3} more`));
+        }
+      }
+
+      // Show new styles
+      if (styleResult.newStyles.length > 0) {
+        console.log(chalk.green(`  New styles (${styleResult.newStyles.length}):`));
+        styleResult.newStyles.slice(0, 5).forEach(s => {
+          console.log(chalk.green(`    + ${s.path} (${s.styleType})`));
+        });
+        if (styleResult.newStyles.length > 5) {
+          console.log(chalk.dim(`    ... and ${styleResult.newStyles.length - 5} more`));
+        }
       }
 
       console.log('');
@@ -501,7 +706,7 @@ export async function syncCommand(options: SyncOptions = {}) {
       collections: config.tokens.collections || {},
       dtcg: config.tokens.dtcg !== false,                    // default true
       includeVariableId: config.tokens.includeVariableId === true, // default false
-      splitModes: config.tokens.splitModes,                  // parent-level default
+      splitBy: config.tokens.splitBy,                        // parent-level default
       includeMode: config.tokens.includeMode,                // parent-level default
       extensions: config.tokens.extensions || {},            // optional metadata
     };
@@ -531,6 +736,116 @@ export async function syncCommand(options: SyncOptions = {}) {
       filesByDir.get(outDir)!.set(fileName, fileData.content);
     }
 
+    // 7b. Process and merge style files BEFORE writing token files
+    // This allows mergeInto to work correctly by modifying in-memory content
+    let styleFilesWritten = 0;
+    const standaloneStyleFiles: Array<{ fileName: string; content: any; dir?: string }> = [];
+
+    if (normalizedStyles && Object.keys(normalizedStyles).length > 0) {
+      const stylesConfig = config.tokens.styles;
+
+      // Check if styles are enabled (default: true)
+      if (stylesConfig?.enabled !== false) {
+        spinner.text = 'Processing style files...';
+
+        const styleSplitOptions: StylesSplitOptions = {
+          enabled: stylesConfig?.enabled,
+          paint: stylesConfig?.paint,
+          text: stylesConfig?.text,
+          effect: stylesConfig?.effect,
+        };
+
+        const processedStyles = splitStyles(normalizedStyles, styleSplitOptions);
+        logger.debug(`${processedStyles.size} style files processed`);
+
+        // Process style files - merge into token files or queue as standalone
+        for (const [fileName, fileData] of processedStyles) {
+          if (fileData.mergeInto) {
+            // Merge styles into an existing token file
+            const { collection, group } = fileData.mergeInto;
+            const collectionConfig = config.tokens.collections?.[collection];
+            const splitBy = collectionConfig?.splitBy ?? config.tokens.splitBy ?? 'mode';
+            const namesMapping = collectionConfig?.names || {};
+
+            // Determine target directory
+            const targetDir = collectionConfig?.dir
+              ? resolve(process.cwd(), collectionConfig.dir)
+              : defaultOutDir;
+
+            // Determine target filename based on collection's splitBy strategy
+            let targetFileName: string;
+            if (splitBy === 'group') {
+              // For group splitting, use the group name if specified (with names mapping)
+              // If no group specified in mergeInto, this is a config error
+              const targetGroup = group || Object.keys(fileData.content)[0];
+              const mappedGroup = namesMapping[targetGroup] || targetGroup;
+              targetFileName = `${mappedGroup}.json`;
+            } else if (splitBy === 'none') {
+              // Single file per collection
+              const fileBase = collectionConfig?.file || collection;
+              targetFileName = `${fileBase}.json`;
+            } else {
+              // For mode splitting, we need to merge into ALL mode files
+              // Find all files for this collection and merge into each
+              const collectionPrefix = collectionConfig?.file || collection;
+              const filesInTargetDir = filesByDir.get(targetDir);
+              if (filesInTargetDir) {
+                for (const [existingFileName, existingContent] of filesInTargetDir) {
+                  if (existingFileName.startsWith(`${collectionPrefix}.`) && existingFileName.endsWith('.json')) {
+                    // Merge style content into this mode file
+                    if (group) {
+                      // Merge into the specified group path
+                      if (!existingContent[group]) {
+                        existingContent[group] = {};
+                      }
+                      deepMerge(existingContent[group], fileData.content);
+                    } else {
+                      deepMerge(existingContent, fileData.content);
+                    }
+                    logger.debug(`Merged ${fileData.styleType} styles into ${existingFileName}${group ? ` at group '${group}'` : ''}`);
+                  }
+                }
+              }
+              continue; // Already merged into mode files
+            }
+
+            // Merge into single target file
+            const filesInTargetDir = filesByDir.get(targetDir);
+            if (filesInTargetDir?.has(targetFileName)) {
+              const targetContent = filesInTargetDir.get(targetFileName);
+              if (group) {
+                // Merge into the specified group path within the file
+                if (!targetContent[group]) {
+                  targetContent[group] = {};
+                }
+                deepMerge(targetContent[group], fileData.content);
+                logger.debug(`Merged ${fileData.styleType} styles into ${targetFileName} at group '${group}'`);
+              } else {
+                // Merge at root level
+                deepMerge(targetContent, fileData.content);
+                logger.debug(`Merged ${fileData.styleType} styles into ${targetFileName}`);
+              }
+            } else {
+              // Target file doesn't exist in processed tokens - queue as standalone
+              logger.warn(`Target file ${targetFileName} not found for mergeInto, writing as standalone`);
+              standaloneStyleFiles.push({
+                fileName,
+                content: fileData.content,
+                dir: fileData.dir,
+              });
+            }
+          } else {
+            // Queue as standalone style file
+            standaloneStyleFiles.push({
+              fileName,
+              content: fileData.content,
+              dir: fileData.dir,
+            });
+          }
+        }
+      }
+    }
+
     // Ensure all output directories exist
     for (const dir of outputDirs) {
       await mkdir(dir, { recursive: true });
@@ -547,11 +862,13 @@ export async function syncCommand(options: SyncOptions = {}) {
             logger.debug(`Removed stale file: ${file}`);
           }
         }
-      } catch (err) {
+      } catch {
         // Ignore errors if directory doesn't exist yet
       }
     }
 
+    // Write all token files (with merged styles if applicable)
+    spinner.text = 'Writing token files...';
     let filesWritten = 0;
     for (const [outDir, filesInDir] of filesByDir) {
       for (const [fileName, content] of filesInDir) {
@@ -559,6 +876,19 @@ export async function syncCommand(options: SyncOptions = {}) {
         await writeFile(filePath, JSON.stringify(content, null, 2));
         filesWritten++;
       }
+    }
+
+    // Write standalone style files
+    for (const { fileName, content, dir } of standaloneStyleFiles) {
+      const outDir = dir
+        ? resolve(process.cwd(), dir)
+        : defaultOutDir;
+
+      await mkdir(outDir, { recursive: true });
+      const filePath = resolve(outDir, fileName);
+      await writeFile(filePath, JSON.stringify(content, null, 2));
+      styleFilesWritten++;
+      logger.debug(`Wrote style file: ${filePath}`);
     }
 
     // 8. Always generate intermediate format (used by docs and other tools)
@@ -618,7 +948,7 @@ export async function syncCommand(options: SyncOptions = {}) {
           // Timestamped reports for changelog history
           const reportsDir = resolve(synkioDir, 'reports');
           await mkdir(reportsDir, { recursive: true });
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
           reportPath = resolve(reportsDir, `${timestamp}.md`);
         } else {
           // Single report file, overwritten each sync
@@ -627,7 +957,10 @@ export async function syncCommand(options: SyncOptions = {}) {
 
         await writeFile(reportPath, report);
         const relativePath = reportPath.replace(process.cwd() + '/', '');
-        spinner.succeed(chalk.green(`Sync complete. Wrote ${filesWritten} token files. Report: ${relativePath}`));
+        const filesSummary = styleFilesWritten > 0
+          ? `${filesWritten} token + ${styleFilesWritten} style files`
+          : `${filesWritten} token files`;
+        spinner.succeed(chalk.green(`Sync complete. Wrote ${filesSummary}. Report: ${relativePath}`));
 
         // Show additional outputs
         const allOutputs = [
@@ -647,6 +980,7 @@ export async function syncCommand(options: SyncOptions = {}) {
 
     // Build output summary
     const extras: string[] = [];
+    if (styleFilesWritten > 0) extras.push(`${styleFilesWritten} style`);
     if (buildScriptRan) extras.push('build script');
     if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
     if (docsFilesWritten > 0) extras.push('docs');
@@ -654,11 +988,11 @@ export async function syncCommand(options: SyncOptions = {}) {
 
     // Show appropriate message based on whether there were changes
     if (hasBaselineChanges) {
-      spinner.succeed(chalk.green(`Sync complete. Wrote ${filesWritten} token files to ${config.tokens.dir}.${extrasStr}`));
+      spinner.succeed(chalk.green(`Sync complete. Wrote ${filesWritten} token files.${extrasStr}`));
     } else if (localBaseline) {
       spinner.succeed(chalk.green(`No changes from Figma. Regenerated ${filesWritten} token files.${extrasStr}`));
     } else {
-      spinner.succeed(chalk.green(`Initial sync complete. Wrote ${filesWritten} token files to ${config.tokens.dir}.${extrasStr}`));
+      spinner.succeed(chalk.green(`Initial sync complete. Wrote ${filesWritten} token files.${extrasStr}`));
     }
 
     // Show docs location if generated
@@ -702,12 +1036,12 @@ export async function watchCommand(options: SyncOptions = {}) {
     // Read current baseline
     lastBaseline = await readBaseline();
 
-    if (!lastBaseline) {
+    if (lastBaseline) {
+      console.log(chalk.dim(`  Baseline loaded. Last sync: ${lastBaseline.metadata.syncedAt}\n`));
+    } else {
       console.log(chalk.yellow('  No baseline found. Running initial sync...\n'));
       await syncCommand({ ...options, watch: false });
       lastBaseline = await readBaseline();
-    } else {
-      console.log(chalk.dim(`  Baseline loaded. Last sync: ${lastBaseline.metadata.syncedAt}\n`));
     }
 
     // Watch loop

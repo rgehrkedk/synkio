@@ -20,22 +20,22 @@ export interface FigmaClientOptions {
  * - Request ID extraction for debugging
  */
 export class FigmaClient {
-  private fileId: string;
-  private nodeId: string;
-  private accessToken: string;
-  private timeout: number;
-  private maxRetries: number;
-  private logger?: Logger;
-  private baseUrl: string;
+  private readonly fileId: string;
+  private readonly nodeId: string;
+  private readonly accessToken: string;
+  private readonly timeout: number;
+  private readonly maxRetries: number;
+  private readonly logger?: Logger;
+  private readonly baseUrl: string;
 
   // Plugin namespaces to check (synkio first, then legacy token_vault)
-  private static NAMESPACES = ['synkio', 'token_vault'];
+  private static readonly NAMESPACES = ['synkio', 'token_vault'];
 
   constructor(options: FigmaClientOptions) {
     this.fileId = options.fileId;
     this.nodeId = options.nodeId || '0:0'; // Default to document root
     this.accessToken = options.accessToken;
-    this.timeout = options.timeout ?? 60000;
+    this.timeout = options.timeout ?? 120000;
     this.maxRetries = options.maxRetries ?? 3;
     this.logger = options.logger;
     this.baseUrl = options.baseUrl || 'https://api.figma.com';
@@ -144,8 +144,9 @@ export class FigmaClient {
         } catch (error: any) {
           clearTimeout(timeoutId);
 
+          // Timeout errors should retry (throw regular Error, not AbortError)
           if (error.name === 'AbortError') {
-            throw new AbortError(`Request timeout after ${this.timeout}ms`);
+            throw new Error(`Request timeout after ${this.timeout}ms`);
           }
 
           throw error;
@@ -175,7 +176,7 @@ export class FigmaClient {
     if (namespace === 'synkio') {
       const chunkCount = pluginData.chunkCount;
       if (chunkCount) {
-        const count = parseInt(chunkCount, 10);
+        const count = Number.parseInt(chunkCount, 10);
         let fullData = '';
         for (let i = 0; i < count; i++) {
           fullData += pluginData[`chunk_${i}`] || '';
@@ -192,7 +193,7 @@ export class FigmaClient {
     // Legacy format: registry_X keys (token_vault)
     const chunkKeys = Object.keys(pluginData)
       .filter(key => key.startsWith('registry_'))
-      .sort();
+      .sort((a, b) => a.localeCompare(b));
 
     if (chunkKeys.length === 0) {
       throw new Error('No data or chunks found in plugin data');

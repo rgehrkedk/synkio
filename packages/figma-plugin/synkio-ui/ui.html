@@ -567,6 +567,7 @@
   var currentModeRenames = [];
   var currentHistory = [];
   var currentCollections = [];
+  var currentStyleTypes = [];
   var isSyncing = false;
   var syncButton = document.getElementById("syncButton");
   var syncIcon = document.getElementById("syncIcon");
@@ -596,6 +597,7 @@
       } else if (targetTab === "collections") {
         collectionsView.classList.add("active");
         parent.postMessage({ pluginMessage: { type: "get-collections" } }, "*");
+        parent.postMessage({ pluginMessage: { type: "get-style-types" } }, "*");
       }
     });
   });
@@ -609,46 +611,83 @@
     parent.postMessage({ pluginMessage: { type: "sync" } }, "*");
   });
   saveCollectionsBtn.addEventListener("click", () => {
-    const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]');
-    const excluded = [];
-    checkboxes.forEach((checkbox) => {
+    const collectionCheckboxes = collectionsList.querySelectorAll("input[data-collection]");
+    const excludedCollections = [];
+    collectionCheckboxes.forEach((checkbox) => {
       if (!checkbox.checked) {
-        excluded.push(checkbox.dataset.collection || "");
+        excludedCollections.push(checkbox.dataset.collection || "");
       }
     });
-    if (excluded.length === checkboxes.length) {
+    const styleCheckboxes = collectionsList.querySelectorAll("input[data-style-type]");
+    const excludedStyleTypes = [];
+    styleCheckboxes.forEach((checkbox) => {
+      if (!checkbox.checked) {
+        excludedStyleTypes.push(checkbox.dataset.styleType || "");
+      }
+    });
+    if (collectionCheckboxes.length > 0 && excludedCollections.length === collectionCheckboxes.length) {
       collectionsWarning.style.display = "block";
       return;
     }
     collectionsWarning.style.display = "none";
     saveCollectionsBtn.disabled = true;
     saveCollectionsBtn.textContent = "Saving...";
-    parent.postMessage({ pluginMessage: { type: "save-excluded-collections", excluded } }, "*");
+    parent.postMessage({ pluginMessage: { type: "save-excluded-collections", excluded: excludedCollections } }, "*");
+    parent.postMessage({ pluginMessage: { type: "save-excluded-style-types", excluded: excludedStyleTypes } }, "*");
   });
   function renderCollections(collections) {
     currentCollections = collections;
-    if (collections.length === 0) {
-      collectionsList.innerHTML = `
+    updateCollectionsView();
+  }
+  function renderStyleTypes(styleTypes) {
+    currentStyleTypes = styleTypes;
+    updateCollectionsView();
+  }
+  function updateCollectionsView() {
+    let html = "";
+    if (currentCollections.length > 0) {
+      html += `
+      <div class="section-header">Variable Collections</div>
+      ${currentCollections.map((col) => `
+        <label class="collection-item">
+          <input type="checkbox"
+                 data-collection="${escapeHtml(col.name)}"
+                 ${!col.excluded ? "checked" : ""}>
+          <span class="collection-name">${escapeHtml(col.name)}</span>
+          <span class="mode-count">(${col.modeCount} mode${col.modeCount !== 1 ? "s" : ""})</span>
+        </label>
+      `).join("")}
+    `;
+    }
+    if (currentStyleTypes.length > 0) {
+      const hasStyles = currentStyleTypes.some((st) => st.count > 0);
+      if (hasStyles) {
+        html += `
+        <div class="section-header" style="margin-top: 16px;">Style Types</div>
+        ${currentStyleTypes.filter((st) => st.count > 0).map((st) => `
+          <label class="collection-item">
+            <input type="checkbox"
+                   data-style-type="${st.type}"
+                   ${!st.excluded ? "checked" : ""}>
+            <span class="collection-name">${escapeHtml(st.label)}</span>
+            <span class="mode-count">(${st.count} style${st.count !== 1 ? "s" : ""})</span>
+          </label>
+        `).join("")}
+      `;
+      }
+    }
+    if (currentCollections.length === 0 && currentStyleTypes.every((st) => st.count === 0)) {
+      html = `
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
         </svg>
-        <p>No variable collections found</p>
+        <p>No variable collections or styles found</p>
       </div>
     `;
-      return;
     }
-    const html = collections.map((col) => `
-    <label class="collection-item">
-      <input type="checkbox"
-             data-collection="${escapeHtml(col.name)}"
-             ${!col.excluded ? "checked" : ""}>
-      <span class="collection-name">${escapeHtml(col.name)}</span>
-      <span class="mode-count">(${col.modeCount} mode${col.modeCount !== 1 ? "s" : ""})</span>
-    </label>
-  `).join("");
     collectionsList.innerHTML = html;
-    updateExcludedBadge(collections);
+    updateExcludedBadge();
     collectionsList.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
       checkbox.addEventListener("change", validateCollections);
     });
@@ -664,10 +703,12 @@
       saveCollectionsBtn.disabled = false;
     }
   }
-  function updateExcludedBadge(collections) {
-    const excludedCount = collections.filter((c) => c.excluded).length;
-    if (excludedCount > 0) {
-      excludedBadge.textContent = excludedCount + " excluded";
+  function updateExcludedBadge() {
+    const excludedCollections = currentCollections.filter((c) => c.excluded).length;
+    const excludedStyles = currentStyleTypes.filter((st) => st.excluded && st.count > 0).length;
+    const totalExcluded = excludedCollections + excludedStyles;
+    if (totalExcluded > 0) {
+      excludedBadge.textContent = totalExcluded + " excluded";
       excludedBadge.style.display = "inline";
     } else {
       excludedBadge.style.display = "none";
@@ -891,6 +932,11 @@
     if (msg && msg.type === "collections-update") {
       renderCollections(msg.collections);
     }
+    if (msg && msg.type === "style-types-update") {
+      renderStyleTypes(msg.styleTypes);
+    }
+    if (msg && msg.type === "style-types-saved") {
+    }
     if (msg && msg.type === "collections-saved") {
       saveCollectionsBtn.disabled = false;
       saveCollectionsBtn.textContent = "Save";
@@ -901,14 +947,19 @@
         saveCollectionsBtn.textContent = originalText;
         saveCollectionsBtn.style.background = "";
       }, 1500);
-      const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]');
-      const excludedCount = Array.from(checkboxes).filter((cb) => !cb.checked).length;
-      if (excludedCount > 0) {
-        excludedBadge.textContent = excludedCount + " excluded";
-        excludedBadge.style.display = "inline";
-      } else {
-        excludedBadge.style.display = "none";
-      }
+      const collectionCheckboxes = collectionsList.querySelectorAll("input[data-collection]");
+      collectionCheckboxes.forEach((cb) => {
+        const col = currentCollections.find((c) => c.name === cb.dataset.collection);
+        if (col)
+          col.excluded = !cb.checked;
+      });
+      const styleCheckboxes = collectionsList.querySelectorAll("input[data-style-type]");
+      styleCheckboxes.forEach((cb) => {
+        const st = currentStyleTypes.find((s) => s.type === cb.dataset.styleType);
+        if (st)
+          st.excluded = !cb.checked;
+      });
+      updateExcludedBadge();
     }
   };
   parent.postMessage({ pluginMessage: { type: "ready" } }, "*");

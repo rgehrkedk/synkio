@@ -1,5 +1,5 @@
-import { mkdir, writeFile, readFile } from 'fs/promises';
-import { resolve } from 'path';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { BaselineData } from '../types/index.js';
 
 const SYNKIO_DIR = '.synkio';
@@ -29,7 +29,7 @@ export async function writeBaseline(data: BaselineData) {
     if (currentBaseline) {
       await writeFile(PREV_BASELINE_PATH, JSON.stringify(currentBaseline, null, 2));
     }
-  } catch (error) {
+  } catch {
     // Ignore if there's no current baseline to move
   }
 

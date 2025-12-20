@@ -1,5 +1,5 @@
-import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { BaselineData, BaselineEntry } from '../../types/index.js';
 import { Config, DocsPlatform } from '../config.js';
 import { generateTokensCSS, generateUtilitiesCSS } from '../css/index.js';
@@ -88,9 +88,7 @@ function formatForCustomPlatform(parts: string[], platform: DocsPlatform): strin
 
   // Determine separator based on case or custom separator
   let separator: string;
-  if (platform.separator !== undefined) {
-    separator = platform.separator;
-  } else {
+  if (platform.separator === undefined) {
     switch (caseType) {
       case 'camel':
       case 'pascal':
@@ -104,6 +102,8 @@ function formatForCustomPlatform(parts: string[], platform: DocsPlatform): strin
       default:
         separator = '-';
     }
+  } else {
+    separator = platform.separator;
   }
 
   return `${prefix}${formattedParts.join(separator)}${suffix}`;
@@ -126,12 +126,12 @@ function generatePlatformVariableNames(
 
   // Always include JSON nested path format
   const formattedParts = parts.map(part => {
-    if (/^\d/.test(part) || /[^a-zA-Z0-9_]/.test(part)) {
+    if (/^\d/.test(part) || /\W/.test(part)) {
       return `["${part}"]`;
     }
     return part;
   });
-  result['json'] = formattedParts.join('.').replace(/\.\[/g, '[');
+  result['json'] = formattedParts.join('.').replaceAll('.[', '[');
 
   // If custom platforms are defined, use them
   if (customPlatforms && customPlatforms.length > 0) {
@@ -182,7 +182,7 @@ export async function parseTokens(
     }
   }
 
-  for (const [key, entry] of Object.entries(baseline.baseline)) {
+  for (const entry of Object.values(baseline.baseline)) {
     const parsed = await parseToken(entry, variableIdLookup, options);
     all.push(parsed);
 
@@ -245,7 +245,7 @@ async function parseToken(
   // Generate CSS variable name from path using metadata or defaults
   const prefix = options.variableNaming?.prefix || '--';
   const separator = options.variableNaming?.separator || '-';
-  const cssVariable = `${prefix}${entry.path.replace(/\./g, separator).toLowerCase()}`;
+  const cssVariable = `${prefix}${entry.path.replaceAll('.', separator).toLowerCase()}`;
 
   // Generate platform-specific variable names
   const platformVariables = generatePlatformVariableNames(
@@ -391,7 +391,7 @@ async function tryLoadIntermediateFormat(config: Config): Promise<IntermediateTo
     }
 
     return null;
-  } catch (error) {
+  } catch {
     // File doesn't exist or couldn't be read - that's fine, use baseline
     return null;
   }

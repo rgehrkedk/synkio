@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { compareBaselines, getChangeCounts } from './compare.js';
-import { BaselineData } from '../types/index.js';
+import { compareBaselines, getChangeCounts, compareStyleBaselines, hasStyleChanges, hasBreakingStyleChanges, getStyleChangeCounts } from './compare.js';
+import { BaselineData, RawStyles } from '../types/index.js';
 
 const base: BaselineData = {
   metadata: { syncedAt: 'yesterday' },
@@ -600,5 +600,251 @@ describe('compareBaselines - Fallback to Heuristic Matching', () => {
 
     // Should fallback to heuristic matching
     expect(counts.collectionRenames).toBe(1);
+  });
+});
+
+// =============================================================================
+// Style Comparison Tests
+// =============================================================================
+
+const baseStyles: RawStyles = {
+  'S:style1:paint': {
+    styleId: 'S:style1',
+    type: 'paint',
+    path: 'brand.primary',
+    value: { $type: 'color', $value: '#ff0000' },
+  },
+  'S:style2:text': {
+    styleId: 'S:style2',
+    type: 'text',
+    path: 'heading.h1',
+    value: {
+      $type: 'typography',
+      $value: {
+        fontFamily: 'Inter',
+        fontSize: '32px',
+        fontWeight: 700,
+        lineHeight: '1.2',
+        letterSpacing: '0',
+      },
+    },
+  },
+  'S:style3:effect': {
+    styleId: 'S:style3',
+    type: 'effect',
+    path: 'elevation.md',
+    value: {
+      $type: 'shadow',
+      $value: {
+        offsetX: '0',
+        offsetY: '4px',
+        blur: '8px',
+        spread: '0',
+        color: 'rgba(0,0,0,0.1)',
+      },
+    },
+  },
+};
+
+describe('compareStyleBaselines - Basic Functionality', () => {
+  it('should detect no changes when styles are identical', () => {
+    const identicalFetched = JSON.parse(JSON.stringify(baseStyles));
+    const result = compareStyleBaselines(baseStyles, identicalFetched);
+    expect(hasStyleChanges(result)).toBe(false);
+    expect(getStyleChangeCounts(result).total).toBe(0);
+  });
+
+  it('should handle undefined/empty baselines', () => {
+    const result1 = compareStyleBaselines(undefined, undefined);
+    expect(hasStyleChanges(result1)).toBe(false);
+
+    const result2 = compareStyleBaselines(baseStyles, undefined);
+    expect(result2.deletedStyles.length).toBe(3);
+
+    const result3 = compareStyleBaselines(undefined, baseStyles);
+    expect(result3.newStyles.length).toBe(3);
+  });
+
+  it('should detect value changes', () => {
+    const fetched: RawStyles = {
+      ...baseStyles,
+      'S:style1:paint': {
+        ...baseStyles['S:style1:paint'],
+        value: { $type: 'color', $value: '#0000ff' }, // Changed value
+      },
+    };
+    const result = compareStyleBaselines(baseStyles, fetched);
+    expect(result.valueChanges.length).toBe(1);
+    expect(result.valueChanges[0].styleId).toBe('S:style1');
+    expect(result.valueChanges[0].oldValue.$value).toBe('#ff0000');
+    expect(result.valueChanges[0].newValue.$value).toBe('#0000ff');
+    expect(hasBreakingStyleChanges(result)).toBe(false);
+  });
+
+  it('should detect path changes (breaking)', () => {
+    const fetched: RawStyles = {
+      ...baseStyles,
+      'S:style1:paint': {
+        ...baseStyles['S:style1:paint'],
+        path: 'brand.primary.base', // Changed path (rename)
+      },
+    };
+    const result = compareStyleBaselines(baseStyles, fetched);
+    expect(result.pathChanges.length).toBe(1);
+    expect(result.pathChanges[0].styleId).toBe('S:style1');
+    expect(result.pathChanges[0].oldPath).toBe('brand.primary');
+    expect(result.pathChanges[0].newPath).toBe('brand.primary.base');
+    expect(hasBreakingStyleChanges(result)).toBe(true);
+    expect(getStyleChangeCounts(result).breaking).toBe(1);
+  });
+
+  it('should detect new styles', () => {
+    const fetched: RawStyles = {
+      ...baseStyles,
+      'S:style4:paint': {
+        styleId: 'S:style4',
+        type: 'paint',
+        path: 'brand.secondary',
+        value: { $type: 'color', $value: '#00ff00' },
+      },
+    };
+    const result = compareStyleBaselines(baseStyles, fetched);
+    expect(result.newStyles.length).toBe(1);
+    expect(result.newStyles[0].styleId).toBe('S:style4');
+    expect(result.newStyles[0].path).toBe('brand.secondary');
+    expect(hasBreakingStyleChanges(result)).toBe(false);
+  });
+
+  it('should detect deleted styles (breaking)', () => {
+    const fetched: RawStyles = {
+      'S:style1:paint': baseStyles['S:style1:paint'],
+      // style2 and style3 are deleted
+    };
+    const result = compareStyleBaselines(baseStyles, fetched);
+    expect(result.deletedStyles.length).toBe(2);
+    expect(result.deletedStyles.map(s => s.styleId).sort()).toEqual(['S:style2', 'S:style3']);
+    expect(hasBreakingStyleChanges(result)).toBe(true);
+    expect(getStyleChangeCounts(result).breaking).toBe(2);
+  });
+
+  it('should detect simultaneous path and value changes', () => {
+    const fetched: RawStyles = {
+      ...baseStyles,
+      'S:style2:text': {
+        ...baseStyles['S:style2:text'],
+        path: 'heading.display', // Path changed
+        value: {
+          ...baseStyles['S:style2:text'].value,
+          $value: {
+            ...baseStyles['S:style2:text'].value.$value,
+            fontSize: '48px', // Value also changed
+          },
+        },
+      },
+    };
+    const result = compareStyleBaselines(baseStyles, fetched);
+    expect(result.pathChanges.length).toBe(1);
+    expect(result.valueChanges.length).toBe(1);
+    expect(result.pathChanges[0].styleId).toBe('S:style2');
+    expect(result.valueChanges[0].styleId).toBe('S:style2');
+  });
+
+  it('should correctly report style types in results', () => {
+    const fetched: RawStyles = {
+      'S:style1:paint': {
+        ...baseStyles['S:style1:paint'],
+        value: { $type: 'color', $value: '#0000ff' },
+      },
+      'S:style2:text': {
+        ...baseStyles['S:style2:text'],
+        path: 'heading.display',
+      },
+      // effect style deleted
+    };
+    const result = compareStyleBaselines(baseStyles, fetched);
+
+    expect(result.valueChanges[0].styleType).toBe('paint');
+    expect(result.pathChanges[0].styleType).toBe('text');
+    expect(result.deletedStyles[0].styleType).toBe('effect');
+  });
+});
+
+describe('compareStyleBaselines - ID-Based Matching', () => {
+  it('should use styleId for matching even when path changes', () => {
+    const baseline: RawStyles = {
+      'S:123:paint': {
+        styleId: 'S:123',
+        type: 'paint',
+        path: 'colors.old-name',
+        value: { $type: 'color', $value: '#ff0000' },
+      },
+    };
+
+    const fetched: RawStyles = {
+      'S:123:paint': {
+        styleId: 'S:123', // Same ID
+        type: 'paint',
+        path: 'colors.new-name', // Different path
+        value: { $type: 'color', $value: '#ff0000' },
+      },
+    };
+
+    const result = compareStyleBaselines(baseline, fetched);
+
+    // Should detect as path change (rename), not deletion + addition
+    expect(result.pathChanges.length).toBe(1);
+    expect(result.deletedStyles.length).toBe(0);
+    expect(result.newStyles.length).toBe(0);
+  });
+
+  it('should detect new style when styleId does not exist in baseline', () => {
+    const baseline: RawStyles = {
+      'S:123:paint': {
+        styleId: 'S:123',
+        type: 'paint',
+        path: 'colors.primary',
+        value: { $type: 'color', $value: '#ff0000' },
+      },
+    };
+
+    const fetched: RawStyles = {
+      'S:123:paint': baseline['S:123:paint'],
+      'S:456:paint': {
+        styleId: 'S:456', // New ID
+        type: 'paint',
+        path: 'colors.secondary',
+        value: { $type: 'color', $value: '#00ff00' },
+      },
+    };
+
+    const result = compareStyleBaselines(baseline, fetched);
+    expect(result.newStyles.length).toBe(1);
+    expect(result.newStyles[0].styleId).toBe('S:456');
+  });
+
+  it('should detect deleted style when styleId no longer exists', () => {
+    const baseline: RawStyles = {
+      'S:123:paint': {
+        styleId: 'S:123',
+        type: 'paint',
+        path: 'colors.primary',
+        value: { $type: 'color', $value: '#ff0000' },
+      },
+      'S:456:paint': {
+        styleId: 'S:456',
+        type: 'paint',
+        path: 'colors.secondary',
+        value: { $type: 'color', $value: '#00ff00' },
+      },
+    };
+
+    const fetched: RawStyles = {
+      'S:123:paint': baseline['S:123:paint'],
+      // S:456 is deleted
+    };
+
+    const result = compareStyleBaselines(baseline, fetched);
+    expect(result.deletedStyles.length).toBe(1);
+    expect(result.deletedStyles[0].styleId).toBe('S:456');
   });
 });

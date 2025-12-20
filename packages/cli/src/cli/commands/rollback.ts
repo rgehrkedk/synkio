@@ -1,5 +1,5 @@
-import { mkdir, writeFile, readFile } from 'fs/promises';
-import { resolve } from 'path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { readPreviousBaseline, writeBaseline, readBaseline } from '../../core/baseline.js';
 import { splitTokens } from '../../core/tokens.js';
 import { compareBaselines, printDiffSummary, hasChanges } from '../../core/compare.js';
@@ -36,11 +36,11 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
       if (currentBaseline) {
         const result = compareBaselines(currentBaseline, prevBaseline);
 
-        if (!hasChanges(result)) {
-          console.log(chalk.dim('  No differences between current and previous baseline.\n'));
-        } else {
+        if (hasChanges(result)) {
           console.log(chalk.dim('  Rolling back would restore these changes:\n'));
           printDiffSummary(result);
+        } else {
+          console.log(chalk.dim('  No differences between current and previous baseline.\n'));
         }
       } else {
         console.log(chalk.dim('  No current baseline found. Rollback would restore the previous version.\n'));
@@ -67,7 +67,7 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
       collections: config.tokens.collections || {},
       dtcg: config.tokens.dtcg !== false,
       includeVariableId: config.tokens.includeVariableId === true,
-      splitModes: config.tokens.splitModes,
+      splitBy: config.tokens.splitBy,
       includeMode: config.tokens.includeMode,
       extensions: config.tokens.extensions || {},
     });

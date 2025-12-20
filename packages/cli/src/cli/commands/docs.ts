@@ -1,6 +1,5 @@
-import { resolve, join } from 'path';
-import { mkdir, writeFile, readFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { resolve, join } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { loadConfig } from '../../core/config.js';
 import { readBaseline } from '../../core/baseline.js';
 import { generateDocs } from '../../core/docs/index.js';
@@ -77,11 +76,16 @@ export async function docsCommand(options: DocsOptions = {}) {
 
     // Open in browser if requested
     if (options.open) {
-      const { exec } = await import('child_process');
+      const { exec } = await import('node:child_process');
       const filePath = join(outputDir, 'index.html');
-      const cmd = process.platform === 'darwin' ? `open "${filePath}"` :
-                  process.platform === 'win32' ? `start "" "${filePath}"` :
-                  `xdg-open "${filePath}"`;
+      let cmd: string;
+      if (process.platform === 'darwin') {
+        cmd = `open "${filePath}"`;
+      } else if (process.platform === 'win32') {
+        cmd = `start "" "${filePath}"`;
+      } else {
+        cmd = `xdg-open "${filePath}"`;
+      }
       exec(cmd);
     }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { loadConfig, ConfigSchema } from './config.js';
-import { writeFileSync, mkdirSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 
 const TEST_DIR = 'test-temp-config';
 
@@ -59,12 +59,12 @@ describe('ConfigSchema - new structure validation', () => {
         dir: 'src/tokens',
         collections: {
           theme: {
-            splitModes: true,
+            splitBy: 'mode',
           },
           colors: {
             dir: 'src/tokens/colors',
             file: 'colors',
-            splitModes: false,
+            splitBy: 'none',
           },
         },
       },
@@ -86,7 +86,7 @@ describe('ConfigSchema - new structure validation', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.tokens.dir).toBe('src/tokens');
-      expect(result.data.tokens.collections?.theme?.splitModes).toBe(true);
+      expect(result.data.tokens.collections?.theme?.splitBy).toBe('mode');
       expect(result.data.build?.css?.enabled).toBe(true);
       expect(result.data.docsPages?.enabled).toBe(true);
     }
@@ -165,7 +165,7 @@ describe('ConfigSchema - new structure validation', () => {
         accessToken: 'test-token',
       },
       collections: {
-        theme: { splitModes: true },
+        theme: { splitBy: 'mode' },
       },
       tokens: {
         dir: 'tokens',
@@ -440,7 +440,7 @@ describe('ConfigSchema - token output options', () => {
           codeSyntax: false,
         },
         collections: {
-          colors: { splitModes: true },
+          colors: { splitBy: 'mode' },
         },
       },
     };
@@ -454,7 +454,7 @@ describe('ConfigSchema - token output options', () => {
       expect(result.data.tokens.extensions?.description).toBe(false);
       expect(result.data.tokens.extensions?.scopes).toBe(false);
       expect(result.data.tokens.extensions?.codeSyntax).toBe(false);
-      expect(result.data.tokens.collections?.colors?.splitModes).toBe(true);
+      expect(result.data.tokens.collections?.colors?.splitBy).toBe('mode');
     }
   });
 

@@ -37,11 +37,19 @@ interface CollectionInfo {
   excluded: boolean;
 }
 
+interface StyleTypeInfo {
+  type: 'paint' | 'text' | 'effect';
+  label: string;
+  count: number;
+  excluded: boolean;
+}
+
 let currentDiffs: DiffEntry[] = [];
 let currentCollectionRenames: CollectionRename[] = [];
 let currentModeRenames: ModeRename[] = [];
 let currentHistory: SyncEvent[] = [];
 let currentCollections: CollectionInfo[] = [];
+let currentStyleTypes: StyleTypeInfo[] = [];
 let isSyncing = false;
 
 // Elements
@@ -76,8 +84,9 @@ document.querySelectorAll('.tab').forEach(tab => {
       historyView.classList.add('active');
     } else if (targetTab === 'collections') {
       collectionsView.classList.add('active');
-      // Request collections data when switching to collections tab
+      // Request collections and style types data when switching to collections tab
       parent.postMessage({ pluginMessage: { type: 'get-collections' } }, '*');
+      parent.postMessage({ pluginMessage: { type: 'get-style-types' } }, '*');
     }
   });
 });
@@ -94,19 +103,28 @@ syncButton.addEventListener('click', () => {
   parent.postMessage({ pluginMessage: { type: 'sync' } }, '*');
 });
 
-// Save collections button
+// Save collections button - saves both variable collections and style types
 saveCollectionsBtn.addEventListener('click', () => {
-  const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
-  const excluded: string[] = [];
-
-  checkboxes.forEach(checkbox => {
+  // Get excluded variable collections
+  const collectionCheckboxes = collectionsList.querySelectorAll('input[data-collection]') as NodeListOf<HTMLInputElement>;
+  const excludedCollections: string[] = [];
+  collectionCheckboxes.forEach(checkbox => {
     if (!checkbox.checked) {
-      excluded.push(checkbox.dataset.collection || '');
+      excludedCollections.push(checkbox.dataset.collection || '');
     }
   });
 
-  // Validate that at least one collection is included
-  if (excluded.length === checkboxes.length) {
+  // Get excluded style types
+  const styleCheckboxes = collectionsList.querySelectorAll('input[data-style-type]') as NodeListOf<HTMLInputElement>;
+  const excludedStyleTypes: string[] = [];
+  styleCheckboxes.forEach(checkbox => {
+    if (!checkbox.checked) {
+      excludedStyleTypes.push(checkbox.dataset.styleType || '');
+    }
+  });
+
+  // Validate that at least one variable collection is included (if there are any)
+  if (collectionCheckboxes.length > 0 && excludedCollections.length === collectionCheckboxes.length) {
     collectionsWarning.style.display = 'block';
     return;
   }
@@ -115,39 +133,78 @@ saveCollectionsBtn.addEventListener('click', () => {
   saveCollectionsBtn.disabled = true;
   saveCollectionsBtn.textContent = 'Saving...';
 
-  parent.postMessage({ pluginMessage: { type: 'save-excluded-collections', excluded } }, '*');
+  // Save both collections and style types
+  parent.postMessage({ pluginMessage: { type: 'save-excluded-collections', excluded: excludedCollections } }, '*');
+  parent.postMessage({ pluginMessage: { type: 'save-excluded-style-types', excluded: excludedStyleTypes } }, '*');
 });
 
-// Render collections list
+// Render collections list (variable collections only)
 function renderCollections(collections: CollectionInfo[]) {
   currentCollections = collections;
+  updateCollectionsView();
+}
 
-  if (collections.length === 0) {
-    collectionsList.innerHTML = `
+// Render style types list
+function renderStyleTypes(styleTypes: StyleTypeInfo[]) {
+  currentStyleTypes = styleTypes;
+  updateCollectionsView();
+}
+
+// Combined render for collections view (variables + styles)
+function updateCollectionsView() {
+  let html = '';
+
+  // Variable Collections Section
+  if (currentCollections.length > 0) {
+    html += `
+      <div class="section-header">Variable Collections</div>
+      ${currentCollections.map(col => `
+        <label class="collection-item">
+          <input type="checkbox"
+                 data-collection="${escapeHtml(col.name)}"
+                 ${!col.excluded ? 'checked' : ''}>
+          <span class="collection-name">${escapeHtml(col.name)}</span>
+          <span class="mode-count">(${col.modeCount} mode${col.modeCount !== 1 ? 's' : ''})</span>
+        </label>
+      `).join('')}
+    `;
+  }
+
+  // Style Types Section
+  if (currentStyleTypes.length > 0) {
+    const hasStyles = currentStyleTypes.some(st => st.count > 0);
+    if (hasStyles) {
+      html += `
+        <div class="section-header" style="margin-top: 16px;">Style Types</div>
+        ${currentStyleTypes.filter(st => st.count > 0).map(st => `
+          <label class="collection-item">
+            <input type="checkbox"
+                   data-style-type="${st.type}"
+                   ${!st.excluded ? 'checked' : ''}>
+            <span class="collection-name">${escapeHtml(st.label)}</span>
+            <span class="mode-count">(${st.count} style${st.count !== 1 ? 's' : ''})</span>
+          </label>
+        `).join('')}
+      `;
+    }
+  }
+
+  // Empty state if nothing
+  if (currentCollections.length === 0 && currentStyleTypes.every(st => st.count === 0)) {
+    html = `
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
         </svg>
-        <p>No variable collections found</p>
+        <p>No variable collections or styles found</p>
       </div>
     `;
-    return;
   }
-
-  const html = collections.map(col => `
-    <label class="collection-item">
-      <input type="checkbox"
-             data-collection="${escapeHtml(col.name)}"
-             ${!col.excluded ? 'checked' : ''}>
-      <span class="collection-name">${escapeHtml(col.name)}</span>
-      <span class="mode-count">(${col.modeCount} mode${col.modeCount !== 1 ? 's' : ''})</span>
-    </label>
-  `).join('');
 
   collectionsList.innerHTML = html;
 
   // Update excluded badge
-  updateExcludedBadge(collections);
+  updateExcludedBadge();
 
   // Add change listeners to validate
   collectionsList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
@@ -170,10 +227,13 @@ function validateCollections() {
 }
 
 // Update the excluded badge in header
-function updateExcludedBadge(collections: CollectionInfo[]) {
-  const excludedCount = collections.filter(c => c.excluded).length;
-  if (excludedCount > 0) {
-    excludedBadge.textContent = excludedCount + ' excluded';
+function updateExcludedBadge() {
+  const excludedCollections = currentCollections.filter(c => c.excluded).length;
+  const excludedStyles = currentStyleTypes.filter(st => st.excluded && st.count > 0).length;
+  const totalExcluded = excludedCollections + excludedStyles;
+
+  if (totalExcluded > 0) {
+    excludedBadge.textContent = totalExcluded + ' excluded';
     excludedBadge.style.display = 'inline';
   } else {
     excludedBadge.style.display = 'none';
@@ -440,6 +500,14 @@ window.onmessage = (event) => {
     renderCollections(msg.collections);
   }
 
+  if (msg && msg.type === 'style-types-update') {
+    renderStyleTypes(msg.styleTypes);
+  }
+
+  if (msg && msg.type === 'style-types-saved') {
+    // Style types saved - the collections-saved handler will reset the button
+  }
+
   if (msg && msg.type === 'collections-saved') {
     saveCollectionsBtn.disabled = false;
     saveCollectionsBtn.textContent = 'Save';
@@ -453,15 +521,20 @@ window.onmessage = (event) => {
       saveCollectionsBtn.style.background = '';
     }, 1500);
 
-    // Update the excluded badge
-    const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
-    const excludedCount = Array.from(checkboxes).filter(cb => !cb.checked).length;
-    if (excludedCount > 0) {
-      excludedBadge.textContent = excludedCount + ' excluded';
-      excludedBadge.style.display = 'inline';
-    } else {
-      excludedBadge.style.display = 'none';
-    }
+    // Update internal state and badge from current checkboxes
+    const collectionCheckboxes = collectionsList.querySelectorAll('input[data-collection]') as NodeListOf<HTMLInputElement>;
+    collectionCheckboxes.forEach(cb => {
+      const col = currentCollections.find(c => c.name === cb.dataset.collection);
+      if (col) col.excluded = !cb.checked;
+    });
+
+    const styleCheckboxes = collectionsList.querySelectorAll('input[data-style-type]') as NodeListOf<HTMLInputElement>;
+    styleCheckboxes.forEach(cb => {
+      const st = currentStyleTypes.find(s => s.type === cb.dataset.styleType);
+      if (st) st.excluded = !cb.checked;
+    });
+
+    updateExcludedBadge();
   }
 };
 

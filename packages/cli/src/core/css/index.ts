@@ -46,26 +46,30 @@ export function generateTokensCSS(
   const defaultMode = modes[0] || 'default';
   const defaultTokens = tokensByMode.get(defaultMode) || [];
   
-  lines.push(':root {');
-  for (const token of defaultTokens) {
-    const cssValue = formatCSSValue(token.value, token.type, options, token.path);
-    const comment = token.description ? ` /* ${token.description} */` : '';
-    lines.push(`  ${token.cssVariable}: ${cssValue};${comment}`);
-  }
-  lines.push('}');
-  lines.push('');
+  lines.push(
+    ':root {',
+    ...defaultTokens.map(token => {
+      const cssValue = formatCSSValue(token.value, token.type, options, token.path);
+      const comment = token.description ? ` /* ${token.description} */` : '';
+      return `  ${token.cssVariable}: ${cssValue};${comment}`;
+    }),
+    '}',
+    ''
+  );
 
   // Generate mode-specific overrides using data attributes
   for (const [mode, modeTokens] of tokensByMode) {
     if (mode === defaultMode) continue;
     
-    lines.push(`[data-mode="${mode}"] {`);
-    for (const token of modeTokens) {
-      const cssValue = formatCSSValue(token.value, token.type, options, token.path);
-      lines.push(`  ${token.cssVariable}: ${cssValue};`);
-    }
-    lines.push('}');
-    lines.push('');
+    lines.push(
+      `[data-mode="${mode}"] {`,
+      ...modeTokens.map(token => {
+        const cssValue = formatCSSValue(token.value, token.type, options, token.path);
+        return `  ${token.cssVariable}: ${cssValue};`;
+      }),
+      '}',
+      ''
+    );
   }
 
   return lines.join('\n');
@@ -84,13 +88,15 @@ export function generateUtilitiesCSS(tokens: ParsedToken[]): string {
   ];
 
   for (const token of tokens) {
-    const className = token.path.replace(/\./g, '-').toLowerCase();
+    const className = token.path.replaceAll('.', '-').toLowerCase();
     
     switch (token.type.toLowerCase()) {
       case 'color':
-        lines.push(`.text-${className} { color: var(${token.cssVariable}); }`);
-        lines.push(`.bg-${className} { background-color: var(${token.cssVariable}); }`);
-        lines.push(`.border-${className} { border-color: var(${token.cssVariable}); }`);
+        lines.push(
+          `.text-${className} { color: var(${token.cssVariable}); }`,
+          `.bg-${className} { background-color: var(${token.cssVariable}); }`,
+          `.border-${className} { border-color: var(${token.cssVariable}); }`
+        );
         break;
         
       case 'fontsize':
@@ -117,13 +123,15 @@ export function generateUtilitiesCSS(tokens: ParsedToken[]): string {
       case 'spacing':
       case 'size':
       case 'number':
-        lines.push(`.p-${className} { padding: var(${token.cssVariable}); }`);
-        lines.push(`.px-${className} { padding-left: var(${token.cssVariable}); padding-right: var(${token.cssVariable}); }`);
-        lines.push(`.py-${className} { padding-top: var(${token.cssVariable}); padding-bottom: var(${token.cssVariable}); }`);
-        lines.push(`.m-${className} { margin: var(${token.cssVariable}); }`);
-        lines.push(`.mx-${className} { margin-left: var(${token.cssVariable}); margin-right: var(${token.cssVariable}); }`);
-        lines.push(`.my-${className} { margin-top: var(${token.cssVariable}); margin-bottom: var(${token.cssVariable}); }`);
-        lines.push(`.gap-${className} { gap: var(${token.cssVariable}); }`);
+        lines.push(
+          `.p-${className} { padding: var(${token.cssVariable}); }`,
+          `.px-${className} { padding-left: var(${token.cssVariable}); padding-right: var(${token.cssVariable}); }`,
+          `.py-${className} { padding-top: var(${token.cssVariable}); padding-bottom: var(${token.cssVariable}); }`,
+          `.m-${className} { margin: var(${token.cssVariable}); }`,
+          `.mx-${className} { margin-left: var(${token.cssVariable}); margin-right: var(${token.cssVariable}); }`,
+          `.my-${className} { margin-top: var(${token.cssVariable}); margin-bottom: var(${token.cssVariable}); }`,
+          `.gap-${className} { gap: var(${token.cssVariable}); }`
+        );
         break;
         
       case 'borderradius':
@@ -219,7 +227,7 @@ function transformColor(value: any): string {
       const r = Math.round((value.r ?? 0) * 255);
       const g = Math.round((value.g ?? 0) * 255);
       const b = Math.round((value.b ?? 0) * 255);
-      const a = value.a !== undefined ? value.a : 1;
+      const a = value.a ?? 1;
       
       if (a === 1) return rgbToHex(r, g, b);
       return `rgba(${r}, ${g}, ${b}, ${roundNumber(a)})`;
@@ -243,8 +251,8 @@ function transformDimension(value: any, options: CSSTransformOptions = {}): stri
   
   if (typeof value === 'string') {
     if (hasUnit(value)) return value;
-    const num = parseFloat(value);
-    if (!isNaN(num)) {
+    const num = Number.parseFloat(value);
+    if (!Number.isNaN(num)) {
       if (num === 0) return '0';
       if (useRem) return `${roundNumber(num / basePxFontSize)}rem`;
       return `${num}px`;
@@ -275,7 +283,7 @@ function transformFontWeight(value: any): string {
   
   if (typeof value === 'number') return String(value);
   if (typeof value === 'string') {
-    const normalized = value.toLowerCase().replace(/[\s-_]/g, '');
+    const normalized = value.toLowerCase().replaceAll(/[\s\-_]/g, '');
     if (weightMap[normalized]) return String(weightMap[normalized]);
   }
   return String(value);
@@ -298,7 +306,7 @@ function hasUnit(value: string): boolean {
 }
 
 function quoteIfNeeded(fontName: string): string {
-  const unquoted = fontName.replace(/^['"]|['"]$/g, '');
+  const unquoted = fontName.replaceAll(/(?:^['"])|(?:['"]$)/g, '');
   const genericFonts = ['serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui'];
   if (genericFonts.includes(unquoted.toLowerCase())) return unquoted;
   if (/\s/.test(unquoted)) return `"${unquoted}"`;

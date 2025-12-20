@@ -6,7 +6,23 @@
 import { chunkData, reassembleChunks } from './lib/chunking';
 import { compareSnapshots } from './lib/compare';
 import { addHistoryEntry, parseHistory, serializeHistory } from './lib/history';
-import type { SyncData, TokenEntry, SyncEvent } from './lib/types';
+import type {
+  SyncData,
+  TokenEntry,
+  SyncEvent,
+  StyleEntry,
+  StyleType,
+  PaintStyleEntry,
+  TextStyleEntry,
+  EffectStyleEntry,
+  SolidColorValue,
+  GradientValue,
+  GradientStop,
+  TypographyValue,
+  ShadowValue,
+  ShadowObject,
+  BlurValue,
+} from './lib/types';
 import type { SimpleDiff, SimpleCompareResult } from './lib/compare';
 
 const NAMESPACE = 'synkio';
@@ -26,6 +42,19 @@ let uiReady = false;
  */
 function getExcludedCollections(): string[] {
   const excludedJson = figma.root.getSharedPluginData(NAMESPACE, 'excludedCollections');
+  if (!excludedJson) return [];
+  try {
+    return JSON.parse(excludedJson);
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * Get excluded style types from sharedPluginData
+ */
+function getExcludedStyleTypes(): StyleType[] {
+  const excludedJson = figma.root.getSharedPluginData(NAMESPACE, 'excludedStyleTypes');
   if (!excludedJson) return [];
   try {
     return JSON.parse(excludedJson);
@@ -98,6 +127,384 @@ async function collectTokens(): Promise<TokenEntry[]> {
   return tokens;
 }
 
+// =============================================================================
+// Style Collection Functions
+// =============================================================================
+
+/**
+ * Build a map from VariableID to path for reference resolution in styles
+ */
+async function buildVariableMap(): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+
+  for (const collection of collections) {
+    for (const variableId of collection.variableIds) {
+      const variable = await figma.variables.getVariableByIdAsync(variableId);
+      if (variable) {
+        // Store path with dots (same format as tokens)
+        map.set(variable.id, variable.name.replace(/\//g, '.'));
+      }
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Round a number to avoid floating point precision issues
+ * Uses 2 decimal places for most values, which is sufficient for CSS
+ */
+function roundValue(value: number, decimals = 2): number {
+  const factor = Math.pow(10, decimals);
+  return Math.round(value * factor) / factor;
+}
+
+/**
+ * Format a pixel value with rounding
+ */
+function formatPx(value: number): string {
+  const rounded = roundValue(value);
+  return `${rounded}px`;
+}
+
+/**
+ * Convert RGBA to hex or rgba string
+ */
+function rgbaToString(color: RGBA, opacity?: number): string {
+  const { r, g, b, a } = color;
+  const toHex = (n: number) => Math.round(n * 255).toString(16).padStart(2, '0');
+  const finalAlpha = opacity !== undefined ? opacity : (a ?? 1);
+
+  if (finalAlpha < 1) {
+    return `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${finalAlpha.toFixed(2)})`;
+  }
+  return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+
+/**
+ * Map Figma font style name to numeric weight
+ */
+function fontStyleToWeight(style: string): number {
+  const lower = style.toLowerCase();
+  if (lower.includes('thin') || lower.includes('hairline')) return 100;
+  if (lower.includes('extralight') || lower.includes('ultralight')) return 200;
+  if (lower.includes('light')) return 300;
+  if (lower.includes('regular') || lower.includes('normal') || lower === 'book') return 400;
+  if (lower.includes('medium')) return 500;
+  if (lower.includes('semibold') || lower.includes('demibold')) return 600;
+  if (lower.includes('extrabold') || lower.includes('ultrabold')) return 800;
+  if (lower.includes('bold')) return 700;
+  if (lower.includes('black') || lower.includes('heavy')) return 900;
+  return 400; // Default to regular
+}
+
+/**
+ * Format line height from Figma format
+ */
+function formatLineHeight(lineHeight: LineHeight): string | number {
+  if (lineHeight.unit === 'AUTO') {
+    return 'normal';
+  }
+  if (lineHeight.unit === 'PIXELS') {
+    return formatPx(lineHeight.value);
+  }
+  // PERCENT - convert to unitless ratio
+  return String(roundValue(lineHeight.value / 100));
+}
+
+/**
+ * Format letter spacing from Figma format
+ */
+function formatLetterSpacing(letterSpacing: LetterSpacing): string {
+  if (letterSpacing.unit === 'PIXELS') {
+    return formatPx(letterSpacing.value);
+  }
+  // PERCENT - convert to em (Figma percent is based on font size)
+  return `${roundValue(letterSpacing.value / 100, 3)}em`;
+}
+
+/**
+ * Map Figma text case to CSS text-transform
+ */
+function mapTextCase(textCase: TextCase): string | undefined {
+  switch (textCase) {
+    case 'UPPER': return 'uppercase';
+    case 'LOWER': return 'lowercase';
+    case 'TITLE': return 'capitalize';
+    default: return undefined;
+  }
+}
+
+/**
+ * Map Figma text decoration to CSS
+ */
+function mapTextDecoration(decoration: TextDecoration): string | undefined {
+  switch (decoration) {
+    case 'UNDERLINE': return 'underline';
+    case 'STRIKETHROUGH': return 'line-through';
+    default: return undefined;
+  }
+}
+
+/**
+ * Map Figma gradient type to output format
+ */
+function mapGradientType(type: string): 'linear' | 'radial' | 'angular' | 'diamond' {
+  switch (type) {
+    case 'GRADIENT_LINEAR': return 'linear';
+    case 'GRADIENT_RADIAL': return 'radial';
+    case 'GRADIENT_ANGULAR': return 'angular';
+    case 'GRADIENT_DIAMOND': return 'diamond';
+    default: return 'linear';
+  }
+}
+
+/**
+ * Convert Figma PaintStyle to StyleEntry
+ * Excludes image paints, handles solid colors and gradients
+ */
+function convertPaintStyle(
+  style: PaintStyle,
+  variableMap: Map<string, string>
+): PaintStyleEntry | null {
+  const paint = style.paints[0]; // Primary paint
+  if (!paint || !paint.visible) return null;
+
+  // Skip unsupported paint types
+  if (paint.type === 'IMAGE' || paint.type === 'VIDEO') {
+    return null;
+  }
+
+  let value: SolidColorValue | GradientValue;
+
+  if (paint.type === 'SOLID') {
+    // Check for bound variable on the paint
+    const boundVars = style.boundVariables;
+    const paintBinding = boundVars?.paints?.[0]?.color;
+
+    if (paintBinding) {
+      const varPath = variableMap.get(paintBinding.id);
+      if (varPath) {
+        value = {
+          $type: 'color',
+          $value: `{${varPath}}`,
+        };
+      } else {
+        // Variable from excluded collection - resolve to actual value
+        value = {
+          $type: 'color',
+          $value: rgbaToString(paint.color, paint.opacity),
+        };
+      }
+    } else {
+      value = {
+        $type: 'color',
+        $value: rgbaToString(paint.color, paint.opacity),
+      };
+    }
+  } else {
+    // Gradient types (LINEAR, RADIAL, ANGULAR, DIAMOND)
+    const stops: GradientStop[] = paint.gradientStops.map((stop) => ({
+      color: rgbaToString(stop.color),
+      position: roundValue(stop.position, 3),
+    }));
+
+    value = {
+      $type: 'gradient',
+      $value: {
+        gradientType: mapGradientType(paint.type),
+        stops,
+      },
+    };
+  }
+
+  return {
+    styleId: style.id,
+    type: 'paint',
+    path: style.name.replace(/\//g, '.'),
+    description: style.description || undefined,
+    value,
+  };
+}
+
+/**
+ * Convert Figma TextStyle to StyleEntry
+ * Uses DTCG typography composite format
+ */
+function convertTextStyle(
+  style: TextStyle,
+  variableMap: Map<string, string>
+): TextStyleEntry {
+  const boundVars = style.boundVariables || {};
+
+  // Helper to resolve value or variable reference
+  // Typography bindings can be arrays (for text ranges) or single objects
+  const resolveTypographyProp = <T>(
+    fieldKey: string,
+    rawValue: T,
+    transform?: (v: T) => string | number
+  ): string | number => {
+    const binding = (boundVars as any)[fieldKey];
+    // Handle array bindings (text properties like fontFamily, fontSize)
+    if (Array.isArray(binding) && binding.length > 0 && binding[0]?.id) {
+      const varPath = variableMap.get(binding[0].id);
+      if (varPath) return `{${varPath}}`;
+    }
+    // Handle single object binding
+    if (binding && typeof binding === 'object' && 'id' in binding) {
+      const varPath = variableMap.get(binding.id);
+      if (varPath) return `{${varPath}}`;
+    }
+    // Fallback: variable from excluded collection or no binding - use raw value
+    return transform ? transform(rawValue) : String(rawValue);
+  };
+
+  const typographyValue: TypographyValue['$value'] = {
+    fontFamily: resolveTypographyProp('fontFamily', style.fontName.family) as string,
+    fontSize: resolveTypographyProp('fontSize', style.fontSize, (v) => formatPx(v)) as string,
+    fontWeight: fontStyleToWeight(style.fontName.style),
+    lineHeight: formatLineHeight(style.lineHeight),
+    letterSpacing: formatLetterSpacing(style.letterSpacing),
+  };
+
+  // Add optional properties if set
+  const textTransform = mapTextCase(style.textCase);
+  if (textTransform) typographyValue.textTransform = textTransform;
+
+  const textDecoration = mapTextDecoration(style.textDecoration);
+  if (textDecoration) typographyValue.textDecoration = textDecoration;
+
+  return {
+    styleId: style.id,
+    type: 'text',
+    path: style.name.replace(/\//g, '.'),
+    description: style.description || undefined,
+    value: {
+      $type: 'typography',
+      $value: typographyValue,
+    },
+  };
+}
+
+/**
+ * Format a single shadow effect
+ */
+function formatShadow(effect: DropShadowEffect | InnerShadowEffect, variableMap: Map<string, string>): ShadowObject {
+  // Check for bound variables on shadow properties
+  const boundVars = (effect as any).boundVariables || {};
+
+  const resolveColor = (): string => {
+    const colorBinding = boundVars.color;
+    if (colorBinding && typeof colorBinding === 'object' && 'id' in colorBinding) {
+      const varPath = variableMap.get(colorBinding.id);
+      if (varPath) return `{${varPath}}`;
+    }
+    return rgbaToString(effect.color);
+  };
+
+  return {
+    offsetX: formatPx(effect.offset.x),
+    offsetY: formatPx(effect.offset.y),
+    blur: formatPx(effect.radius),
+    spread: formatPx(effect.spread || 0),
+    color: resolveColor(),
+    inset: effect.type === 'INNER_SHADOW' ? true : undefined,
+  };
+}
+
+/**
+ * Convert Figma EffectStyle to StyleEntry
+ */
+function convertEffectStyle(
+  style: EffectStyle,
+  variableMap: Map<string, string>
+): EffectStyleEntry {
+  const effects = style.effects.filter((e) => e.visible);
+
+  // Categorize effects
+  const shadows = effects.filter(
+    (e): e is DropShadowEffect | InnerShadowEffect =>
+      e.type === 'DROP_SHADOW' || e.type === 'INNER_SHADOW'
+  );
+  const blurs = effects.filter(
+    (e): e is BlurEffect => e.type === 'LAYER_BLUR' || e.type === 'BACKGROUND_BLUR'
+  );
+
+  let value: ShadowValue | BlurValue;
+
+  if (shadows.length > 0) {
+    const shadowObjects = shadows.map((s) => formatShadow(s, variableMap));
+    value = {
+      $type: 'shadow',
+      $value: shadowObjects.length === 1 ? shadowObjects[0] : shadowObjects,
+    };
+  } else if (blurs.length > 0) {
+    value = {
+      $type: 'blur',
+      $value: {
+        radius: formatPx(blurs[0].radius),
+      },
+    };
+  } else {
+    // Empty or unsupported effects - return minimal shadow
+    value = {
+      $type: 'shadow',
+      $value: {
+        offsetX: '0',
+        offsetY: '0',
+        blur: '0',
+        spread: '0',
+        color: 'transparent',
+      },
+    };
+  }
+
+  return {
+    styleId: style.id,
+    type: 'effect',
+    path: style.name.replace(/\//g, '.'),
+    description: style.description || undefined,
+    value,
+  };
+}
+
+/**
+ * Collect all local styles (excluding excluded types)
+ */
+async function collectStyles(): Promise<StyleEntry[]> {
+  const styles: StyleEntry[] = [];
+  const excludedTypes = getExcludedStyleTypes();
+  const variableMap = await buildVariableMap();
+
+  // Paint Styles
+  if (!excludedTypes.includes('paint')) {
+    const paintStyles = await figma.getLocalPaintStylesAsync();
+    for (const style of paintStyles) {
+      const entry = convertPaintStyle(style, variableMap);
+      if (entry) styles.push(entry);
+    }
+  }
+
+  // Text Styles
+  if (!excludedTypes.includes('text')) {
+    const textStyles = await figma.getLocalTextStylesAsync();
+    for (const style of textStyles) {
+      styles.push(convertTextStyle(style, variableMap));
+    }
+  }
+
+  // Effect Styles
+  if (!excludedTypes.includes('effect')) {
+    const effectStyles = await figma.getLocalEffectStylesAsync();
+    for (const style of effectStyles) {
+      styles.push(convertEffectStyle(style, variableMap));
+    }
+  }
+
+  return styles;
+}
+
 /**
  * Get baseline snapshot from storage
  */
@@ -155,6 +562,7 @@ function saveBaselineSnapshot(data: SyncData): void {
   figma.root.setSharedPluginData(NAMESPACE, 'version', data.version);
   figma.root.setSharedPluginData(NAMESPACE, 'timestamp', data.timestamp);
   figma.root.setSharedPluginData(NAMESPACE, 'tokenCount', String(data.tokens.length));
+  figma.root.setSharedPluginData(NAMESPACE, 'styleCount', String(data.styles?.length || 0));
 }
 
 /**
@@ -179,10 +587,12 @@ function addToHistory(event: SyncEvent): void {
  */
 async function sendDiffToUI() {
   const currentTokens = await collectTokens();
+  const currentStyles = await collectStyles();
   const current: SyncData = {
-    version: '2.0.0',
+    version: '3.0.0',
     timestamp: new Date().toISOString(),
     tokens: currentTokens,
+    styles: currentStyles.length > 0 ? currentStyles : undefined,
   };
 
   const baseline = getBaselineSnapshot();
@@ -202,10 +612,20 @@ async function sendDiffToUI() {
       collection: token.collection,
       mode: token.mode,
     }));
+    // Also add styles as new items
+    diffs = diffs.concat(currentStyles.map(style => ({
+      id: style.styleId,
+      name: style.path,
+      type: 'added' as const,
+      newValue: style.value,
+      collection: `${style.type}-styles`,
+      mode: 'value',
+    })));
   }
 
   const history = getHistory();
   const excludedCount = getExcludedCollections().length;
+  const excludedStyleCount = getExcludedStyleTypes().length;
 
   figma.ui.postMessage({
     type: 'update',
@@ -213,6 +633,7 @@ async function sendDiffToUI() {
     history: history,
     hasBaseline: !!baseline,
     excludedCount: excludedCount,
+    excludedStyleCount: excludedStyleCount,
   });
 }
 
@@ -228,17 +649,21 @@ figma.ui.onmessage = async (msg) => {
 
     if (msg.type === 'sync') {
       const currentTokens = await collectTokens();
+      const currentStyles = await collectStyles();
       const snapshot: SyncData = {
-        version: '2.0.0',
+        version: '3.0.0',
         timestamp: new Date().toISOString(),
         tokens: currentTokens,
+        styles: currentStyles.length > 0 ? currentStyles : undefined,
       };
 
       const baseline = getBaselineSnapshot();
       const result = baseline ? compareSnapshots(snapshot, baseline) : null;
-      const changeCount = result
+      const tokenCount = result
         ? result.counts.total
         : currentTokens.length;
+      const styleCount = currentStyles.length;
+      const changeCount = tokenCount + styleCount;
 
       // Collect change paths with values for history
       let changePaths: string[] = [];
@@ -267,7 +692,15 @@ figma.ui.onmessage = async (msg) => {
         // Initial sync - show token names with values
         changePaths = currentTokens.slice(0, 50).map(t => '+ ' + t.path + ': ' + truncate(t.value));
         if (currentTokens.length > 50) {
-          changePaths.push('... and ' + (currentTokens.length - 50) + ' more');
+          changePaths.push('... and ' + (currentTokens.length - 50) + ' more tokens');
+        }
+        // Add styles to change paths
+        if (currentStyles.length > 0) {
+          const styleLines = currentStyles.slice(0, 10).map(s => '+ [style] ' + s.path);
+          changePaths = changePaths.concat(styleLines);
+          if (currentStyles.length > 10) {
+            changePaths.push('... and ' + (currentStyles.length - 10) + ' more styles');
+          }
         }
       }
 
@@ -283,7 +716,10 @@ figma.ui.onmessage = async (msg) => {
         p: changePaths,
       });
 
-      figma.notify('Synced ' + changeCount + ' changes');
+      const notifyMsg = styleCount > 0
+        ? `Synced ${tokenCount} tokens + ${styleCount} styles`
+        : `Synced ${tokenCount} changes`;
+      figma.notify(notifyMsg);
 
       // Refresh UI
       await sendDiffToUI();
@@ -311,6 +747,48 @@ figma.ui.onmessage = async (msg) => {
       figma.root.setSharedPluginData(NAMESPACE, 'excludedCollections', JSON.stringify(excluded));
       figma.ui.postMessage({ type: 'collections-saved' });
       figma.notify('Collection settings saved');
+    }
+
+    if (msg.type === 'get-style-types') {
+      // Get all style types with their counts and exclusion status
+      const excluded = getExcludedStyleTypes();
+
+      const paintStyles = await figma.getLocalPaintStylesAsync();
+      const textStyles = await figma.getLocalTextStylesAsync();
+      const effectStyles = await figma.getLocalEffectStylesAsync();
+
+      const styleTypes = [
+        {
+          type: 'paint' as StyleType,
+          label: 'Paint Styles',
+          count: paintStyles.length,
+          excluded: excluded.includes('paint'),
+        },
+        {
+          type: 'text' as StyleType,
+          label: 'Text Styles',
+          count: textStyles.length,
+          excluded: excluded.includes('text'),
+        },
+        {
+          type: 'effect' as StyleType,
+          label: 'Effect Styles',
+          count: effectStyles.length,
+          excluded: excluded.includes('effect'),
+        },
+      ];
+
+      figma.ui.postMessage({
+        type: 'style-types-update',
+        styleTypes: styleTypes,
+      });
+    }
+
+    if (msg.type === 'save-excluded-style-types') {
+      const { excluded } = msg;
+      figma.root.setSharedPluginData(NAMESPACE, 'excludedStyleTypes', JSON.stringify(excluded));
+      figma.ui.postMessage({ type: 'style-types-saved' });
+      figma.notify('Style settings saved');
     }
 
     if (msg.type === 'close') {

@@ -1,5 +1,6 @@
-import { BaselineEntry } from '../types/index.js';
-import { SynkioPluginDataSchema, SynkioTokenEntrySchema } from '../types/schemas.js';
+import { BaselineEntry, RawStyles, StyleBaselineEntry } from '../types/index.js';
+import { SynkioPluginDataSchema, StyleEntry } from '../types/schemas.js';
+import type { SplitBy } from './config.js';
 
 /**
  * The raw token structure received from the Figma plugin
@@ -24,8 +25,9 @@ export interface CollectionSplitOptions {
   [collectionName: string]: {
     dir?: string;          // Output directory for this collection (relative to cwd)
     file?: string;         // Custom filename base (e.g., "colors" → "colors.json", or with modes: "theme" → "theme.light.json")
-    splitModes?: boolean;  // true = separate files per mode (default), false = single file with modes as nested keys
+    splitBy?: SplitBy;     // "mode" = separate files per mode, "group" = separate files per top-level group, "none" = single file
     includeMode?: boolean; // true = include mode as first-level key even when splitting (default: true)
+    names?: Record<string, string>; // Rename modes or groups in output files (e.g., { "light": "day" } or { "colors": "palette" })
   };
 }
 
@@ -208,7 +210,7 @@ function set(obj: any, path: string[], value: any) {
         const key = path[i];
         current = current[key] = current[key] || {};
     }
-    current[path[path.length - 1]] = value;
+    current[path.at(-1)!] = value;
 }
 
 /**
@@ -218,7 +220,7 @@ export interface SplitTokensOptions {
   collections?: CollectionSplitOptions;
   dtcg?: boolean;             // Use DTCG format with $value, $type (default: true)
   includeVariableId?: boolean; // Include Figma variableId in output (default: false)
-  splitModes?: boolean;       // Default for splitModes across all collections (default: true)
+  splitBy?: SplitBy;          // Default split strategy: "mode" (per mode), "group" (per top-level group), "none" (single file)
   includeMode?: boolean;      // Default for includeMode across all collections (default: false)
   extensions?: {
     description?: boolean;    // Include variable descriptions (default: false)
@@ -229,31 +231,36 @@ export interface SplitTokensOptions {
 
 /**
  * Splits the raw, flat token data into a map of file names to nested token objects.
- * 
- * By default, multi-mode collections are split into separate files (e.g., theme.light.json, theme.dark.json).
- * Use the `options` parameter to control splitting behavior per collection.
- * 
+ *
+ * Use the `splitBy` option to control how tokens are organized into files:
+ * - "mode": Separate files per mode (e.g., theme.light.json, theme.dark.json) - default
+ * - "group": Separate files per top-level token group (e.g., color.json, spacing.json)
+ * - "none": Single file per collection
+ *
  * @param rawTokens - The flat token data from Figma
  * @param options - Optional configuration for splitting and output format
  * @returns Map of file names to their token content
- * 
+ *
  * @example
- * // Default: split modes into separate files with DTCG format
- * splitTokens(tokens) // -> theme.light.json with { "$value": ... }
- * 
- * // Merge modes into single file
- * splitTokens(tokens, { collections: { theme: { splitModes: false } } })
- * 
+ * // Default: split by mode with DTCG format
+ * splitTokens(tokens) // -> theme.light.json, theme.dark.json
+ *
+ * // Split by top-level group (e.g., color, spacing)
+ * splitTokens(tokens, { collections: { globals: { splitBy: 'group' } } }) // -> color.json, spacing.json
+ *
+ * // Single file per collection
+ * splitTokens(tokens, { collections: { theme: { splitBy: 'none' } } }) // -> theme.json
+ *
  * // Disable DTCG format (use "value" instead of "$value")
  * splitTokens(tokens, { dtcg: false })
  */
 export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = {}): SplitTokens {
-    const files = new Map<string, { content: any; collection: string }>();
+    const files = new Map<string, { content: any; collection: string; group?: string }>();
     const collectionOptions = options.collections || {};
     const useDtcg = options.dtcg !== false; // default true
     const includeVariableId = options.includeVariableId === true; // default false
     // Parent-level defaults
-    const defaultSplitModes = options.splitModes !== false; // default true
+    const defaultSplitBy: SplitBy = options.splitBy ?? 'mode';
     const defaultIncludeMode = options.includeMode === true; // default false
     const extensions = options.extensions || {};
     const valueKey = useDtcg ? '$value' : 'value';
@@ -275,29 +282,38 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
         const collection = entry.collection || entry.path.split('.')[0];
         const mode = entry.mode || entry.path.split('.')[1] || 'value';
         const pathParts = entry.path.split('.');
+        const topLevelGroup = pathParts[0]; // First segment of path (e.g., "color", "spacing")
 
         const collectionConfig = collectionOptions[collection];
         // Collection config overrides parent-level defaults
-        const shouldSplitModes = collectionConfig?.splitModes ?? defaultSplitModes;
+        const splitBy: SplitBy = collectionConfig?.splitBy ?? defaultSplitBy;
         const shouldIncludeMode = collectionConfig?.includeMode ?? defaultIncludeMode;
-        
+
         let fileKey: string;
         let nestedPath: string[];
-        
-        if (shouldSplitModes) {
+        let group: string | undefined;
+
+        if (splitBy === 'mode') {
             // Split by collection.mode -> theme.light.json, theme.dark.json
             fileKey = `${collection}.${mode}`;
             // Include mode as first-level key if configured
             nestedPath = shouldIncludeMode ? [mode, ...pathParts] : pathParts;
+        } else if (splitBy === 'group') {
+            // Split by collection.group -> globals.color.json, globals.spacing.json
+            fileKey = `${collection}.${topLevelGroup}`;
+            group = topLevelGroup;
+            // Remove the top-level group from path since it's now the file name
+            const remainingPath = pathParts.slice(1);
+            nestedPath = shouldIncludeMode ? [mode, ...remainingPath] : remainingPath;
         } else {
-            // Don't split: use only collection name as file key
+            // splitBy === 'none': use only collection name as file key
             // Include mode as top-level key if configured
             fileKey = collection;
             nestedPath = shouldIncludeMode ? [mode, ...pathParts] : pathParts;
         }
-        
+
         if (!files.has(fileKey)) {
-            files.set(fileKey, { content: {}, collection });
+            files.set(fileKey, { content: {}, collection, group });
         }
 
         const fileData = files.get(fileKey)!;
@@ -306,7 +322,7 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
         const dtcgType = mapToDTCGType(entry.type, entry.path);
         
         // Resolve value - convert VariableID references to DTCG path references
-        let resolvedValue = entry.value;
+        let resolvedValue: unknown;
         if (entry.value && typeof entry.value === 'object' && entry.value.$ref) {
             const refVariableId = entry.value.$ref;
             const refPath = variableIdToPath.get(refVariableId);
@@ -366,26 +382,39 @@ export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = 
     const result: SplitTokens = new Map();
     for (const [key, fileData] of files.entries()) {
         const collectionConfig = collectionOptions[fileData.collection];
-        
-        // Determine the filename
-        // key format is either "collection.mode" (split) or "collection" (merged)
+        const splitBy: SplitBy = collectionConfig?.splitBy ?? defaultSplitBy;
+        const namesMapping = collectionConfig?.names || {};
+
+        // Determine the filename based on split strategy
+        // key format: "collection.mode" (splitBy=mode), "collection.group" (splitBy=group), or "collection" (splitBy=none)
         let fileName: string;
-        if (collectionConfig?.file) {
-            // Custom filename specified
-            const keyParts = key.split('.');
+        const keyParts = key.split('.');
+
+        if (splitBy === 'group' && fileData.group) {
+            // For group splitting, use just the group name as file name
+            // Apply names mapping if configured (e.g., { "colors": "palette" })
+            const mappedGroup = namesMapping[fileData.group] || fileData.group;
+            fileName = `${mappedGroup}.json`;
+        } else if (splitBy === 'mode' && keyParts.length > 1) {
+            // For mode splitting, apply names mapping to mode
+            const mode = keyParts.slice(1).join('.');
+            const mappedMode = namesMapping[mode] || mode;
+            const fileBase = collectionConfig?.file || keyParts[0];
+            fileName = `${fileBase}.${mappedMode}.json`;
+        } else if (collectionConfig?.file) {
+            // Custom filename specified (splitBy: none or other cases)
             if (keyParts.length > 1) {
-                // Has mode suffix (e.g., "theme.light" → use custom file + mode)
-                const mode = keyParts.slice(1).join('.');
-                fileName = `${collectionConfig.file}.${mode}.json`;
+                const suffix = keyParts.slice(1).join('.');
+                const mappedSuffix = namesMapping[suffix] || suffix;
+                fileName = `${collectionConfig.file}.${mappedSuffix}.json`;
             } else {
-                // No mode suffix
                 fileName = `${collectionConfig.file}.json`;
             }
         } else {
             // Default: use key as-is
             fileName = `${key}.json`;
         }
-        
+
         result.set(fileName, {
             content: fileData.content,
             collection: fileData.collection,
@@ -421,3 +450,202 @@ export function parseVariableId(prefixedId: string): { varId: string; collection
   // Legacy format: just mode
   return { varId, collection: 'unknown', mode: lastPart };
 }
+
+// =============================================================================
+// Style Normalization Functions (v3.0.0+)
+// =============================================================================
+
+/**
+ * Normalize style data from plugin format to baseline format
+ * @param rawData - Raw data from Figma plugin (must have styles array)
+ * @returns Normalized styles as a flat map keyed by styleId:type
+ */
+export function normalizeStyleData(rawData: any): RawStyles {
+  if (!rawData.styles || !Array.isArray(rawData.styles)) {
+    return {};
+  }
+
+  const result: RawStyles = {};
+
+  for (const style of rawData.styles as StyleEntry[]) {
+    // Key format: {styleId}:{type}
+    const key = `${style.styleId}:${style.type}`;
+
+    const entry: StyleBaselineEntry = {
+      styleId: style.styleId,
+      type: style.type,
+      path: style.path,
+      value: style.value,
+      description: style.description,
+    };
+
+    result[key] = entry;
+  }
+
+  return result;
+}
+
+/**
+ * Check if plugin data contains styles (v3.0.0+ format)
+ */
+export function hasStyles(rawData: any): boolean {
+  return Boolean(rawData.styles && Array.isArray(rawData.styles) && rawData.styles.length > 0);
+}
+
+/**
+ * Get style count from raw plugin data
+ */
+export function getStyleCount(rawData: any): { paint: number; text: number; effect: number; total: number } {
+  if (!rawData.styles || !Array.isArray(rawData.styles)) {
+    return { paint: 0, text: 0, effect: 0, total: 0 };
+  }
+
+  const counts = { paint: 0, text: 0, effect: 0, total: 0 };
+
+  for (const style of rawData.styles) {
+    if (style.type === 'paint') counts.paint++;
+    else if (style.type === 'text') counts.text++;
+    else if (style.type === 'effect') counts.effect++;
+    counts.total++;
+  }
+
+  return counts;
+}
+
+// =============================================================================
+// Style Output Functions (v3.0.0+)
+// =============================================================================
+
+/**
+ * Merge target for styles - specifies which collection/group to merge styles into
+ */
+export interface MergeInto {
+  collection: string;  // Target collection name (e.g., "globals")
+  group?: string;      // Target group within collection (e.g., "font") - used with splitBy: "group"
+}
+
+/**
+ * Style type union - used across style-related interfaces
+ */
+export type StyleType = 'paint' | 'text' | 'effect';
+
+/**
+ * The result of splitting styles, a map of file names to their content and metadata.
+ */
+export interface SplitStyleFile {
+  content: any;
+  styleType: StyleType;
+  dir?: string;       // Custom output directory for this file (relative to cwd)
+  mergeInto?: MergeInto;  // If set, merge into this collection/group instead of standalone file
+}
+
+export type SplitStyles = Map<string, SplitStyleFile>;
+
+/**
+ * Configuration for style type output
+ */
+export interface StyleTypeConfig {
+  enabled?: boolean;      // Whether this style type is enabled (default: true)
+  dir?: string;           // Output directory (defaults to parent tokens.dir)
+  file?: string;          // Custom filename (without extension)
+  mergeInto?: MergeInto;  // Merge styles into a variable collection file instead of separate file
+}
+
+/**
+ * Configuration for how to split styles
+ */
+export interface StylesSplitOptions {
+  enabled?: boolean;           // Master toggle for styles (default: true)
+  paint?: StyleTypeConfig;     // Paint styles config
+  text?: StyleTypeConfig;      // Text styles config
+  effect?: StyleTypeConfig;    // Effect styles config
+}
+
+/**
+ * Default filenames for each style type
+ */
+const DEFAULT_STYLE_FILENAMES: Record<StyleType, string> = {
+  paint: 'paint-styles',
+  text: 'text-styles',
+  effect: 'effect-styles',
+};
+
+/**
+ * Splits normalized style data into a map of file names to nested style objects.
+ * Groups styles by type (paint, text, effect) and outputs in DTCG format.
+ *
+ * @param rawStyles - Normalized style data from normalizeStyleData()
+ * @param options - Configuration for splitting and output
+ * @returns Map of file names to their style content
+ *
+ * @example
+ * // Default: one file per style type
+ * splitStyles(styles) // -> paint-styles.json, text-styles.json, effect-styles.json
+ *
+ * // Custom filenames
+ * splitStyles(styles, { paint: { file: 'colors' } }) // -> colors.json
+ */
+export function splitStyles(rawStyles: RawStyles, options: StylesSplitOptions = {}): SplitStyles {
+  const result: SplitStyles = new Map();
+
+  // Master toggle
+  if (options.enabled === false) {
+    return result;
+  }
+
+  // Group styles by type
+  const stylesByType: Record<StyleType, StyleBaselineEntry[]> = {
+    paint: [],
+    text: [],
+    effect: [],
+  };
+
+  for (const entry of Object.values(rawStyles)) {
+    stylesByType[entry.type]?.push(entry);
+  }
+
+  // Process each style type
+  for (const styleType of ['paint', 'text', 'effect'] as const) {
+    const styles = stylesByType[styleType];
+    const typeConfig = options[styleType];
+
+    // Skip if no styles of this type
+    if (styles.length === 0) {
+      continue;
+    }
+
+    // Skip if explicitly disabled
+    if (typeConfig?.enabled === false) {
+      continue;
+    }
+
+    // Build nested content from styles
+    const content: any = {};
+
+    for (const style of styles) {
+      // Use the path to create nested structure
+      const pathParts = style.path.split('.');
+
+      // The value is already in DTCG format from the plugin
+      // Just nest it at the correct path
+      setNestedPath(content, pathParts, style.value);
+    }
+
+    // Determine filename
+    const filename = typeConfig?.file
+      ? `${typeConfig.file}.json`
+      : `${DEFAULT_STYLE_FILENAMES[styleType]}.json`;
+
+    result.set(filename, {
+      content,
+      styleType,
+      dir: typeConfig?.dir,
+      mergeInto: typeConfig?.mergeInto,
+    });
+  }
+
+  return result;
+}
+
+// setNestedPath is identical to 'set' function above - reuse it
+const setNestedPath = set;

@@ -6,7 +6,7 @@
  */
 import { ParsedToken } from './index.js';
 import {
-  TemplateOptions,
+  type TemplateOptions,
   layout,
   escapeHtml,
   capitalizeFirst,
@@ -20,7 +20,7 @@ import {
 } from './components/index.js';
 
 // Re-export types for backwards compatibility
-export type { TemplateOptions };
+export type { TemplateOptions } from './components/index.js';
 
 /**
  * Group tokens hierarchically by path segments

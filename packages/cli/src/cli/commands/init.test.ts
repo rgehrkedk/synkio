@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { writeFileSync, mkdirSync, rmSync, existsSync, readFileSync } from 'fs';
-import { resolve } from 'path';
+import { writeFileSync, mkdirSync, rmSync, existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Store original cwd
 const originalCwd = process.cwd();
@@ -114,9 +114,10 @@ describe('init command', () => {
     it('should not accept token from options', async () => {
       // The init command should not process token from options
       // This is a design test - the actual initCommand shouldn't accept token
-      const { InitOptions } = await import('./init.js');
+      const initModule = await import('./init.js');
 
-      // InitOptions should not have a token property
+      // Verify InitOptions interface exists (type-level check)
+      // At runtime, we verify the command doesn't use token
       const options: Record<string, unknown> = {
         figmaUrl: 'https://figma.com/design/ABC123/Test',
         token: 'test-token' // This should be ignored
@@ -125,7 +126,9 @@ describe('init command', () => {
       // The interface check happens at compile time
       // At runtime, we verify the command doesn't use it
       expect(options.token).toBeDefined(); // It exists in the object
-      // But our new InitOptions interface should not include it
+      // InitOptions is a TypeScript type, not a runtime value - verify module exports functions
+      expect(typeof initModule.initCommand).toBe('function');
+      expect(typeof initModule.generateConfig).toBe('function');
     });
   });
 });

@@ -1,11 +1,10 @@
-import { mkdir, writeFile } from 'fs/promises';
-import { resolve, join } from 'path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
 import { BaselineData } from '../types/index.js';
 import { Config } from './config.js';
-import { parseTokens, ParsedTokens } from './docs/index.js';
+import { parseTokens, ParsedTokens, generateDocs } from './docs/index.js';
 import { generateTokensCSS, generateUtilitiesCSS } from './css/index.js';
 import type { CSSTransformOptions } from './css/index.js';
-import { generateDocs } from './docs/index.js';
 import { writeIntermediateFormat } from './intermediate-tokens.js';
 
 /**
@@ -51,9 +50,11 @@ async function prepareTransformContext(
 /**
  * Build CSS transform options from config
  */
+const DEFAULT_TRANSFORM_OPTIONS = { useRem: false } as const;
+
 function buildTransformOptions(
   transforms?: { useRem?: boolean; basePxFontSize?: number },
-  defaults: { useRem: boolean } = { useRem: false }
+  defaults: { useRem: boolean } = DEFAULT_TRANSFORM_OPTIONS
 ): CSSTransformOptions {
   return {
     useRem: transforms?.useRem ?? defaults.useRem,

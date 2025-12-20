@@ -15,7 +15,7 @@ export interface Logger {
  * - Supports optional silent mode for programmatic usage
  */
 export class ConsoleLogger implements Logger {
-  private silent: boolean;
+  private readonly silent: boolean;
 
   constructor(options: { silent?: boolean } = {}) {
     this.silent = options.silent ?? false;
@@ -50,10 +50,10 @@ export class ConsoleLogger implements Logger {
  * Use in test contexts to avoid console pollution
  */
 export class SilentLogger implements Logger {
-  debug(): void {}
-  info(): void {}
-  warn(): void {}
-  error(): void {}
+  debug(): void { /* intentionally empty - silent logger */ }
+  info(): void { /* intentionally empty - silent logger */ }
+  warn(): void { /* intentionally empty - silent logger */ }
+  error(): void { /* intentionally empty - silent logger */ }
 }
 
 /**

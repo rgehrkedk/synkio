@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import 'dotenv/config';
-import { createRequire } from 'module';
+import { createRequire } from 'node:module';
 
 import { initCommand } from './commands/init.js';
 import { syncCommand, watchCommand } from './commands/sync.js';
@@ -25,12 +25,9 @@ function parseArgs(args: string[]) {
 
         if (arg.startsWith('--')) {
             const [key, value] = arg.slice(2).split('=');
-            const camelCaseKey = key.replace(/-([a-z])/g, g => g[1].toUpperCase());
+            const camelCaseKey = key.replaceAll(/-([a-z])/g, g => g[1].toUpperCase());
 
-            if (value !== undefined) {
-                // --key=value format
-                options[camelCaseKey] = value;
-            } else {
+            if (value === undefined) {
                 // Check if next arg is a value (doesn't start with --)
                 const nextArg = commandArgs[i + 1];
                 if (nextArg && !nextArg.startsWith('--')) {
@@ -41,6 +38,9 @@ function parseArgs(args: string[]) {
                     // Boolean flag
                     options[camelCaseKey] = true;
                 }
+            } else {
+                // --key=value format
+                options[camelCaseKey] = value;
             }
         }
     }
@@ -79,7 +79,7 @@ function showHelp(command?: string) {
             console.log('  --interval=<s>      Watch interval in seconds (default: 30)');
             console.log('  --collection=<name> Sync only specific collection(s), comma-separated');
             console.log('  --regenerate        Regenerate files from existing baseline (no Figma fetch)');
-            console.log('  --timeout=<s>       Figma API timeout in seconds (default: 60)');
+            console.log('  --timeout=<s>       Figma API timeout in seconds (default: 120)');
             console.log('  --config=<file>     Path to config file (default: synkio.config.json)');
             break;
         case 'rollback':
@@ -168,7 +168,7 @@ if (args.includes('--help') || args.includes('-h')) {
 }
 
 switch (command) {
-  case 'init':
+  case 'init': {
     const options = parseArgs(args);
 
     // Check for removed --token flag and show error
@@ -196,15 +196,16 @@ switch (command) {
         baseUrl: options.baseUrl as string,
     });
     break;
-  case 'sync':
+  }
+  case 'sync': {
     const syncOptions = parseArgs(args);
     if (syncOptions.watch) {
         watchCommand({
             force: syncOptions.force as boolean,
-            interval: syncOptions.interval ? parseInt(syncOptions.interval as string) : 30,
+            interval: syncOptions.interval ? Number.parseInt(syncOptions.interval as string) : 30,
             collection: syncOptions.collection as string,
             config: syncOptions.config as string,
-            timeout: syncOptions.timeout ? parseInt(syncOptions.timeout as string) : undefined,
+            timeout: syncOptions.timeout ? Number.parseInt(syncOptions.timeout as string) : undefined,
             build: syncOptions.build as boolean,
             noBuild: syncOptions.noBuild as boolean,
         });
@@ -217,25 +218,27 @@ switch (command) {
             collection: syncOptions.collection as string,
             regenerate: syncOptions.regenerate as boolean,
             config: syncOptions.config as string,
-            timeout: syncOptions.timeout ? parseInt(syncOptions.timeout as string) : undefined,
+            timeout: syncOptions.timeout ? Number.parseInt(syncOptions.timeout as string) : undefined,
             build: syncOptions.build as boolean,
             noBuild: syncOptions.noBuild as boolean,
         });
     }
     break;
-  case 'rollback':
+  }
+  case 'rollback': {
     const rollbackOptions = parseArgs(args);
     rollbackCommand({
         preview: rollbackOptions.preview as boolean,
     });
     break;
+  }
   case 'validate':
     validateCommand();
     break;
   case 'tokens':
     tokensCommand();
     break;
-  case 'docs':
+  case 'docs': {
     const docsOptions = parseArgs(args);
     docsCommand({
         output: docsOptions.output as string,
@@ -244,7 +247,8 @@ switch (command) {
         config: docsOptions.config as string,
     });
     break;
-  case 'import':
+  }
+  case 'import': {
     const importOptions = parseArgs(args);
     // First non-flag argument after 'import' is the path
     const importPath = args.slice(1).find(arg => !arg.startsWith('--'));
@@ -257,6 +261,7 @@ switch (command) {
         config: importOptions.config as string,
     });
     break;
+  }
   default:
     if (command) {
         console.log('Unknown command:', command);

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { writeFileSync, mkdirSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
 
 // Mock modules before importing
 vi.mock('../../core/figma.js', () => ({
@@ -25,7 +25,7 @@ vi.mock('../../core/output.js', () => ({
   getBuildStepsSummary: vi.fn().mockReturnValue([]),
 }));
 
-import { loadConfig, ConfigSchema, updateConfigWithCollections } from '../../core/config.js';
+import { loadConfig, updateConfigWithCollections } from '../../core/config.js';
 import { isPhantomMode } from '../../utils/figma.js';
 
 const TEST_DIR = 'test-temp-sync';
@@ -50,7 +50,7 @@ describe('Sync command - new config structure', () => {
       tokens: {
         dir: 'src/design-tokens',
         collections: {
-          theme: { splitModes: true }
+          theme: { splitBy: 'mode' }
         }
       }
     };
@@ -59,7 +59,7 @@ describe('Sync command - new config structure', () => {
     const loaded = loadConfig();
 
     expect(loaded.tokens.dir).toBe('src/design-tokens');
-    expect(loaded.tokens.collections?.theme?.splitModes).toBe(true);
+    expect(loaded.tokens.collections?.theme?.splitBy).toBe('mode');
   });
 
   it('should read build.css configuration instead of old css section', () => {
@@ -145,26 +145,26 @@ describe('First sync collection discovery', () => {
     delete process.env.FIGMA_TOKEN;
   });
 
-  it('should auto-detect splitModes: false for collections with 1 mode', () => {
+  it('should auto-detect splitBy: none for collections with 1 mode', () => {
     const collections = [
-      { name: 'base', modes: ['default'], splitModes: false },
+      { name: 'base', modes: ['default'], splitBy: 'none' as const },
     ];
 
-    // The logic: splitModes should be false when only 1 mode
-    expect(collections[0].splitModes).toBe(false);
+    // The logic: splitBy should be 'none' when only 1 mode
+    expect(collections[0].splitBy).toBe('none');
     expect(collections[0].modes.length).toBe(1);
   });
 
-  it('should auto-detect splitModes: true for collections with 2+ modes', () => {
+  it('should auto-detect splitBy: mode for collections with 2+ modes', () => {
     const collections = [
-      { name: 'theme', modes: ['light', 'dark'], splitModes: true },
-      { name: 'brands', modes: ['brandA', 'brandB', 'brandC'], splitModes: true },
+      { name: 'theme', modes: ['light', 'dark'], splitBy: 'mode' as const },
+      { name: 'brands', modes: ['brandA', 'brandB', 'brandC'], splitBy: 'mode' as const },
     ];
 
-    // The logic: splitModes should be true when 2+ modes
-    expect(collections[0].splitModes).toBe(true);
+    // The logic: splitBy should be 'mode' when 2+ modes
+    expect(collections[0].splitBy).toBe('mode');
     expect(collections[0].modes.length).toBe(2);
-    expect(collections[1].splitModes).toBe(true);
+    expect(collections[1].splitBy).toBe('mode');
     expect(collections[1].modes.length).toBe(3);
   });
 
@@ -179,8 +179,8 @@ describe('First sync collection discovery', () => {
 
     // Simulate discovered collections
     const discoveredCollections = [
-      { name: 'base', modes: ['default'], splitModes: false },
-      { name: 'theme', modes: ['light', 'dark'], splitModes: true },
+      { name: 'base', modes: ['default'], splitBy: 'none' as const },
+      { name: 'theme', modes: ['light', 'dark'], splitBy: 'mode' as const },
     ];
 
     const result = updateConfigWithCollections(discoveredCollections);
@@ -189,8 +189,8 @@ describe('First sync collection discovery', () => {
 
     // Reload config and verify collections were added
     const updatedConfig = loadConfig();
-    expect(updatedConfig.tokens.collections?.base?.splitModes).toBe(false);
-    expect(updatedConfig.tokens.collections?.theme?.splitModes).toBe(true);
+    expect(updatedConfig.tokens.collections?.base?.splitBy).toBe('none');
+    expect(updatedConfig.tokens.collections?.theme?.splitBy).toBe('mode');
   });
 
   it('should preserve existing tokens config when updating with collections', () => {
@@ -207,7 +207,7 @@ describe('First sync collection discovery', () => {
     writeFileSync('synkio.config.json', JSON.stringify(initialConfig));
 
     const discoveredCollections = [
-      { name: 'colors', modes: ['default'], splitModes: false },
+      { name: 'colors', modes: ['default'], splitBy: 'none' as const },
     ];
 
     updateConfigWithCollections(discoveredCollections);
@@ -217,7 +217,7 @@ describe('First sync collection discovery', () => {
     expect(updatedConfig.tokens.dir).toBe('src/tokens');
     expect(updatedConfig.tokens.dtcg).toBe(true);
     expect(updatedConfig.tokens.includeVariableId).toBe(true);
-    expect(updatedConfig.tokens.collections?.colors?.splitModes).toBe(false);
+    expect(updatedConfig.tokens.collections?.colors?.splitBy).toBe('none');
   });
 });
 
@@ -229,7 +229,7 @@ describe('discoverCollectionsFromTokens helper', () => {
    */
   function discoverCollectionsFromTokens(
     normalizedTokens: Record<string, { collection: string; mode: string }>
-  ): { name: string; modes: string[]; splitModes: boolean }[] {
+  ): { name: string; modes: string[]; splitBy: 'mode' | 'none' }[] {
     // Build map of collections to their unique modes
     const collectionModes = new Map<string, Set<string>>();
 
@@ -246,14 +246,14 @@ describe('discoverCollectionsFromTokens helper', () => {
       collectionModes.get(collection)!.add(mode);
     }
 
-    // Convert to array with splitModes determination
-    const result: { name: string; modes: string[]; splitModes: boolean }[] = [];
+    // Convert to array with splitBy determination
+    const result: { name: string; modes: string[]; splitBy: 'mode' | 'none' }[] = [];
     for (const [name, modesSet] of collectionModes) {
       const modes = Array.from(modesSet).sort();
       result.push({
         name,
         modes,
-        splitModes: modes.length > 1,  // false if 1 mode, true if 2+ modes
+        splitBy: modes.length > 1 ? 'mode' : 'none',  // 'none' if 1 mode, 'mode' if 2+ modes
       });
     }
 
@@ -275,15 +275,15 @@ describe('discoverCollectionsFromTokens helper', () => {
     const base = discovered.find(c => c.name === 'base');
     expect(base).toBeDefined();
     expect(base!.modes).toEqual(['default']);
-    expect(base!.splitModes).toBe(false);
+    expect(base!.splitBy).toBe('none');
 
     const theme = discovered.find(c => c.name === 'theme');
     expect(theme).toBeDefined();
     expect(theme!.modes).toEqual(['dark', 'light']);
-    expect(theme!.splitModes).toBe(true);
+    expect(theme!.splitBy).toBe('mode');
   });
 
-  it('should correctly determine splitModes based on mode count', () => {
+  it('should correctly determine splitBy based on mode count', () => {
     const singleModeTokens = {
       'VariableID:1:1:primitives.default': { collection: 'primitives', mode: 'default', path: 'a', value: 1, type: 'number' },
     };
@@ -295,10 +295,10 @@ describe('discoverCollectionsFromTokens helper', () => {
     };
 
     const singleResult = discoverCollectionsFromTokens(singleModeTokens as any);
-    expect(singleResult[0].splitModes).toBe(false);
+    expect(singleResult[0].splitBy).toBe('none');
 
     const multiResult = discoverCollectionsFromTokens(multiModeTokens as any);
-    expect(multiResult[0].splitModes).toBe(true);
+    expect(multiResult[0].splitBy).toBe('mode');
     expect(multiResult[0].modes).toHaveLength(3);
   });
 
@@ -319,7 +319,7 @@ describe('discoverCollectionsFromTokens helper', () => {
     expect(theme.modes).toEqual(['dark', 'light']);
     expect(theme.modes).not.toContain('21598:4');
     expect(theme.modes).not.toContain('21598:5');
-    expect(theme.splitModes).toBe(true);
+    expect(theme.splitBy).toBe('mode');
   });
 
   it('should handle collections with only phantom modes', () => {
@@ -353,6 +353,6 @@ describe('discoverCollectionsFromTokens helper', () => {
     // Should only count valid modes (dark, light), not phantom modes
     expect(theme.modes).toHaveLength(2);
     expect(theme.modes).toEqual(['dark', 'light']);
-    expect(theme.splitModes).toBe(true);
+    expect(theme.splitBy).toBe('mode');
   });
 });

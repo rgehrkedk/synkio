@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "figma": {
+    "fileId": "IDaXDDvcIU1nDvuIP0IG47",
+    "accessToken": "${FIGMA_TOKEN}"
+  },
+  "tokens": {
+    "dir": "tokens",
+    "collections": {
+      "brand": {
+        "dir": "tokens/brands",
+        "splitBy": "mode"
+      },
+      "globals": {
+        "dir": "tokens/primitives",
+        "splitBy": "group",
+        "names": {
+          "font": "typography"
+        }
+      },
+      "theme": {
+        "dir": "tokens/theme",
+        "splitBy": "mode"
+      }
+    },
+    "styles": {
+      "paint": {
+        "dir": "tokens/styles",
+        "file": "colors"
+      },
+      "text": {
+        "mergeInto": {
+          "collection": "globals",
+          "group": "font"
+        }
+      },
+      "effect": {
+        "dir": "tokens/primitives",
+        "file": "effects"
+      }
+    }
+  }
+}
+

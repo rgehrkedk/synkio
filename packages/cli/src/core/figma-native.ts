@@ -101,7 +101,7 @@ function isToken(obj: unknown): obj is FigmaNativeToken {
  */
 function normalizeColorValue(value: FigmaNativeValue): string {
   if (typeof value === 'object' && value !== null && 'hex' in value) {
-    return (value as FigmaNativeColorValue).hex || '#000000';
+    return value.hex ?? '#000000';
   }
   if (typeof value === 'string') {
     return value;
@@ -276,7 +276,7 @@ export function parseFigmaNativeFiles(
 
       // Last part before .json is likely the mode
       if (parts.length >= 1 && !inferredOptions.mode) {
-        inferredOptions.mode = parts[parts.length - 1];
+        inferredOptions.mode = parts.at(-1);
       }
     }
 
