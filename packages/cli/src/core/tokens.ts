@@ -1,6 +1,15 @@
 import { BaselineEntry, RawStyles, StyleBaselineEntry } from '../types/index.js';
 import { SynkioPluginDataSchema, StyleEntry } from '../types/schemas.js';
 import type { SplitBy } from './config.js';
+import { setNestedPath } from './utils/index.js';
+import {
+  determineSplitStrategy,
+  buildVariableIdLookup,
+  resolveReference,
+  isReference,
+  buildTokenObject,
+  generateFilename,
+} from './tokens/index.js';
 
 /**
  * The raw token structure received from the Figma plugin
@@ -24,7 +33,7 @@ export type SplitTokens = Map<string, SplitTokenFile>;
 export interface CollectionSplitOptions {
   [collectionName: string]: {
     dir?: string;          // Output directory for this collection (relative to cwd)
-    file?: string;         // Custom filename base (e.g., "colors" → "colors.json", or with modes: "theme" → "theme.light.json")
+    file?: string;         // Custom filename base (e.g., "colors" -> "colors.json", or with modes: "theme" -> "theme.light.json")
     splitBy?: SplitBy;     // "mode" = separate files per mode, "group" = separate files per top-level group, "none" = single file
     includeMode?: boolean; // true = include mode as first-level key even when splitting (default: true)
     names?: Record<string, string>; // Rename modes or groups in output files (e.g., { "light": "day" } or { "colors": "palette" })
@@ -55,9 +64,9 @@ export function mapToDTCGType(type: string, path?: string): string {
     'gradient': 'gradient',
     'typography': 'typography',
   };
-  
+
   const baseType = typeMap[type.toLowerCase()] || type.toLowerCase();
-  
+
   // Infer dimension type from path for float/number types
   if ((type.toLowerCase() === 'float' || type.toLowerCase() === 'number') && path) {
     const pathLower = path.toLowerCase();
@@ -66,7 +75,7 @@ export function mapToDTCGType(type: string, path?: string): string {
       return 'dimension';
     }
   }
-  
+
   return baseType;
 }
 
@@ -82,19 +91,19 @@ function normalizeValue(value: unknown, type: string, path?: string, dtcgType?: 
       const g = Math.round((v.g ?? 0) * 255);
       const b = Math.round((v.b ?? 0) * 255);
       const a = v.a ?? 1;
-      
+
       if (a === 1) {
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
       }
       return `rgba(${r}, ${g}, ${b}, ${a})`;
     }
   }
-  
+
   // Add px suffix for dimension types (spacing, radius, size, etc.)
   if (dtcgType === 'dimension' && typeof value === 'number') {
     return `${value}px`;
   }
-  
+
   return value;
 }
 
@@ -203,16 +212,6 @@ ${errorDetails}`
   throw new Error('Unrecognized plugin data format. Run the Synkio plugin in Figma first.');
 }
 
-// A simple utility to set a nested property on an object
-function set(obj: any, path: string[], value: any) {
-    let current = obj;
-    for (let i = 0; i < path.length - 1; i++) {
-        const key = path[i];
-        current = current[key] = current[key] || {};
-    }
-    current[path.at(-1)!] = value;
-}
-
 /**
  * Options for splitTokens function
  */
@@ -255,173 +254,96 @@ export interface SplitTokensOptions {
  * splitTokens(tokens, { dtcg: false })
  */
 export function splitTokens(rawTokens: RawTokens, options: SplitTokensOptions = {}): SplitTokens {
-    const files = new Map<string, { content: any; collection: string; group?: string }>();
-    const collectionOptions = options.collections || {};
-    const useDtcg = options.dtcg !== false; // default true
-    const includeVariableId = options.includeVariableId === true; // default false
-    // Parent-level defaults
-    const defaultSplitBy: SplitBy = options.splitBy ?? 'mode';
-    const defaultIncludeMode = options.includeMode === true; // default false
-    const extensions = options.extensions || {};
-    const valueKey = useDtcg ? '$value' : 'value';
-    const typeKey = useDtcg ? '$type' : 'type';
-    const extensionsKey = useDtcg ? '$extensions' : 'extensions';
-    const descriptionKey = useDtcg ? '$description' : 'description';
+  const files = new Map<string, { content: any; collection: string; group?: string }>();
+  const collectionOptions = options.collections || {};
+  const useDtcg = options.dtcg !== false; // default true
+  const includeVariableId = options.includeVariableId === true; // default false
+  const defaultSplitBy: SplitBy = options.splitBy ?? 'mode';
+  const defaultIncludeMode = options.includeMode === true; // default false
+  const extensions = options.extensions || {};
 
-    // Build a lookup map from VariableID to path for resolving references
-    const variableIdToPath = new Map<string, string>();
-    for (const entry of Object.values(rawTokens)) {
-        if (entry.variableId && entry.path) {
-            variableIdToPath.set(entry.variableId, entry.path);
-        }
+  // Build lookup map for resolving references
+  const variableIdToPath = buildVariableIdLookup(rawTokens);
+
+  // Process each token entry
+  for (const entry of Object.values(rawTokens)) {
+    const collection = entry.collection || entry.path.split('.')[0];
+    const mode = entry.mode || entry.path.split('.')[1] || 'value';
+    const pathParts = entry.path.split('.');
+    const collectionConfig = collectionOptions[collection];
+
+    // Determine split strategy
+    const { fileKey, nestedPath, group } = determineSplitStrategy({
+      collection,
+      mode,
+      pathParts,
+      collectionConfig,
+      defaultSplitBy,
+      defaultIncludeMode,
+    });
+
+    // Initialize file if needed
+    if (!files.has(fileKey)) {
+      files.set(fileKey, { content: {}, collection, group });
     }
 
-    for (const entry of Object.values(rawTokens)) {
-        // Use explicit collection/mode fields if available (new Synkio format)
-        // Fall back to parsing from path (legacy format)
-        const collection = entry.collection || entry.path.split('.')[0];
-        const mode = entry.mode || entry.path.split('.')[1] || 'value';
-        const pathParts = entry.path.split('.');
-        const topLevelGroup = pathParts[0]; // First segment of path (e.g., "color", "spacing")
+    const fileData = files.get(fileKey)!;
 
-        const collectionConfig = collectionOptions[collection];
-        // Collection config overrides parent-level defaults
-        const splitBy: SplitBy = collectionConfig?.splitBy ?? defaultSplitBy;
-        const shouldIncludeMode = collectionConfig?.includeMode ?? defaultIncludeMode;
+    // Determine DTCG type
+    const dtcgType = mapToDTCGType(entry.type, entry.path);
 
-        let fileKey: string;
-        let nestedPath: string[];
-        let group: string | undefined;
-
-        if (splitBy === 'mode') {
-            // Split by collection.mode -> theme.light.json, theme.dark.json
-            fileKey = `${collection}.${mode}`;
-            // Include mode as first-level key if configured
-            nestedPath = shouldIncludeMode ? [mode, ...pathParts] : pathParts;
-        } else if (splitBy === 'group') {
-            // Split by collection.group -> globals.color.json, globals.spacing.json
-            fileKey = `${collection}.${topLevelGroup}`;
-            group = topLevelGroup;
-            // Remove the top-level group from path since it's now the file name
-            const remainingPath = pathParts.slice(1);
-            nestedPath = shouldIncludeMode ? [mode, ...remainingPath] : remainingPath;
-        } else {
-            // splitBy === 'none': use only collection name as file key
-            // Include mode as top-level key if configured
-            fileKey = collection;
-            nestedPath = shouldIncludeMode ? [mode, ...pathParts] : pathParts;
-        }
-
-        if (!files.has(fileKey)) {
-            files.set(fileKey, { content: {}, collection, group });
-        }
-
-        const fileData = files.get(fileKey)!;
-        
-        // Determine the DTCG type (may be inferred from path)
-        const dtcgType = mapToDTCGType(entry.type, entry.path);
-        
-        // Resolve value - convert VariableID references to DTCG path references
-        let resolvedValue: unknown;
-        if (entry.value && typeof entry.value === 'object' && entry.value.$ref) {
-            const refVariableId = entry.value.$ref;
-            const refPath = variableIdToPath.get(refVariableId);
-            if (refPath) {
-                // DTCG format: wrap path in curly braces
-                resolvedValue = `{${refPath}}`;
-            } else {
-                // Fallback: keep original reference if path not found
-                console.warn(`Warning: Could not resolve reference ${refVariableId} for token ${entry.path}`);
-                resolvedValue = entry.value;
-            }
-        } else {
-            // Normalize the value (add px for dimensions, convert colors, etc.)
-            resolvedValue = normalizeValue(entry.value, entry.type, entry.path, dtcgType);
-        }
-        
-        // Build token object with DTCG or legacy format
-        const tokenObj: Record<string, any> = {
-            [valueKey]: resolvedValue,
-            [typeKey]: dtcgType,
-        };
-        
-        // Optionally include description (DTCG uses $description)
-        if (extensions.description && entry.description) {
-            tokenObj[descriptionKey] = entry.description;
-        }
-        
-        // Build extensions object for variableId, scopes, codeSyntax
-        const figmaExtensions: Record<string, any> = {};
-        
-        if (includeVariableId && entry.variableId) {
-            figmaExtensions.variableId = entry.variableId;
-        }
-        
-        if (extensions.scopes && entry.scopes && entry.scopes.length > 0) {
-            figmaExtensions.scopes = entry.scopes;
-        }
-        
-        if (extensions.codeSyntax && entry.codeSyntax && Object.keys(entry.codeSyntax).length > 0) {
-            figmaExtensions.codeSyntax = entry.codeSyntax;
-        }
-        
-        // Only add extensions if there's something to include
-        if (Object.keys(figmaExtensions).length > 0) {
-            tokenObj[extensionsKey] = { 'com.figma': figmaExtensions };
-        }
-        
-        // Create nested structure for the token
-        if (nestedPath.length > 0) {
-            set(fileData.content, nestedPath, tokenObj);
-        } else {
-            // Edge case: no nested path
-            fileData.content[entry.path] = tokenObj;
-        }
+    // Resolve value (handle references)
+    let resolvedValue: unknown;
+    if (isReference(entry.value)) {
+      resolvedValue = resolveReference(entry.value, variableIdToPath, entry.path);
+      // If still a reference (not resolved), keep as-is
+      if (isReference(resolvedValue)) {
+        resolvedValue = entry.value;
+      }
+    } else {
+      resolvedValue = normalizeValue(entry.value, entry.type, entry.path, dtcgType);
     }
-    
-    const result: SplitTokens = new Map();
-    for (const [key, fileData] of files.entries()) {
-        const collectionConfig = collectionOptions[fileData.collection];
-        const splitBy: SplitBy = collectionConfig?.splitBy ?? defaultSplitBy;
-        const namesMapping = collectionConfig?.names || {};
 
-        // Determine the filename based on split strategy
-        // key format: "collection.mode" (splitBy=mode), "collection.group" (splitBy=group), or "collection" (splitBy=none)
-        let fileName: string;
-        const keyParts = key.split('.');
+    // Build token object
+    const tokenObj = buildTokenObject({
+      value: resolvedValue,
+      dtcgType,
+      useDtcg,
+      includeVariableId,
+      extensions,
+      entry,
+    });
 
-        if (splitBy === 'group' && fileData.group) {
-            // For group splitting, use just the group name as file name
-            // Apply names mapping if configured (e.g., { "colors": "palette" })
-            const mappedGroup = namesMapping[fileData.group] || fileData.group;
-            fileName = `${mappedGroup}.json`;
-        } else if (splitBy === 'mode' && keyParts.length > 1) {
-            // For mode splitting, apply names mapping to mode
-            const mode = keyParts.slice(1).join('.');
-            const mappedMode = namesMapping[mode] || mode;
-            const fileBase = collectionConfig?.file || keyParts[0];
-            fileName = `${fileBase}.${mappedMode}.json`;
-        } else if (collectionConfig?.file) {
-            // Custom filename specified (splitBy: none or other cases)
-            if (keyParts.length > 1) {
-                const suffix = keyParts.slice(1).join('.');
-                const mappedSuffix = namesMapping[suffix] || suffix;
-                fileName = `${collectionConfig.file}.${mappedSuffix}.json`;
-            } else {
-                fileName = `${collectionConfig.file}.json`;
-            }
-        } else {
-            // Default: use key as-is
-            fileName = `${key}.json`;
-        }
-
-        result.set(fileName, {
-            content: fileData.content,
-            collection: fileData.collection,
-            dir: collectionConfig?.dir,
-        });
+    // Create nested structure
+    if (nestedPath.length > 0) {
+      setNestedPath(fileData.content, nestedPath, tokenObj);
+    } else {
+      fileData.content[entry.path] = tokenObj;
     }
-    return result;
+  }
+
+  // Generate final result with filenames
+  const result: SplitTokens = new Map();
+  for (const [key, fileData] of files.entries()) {
+    const collectionConfig = collectionOptions[fileData.collection];
+    const splitBy: SplitBy = collectionConfig?.splitBy ?? defaultSplitBy;
+
+    const fileName = generateFilename(
+      key,
+      fileData,
+      collectionConfig,
+      splitBy,
+      defaultSplitBy
+    );
+
+    result.set(fileName, {
+      content: fileData.content,
+      collection: fileData.collection,
+      dir: collectionConfig?.dir,
+    });
+  }
+
+  return result;
 }
 
 /**
@@ -435,10 +357,10 @@ export function parseVariableId(prefixedId: string): { varId: string; collection
   if (parts.length < 2) {
     return { varId: prefixedId, collection: 'unknown', mode: 'default' };
   }
-  
+
   const lastPart = parts.pop()!;
   const varId = parts.join(':');
-  
+
   // Check if lastPart contains collection.mode (new format)
   if (lastPart.includes('.')) {
     const dotIndex = lastPart.indexOf('.');
@@ -446,7 +368,7 @@ export function parseVariableId(prefixedId: string): { varId: string; collection
     const mode = lastPart.substring(dotIndex + 1);
     return { varId, collection, mode };
   }
-  
+
   // Legacy format: just mode
   return { varId, collection: 'unknown', mode: lastPart };
 }
@@ -646,6 +568,3 @@ export function splitStyles(rawStyles: RawStyles, options: StylesSplitOptions = 
 
   return result;
 }
-
-// setNestedPath is identical to 'set' function above - reuse it
-const setNestedPath = set;

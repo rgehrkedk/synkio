@@ -80,6 +80,7 @@ function showHelp(command?: string) {
             console.log('  --collection=<name> Sync only specific collection(s), comma-separated');
             console.log('  --regenerate        Regenerate files from existing baseline (no Figma fetch)');
             console.log('  --timeout=<s>       Figma API timeout in seconds (default: 120)');
+            console.log('  --open              Open docs folder after sync (if docs enabled)');
             console.log('  --config=<file>     Path to config file (default: synkio.config.json)');
             break;
         case 'rollback':
@@ -221,6 +222,7 @@ switch (command) {
             timeout: syncOptions.timeout ? Number.parseInt(syncOptions.timeout as string) : undefined,
             build: syncOptions.build as boolean,
             noBuild: syncOptions.noBuild as boolean,
+            open: syncOptions.open as boolean,
         });
     }
     break;

@@ -1,1007 +1,94 @@
-import { mkdir, writeFile, readdir, unlink } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { execSync } from 'node:child_process';
-import { loadConfig, updateConfigWithCollectionRenames, updateConfigWithCollections } from '../../core/config.js';
-import { FigmaClient } from '../../core/figma.js';
-import { splitTokens, SplitTokensOptions, normalizePluginData, RawTokens, normalizeStyleData, hasStyles, getStyleCount, splitStyles, StylesSplitOptions } from '../../core/tokens.js';
-import { createLogger } from '../../utils/logger.js';
-import { isPhantomMode, filterPhantomModes } from '../../utils/figma.js';
-import { readBaseline, writeBaseline } from '../../core/baseline.js';
-import { compareBaselines, hasChanges, hasBreakingChanges, getChangeCounts, generateDiffReport, printDiffSummary, compareStyleBaselines, hasStyleChanges, hasBreakingStyleChanges, printStyleDiffSummary, getStyleChangeCounts } from '../../core/compare.js';
-import {
-  generateIntermediateFromBaseline,
-  generateDocsFromBaseline,
-  generateCssFromBaseline,
-  hasBuildConfig,
-  getBuildStepsSummary,
-} from '../../core/output.js';
-import { BaselineData } from '../../types/index.js';
-import { confirmPrompt } from '../utils.js';
+/**
+ * Sync Command
+ *
+ * Thin orchestrator for sync operations.
+ * Delegates business logic to core/sync modules.
+ */
+
 import chalk from 'chalk';
 import ora from 'ora';
+import { loadConfig } from '../../core/config.js';
+import { FigmaClient } from '../../core/figma.js';
+import { normalizePluginData } from '../../core/tokens.js';
+import { createLogger } from '../../utils/logger.js';
+import { filterPhantomModes } from '../../utils/figma.js';
+import { readBaseline } from '../../core/baseline.js';
+import { compareBaselines, hasChanges, hasBreakingChanges, printDiffSummary } from '../../core/compare.js';
+import type { BaselineData } from '../../types/index.js';
+import {
+  executeSyncPipeline,
+  formatExtrasString,
+  type SyncOptions,
+} from '../../core/sync/index.js';
+import { openFolder } from '../utils.js';
 
-export interface SyncOptions {
-  force?: boolean;      // Bypass breaking change protection
-  preview?: boolean;    // Show what would change, don't sync
-  report?: boolean;     // Force generate markdown report
-  noReport?: boolean;   // Force skip report generation
-  watch?: boolean;      // Watch for changes
-  interval?: number;    // Watch interval in seconds (default 30)
-  collection?: string;  // Sync only specific collection(s), comma-separated
-  regenerate?: boolean; // Regenerate files from existing baseline (no Figma fetch)
-  config?: string;      // Path to config file (auto-discovered if not specified)
-  timeout?: number;     // Figma API timeout in seconds (default 60)
-  build?: boolean;      // Force run build without prompting
-  noBuild?: boolean;    // Skip build entirely (even if configured)
-}
-
-/**
- * Deep merge source object into target object (mutates target)
- */
-function deepMerge(target: any, source: any): void {
-  for (const key of Object.keys(source)) {
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-      if (!target[key] || typeof target[key] !== 'object') {
-        target[key] = {};
-      }
-      deepMerge(target[key], source[key]);
-    } else {
-      target[key] = source[key];
-    }
-  }
-}
+// Re-export SyncOptions for backward compatibility
+export type { SyncOptions };
 
 /**
- * Extract unique collections and their modes from normalized tokens.
- * Used during first sync to auto-populate tokens.collections.
- * Filters out phantom modes (Figma internal IDs like "21598:4").
+ * Main sync command - thin orchestrator
+ *
+ * Responsibilities:
+ * - CLI argument handling
+ * - Spinner management
+ * - Error handling and exit codes
+ *
+ * Business logic delegated to executeSyncPipeline()
  */
-function discoverCollectionsFromTokens(
-  normalizedTokens: RawTokens
-): { name: string; modes: string[]; splitBy: 'mode' | 'none' }[] {
-  // Build map of collections to their unique modes
-  const collectionModes = new Map<string, Set<string>>();
-
-  for (const entry of Object.values(normalizedTokens)) {
-    const collection = entry.collection || entry.path.split('.')[0];
-    const mode = entry.mode || 'default';
-
-    // Skip phantom modes (Figma internal IDs)
-    if (isPhantomMode(mode)) continue;
-
-    if (!collectionModes.has(collection)) {
-      collectionModes.set(collection, new Set());
-    }
-    collectionModes.get(collection)!.add(mode);
-  }
-
-  // Convert to array with splitBy determination
-  const result: { name: string; modes: string[]; splitBy: 'mode' | 'none' }[] = [];
-  for (const [name, modesSet] of collectionModes) {
-    const modes = Array.from(modesSet).sort((a, b) => a.localeCompare(b));
-    result.push({
-      name,
-      modes,
-      splitBy: modes.length > 1 ? 'mode' : 'none',  // 'none' if 1 mode, 'mode' if 2+ modes
-    });
-  }
-
-  return result.sort((a, b) => a.name.localeCompare(b.name));
-}
-
-/**
- * Run the build script if configured
- * Returns true if script ran successfully, false otherwise
- */
-async function runBuildScript(
-  config: ReturnType<typeof loadConfig>,
-  spinner: ReturnType<typeof ora>
-): Promise<{ ran: boolean; success: boolean }> {
-  const buildScript = config.build?.script;
-
-  if (!buildScript) {
-    return { ran: false, success: true };
-  }
-
-  spinner.text = `Running build script: ${buildScript}`;
-
-  try {
-    execSync(buildScript, {
-      stdio: 'inherit',
-      cwd: process.cwd(),
-    });
-    return { ran: true, success: true };
-  } catch (error: any) {
-    spinner.fail(chalk.red(`Build script failed: ${error.message}`));
-    return { ran: true, success: false };
-  }
-}
-
-/**
- * Prompt user to confirm build step
- * Returns true if build should run, false to skip
- */
-async function shouldRunBuild(
-  config: ReturnType<typeof loadConfig>,
-  options: SyncOptions
-): Promise<boolean> {
-  // --no-build flag: always skip
-  if (options.noBuild) {
-    return false;
-  }
-
-  // No build config: nothing to run
-  if (!hasBuildConfig(config)) {
-    return false;
-  }
-
-  // --build flag: always run without prompting
-  if (options.build) {
-    return true;
-  }
-
-  // config.build.autoRun: run without prompting
-  if (config.build?.autoRun) {
-    return true;
-  }
-
-  // Show what build steps would run and ask for confirmation
-  const steps = getBuildStepsSummary(config);
-  console.log(chalk.cyan('\n  Build configuration detected:'));
-  for (const step of steps) {
-    console.log(chalk.dim(`    - ${step}`));
-  }
-
-  return await confirmPrompt('\n  Run build after sync? (y/n): ');
-}
-
-/**
- * Run the complete build pipeline
- * Executes: build.script, CSS output
- */
-async function runBuildPipeline(
-  baseline: BaselineData,
-  config: ReturnType<typeof loadConfig>,
-  spinner: ReturnType<typeof ora>
-): Promise<{
-  scriptRan: boolean;
-  cssFilesWritten: number;
-}> {
-  let scriptRan = false;
-  let cssFilesWritten = 0;
-
-  // 1. Run build script if configured
-  if (config.build?.script) {
-    spinner.stop();
-    console.log(chalk.cyan(`\n  Running build script: ${config.build.script}\n`));
-
-    const buildResult = await runBuildScript(config, spinner);
-    scriptRan = buildResult.ran;
-
-    if (!buildResult.success) {
-      throw new Error('Build script failed');
-    }
-
-    spinner.start('Running build pipeline...');
-  }
-
-  // 2. Generate CSS if enabled
-  if (config.build?.css?.enabled) {
-    spinner.text = 'Generating CSS output...';
-    const cssResult = await generateCssFromBaseline(baseline, config);
-    cssFilesWritten = cssResult.files.length;
-  }
-
-  return { scriptRan, cssFilesWritten };
-}
-
 export async function syncCommand(options: SyncOptions = {}) {
-  const logger = createLogger();
   const spinner = ora('Syncing design tokens...').start();
 
   try {
-    // 1. Load config
-    spinner.text = 'Loading configuration...';
-    let config = loadConfig(options.config);
-    logger.debug('Config loaded', config);
+    const result = await executeSyncPipeline(options, spinner);
 
-    // Handle --regenerate: skip Figma fetch, use existing baseline
-    if (options.regenerate) {
-      spinner.text = 'Regenerating files from existing baseline...';
-      const localBaseline = await readBaseline();
-
-      if (!localBaseline) {
-        spinner.fail(chalk.red('No baseline found. Run synkio sync first to fetch tokens from Figma.'));
-        process.exit(1);
-      }
-
-      // Use the existing baseline tokens
-      const normalizedTokens = localBaseline.baseline;
-
-      // Split and write token files using new config structure
-      const splitOptions: SplitTokensOptions = {
-        collections: config.tokens.collections || {},
-        dtcg: config.tokens.dtcg !== false,
-        includeVariableId: config.tokens.includeVariableId === true,
-        splitBy: config.tokens.splitBy,
-        includeMode: config.tokens.includeMode,
-        extensions: config.tokens.extensions || {},
-      };
-      const processedTokens = splitTokens(normalizedTokens, splitOptions);
-
-      const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
-
-      // Build map of files per directory
-      const filesByDir = new Map<string, Map<string, any>>();
-      for (const [fileName, fileData] of processedTokens) {
-        const outDir = fileData.dir
-          ? resolve(process.cwd(), fileData.dir)
-          : defaultOutDir;
-
-        if (!filesByDir.has(outDir)) {
-          filesByDir.set(outDir, new Map());
-        }
-        filesByDir.get(outDir)!.set(fileName, fileData.content);
-      }
-
-      // Process style files (may merge into token files)
-      // Regenerate style files if present in baseline
-      let styleFilesWritten = 0;
-      const standaloneStyleFiles: Array<{ fileName: string; content: any; dir?: string }> = [];
-
-      if (localBaseline.styles && Object.keys(localBaseline.styles).length > 0) {
-        const stylesConfig = config.tokens.styles;
-
-        if (stylesConfig?.enabled !== false) {
-          spinner.text = 'Processing style files...';
-
-          const styleSplitOptions: StylesSplitOptions = {
-            enabled: stylesConfig?.enabled,
-            paint: stylesConfig?.paint,
-            text: stylesConfig?.text,
-            effect: stylesConfig?.effect,
-          };
-
-          const processedStyles = splitStyles(localBaseline.styles, styleSplitOptions);
-
-          for (const [fileName, fileData] of processedStyles) {
-            if (fileData.mergeInto) {
-              // Merge styles into an existing token file
-              const { collection, group } = fileData.mergeInto;
-              const collectionConfig = config.tokens.collections?.[collection];
-              const splitBy = collectionConfig?.splitBy ?? config.tokens.splitBy ?? 'mode';
-              const namesMapping = collectionConfig?.names || {};
-
-              // Determine target directory
-              const targetDir = collectionConfig?.dir
-                ? resolve(process.cwd(), collectionConfig.dir)
-                : defaultOutDir;
-
-              // Determine target filename based on collection's splitBy strategy
-              let targetFileName: string;
-              if (splitBy === 'group') {
-                // For group splitting, use the group name if specified (with names mapping)
-                const targetGroup = group || Object.keys(fileData.content)[0];
-                const mappedGroup = namesMapping[targetGroup] || targetGroup;
-                targetFileName = `${mappedGroup}.json`;
-              } else if (splitBy === 'none') {
-                // Single file per collection
-                const fileBase = collectionConfig?.file || collection;
-                targetFileName = `${fileBase}.json`;
-              } else {
-                // For mode splitting, merge into ALL mode files
-                const collectionPrefix = collectionConfig?.file || collection;
-                const filesInTargetDir = filesByDir.get(targetDir);
-                if (filesInTargetDir) {
-                  for (const [existingFileName, existingContent] of filesInTargetDir) {
-                    if (existingFileName.startsWith(`${collectionPrefix}.`) && existingFileName.endsWith('.json')) {
-                      if (group) {
-                        // Merge into the specified group path
-                        if (!existingContent[group]) {
-                          existingContent[group] = {};
-                        }
-                        deepMerge(existingContent[group], fileData.content);
-                      } else {
-                        deepMerge(existingContent, fileData.content);
-                      }
-                      logger.debug(`Merged ${fileData.styleType} styles into ${existingFileName}${group ? ` at group '${group}'` : ''}`);
-                    }
-                  }
-                }
-                continue;
-              }
-
-              // Merge into single target file
-              const filesInTargetDir = filesByDir.get(targetDir);
-              if (filesInTargetDir?.has(targetFileName)) {
-                const targetContent = filesInTargetDir.get(targetFileName);
-                if (group) {
-                  // Merge into the specified group path within the file
-                  if (!targetContent[group]) {
-                    targetContent[group] = {};
-                  }
-                  deepMerge(targetContent[group], fileData.content);
-                  logger.debug(`Merged ${fileData.styleType} styles into ${targetFileName} at group '${group}'`);
-                } else {
-                  // Merge at root level
-                  deepMerge(targetContent, fileData.content);
-                  logger.debug(`Merged ${fileData.styleType} styles into ${targetFileName}`);
-                }
-              } else {
-                // Target file doesn't exist - queue as standalone
-                logger.warn(`Target file ${targetFileName} not found for mergeInto, writing as standalone`);
-                standaloneStyleFiles.push({
-                  fileName,
-                  content: fileData.content,
-                  dir: fileData.dir,
-                });
-              }
-            } else {
-              // Queue as standalone style file
-              standaloneStyleFiles.push({
-                fileName,
-                content: fileData.content,
-                dir: fileData.dir,
-              });
-            }
-          }
-        }
-      }
-
-      // Write all token files (with merged styles if applicable)
-      let filesWritten = 0;
-      for (const [outDir, filesInDir] of filesByDir) {
-        await mkdir(outDir, { recursive: true });
-        for (const [fileName, content] of filesInDir) {
-          const filePath = resolve(outDir, fileName);
-          await writeFile(filePath, JSON.stringify(content, null, 2));
-          filesWritten++;
-        }
-      }
-
-      // Write standalone style files
-      for (const { fileName, content, dir } of standaloneStyleFiles) {
-        const outDir = dir
-          ? resolve(process.cwd(), dir)
-          : defaultOutDir;
-
-        await mkdir(outDir, { recursive: true });
-        const filePath = resolve(outDir, fileName);
-        await writeFile(filePath, JSON.stringify(content, null, 2));
-        styleFilesWritten++;
-        logger.debug(`Wrote style file: ${filePath}`);
-      }
-
-      // Always generate intermediate format (used by docs and other tools)
-      spinner.text = 'Generating intermediate format...';
-      await generateIntermediateFromBaseline(localBaseline, config);
-
-      // Generate docs if enabled (not a build step)
-      let docsFilesWritten = 0;
-      if (config.docsPages?.enabled) {
-        spinner.text = 'Generating documentation...';
-        const docsResult = await generateDocsFromBaseline(localBaseline, config);
-        docsFilesWritten = docsResult.files.length;
-      }
-
-      // Check if build should run
-      spinner.stop();
-      const runBuild = await shouldRunBuild(config, options);
-
-      let buildScriptRan = false;
-      let cssFilesWritten = 0;
-
-      if (runBuild) {
-        spinner.start('Running build pipeline...');
-        try {
-          const buildResult = await runBuildPipeline(localBaseline, config, spinner);
-          buildScriptRan = buildResult.scriptRan;
-          cssFilesWritten = buildResult.cssFilesWritten;
-        } catch (error: any) {
-          spinner.fail(chalk.red(error.message));
-          process.exit(1);
-        }
-      }
-
-      const extras: string[] = [];
-      if (styleFilesWritten > 0) extras.push(`${styleFilesWritten} style`);
-      if (buildScriptRan) extras.push('build script');
-      if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
-      if (docsFilesWritten > 0) extras.push(`${docsFilesWritten} docs`);
-      const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';
-
-      spinner.succeed(chalk.green(`Regenerated ${filesWritten} token files from baseline.${extrasStr}`));
+    // Handle preview mode (no files written)
+    if (options.preview) {
       return;
     }
 
-    // 2. Fetch data from Figma
-    spinner.text = 'Fetching data from Figma...';
-    const timeout = options.timeout ? options.timeout * 1000 : undefined; // Convert seconds to ms
-    const figmaClient = new FigmaClient({ ...config.figma, logger, timeout });
-    const rawData = await figmaClient.fetchData();
-    logger.debug('Figma data fetched');
+    // Build success message
+    const extras = formatExtrasString({
+      styleFilesWritten: result.styleFilesWritten,
+      buildScriptRan: result.buildScriptRan,
+      cssFilesWritten: result.cssFilesWritten,
+      docsFilesWritten: result.docsFilesWritten,
+    });
 
-    // 3. Normalize plugin data to baseline format
-    spinner.text = 'Processing tokens...';
-    let normalizedTokens = normalizePluginData(rawData);
-    logger.debug(`Normalized ${Object.keys(normalizedTokens).length} token entries`);
-
-    // 3.0 Normalize styles if present (v3.0.0+ plugin data)
-    const normalizedStyles = hasStyles(rawData) ? normalizeStyleData(rawData) : undefined;
-    if (normalizedStyles) {
-      const styleCounts = getStyleCount(rawData);
-      logger.debug(`Normalized ${styleCounts.total} styles (paint: ${styleCounts.paint}, text: ${styleCounts.text}, effect: ${styleCounts.effect})`);
-    }
-
-    // 3a. Filter out phantom modes (Figma internal IDs like "21598:4")
-    const preFilterCount = Object.keys(normalizedTokens).length;
-    normalizedTokens = filterPhantomModes(normalizedTokens);
-    const phantomFilteredCount = preFilterCount - Object.keys(normalizedTokens).length;
-    if (phantomFilteredCount > 0) {
-      logger.debug(`Filtered out ${phantomFilteredCount} tokens with phantom modes`);
-    }
-
-    // 3b. Filter by collection if specified
-    if (options.collection) {
-      const collectionsToSync = new Set(options.collection.split(',').map(c => c.trim().toLowerCase()));
-      const originalCount = Object.keys(normalizedTokens).length;
-      normalizedTokens = Object.fromEntries(
-        Object.entries(normalizedTokens).filter(([_, entry]) => {
-          const entryCollection = (entry.collection || entry.path.split('.')[0]).toLowerCase();
-          return collectionsToSync.has(entryCollection);
-        })
-      );
-      const filteredCount = Object.keys(normalizedTokens).length;
-      spinner.text = `Filtered to ${filteredCount} tokens from collection(s): ${options.collection}`;
-      logger.debug(`Filtered from ${originalCount} to ${filteredCount} tokens`);
-
-      if (filteredCount === 0) {
-        spinner.fail(chalk.red(`No tokens found for collection(s): ${options.collection}`));
-        console.log(chalk.dim('\n  Available collections can be seen with: synkio tokens\n'));
-        process.exit(1);
-      }
-    }
-
-    // 4. Read existing baseline for comparison
-    const localBaseline = await readBaseline();
-
-    // Build the new baseline object
-    const newBaseline: BaselineData = {
-      baseline: normalizedTokens,
-      styles: normalizedStyles,
-      metadata: {
-        syncedAt: new Date().toISOString(),
-      },
-    };
-
-    // 4b. First sync: discover collections and update config
-    const isFirstSync = !localBaseline;
-    if (isFirstSync) {
-      const discoveredCollections = discoverCollectionsFromTokens(normalizedTokens);
-
-      // Display discovered collections
-      spinner.stop();
-      console.log(chalk.cyan('\n  Collections from Figma:'));
-      for (const col of discoveredCollections) {
-        const modeStr = col.modes.length === 1
-          ? `1 mode: ${col.modes[0]}`
-          : `${col.modes.length} modes: ${col.modes.join(', ')}`;
-        console.log(chalk.dim(`    - ${col.name} (${modeStr})`));
-      }
-
-      // Display discovered styles if present
-      if (normalizedStyles && Object.keys(normalizedStyles).length > 0) {
-        const styleCounts = getStyleCount(rawData);
-        console.log(chalk.cyan('\n  Styles from Figma:'));
-        if (styleCounts.paint > 0) console.log(chalk.dim(`    - Paint styles: ${styleCounts.paint}`));
-        if (styleCounts.text > 0) console.log(chalk.dim(`    - Text styles: ${styleCounts.text}`));
-        if (styleCounts.effect > 0) console.log(chalk.dim(`    - Effect styles: ${styleCounts.effect}`));
-      }
-      console.log('');
-
-      // Update config with discovered collections
-      spinner.start('Updating synkio.config.json with discovered collections...');
-      const configUpdateResult = updateConfigWithCollections(discoveredCollections, options.config);
-      if (configUpdateResult.updated) {
-        // Reload config with updated collections
-        config = loadConfig(options.config);
-        spinner.text = 'Config updated with collections';
-      }
-    }
-
-    // 5. Compare if we have a local baseline
-    let hasBaselineChanges = false;
-    let collectionRenames: { oldCollection: string; newCollection: string; modeMapping: { oldMode: string; newMode: string }[] }[] = [];
-    if (localBaseline) {
-      spinner.text = 'Comparing with local tokens...';
-      const result = compareBaselines(localBaseline, newBaseline);
-      collectionRenames = result.collectionRenames;
-      const counts = getChangeCounts(result);
-
-      // Compare styles if both baselines have styles
-      const styleResult = compareStyleBaselines(localBaseline.styles, newBaseline.styles);
-      const styleCounts = getStyleChangeCounts(styleResult);
-
-      // No changes from Figma - but still regenerate files (config may have changed)
-      if (!hasChanges(result) && !hasStyleChanges(styleResult)) {
-        spinner.text = 'Regenerating token files...';
-      } else {
-        hasBaselineChanges = true;
-      }
-
-      // Preview mode - show changes and exit
-      if (options.preview) {
-        spinner.stop();
-        console.log(chalk.cyan('\n  Preview Mode - No changes will be applied\n'));
-        printDiffSummary(result);
-        if (hasStyleChanges(styleResult)) {
-          printStyleDiffSummary(styleResult);
-        }
-        return;
-      }
-
-      // Breaking changes detected - block unless --force
-      const hasAnyBreakingChanges = hasBreakingChanges(result) || hasBreakingStyleChanges(styleResult);
-      if (hasAnyBreakingChanges && !options.force) {
-        spinner.stop();
-
-        console.log(chalk.yellow('\n  BREAKING CHANGES DETECTED\n'));
-
-        // Show breaking changes summary
-        if (result.pathChanges.length > 0) {
-          console.log(chalk.red(`  Path changes: ${result.pathChanges.length}`));
-          result.pathChanges.slice(0, 5).forEach(change => {
-            console.log(chalk.dim(`    ${change.oldPath} -> ${change.newPath}`));
-          });
-          if (result.pathChanges.length > 5) {
-            console.log(chalk.dim(`    ... and ${result.pathChanges.length - 5} more`));
-          }
-        }
-
-        if (result.collectionRenames.length > 0) {
-          console.log(chalk.red(`  Collection renames: ${result.collectionRenames.length}`));
-          result.collectionRenames.forEach(rename => {
-            console.log(chalk.dim(`    ${rename.oldCollection} -> ${rename.newCollection}`));
-          });
-        }
-
-        if (result.modeRenames.length > 0) {
-          console.log(chalk.red(`  Mode renames: ${result.modeRenames.length}`));
-          result.modeRenames.forEach(rename => {
-            console.log(chalk.dim(`    ${rename.collection}: ${rename.oldMode} -> ${rename.newMode}`));
-          });
-        }
-
-        if (result.newModes.length > 0) {
-          const newModesStr = result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ');
-          console.log(chalk.red(`  New modes: ${newModesStr}`));
-        }
-
-        if (result.deletedVariables.length > 0) {
-          console.log(chalk.red(`  Deleted variables: ${result.deletedVariables.length}`));
-          result.deletedVariables.slice(0, 5).forEach(v => {
-            console.log(chalk.dim(`    - ${v.path}`));
-          });
-          if (result.deletedVariables.length > 5) {
-            console.log(chalk.dim(`    ... and ${result.deletedVariables.length - 5} more`));
-          }
-        }
-
-        if (result.deletedModes.length > 0) {
-          const deletedModesStr = result.deletedModes.map(m => `${m.collection}:${m.mode}`).join(', ');
-          console.log(chalk.red(`  Deleted modes: ${deletedModesStr}`));
-        }
-
-        // Show breaking style changes
-        if (styleResult.pathChanges.length > 0) {
-          console.log(chalk.red(`  Style path changes: ${styleResult.pathChanges.length}`));
-          styleResult.pathChanges.slice(0, 5).forEach(change => {
-            console.log(chalk.dim(`    ${change.oldPath} -> ${change.newPath} (${change.styleType})`));
-          });
-          if (styleResult.pathChanges.length > 5) {
-            console.log(chalk.dim(`    ... and ${styleResult.pathChanges.length - 5} more`));
-          }
-        }
-
-        if (styleResult.deletedStyles.length > 0) {
-          console.log(chalk.red(`  Deleted styles: ${styleResult.deletedStyles.length}`));
-          styleResult.deletedStyles.slice(0, 5).forEach(s => {
-            console.log(chalk.dim(`    - ${s.path} (${s.styleType})`));
-          });
-          if (styleResult.deletedStyles.length > 5) {
-            console.log(chalk.dim(`    ... and ${styleResult.deletedStyles.length - 5} more`));
-          }
-        }
-
-        console.log(chalk.yellow('\n  These changes may break your code.\n'));
-        console.log(`  Run ${chalk.cyan('synkio sync --force')} to apply anyway.`);
-        console.log(`  Run ${chalk.cyan('synkio sync --preview')} to see full details.\n`);
-
-        process.exit(1);
-      }
-
-      // Show summary of what will be synced
-      spinner.stop();
-      const totalChanges = counts.total + styleCounts.total;
-      console.log(chalk.cyan(`\n  Syncing ${totalChanges} change(s)...\n`));
-
-      // Show value changes
-      if (result.valueChanges.length > 0) {
-        console.log(chalk.dim(`  Value changes (${result.valueChanges.length}):`));
-        result.valueChanges.slice(0, 5).forEach(change => {
-          console.log(chalk.dim(`    ${change.path}: ${JSON.stringify(change.oldValue)} -> ${JSON.stringify(change.newValue)}`));
-        });
-        if (result.valueChanges.length > 5) {
-          console.log(chalk.dim(`    ... and ${result.valueChanges.length - 5} more`));
-        }
-      }
-
-      // Show new variables
-      if (result.newVariables.length > 0) {
-        console.log(chalk.green(`  New variables (${result.newVariables.length}):`));
-        result.newVariables.slice(0, 5).forEach(v => {
-          console.log(chalk.green(`    + ${v.path}`));
-        });
-        if (result.newVariables.length > 5) {
-          console.log(chalk.dim(`    ... and ${result.newVariables.length - 5} more`));
-        }
-      }
-
-      // Show new modes
-      if (result.newModes.length > 0) {
-        const newModesStr = result.newModes.map(m => `${m.collection}:${m.mode}`).join(', ');
-        console.log(chalk.green(`  New modes: ${newModesStr}`));
-      }
-
-      // Show style changes
-      if (styleResult.valueChanges.length > 0) {
-        console.log(chalk.dim(`  Style value changes (${styleResult.valueChanges.length}):`));
-        styleResult.valueChanges.slice(0, 3).forEach(change => {
-          console.log(chalk.dim(`    ${change.path} (${change.styleType})`));
-        });
-        if (styleResult.valueChanges.length > 3) {
-          console.log(chalk.dim(`    ... and ${styleResult.valueChanges.length - 3} more`));
-        }
-      }
-
-      // Show new styles
-      if (styleResult.newStyles.length > 0) {
-        console.log(chalk.green(`  New styles (${styleResult.newStyles.length}):`));
-        styleResult.newStyles.slice(0, 5).forEach(s => {
-          console.log(chalk.green(`    + ${s.path} (${s.styleType})`));
-        });
-        if (styleResult.newStyles.length > 5) {
-          console.log(chalk.dim(`    ... and ${styleResult.newStyles.length - 5} more`));
-        }
-      }
-
-      console.log('');
+    // Show appropriate message
+    if (options.regenerate) {
+      spinner.succeed(chalk.green(`Regenerated ${result.filesWritten} token files from baseline.${extras}`));
+    } else if (result.reportPath) {
+      const filesSummary = result.styleFilesWritten > 0
+        ? `${result.filesWritten} token + ${result.styleFilesWritten} style files`
+        : `${result.filesWritten} token files`;
+      spinner.succeed(chalk.green(`Sync complete. Wrote ${filesSummary}. Report: ${result.reportPath}`));
+    } else if (result.hasChanges) {
+      spinner.succeed(chalk.green(`Sync complete. Wrote ${result.filesWritten} token files.${extras}`));
+    } else if (result.filesWritten > 0) {
+      spinner.succeed(chalk.green(`No changes from Figma. Regenerated ${result.filesWritten} token files.${extras}`));
     } else {
-      spinner.info('No local baseline found. Performing initial sync.');
+      spinner.succeed(chalk.green(`Initial sync complete. Wrote ${result.filesWritten} token files.${extras}`));
     }
 
-    // 6. Write baseline
-    spinner.start('Writing baseline...');
-    await writeBaseline(newBaseline);
-
-    // 6.5. Update config with collection renames (if any)
-    if (collectionRenames.length > 0) {
-      spinner.text = 'Updating config with collection renames...';
-      const configUpdateResult = updateConfigWithCollectionRenames(collectionRenames, options.config);
-      if (configUpdateResult.updated && configUpdateResult.configPath) {
-        // Reload config with updated collection names
-        config = loadConfig(options.config);
-        const configFileName = configUpdateResult.configPath.split('/').pop();
-        console.log(chalk.cyan(`\n  Updated ${configFileName} with collection renames:`));
-        configUpdateResult.renames.forEach(r => {
-          console.log(chalk.dim(`    ${r.old} -> ${r.new}`));
-        });
-        console.log('');
-      }
-    }
-
-    // 7. Split tokens into files using new config structure
-    spinner.text = 'Processing tokens...';
-    const splitOptions: SplitTokensOptions = {
-      collections: config.tokens.collections || {},
-      dtcg: config.tokens.dtcg !== false,                    // default true
-      includeVariableId: config.tokens.includeVariableId === true, // default false
-      splitBy: config.tokens.splitBy,                        // parent-level default
-      includeMode: config.tokens.includeMode,                // parent-level default
-      extensions: config.tokens.extensions || {},            // optional metadata
-    };
-    const processedTokens = splitTokens(normalizedTokens, splitOptions);
-    logger.debug(`${processedTokens.size} token sets processed`);
-
-    // 7. Write files
-    spinner.text = 'Writing token files...';
-    const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
-    await mkdir(defaultOutDir, { recursive: true });
-
-    // Track all output directories for cleanup
-    const outputDirs = new Set<string>([defaultOutDir]);
-
-    // Build map of files per directory
-    const filesByDir = new Map<string, Map<string, any>>();
-    for (const [fileName, fileData] of processedTokens) {
-      const outDir = fileData.dir
-        ? resolve(process.cwd(), fileData.dir)
-        : defaultOutDir;
-
-      outputDirs.add(outDir);
-
-      if (!filesByDir.has(outDir)) {
-        filesByDir.set(outDir, new Map());
-      }
-      filesByDir.get(outDir)!.set(fileName, fileData.content);
-    }
-
-    // 7b. Process and merge style files BEFORE writing token files
-    // This allows mergeInto to work correctly by modifying in-memory content
-    let styleFilesWritten = 0;
-    const standaloneStyleFiles: Array<{ fileName: string; content: any; dir?: string }> = [];
-
-    if (normalizedStyles && Object.keys(normalizedStyles).length > 0) {
-      const stylesConfig = config.tokens.styles;
-
-      // Check if styles are enabled (default: true)
-      if (stylesConfig?.enabled !== false) {
-        spinner.text = 'Processing style files...';
-
-        const styleSplitOptions: StylesSplitOptions = {
-          enabled: stylesConfig?.enabled,
-          paint: stylesConfig?.paint,
-          text: stylesConfig?.text,
-          effect: stylesConfig?.effect,
-        };
-
-        const processedStyles = splitStyles(normalizedStyles, styleSplitOptions);
-        logger.debug(`${processedStyles.size} style files processed`);
-
-        // Process style files - merge into token files or queue as standalone
-        for (const [fileName, fileData] of processedStyles) {
-          if (fileData.mergeInto) {
-            // Merge styles into an existing token file
-            const { collection, group } = fileData.mergeInto;
-            const collectionConfig = config.tokens.collections?.[collection];
-            const splitBy = collectionConfig?.splitBy ?? config.tokens.splitBy ?? 'mode';
-            const namesMapping = collectionConfig?.names || {};
-
-            // Determine target directory
-            const targetDir = collectionConfig?.dir
-              ? resolve(process.cwd(), collectionConfig.dir)
-              : defaultOutDir;
-
-            // Determine target filename based on collection's splitBy strategy
-            let targetFileName: string;
-            if (splitBy === 'group') {
-              // For group splitting, use the group name if specified (with names mapping)
-              // If no group specified in mergeInto, this is a config error
-              const targetGroup = group || Object.keys(fileData.content)[0];
-              const mappedGroup = namesMapping[targetGroup] || targetGroup;
-              targetFileName = `${mappedGroup}.json`;
-            } else if (splitBy === 'none') {
-              // Single file per collection
-              const fileBase = collectionConfig?.file || collection;
-              targetFileName = `${fileBase}.json`;
-            } else {
-              // For mode splitting, we need to merge into ALL mode files
-              // Find all files for this collection and merge into each
-              const collectionPrefix = collectionConfig?.file || collection;
-              const filesInTargetDir = filesByDir.get(targetDir);
-              if (filesInTargetDir) {
-                for (const [existingFileName, existingContent] of filesInTargetDir) {
-                  if (existingFileName.startsWith(`${collectionPrefix}.`) && existingFileName.endsWith('.json')) {
-                    // Merge style content into this mode file
-                    if (group) {
-                      // Merge into the specified group path
-                      if (!existingContent[group]) {
-                        existingContent[group] = {};
-                      }
-                      deepMerge(existingContent[group], fileData.content);
-                    } else {
-                      deepMerge(existingContent, fileData.content);
-                    }
-                    logger.debug(`Merged ${fileData.styleType} styles into ${existingFileName}${group ? ` at group '${group}'` : ''}`);
-                  }
-                }
-              }
-              continue; // Already merged into mode files
-            }
-
-            // Merge into single target file
-            const filesInTargetDir = filesByDir.get(targetDir);
-            if (filesInTargetDir?.has(targetFileName)) {
-              const targetContent = filesInTargetDir.get(targetFileName);
-              if (group) {
-                // Merge into the specified group path within the file
-                if (!targetContent[group]) {
-                  targetContent[group] = {};
-                }
-                deepMerge(targetContent[group], fileData.content);
-                logger.debug(`Merged ${fileData.styleType} styles into ${targetFileName} at group '${group}'`);
-              } else {
-                // Merge at root level
-                deepMerge(targetContent, fileData.content);
-                logger.debug(`Merged ${fileData.styleType} styles into ${targetFileName}`);
-              }
-            } else {
-              // Target file doesn't exist in processed tokens - queue as standalone
-              logger.warn(`Target file ${targetFileName} not found for mergeInto, writing as standalone`);
-              standaloneStyleFiles.push({
-                fileName,
-                content: fileData.content,
-                dir: fileData.dir,
-              });
-            }
-          } else {
-            // Queue as standalone style file
-            standaloneStyleFiles.push({
-              fileName,
-              content: fileData.content,
-              dir: fileData.dir,
-            });
-          }
-        }
-      }
-    }
-
-    // Ensure all output directories exist
-    for (const dir of outputDirs) {
-      await mkdir(dir, { recursive: true });
-    }
-
-    // Clean up old .json files that are no longer needed (in each output dir)
-    for (const [outDir, filesInDir] of filesByDir) {
+    // Open docs folder if --open flag was passed and docs were generated
+    if (options.open && result.docsDir) {
       try {
-        const existingFiles = await readdir(outDir);
-        const newFileNames = new Set(filesInDir.keys());
-        for (const file of existingFiles) {
-          if (file.endsWith('.json') && !newFileNames.has(file)) {
-            await unlink(resolve(outDir, file));
-            logger.debug(`Removed stale file: ${file}`);
-          }
-        }
+        await openFolder(result.docsDir);
+        console.log(chalk.dim(`  Opened ${result.docsDir}`));
       } catch {
-        // Ignore errors if directory doesn't exist yet
+        console.log(chalk.yellow(`  Could not open folder: ${result.docsDir}`));
       }
-    }
-
-    // Write all token files (with merged styles if applicable)
-    spinner.text = 'Writing token files...';
-    let filesWritten = 0;
-    for (const [outDir, filesInDir] of filesByDir) {
-      for (const [fileName, content] of filesInDir) {
-        const filePath = resolve(outDir, fileName);
-        await writeFile(filePath, JSON.stringify(content, null, 2));
-        filesWritten++;
-      }
-    }
-
-    // Write standalone style files
-    for (const { fileName, content, dir } of standaloneStyleFiles) {
-      const outDir = dir
-        ? resolve(process.cwd(), dir)
-        : defaultOutDir;
-
-      await mkdir(outDir, { recursive: true });
-      const filePath = resolve(outDir, fileName);
-      await writeFile(filePath, JSON.stringify(content, null, 2));
-      styleFilesWritten++;
-      logger.debug(`Wrote style file: ${filePath}`);
-    }
-
-    // 8. Always generate intermediate format (used by docs and other tools)
-    spinner.text = 'Generating intermediate format...';
-    await generateIntermediateFromBaseline(newBaseline, config);
-
-    // 9. Generate docs if enabled (not a build step)
-    let docsFilesWritten = 0;
-    let docsDir = '';
-    if (config.docsPages?.enabled) {
-      spinner.text = 'Generating documentation...';
-      const docsResult = await generateDocsFromBaseline(newBaseline, config);
-      docsFilesWritten = docsResult.files.length;
-      docsDir = docsResult.outputDir;
-    }
-
-    // 10. Check if build should run (with confirmation)
-    spinner.stop();
-    const runBuild = await shouldRunBuild(config, options);
-
-    let buildScriptRan = false;
-    let cssFilesWritten = 0;
-
-    if (runBuild) {
-      spinner.start('Running build pipeline...');
-      try {
-        const buildResult = await runBuildPipeline(newBaseline, config, spinner);
-        buildScriptRan = buildResult.scriptRan;
-        cssFilesWritten = buildResult.cssFilesWritten;
-        spinner.stop();
-      } catch (error: any) {
-        spinner.fail(chalk.red(error.message));
-        process.exit(1);
-      }
-    }
-
-    // 11. Generate report based on config and flags
-    // CLI flags override config: --report forces, --no-report skips
-    const syncConfig = config.sync || { report: true, reportHistory: false };
-    const shouldGenerateReport = options.noReport ? false : (options.report || syncConfig.report !== false);
-
-    if (shouldGenerateReport && localBaseline) {
-      const result = compareBaselines(localBaseline, newBaseline);
-
-      // Only generate if there were actual changes
-      if (hasChanges(result)) {
-        const report = generateDiffReport(result, {
-          fileName: config.figma.fileId,
-          exportedAt: newBaseline.metadata.syncedAt,
-        });
-
-        const synkioDir = resolve(process.cwd(), '.synkio');
-        await mkdir(synkioDir, { recursive: true });
-
-        let reportPath: string;
-        if (syncConfig.reportHistory) {
-          // Timestamped reports for changelog history
-          const reportsDir = resolve(synkioDir, 'reports');
-          await mkdir(reportsDir, { recursive: true });
-          const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
-          reportPath = resolve(reportsDir, `${timestamp}.md`);
-        } else {
-          // Single report file, overwritten each sync
-          reportPath = resolve(synkioDir, 'sync-report.md');
-        }
-
-        await writeFile(reportPath, report);
-        const relativePath = reportPath.replace(process.cwd() + '/', '');
-        const filesSummary = styleFilesWritten > 0
-          ? `${filesWritten} token + ${styleFilesWritten} style files`
-          : `${filesWritten} token files`;
-        spinner.succeed(chalk.green(`Sync complete. Wrote ${filesSummary}. Report: ${relativePath}`));
-
-        // Show additional outputs
-        const allOutputs = [
-          buildScriptRan ? 'build script' : null,
-          cssFilesWritten > 0 ? `${cssFilesWritten} CSS` : null,
-        ].filter(Boolean);
-
-        if (allOutputs.length > 0) {
-          console.log(chalk.dim(`  + ${allOutputs.join(', ')} file(s) in ${config.tokens.dir}`));
-        }
-        if (docsFilesWritten > 0) {
-          console.log(chalk.dim(`  + Documentation: ${docsDir}`));
-        }
-        return;
-      }
-    }
-
-    // Build output summary
-    const extras: string[] = [];
-    if (styleFilesWritten > 0) extras.push(`${styleFilesWritten} style`);
-    if (buildScriptRan) extras.push('build script');
-    if (cssFilesWritten > 0) extras.push(`${cssFilesWritten} CSS`);
-    if (docsFilesWritten > 0) extras.push('docs');
-    const extrasStr = extras.length > 0 ? ` (+ ${extras.join(', ')})` : '';
-
-    // Show appropriate message based on whether there were changes
-    if (hasBaselineChanges) {
-      spinner.succeed(chalk.green(`Sync complete. Wrote ${filesWritten} token files.${extrasStr}`));
-    } else if (localBaseline) {
-      spinner.succeed(chalk.green(`No changes from Figma. Regenerated ${filesWritten} token files.${extrasStr}`));
-    } else {
-      spinner.succeed(chalk.green(`Initial sync complete. Wrote ${filesWritten} token files.${extrasStr}`));
-    }
-
-    // Show docs location if generated
-    if (docsFilesWritten > 0) {
-      console.log(chalk.dim(`  Documentation: ${docsDir}`));
     }
 
   } catch (error: any) {
+    // Check for blocking breaking changes
+    if (error.message?.includes('breaking changes')) {
+      // Breaking changes already displayed by pipeline
+      process.exit(1);
+    }
+
     spinner.fail(chalk.red(`Sync failed: ${error.message}`));
+    const logger = createLogger();
     logger.error('Sync failed', { error });
     process.exit(1);
   }
@@ -1011,7 +98,7 @@ export async function syncCommand(options: SyncOptions = {}) {
  * Watch mode - poll Figma for changes at regular intervals
  */
 export async function watchCommand(options: SyncOptions = {}) {
-  const interval = (options.interval || 30) * 1000; // Convert to ms
+  const interval = (options.interval || 30) * 1000;
   const logger = createLogger();
 
   console.log(chalk.cyan(`\n  Watching for changes (every ${options.interval || 30}s)\n`));
@@ -1020,20 +107,17 @@ export async function watchCommand(options: SyncOptions = {}) {
   let lastBaseline: BaselineData | undefined = undefined;
   let isRunning = true;
 
-  // Handle Ctrl+C gracefully
   process.on('SIGINT', () => {
     isRunning = false;
     console.log(chalk.dim('\n\n  Watch stopped.\n'));
     process.exit(0);
   });
 
-  // Initial sync
   try {
     const config = loadConfig(options.config);
     const timeout = options.timeout ? options.timeout * 1000 : undefined;
     const figmaClient = new FigmaClient({ ...config.figma, logger, timeout });
 
-    // Read current baseline
     lastBaseline = await readBaseline();
 
     if (lastBaseline) {
@@ -1044,7 +128,6 @@ export async function watchCommand(options: SyncOptions = {}) {
       lastBaseline = await readBaseline();
     }
 
-    // Watch loop
     while (isRunning) {
       const checkTime = new Date().toLocaleTimeString();
       process.stdout.write(chalk.dim(`  [${checkTime}] Checking Figma... `));
@@ -1052,15 +135,11 @@ export async function watchCommand(options: SyncOptions = {}) {
       try {
         const rawData = await figmaClient.fetchData();
         let normalizedTokens = normalizePluginData(rawData);
-
-        // Filter out phantom modes in watch mode too
         normalizedTokens = filterPhantomModes(normalizedTokens);
 
         const newBaseline: BaselineData = {
           baseline: normalizedTokens,
-          metadata: {
-            syncedAt: new Date().toISOString(),
-          },
+          metadata: { syncedAt: new Date().toISOString() },
         };
 
         if (lastBaseline) {
@@ -1069,13 +148,11 @@ export async function watchCommand(options: SyncOptions = {}) {
           if (hasChanges(result)) {
             process.stdout.write(chalk.green('Changes detected!\n\n'));
 
-            // Check for breaking changes
             if (hasBreakingChanges(result) && !options.force) {
               console.log(chalk.yellow('  Breaking changes detected. Use --force to apply.\n'));
               printDiffSummary(result);
               console.log('');
             } else {
-              // Apply the sync
               await syncCommand({ ...options, watch: false });
               lastBaseline = await readBaseline();
               console.log('');
@@ -1088,7 +165,6 @@ export async function watchCommand(options: SyncOptions = {}) {
         process.stdout.write(chalk.red(`Error: ${err.message}\n`));
       }
 
-      // Wait for next interval
       await new Promise(resolve => setTimeout(resolve, interval));
     }
   } catch (error: any) {

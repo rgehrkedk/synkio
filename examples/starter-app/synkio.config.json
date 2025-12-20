@@ -39,6 +39,11 @@
         "file": "effects"
       }
     }
+  },
+  "docsPages": {
+    "enabled": true,
+    "dir": ".synkio/docs",
+    "title": "Design Tokens"
   }
 }
 
