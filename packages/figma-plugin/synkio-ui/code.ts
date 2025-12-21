@@ -649,8 +649,8 @@ function convertCLIBaselineToSyncData(cliBaseline: any): SyncData | { error: str
     const t = token as any;
 
     // Validate required fields
-    if (!t.variableId || !t.collection || !t.mode || !t.path || t.value === undefined || !t.type) {
-      return { error: `Invalid token entry: ${key} is missing required fields` };
+    if (!t.collection || !t.mode || !t.path || t.value === undefined || !t.type) {
+      return { error: `Invalid token entry: ${key} is missing required fields (collection, mode, path, value, type)` };
     }
 
     tokens.push(t as TokenEntry);
@@ -682,6 +682,326 @@ function convertCLIBaselineToSyncData(cliBaseline: any): SyncData | { error: str
     tokens,
     styles,
   };
+}
+
+// =============================================================================
+// Apply to Figma Functions
+// =============================================================================
+
+async function buildExistingVariableMap(): Promise<Map<string, Variable>> {
+  const map = new Map<string, Variable>();
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+
+  for (const collection of collections) {
+    for (const varId of collection.variableIds) {
+      const variable = await figma.variables.getVariableByIdAsync(varId);
+      if (variable) {
+        const path = variable.name.replace(/\//g, '.');
+        const key = `${collection.name}.${path}`;
+        map.set(key, variable);
+      }
+    }
+  }
+
+  return map;
+}
+
+async function buildCollectionMap(): Promise<Map<string, VariableCollection>> {
+  const map = new Map<string, VariableCollection>();
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+
+  for (const collection of collections) {
+    map.set(collection.name, collection);
+  }
+
+  return map;
+}
+
+async function getOrCreateCollection(
+  name: string,
+  collectionMap: Map<string, VariableCollection>
+): Promise<VariableCollection> {
+  let collection = collectionMap.get(name);
+
+  if (!collection) {
+    collection = figma.variables.createVariableCollection(name);
+    collectionMap.set(name, collection);
+  }
+
+  return collection;
+}
+
+function getOrCreateMode(
+  collection: VariableCollection,
+  modeName: string
+): string {
+  const existingMode = collection.modes.find(m => m.name === modeName);
+  if (existingMode) {
+    return existingMode.modeId;
+  }
+
+  if (collection.modes.length === 1 && collection.modes[0].name === 'Mode 1') {
+    collection.renameMode(collection.modes[0].modeId, modeName);
+    return collection.modes[0].modeId;
+  }
+
+  return collection.addMode(modeName);
+}
+
+function mapTokenTypeToFigma(type: string): VariableResolvedDataType {
+  switch (type.toLowerCase()) {
+    case 'color':
+      return 'COLOR';
+    case 'number':
+    case 'dimension':
+    case 'spacing':
+    case 'size':
+      return 'FLOAT';
+    case 'string':
+      return 'STRING';
+    case 'boolean':
+      return 'BOOLEAN';
+    default:
+      return 'STRING';
+  }
+}
+
+function parseColorValue(color: string): RGBA {
+  if (color.startsWith('#')) {
+    const hex = color.slice(1);
+    const r = parseInt(hex.slice(0, 2), 16) / 255;
+    const g = parseInt(hex.slice(2, 4), 16) / 255;
+    const b = parseInt(hex.slice(4, 6), 16) / 255;
+    const a = hex.length === 8 ? parseInt(hex.slice(6, 8), 16) / 255 : 1;
+    return { r, g, b, a };
+  }
+
+  const rgbaMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+  if (rgbaMatch) {
+    return {
+      r: parseInt(rgbaMatch[1]) / 255,
+      g: parseInt(rgbaMatch[2]) / 255,
+      b: parseInt(rgbaMatch[3]) / 255,
+      a: rgbaMatch[4] ? parseFloat(rgbaMatch[4]) : 1,
+    };
+  }
+
+  throw new Error(`Unsupported color format: ${color}`);
+}
+
+function convertValueToFigma(
+  value: unknown,
+  type: string,
+  variableLookup: Map<string, string>
+): VariableValue {
+  if (typeof value === 'object' && value !== null && '$ref' in value) {
+    const refId = (value as { $ref: string }).$ref;
+    return { type: 'VARIABLE_ALIAS', id: refId };
+  }
+
+  if (typeof value === 'string') {
+    const match = value.match(/^\{(.+)\}$/);
+    if (match) {
+      const refPath = match[1];
+      const varId = variableLookup.get(refPath);
+
+      if (!varId) {
+        throw new Error(`Cannot resolve reference: {${refPath}}`);
+      }
+
+      return { type: 'VARIABLE_ALIAS', id: varId };
+    }
+  }
+
+  if (type.toLowerCase() === 'color' && typeof value === 'string') {
+    return parseColorValue(value);
+  }
+
+  if (typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean') {
+    return value;
+  }
+
+  throw new Error(`Unsupported value type: ${typeof value}`);
+}
+
+function extractReferences(value: unknown): string[] {
+  if (typeof value === 'string') {
+    const match = value.match(/^\{(.+)\}$/);
+    if (match) return [match[1]];
+  }
+  return [];
+}
+
+function sortByDependencies(tokens: TokenEntry[]): TokenEntry[] {
+  const graph = new Map<string, string[]>();
+  const tokenMap = new Map<string, TokenEntry>();
+
+  for (const token of tokens) {
+    const key = `${token.collection}.${token.path}`;
+    tokenMap.set(key, token);
+
+    const refs = extractReferences(token.value);
+    graph.set(key, refs);
+  }
+
+  const sorted: TokenEntry[] = [];
+  const visited = new Set<string>();
+  const visiting = new Set<string>();
+
+  function visit(key: string): void {
+    if (visited.has(key)) return;
+
+    if (visiting.has(key)) {
+      throw new Error(`Circular reference detected involving: ${key}`);
+    }
+
+    visiting.add(key);
+
+    for (const dep of graph.get(key) || []) {
+      if (tokenMap.has(dep)) {
+        visit(dep);
+      }
+    }
+
+    visiting.delete(key);
+    visited.add(key);
+
+    const token = tokenMap.get(key);
+    if (token) {
+      sorted.push(token);
+    }
+  }
+
+  for (const key of tokenMap.keys()) {
+    visit(key);
+  }
+
+  return sorted;
+}
+
+function resolveReference(
+  refPath: string,
+  currentCollection: string,
+  existingVars: Map<string, Variable>,
+  createdVars: Map<string, string>
+): string {
+  if (createdVars.has(refPath)) {
+    return createdVars.get(refPath)!;
+  }
+  const existingExact = existingVars.get(refPath);
+  if (existingExact) {
+    return existingExact.id;
+  }
+
+  const withCollection = `${currentCollection}.${refPath}`;
+  if (createdVars.has(withCollection)) {
+    return createdVars.get(withCollection)!;
+  }
+  const existingWithCollection = existingVars.get(withCollection);
+  if (existingWithCollection) {
+    return existingWithCollection.id;
+  }
+
+  for (const [path, varId] of createdVars) {
+    if (path.endsWith(`.${refPath}`)) {
+      return varId;
+    }
+  }
+  for (const [path, variable] of existingVars) {
+    if (path.endsWith(`.${refPath}`)) {
+      return variable.id;
+    }
+  }
+
+  throw new Error(`Cannot resolve reference: {${refPath}}`);
+}
+
+async function applyBaselineToFigma(): Promise<void> {
+  const baseline = getBaselineSnapshot();
+
+  if (!baseline || !baseline.tokens || baseline.tokens.length === 0) {
+    figma.notify('No baseline to apply. Import a baseline first.', { error: true });
+    return;
+  }
+
+  try {
+    const existingVars = await buildExistingVariableMap();
+    const collectionMap = await buildCollectionMap();
+    const createdVars = new Map<string, string>();
+
+    const sortedTokens = sortByDependencies(baseline.tokens);
+
+    let created = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const token of sortedTokens) {
+      const fullPath = `${token.collection}.${token.path}`;
+
+      try {
+        const collection = await getOrCreateCollection(token.collection, collectionMap);
+        const modeId = getOrCreateMode(collection, token.mode);
+
+        let variable: Variable | null = null;
+
+        if (token.variableId) {
+          variable = await figma.variables.getVariableByIdAsync(token.variableId);
+        }
+
+        if (!variable) {
+          const existing = existingVars.get(fullPath);
+          if (existing) {
+            variable = existing;
+          }
+        }
+
+        if (!variable) {
+          const figmaType = mapTokenTypeToFigma(token.type);
+          const figmaName = token.path.replace(/\./g, '/');
+          variable = figma.variables.createVariable(figmaName, collection, figmaType);
+          created++;
+        } else {
+          updated++;
+        }
+
+        createdVars.set(fullPath, variable.id);
+
+        const variableLookup = new Map<string, string>();
+        for (const [path, varId] of createdVars) {
+          variableLookup.set(path, varId);
+        }
+        for (const [path, v] of existingVars) {
+          if (!variableLookup.has(path)) {
+            variableLookup.set(path, v.id);
+          }
+        }
+
+        const figmaValue = convertValueToFigma(token.value, token.type, variableLookup);
+        variable.setValueForMode(modeId, figmaValue);
+
+        if (token.description) {
+          variable.description = token.description;
+        }
+        if (token.scopes && token.scopes.length > 0) {
+          variable.scopes = token.scopes as VariableScope[];
+        }
+
+      } catch (err) {
+        console.error(`Error applying token ${fullPath}:`, err);
+        skipped++;
+      }
+    }
+
+    figma.notify(`Applied: ${created} created, ${updated} updated, ${skipped} skipped`);
+
+    await sendDiffToUI();
+
+    figma.ui.postMessage({ type: 'apply-success', created, updated, skipped });
+
+  } catch (err) {
+    figma.notify(`Apply failed: ${(err as Error).message}`, { error: true });
+    figma.ui.postMessage({ type: 'apply-error', error: (err as Error).message });
+  }
 }
 
 /**
@@ -937,6 +1257,10 @@ figma.ui.onmessage = async (msg) => {
       await sendDiffToUI();
 
       figma.ui.postMessage({ type: 'import-success' });
+    }
+
+    if (msg.type === 'apply-to-figma') {
+      await applyBaselineToFigma();
     }
 
     if (msg.type === 'close') {

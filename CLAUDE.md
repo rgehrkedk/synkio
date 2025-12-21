@@ -23,6 +23,7 @@ synkio/
 │   │   │   │   ├── compare/   # Baseline comparison and diffing
 │   │   │   │   ├── tokens/    # Token processing and splitting
 │   │   │   │   ├── import/    # Figma native JSON import
+│   │   │   │   ├── export/    # Export baseline generator (code → Figma)
 │   │   │   │   ├── docs/      # Documentation site generator
 │   │   │   │   └── css/       # CSS custom properties generator
 │   │   │   ├── types/         # Zod schemas and TypeScript types
@@ -147,6 +148,16 @@ The `import` command ([core/import/](packages/cli/src/core/import/)) supports Fi
 4. **File Generator** - [import/file-generator.ts](packages/cli/src/core/import/file-generator.ts) updates baseline
 
 This provides a plugin-free workflow where designers export JSON files manually.
+
+### Export Workflow
+
+The `export-baseline` command ([core/export/](packages/cli/src/core/export/)) enables the reverse "Code → Figma" workflow:
+
+1. **File Discovery** - [export/file-discoverer.ts](packages/cli/src/core/export/file-discoverer.ts) finds token files based on config
+2. **Token Parsing** - [export/token-parser.ts](packages/cli/src/core/export/token-parser.ts) reads DTCG token files
+3. **Baseline Building** - [export/baseline-builder.ts](packages/cli/src/core/export/baseline-builder.ts) generates baseline structure
+
+This allows teams to bootstrap Synkio from existing token files or migrate from other design token tools.
 
 ### Configuration Schema
 

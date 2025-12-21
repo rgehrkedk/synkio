@@ -9,6 +9,7 @@ import { validateCommand } from './commands/validate.js';
 import { tokensCommand } from './commands/tokens.js';
 import { docsCommand } from './commands/docs.js';
 import { importCommand } from './commands/import.js';
+import { exportBaselineCommand } from './commands/export-baseline.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
@@ -135,17 +136,33 @@ function showHelp(command?: string) {
             console.log('  synkio import ./figma-exports/ --collection=theme');
             console.log('  synkio import ./tokens/ --collection=theme --preview');
             break;
+        case 'export-baseline':
+            console.log('Usage: synkio export-baseline [options]\n');
+            console.log('Export token files to baseline format for Figma plugin import.\n');
+            console.log('Enables code-first workflows by converting local token files to a');
+            console.log('baseline that can be imported and applied to Figma via the plugin.\n');
+            console.log('Options:');
+            console.log('  --output=<path>     Output file path (default: .synkio/export-baseline.json)');
+            console.log('  --config=<path>     Config file path (default: synkio.config.json)');
+            console.log('  --preview           Print output to console without writing file');
+            console.log('  --verbose           Show detailed processing information\n');
+            console.log('Examples:');
+            console.log('  synkio export-baseline');
+            console.log('  synkio export-baseline --output ./for-figma.json');
+            console.log('  synkio export-baseline --preview');
+            break;
         default:
             console.log(`synkio v${pkg.version}\n`);
             console.log('Usage: synkio <command> [options]\n');
             console.log('Commands:');
-            console.log('  init       Initialize a new project');
-            console.log('  sync       Sync tokens from Figma');
-            console.log('  import     Import tokens from Figma native JSON export');
-            console.log('  docs       Generate token documentation site');
-            console.log('  rollback   Revert to previous token version');
-            console.log('  validate   Check configuration and connection');
-            console.log('  tokens     Show current token baseline');
+            console.log('  init            Initialize a new project');
+            console.log('  sync            Sync tokens from Figma');
+            console.log('  import          Import tokens from Figma native JSON export');
+            console.log('  export-baseline Export token files to baseline format');
+            console.log('  docs            Generate token documentation site');
+            console.log('  rollback        Revert to previous token version');
+            console.log('  validate        Check configuration and connection');
+            console.log('  tokens          Show current token baseline');
             console.log('\nRun "synkio help <command>" for detailed help on a specific command.');
     }
 }
@@ -261,6 +278,16 @@ switch (command) {
         preview: importOptions.preview as boolean,
         force: importOptions.force as boolean,
         config: importOptions.config as string,
+    });
+    break;
+  }
+  case 'export-baseline': {
+    const exportOptions = parseArgs(args);
+    exportBaselineCommand({
+        output: exportOptions.output as string,
+        config: exportOptions.config as string,
+        preview: exportOptions.preview as boolean,
+        verbose: exportOptions.verbose as boolean,
     });
     break;
   }

@@ -10,6 +10,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [init](#init)
   - [sync](#sync)
   - [import](#import)
+  - [export-baseline](#export-baseline)
   - [rollback](#rollback)
   - [validate](#validate)
   - [tokens](#tokens)
@@ -265,6 +266,68 @@ npx synkio import
 # Generate output files (auto-runs if config has css/docs enabled)
 npx synkio sync --regenerate
 ```
+
+---
+
+### export-baseline
+
+Export token files to baseline format for Figma import — enables code-first and roundtrip workflows.
+
+This command reads your existing token files and converts them to the baseline format that the Synkio Figma plugin can import. This enables two workflows:
+
+- **Code-first** — Write tokens in code, export to baseline, import into Figma
+- **Roundtrip** — Modify tokens in code, sync back to Figma with ID preservation
+
+```bash
+npx synkio export-baseline
+```
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--output=<path>` | Output file path (default: `.synkio/export-baseline.json`) |
+| `--config=<file>` | Path to config file |
+| `--preview` | Print output to console without writing file |
+| `--verbose` | Show detailed processing information |
+
+**Examples:**
+
+```bash
+# Export to default location
+npx synkio export-baseline
+
+# Custom output path
+npx synkio export-baseline --output ./for-figma.json
+
+# Preview without writing
+npx synkio export-baseline --preview
+
+# Show detailed parsing information
+npx synkio export-baseline --verbose
+```
+
+**How it works:**
+
+1. Reads token files from all configured collections
+2. Parses tokens and extracts mode information
+3. Builds baseline format compatible with Figma plugin
+4. Outputs JSON that can be imported into Figma
+
+**Typical workflow:**
+
+```bash
+# 1. Modify tokens in your codebase
+# Edit tokens/theme.light.json, tokens/theme.dark.json, etc.
+
+# 2. Export to baseline format
+npx synkio export-baseline
+
+# 3. Import into Figma
+# Open Synkio plugin > Import > Select export-baseline.json
+# Review diff and click "Apply to Figma"
+```
+
+The exported baseline preserves Figma variable IDs (if present in your token files), enabling intelligent diffing and preventing breaking changes when syncing back to Figma.
 
 ---
 

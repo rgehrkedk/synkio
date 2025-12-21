@@ -137,6 +137,41 @@
       cursor: not-allowed;
     }
 
+    /* Apply Button */
+    .apply-button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px 16px;
+      border: 1px solid #18A0FB;
+      border-radius: 6px;
+      background: white;
+      color: #18A0FB;
+      font-weight: 500;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .apply-button:hover:not(:disabled) {
+      background: #18A0FB;
+      color: white;
+    }
+
+    .apply-button:active {
+      transform: scale(0.99);
+    }
+
+    .apply-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: #e6e6e6;
+      color: #999;
+    }
+
     /* Tabs */
     .tabs {
       display: flex;
@@ -555,6 +590,11 @@
         <span>Import Baseline</span>
       </button>
       <input type="file" id="fileInput" accept=".json" style="display: none;" />
+
+      <button class="apply-button" id="applyButton" disabled>
+        <span>✨</span>
+        <span>Apply to Figma</span>
+      </button>
 
       <div class="tabs">
         <button class="tab active" data-tab="diff">
