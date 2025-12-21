@@ -8,25 +8,25 @@
     "dir": "tokens",
     "collections": {
       "brand": {
-        "dir": "tokens/brands",
-        "splitBy": "mode"
+        "splitBy": "mode",
+        "dir": "tokens/brands"
+
       },
       "globals": {
-        "dir": "tokens/primitives",
         "splitBy": "group",
-        "names": {
-          "font": "typography"
-        }
+        "dir": "tokens/primitives"
       },
       "theme": {
-        "dir": "tokens/theme",
-        "splitBy": "mode"
+        "splitBy": "mode",
+        "dir": "tokens/themes"
       }
     },
     "styles": {
       "paint": {
-        "dir": "tokens/styles",
-        "file": "colors"
+        "mergeInto": {
+          "collection": "brand",
+          "group": "color"
+        }
       },
       "text": {
         "mergeInto": {
@@ -46,4 +46,3 @@
     "title": "Design Tokens"
   }
 }
-

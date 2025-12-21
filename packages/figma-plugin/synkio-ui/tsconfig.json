@@ -5,8 +5,8 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "typeRoots": ["./node_modules/@types", "./node_modules/@figma"]
   },
-  "include": ["*.ts"]
+  "include": ["*.ts", "lib/**/*.ts"]
 }

@@ -56,6 +56,8 @@ let isSyncing = false;
 const syncButton = document.getElementById('syncButton') as HTMLButtonElement;
 const syncIcon = document.getElementById('syncIcon')!;
 const syncText = document.getElementById('syncText')!;
+const importButton = document.getElementById('importButton') as HTMLButtonElement;
+const fileInput = document.getElementById('fileInput') as HTMLInputElement;
 const statusDot = document.getElementById('statusDot')!;
 const statusText = document.getElementById('statusText')!;
 const diffHeader = document.getElementById('diffHeader')!;
@@ -101,6 +103,42 @@ syncButton.addEventListener('click', () => {
   syncText.textContent = 'Syncing...';
 
   parent.postMessage({ pluginMessage: { type: 'sync' } }, '*');
+});
+
+// Import baseline button
+importButton.addEventListener('click', () => {
+  fileInput.click();
+});
+
+// File input handler
+fileInput.addEventListener('change', (e) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const baselineJson = event.target?.result as string;
+    if (!baselineJson) return;
+
+    importButton.disabled = true;
+    importButton.textContent = 'Importing...';
+
+    parent.postMessage({
+      pluginMessage: {
+        type: 'import-baseline',
+        baselineJson: baselineJson
+      }
+    }, '*');
+  };
+
+  reader.onerror = () => {
+    alert('Failed to read file');
+  };
+
+  reader.readAsText(file);
+
+  // Reset file input
+  fileInput.value = '';
 });
 
 // Save collections button - saves both variable collections and style types
@@ -535,6 +573,29 @@ window.onmessage = (event) => {
     });
 
     updateExcludedBadge();
+  }
+
+  if (msg && msg.type === 'import-success') {
+    importButton.disabled = false;
+    importButton.innerHTML = '<span>📥</span><span>Import Baseline</span>';
+
+    // Show success feedback briefly
+    importButton.innerHTML = '<span>✅</span><span>Imported!</span>';
+    importButton.style.background = '#10b981';
+    importButton.style.color = 'white';
+    importButton.style.borderColor = '#10b981';
+    setTimeout(() => {
+      importButton.innerHTML = '<span>📥</span><span>Import Baseline</span>';
+      importButton.style.background = '';
+      importButton.style.color = '';
+      importButton.style.borderColor = '';
+    }, 2000);
+  }
+
+  if (msg && msg.type === 'import-error') {
+    importButton.disabled = false;
+    importButton.innerHTML = '<span>📥</span><span>Import Baseline</span>';
+    alert('Import failed: ' + msg.error);
   }
 };
 

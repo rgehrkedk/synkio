@@ -3,7 +3,7 @@
  * Shows what has changed since last sync - no rename detection needed
  */
 
-import type { SyncData, TokenEntry } from './types';
+import type { SyncData, TokenEntry, StyleEntry } from './types';
 
 export interface SimpleDiff {
   id: string;
@@ -106,6 +106,82 @@ export function compareSnapshots(current: SyncData, baseline: SyncData): SimpleC
       mode: token.mode,
       oldValue: token.value,
     });
+  }
+
+  // Compare styles if present
+  if (current.styles || baseline.styles) {
+    const currentStyles = current.styles || [];
+    const baselineStyles = baseline.styles || [];
+
+    // Build baseline styles map
+    const baselineStylesMap = new Map<string, StyleEntry>();
+    for (const style of baselineStyles) {
+      baselineStylesMap.set(style.styleId, style);
+    }
+
+    // Find modified and added styles
+    for (const style of currentStyles) {
+      const baselineStyle = baselineStylesMap.get(style.styleId);
+
+      if (!baselineStyle) {
+        diffs.push({
+          id: style.styleId,
+          name: style.path,
+          type: 'added',
+          collection: `${style.type}-styles`,
+          mode: 'value',
+          newValue: style.value,
+        });
+      } else {
+        const valueChanged = JSON.stringify(style.value) !== JSON.stringify(baselineStyle.value);
+        const pathChanged = style.path !== baselineStyle.path;
+
+        if (pathChanged && valueChanged) {
+          diffs.push({
+            id: style.styleId,
+            name: style.path,
+            type: 'renamed',
+            collection: `${style.type}-styles`,
+            mode: 'value',
+            oldName: baselineStyle.path,
+            oldValue: baselineStyle.value,
+            newValue: style.value,
+          });
+        } else if (pathChanged) {
+          diffs.push({
+            id: style.styleId,
+            name: style.path,
+            type: 'renamed',
+            collection: `${style.type}-styles`,
+            mode: 'value',
+            oldName: baselineStyle.path,
+          });
+        } else if (valueChanged) {
+          diffs.push({
+            id: style.styleId,
+            name: style.path,
+            type: 'modified',
+            collection: `${style.type}-styles`,
+            mode: 'value',
+            oldValue: baselineStyle.value,
+            newValue: style.value,
+          });
+        }
+        baselineStylesMap.delete(style.styleId);
+      }
+    }
+
+    // Remaining in baselineStylesMap = deleted styles
+    for (const [styleId, style] of baselineStylesMap) {
+      diffs.push({
+        id: styleId,
+        name: style.path,
+        type: 'deleted',
+        collection: `${style.type}-styles`,
+        mode: 'value',
+        oldValue: style.value,
+      });
+    }
   }
 
   const counts = {

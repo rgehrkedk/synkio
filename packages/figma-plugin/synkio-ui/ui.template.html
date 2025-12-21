@@ -104,6 +104,39 @@
       cursor: not-allowed;
     }
 
+    /* Import Button */
+    .import-button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px 16px;
+      border: 1px solid #e6e6e6;
+      border-radius: 6px;
+      background: white;
+      color: #333;
+      font-weight: 500;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .import-button:hover {
+      background: #F5F5F5;
+      border-color: #ccc;
+    }
+
+    .import-button:active {
+      transform: scale(0.99);
+    }
+
+    .import-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     /* Tabs */
     .tabs {
       display: flex;
@@ -516,6 +549,12 @@
         <span id="syncIcon"></span>
         <span id="syncText">Sync</span>
       </button>
+
+      <button class="import-button" id="importButton">
+        <span>📥</span>
+        <span>Import Baseline</span>
+      </button>
+      <input type="file" id="fileInput" accept=".json" style="display: none;" />
 
       <div class="tabs">
         <button class="tab active" data-tab="diff">

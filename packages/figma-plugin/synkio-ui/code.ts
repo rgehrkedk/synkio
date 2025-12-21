@@ -169,10 +169,11 @@ function formatPx(value: number): string {
 }
 
 /**
- * Convert RGBA to hex or rgba string
+ * Convert RGB or RGBA to hex or rgba string
  */
-function rgbaToString(color: RGBA, opacity?: number): string {
-  const { r, g, b, a } = color;
+function rgbaToString(color: RGB | RGBA, opacity?: number): string {
+  const { r, g, b } = color;
+  const a = 'a' in color ? color.a : 1;
   const toHex = (n: number) => Math.round(n * 255).toString(16).padStart(2, '0');
   const finalAlpha = opacity !== undefined ? opacity : (a ?? 1);
 
@@ -283,7 +284,7 @@ function convertPaintStyle(
     const boundVars = style.boundVariables;
     const paintBinding = boundVars?.paints?.[0]?.color;
 
-    if (paintBinding) {
+    if (paintBinding && typeof paintBinding === 'object' && 'id' in paintBinding) {
       const varPath = variableMap.get(paintBinding.id);
       if (varPath) {
         value = {
@@ -303,9 +304,10 @@ function convertPaintStyle(
         $value: rgbaToString(paint.color, paint.opacity),
       };
     }
-  } else {
-    // Gradient types (LINEAR, RADIAL, ANGULAR, DIAMOND)
-    const stops: GradientStop[] = paint.gradientStops.map((stop) => ({
+  } else if (paint.type === 'GRADIENT_LINEAR' || paint.type === 'GRADIENT_RADIAL' ||
+             paint.type === 'GRADIENT_ANGULAR' || paint.type === 'GRADIENT_DIAMOND') {
+    // Gradient types - now type-narrowed to GradientPaint
+    const stops: GradientStop[] = paint.gradientStops.map((stop: ColorStop) => ({
       color: rgbaToString(stop.color),
       position: roundValue(stop.position, 3),
     }));
@@ -317,6 +319,9 @@ function convertPaintStyle(
         stops,
       },
     };
+  } else {
+    // PATTERN or other unsupported types - return null
+    return null;
   }
 
   return {
@@ -583,6 +588,103 @@ function addToHistory(event: SyncEvent): void {
 }
 
 /**
+ * Filter baseline to exclude currently-excluded collections and styles
+ */
+function filterBaselineByExclusions(baseline: SyncData): SyncData {
+  const excludedCollections = getExcludedCollections();
+  const excludedStyleTypes = getExcludedStyleTypes();
+
+  // Filter tokens from excluded collections
+  const filteredTokens = baseline.tokens.filter(
+    token => !excludedCollections.includes(token.collection)
+  );
+
+  // Filter styles by excluded types
+  const filteredStyles = baseline.styles?.filter(
+    style => !excludedStyleTypes.includes(style.type)
+  );
+
+  return {
+    ...baseline,
+    tokens: filteredTokens,
+    styles: filteredStyles,
+  };
+}
+
+/**
+ * CLI Baseline format (from baseline.json)
+ */
+interface CLIBaseline {
+  baseline: Record<string, TokenEntry>;
+  styles?: Record<string, StyleEntry>;
+  metadata: {
+    syncedAt: string;
+  };
+}
+
+/**
+ * Validate and convert CLI baseline format to plugin SyncData format
+ */
+function convertCLIBaselineToSyncData(cliBaseline: any): SyncData | { error: string } {
+  // Validate structure
+  if (!cliBaseline || typeof cliBaseline !== 'object') {
+    return { error: 'Invalid baseline: must be a JSON object' };
+  }
+
+  if (!cliBaseline.baseline || typeof cliBaseline.baseline !== 'object') {
+    return { error: 'Invalid baseline: missing "baseline" object' };
+  }
+
+  if (!cliBaseline.metadata || !cliBaseline.metadata.syncedAt) {
+    return { error: 'Invalid baseline: missing "metadata.syncedAt"' };
+  }
+
+  // Convert baseline tokens (object to array)
+  const tokens: TokenEntry[] = [];
+  for (const [key, token] of Object.entries(cliBaseline.baseline)) {
+    if (!token || typeof token !== 'object') {
+      return { error: `Invalid token entry for key: ${key}` };
+    }
+
+    const t = token as any;
+
+    // Validate required fields
+    if (!t.variableId || !t.collection || !t.mode || !t.path || t.value === undefined || !t.type) {
+      return { error: `Invalid token entry: ${key} is missing required fields` };
+    }
+
+    tokens.push(t as TokenEntry);
+  }
+
+  // Convert styles if present (object to array)
+  let styles: StyleEntry[] | undefined;
+  if (cliBaseline.styles && typeof cliBaseline.styles === 'object') {
+    styles = [];
+    for (const [key, style] of Object.entries(cliBaseline.styles)) {
+      if (!style || typeof style !== 'object') {
+        return { error: `Invalid style entry for key: ${key}` };
+      }
+
+      const s = style as any;
+
+      // Validate required fields
+      if (!s.styleId || !s.type || !s.path || !s.value) {
+        return { error: `Invalid style entry: ${key} is missing required fields` };
+      }
+
+      styles.push(s as StyleEntry);
+    }
+  }
+
+  return {
+    version: '3.0.0',
+    timestamp: cliBaseline.metadata.syncedAt,
+    tokens,
+    styles,
+  };
+}
+
+/**
  * Calculate diff and send to UI
  */
 async function sendDiffToUI() {
@@ -600,7 +702,9 @@ async function sendDiffToUI() {
   let diffs: SimpleDiff[] = [];
 
   if (baseline) {
-    const result = compareSnapshots(current, baseline);
+    // Filter baseline to match current exclusions before comparing
+    const filteredBaseline = filterBaselineByExclusions(baseline);
+    const result = compareSnapshots(current, filteredBaseline);
     diffs = result.diffs;
   } else {
     // No baseline yet - all current tokens are "new"
@@ -789,6 +893,50 @@ figma.ui.onmessage = async (msg) => {
       figma.root.setSharedPluginData(NAMESPACE, 'excludedStyleTypes', JSON.stringify(excluded));
       figma.ui.postMessage({ type: 'style-types-saved' });
       figma.notify('Style settings saved');
+    }
+
+    if (msg.type === 'import-baseline') {
+      const { baselineJson } = msg;
+
+      // Parse and validate the baseline JSON
+      let parsedBaseline: any;
+      try {
+        parsedBaseline = JSON.parse(baselineJson);
+      } catch (e) {
+        figma.notify('Invalid JSON: Could not parse baseline file', { error: true });
+        figma.ui.postMessage({ type: 'import-error', error: 'Invalid JSON format' });
+        return;
+      }
+
+      // Convert CLI baseline to plugin format
+      const result = convertCLIBaselineToSyncData(parsedBaseline);
+
+      if ('error' in result) {
+        figma.notify('Import failed: ' + result.error, { error: true });
+        figma.ui.postMessage({ type: 'import-error', error: result.error });
+        return;
+      }
+
+      // Save as new baseline
+      saveBaselineSnapshot(result);
+
+      // Add to history
+      const userName = figma.currentUser ? figma.currentUser.name : 'Unknown';
+      const tokenCount = result.tokens.length;
+      const styleCount = result.styles?.length || 0;
+      addToHistory({
+        u: userName,
+        t: Date.now(),
+        c: tokenCount + styleCount,
+        p: [`Imported baseline with ${tokenCount} tokens and ${styleCount} styles`],
+      });
+
+      figma.notify(`Baseline imported: ${tokenCount} tokens + ${styleCount} styles`);
+
+      // Recalculate diff with current Figma state
+      await sendDiffToUI();
+
+      figma.ui.postMessage({ type: 'import-success' });
     }
 
     if (msg.type === 'close') {

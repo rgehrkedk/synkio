@@ -104,6 +104,39 @@
       cursor: not-allowed;
     }
 
+    /* Import Button */
+    .import-button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px 16px;
+      border: 1px solid #e6e6e6;
+      border-radius: 6px;
+      background: white;
+      color: #333;
+      font-weight: 500;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .import-button:hover {
+      background: #F5F5F5;
+      border-color: #ccc;
+    }
+
+    .import-button:active {
+      transform: scale(0.99);
+    }
+
+    .import-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     /* Tabs */
     .tabs {
       display: flex;
@@ -517,6 +550,12 @@
         <span id="syncText">Sync</span>
       </button>
 
+      <button class="import-button" id="importButton">
+        <span>📥</span>
+        <span>Import Baseline</span>
+      </button>
+      <input type="file" id="fileInput" accept=".json" style="display: none;" />
+
       <div class="tabs">
         <button class="tab active" data-tab="diff">
           Diff
@@ -572,6 +611,8 @@
   var syncButton = document.getElementById("syncButton");
   var syncIcon = document.getElementById("syncIcon");
   var syncText = document.getElementById("syncText");
+  var importButton = document.getElementById("importButton");
+  var fileInput = document.getElementById("fileInput");
   var statusDot = document.getElementById("statusDot");
   var statusText = document.getElementById("statusText");
   var diffHeader = document.getElementById("diffHeader");
@@ -609,6 +650,35 @@
     syncIcon.textContent = "...";
     syncText.textContent = "Syncing...";
     parent.postMessage({ pluginMessage: { type: "sync" } }, "*");
+  });
+  importButton.addEventListener("click", () => {
+    fileInput.click();
+  });
+  fileInput.addEventListener("change", (e) => {
+    var _a;
+    const file = (_a = e.target.files) == null ? void 0 : _a[0];
+    if (!file)
+      return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      var _a2;
+      const baselineJson = (_a2 = event.target) == null ? void 0 : _a2.result;
+      if (!baselineJson)
+        return;
+      importButton.disabled = true;
+      importButton.textContent = "Importing...";
+      parent.postMessage({
+        pluginMessage: {
+          type: "import-baseline",
+          baselineJson
+        }
+      }, "*");
+    };
+    reader.onerror = () => {
+      alert("Failed to read file");
+    };
+    reader.readAsText(file);
+    fileInput.value = "";
   });
   saveCollectionsBtn.addEventListener("click", () => {
     const collectionCheckboxes = collectionsList.querySelectorAll("input[data-collection]");
@@ -960,6 +1030,25 @@
           st.excluded = !cb.checked;
       });
       updateExcludedBadge();
+    }
+    if (msg && msg.type === "import-success") {
+      importButton.disabled = false;
+      importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
+      importButton.innerHTML = "<span>\u2705</span><span>Imported!</span>";
+      importButton.style.background = "#10b981";
+      importButton.style.color = "white";
+      importButton.style.borderColor = "#10b981";
+      setTimeout(() => {
+        importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
+        importButton.style.background = "";
+        importButton.style.color = "";
+        importButton.style.borderColor = "";
+      }, 2e3);
+    }
+    if (msg && msg.type === "import-error") {
+      importButton.disabled = false;
+      importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
+      alert("Import failed: " + msg.error);
     }
   };
   parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
