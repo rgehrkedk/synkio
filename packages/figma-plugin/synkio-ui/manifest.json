@@ -1,6 +1,6 @@
 {
-  "name": "Synkio UI",
-  "id": "synkio-ui",
+  "name": "Synkio",
+  "id": "PLUGIN_ID_FROM_FIGMA",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",

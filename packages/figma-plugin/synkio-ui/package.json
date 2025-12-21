@@ -1,7 +1,26 @@
 {
-  "name": "synkio-ui-plugin",
-  "version": "1.0.0",
-  "description": "Figma plugin with UI for Synkio sync",
+  "name": "synkio-figma-plugin",
+  "version": "1.4.0",
+  "description": "Figma plugin for Synkio - sync design variables and styles to code without Enterprise",
+  "author": "rgehrkedk",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rgehrkedk/synkio.git",
+    "directory": "packages/figma-plugin/synkio-ui"
+  },
+  "homepage": "https://github.com/rgehrkedk/synkio",
+  "bugs": {
+    "url": "https://github.com/rgehrkedk/synkio/issues"
+  },
+  "keywords": [
+    "figma",
+    "figma-plugin",
+    "design-tokens",
+    "design-system",
+    "variables",
+    "sync"
+  ],
   "scripts": {
     "build": "node build.js",
     "watch": "node build.js --watch"
