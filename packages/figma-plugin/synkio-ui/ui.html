@@ -137,6 +137,41 @@
       cursor: not-allowed;
     }
 
+    /* Apply Button */
+    .apply-button {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 8px 16px;
+      border: 1px solid #18A0FB;
+      border-radius: 6px;
+      background: white;
+      color: #18A0FB;
+      font-weight: 500;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+
+    .apply-button:hover:not(:disabled) {
+      background: #18A0FB;
+      color: white;
+    }
+
+    .apply-button:active {
+      transform: scale(0.99);
+    }
+
+    .apply-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: #e6e6e6;
+      color: #999;
+    }
+
     /* Tabs */
     .tabs {
       display: flex;
@@ -556,6 +591,11 @@
       </button>
       <input type="file" id="fileInput" accept=".json" style="display: none;" />
 
+      <button class="apply-button" id="applyButton" disabled>
+        <span>✨</span>
+        <span>Apply to Figma</span>
+      </button>
+
       <div class="tabs">
         <button class="tab active" data-tab="diff">
           Diff
@@ -613,6 +653,7 @@
   var syncText = document.getElementById("syncText");
   var importButton = document.getElementById("importButton");
   var fileInput = document.getElementById("fileInput");
+  var applyButton = document.getElementById("applyButton");
   var statusDot = document.getElementById("statusDot");
   var statusText = document.getElementById("statusText");
   var diffHeader = document.getElementById("diffHeader");
@@ -679,6 +720,15 @@
     };
     reader.readAsText(file);
     fileInput.value = "";
+  });
+  applyButton.addEventListener("click", () => {
+    applyButton.disabled = true;
+    applyButton.innerHTML = "<span>\u23F3</span><span>Applying...</span>";
+    parent.postMessage({
+      pluginMessage: {
+        type: "apply-to-figma"
+      }
+    }, "*");
   });
   saveCollectionsBtn.addEventListener("click", () => {
     const collectionCheckboxes = collectionsList.querySelectorAll("input[data-collection]");
@@ -1044,11 +1094,31 @@
         importButton.style.color = "";
         importButton.style.borderColor = "";
       }, 2e3);
+      applyButton.disabled = false;
     }
     if (msg && msg.type === "import-error") {
       importButton.disabled = false;
       importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
       alert("Import failed: " + msg.error);
+    }
+    if (msg && msg.type === "apply-success") {
+      applyButton.disabled = false;
+      applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
+      applyButton.innerHTML = "<span>\u2705</span><span>Applied!</span>";
+      applyButton.style.background = "#10b981";
+      applyButton.style.color = "white";
+      applyButton.style.borderColor = "#10b981";
+      setTimeout(() => {
+        applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
+        applyButton.style.background = "";
+        applyButton.style.color = "";
+        applyButton.style.borderColor = "";
+      }, 2e3);
+    }
+    if (msg && msg.type === "apply-error") {
+      applyButton.disabled = false;
+      applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
+      alert("Apply failed: " + msg.error);
     }
   };
   parent.postMessage({ pluginMessage: { type: "ready" } }, "*");

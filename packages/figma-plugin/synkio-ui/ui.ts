@@ -58,6 +58,7 @@ const syncIcon = document.getElementById('syncIcon')!;
 const syncText = document.getElementById('syncText')!;
 const importButton = document.getElementById('importButton') as HTMLButtonElement;
 const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+const applyButton = document.getElementById('applyButton') as HTMLButtonElement;
 const statusDot = document.getElementById('statusDot')!;
 const statusText = document.getElementById('statusText')!;
 const diffHeader = document.getElementById('diffHeader')!;
@@ -139,6 +140,18 @@ fileInput.addEventListener('change', (e) => {
 
   // Reset file input
   fileInput.value = '';
+});
+
+// Apply to Figma button
+applyButton.addEventListener('click', () => {
+  applyButton.disabled = true;
+  applyButton.innerHTML = '<span>⏳</span><span>Applying...</span>';
+
+  parent.postMessage({
+    pluginMessage: {
+      type: 'apply-to-figma'
+    }
+  }, '*');
 });
 
 // Save collections button - saves both variable collections and style types
@@ -590,12 +603,38 @@ window.onmessage = (event) => {
       importButton.style.color = '';
       importButton.style.borderColor = '';
     }, 2000);
+
+    // Enable apply button after successful import
+    applyButton.disabled = false;
   }
 
   if (msg && msg.type === 'import-error') {
     importButton.disabled = false;
     importButton.innerHTML = '<span>📥</span><span>Import Baseline</span>';
     alert('Import failed: ' + msg.error);
+  }
+
+  if (msg && msg.type === 'apply-success') {
+    applyButton.disabled = false;
+    applyButton.innerHTML = '<span>✨</span><span>Apply to Figma</span>';
+
+    // Show success feedback briefly
+    applyButton.innerHTML = '<span>✅</span><span>Applied!</span>';
+    applyButton.style.background = '#10b981';
+    applyButton.style.color = 'white';
+    applyButton.style.borderColor = '#10b981';
+    setTimeout(() => {
+      applyButton.innerHTML = '<span>✨</span><span>Apply to Figma</span>';
+      applyButton.style.background = '';
+      applyButton.style.color = '';
+      applyButton.style.borderColor = '';
+    }, 2000);
+  }
+
+  if (msg && msg.type === 'apply-error') {
+    applyButton.disabled = false;
+    applyButton.innerHTML = '<span>✨</span><span>Apply to Figma</span>';
+    alert('Apply failed: ' + msg.error);
   }
 };
 
