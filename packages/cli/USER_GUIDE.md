@@ -127,7 +127,8 @@ npx synkio sync
 **Options:**
 | Flag | Description |
 |------|-------------|
-| `--preview` | Show changes without applying |
+| `--preview` | Show changes without applying (includes roundtrip verification) |
+| `--backup` | Create timestamped backup before overwriting files |
 | `--force` | Bypass breaking change protection |
 | `--report` | Generate markdown report |
 | `--no-report` | Skip report generation |
@@ -144,8 +145,11 @@ npx synkio sync
 **Examples:**
 
 ```bash
-# Preview changes (dry run)
+# Preview changes (dry run with roundtrip verification)
 npx synkio sync --preview
+
+# Sync with backup for safety
+npx synkio sync --backup
 
 # Force sync past breaking changes
 npx synkio sync --force
@@ -870,6 +874,59 @@ Output:
 ---
 
 ## Features
+
+### Roundtrip Verification (Code → Figma → Code)
+
+The `--preview` flag includes intelligent roundtrip verification when you've exported tokens to Figma using `export-baseline`:
+
+```bash
+# 1. Export handcrafted tokens to Figma
+npx synkio export-baseline
+
+# 2. Import in Figma plugin
+
+# 3. Preview what sync will change
+npx synkio sync --preview
+```
+
+**Preview output:**
+
+```
+Verifying roundtrip (comparing current files with sync output):
+
+⚠ 3 file(s) will be modified:
+  - tokens/primitives/primitives.json
+  - tokens/semantic/semantic.dark.json
+  - tokens/semantic/semantic.light.json
+
+Note: Formatting changes (field order, hex case) are expected.
+Token values and structure remain the same.
+
+Run with --backup to create a safety backup before syncing:
+  synkio sync --backup
+```
+
+This verifies that your tokens survive the roundtrip without data loss.
+
+### Backup Protection
+
+Create timestamped backups before overwriting files:
+
+```bash
+npx synkio sync --backup
+```
+
+Backups are stored in `.synkio/backups/{timestamp}/` with full directory structure preserved:
+
+```
+.synkio/backups/
+  └── 2025-12-22T10-29-55/
+      └── tokens/
+          ├── primitives/primitives.json
+          └── semantic/
+              ├── semantic.light.json
+              └── semantic.dark.json
+```
 
 ### Breaking Change Protection
 

@@ -1,0 +1,76 @@
+{
+  "brand": {
+    "blue": {
+      "500": {
+        "$value": "#0066ff",
+        "$type": "color"
+      },
+      "600": {
+        "$value": "#0052cc",
+        "$type": "color"
+      }
+    },
+    "green": {
+      "500": {
+        "$value": "#00c853",
+        "$type": "color"
+      },
+      "600": {
+        "$value": "#00a846",
+        "$type": "color"
+      }
+    }
+  },
+  "neutral": {
+    "0": {
+      "$value": "#ffffff",
+      "$type": "color"
+    },
+    "50": {
+      "$value": "#f8f9fa",
+      "$type": "color"
+    },
+    "100": {
+      "$value": "#e9ecef",
+      "$type": "color"
+    },
+    "900": {
+      "$value": "#212529",
+      "$type": "color"
+    },
+    "1000": {
+      "$value": "#000000",
+      "$type": "color"
+    }
+  },
+  "spacing": {
+    "0": {
+      "$value": "0px",
+      "$type": "dimension"
+    },
+    "4": {
+      "$value": "4px",
+      "$type": "dimension"
+    },
+    "8": {
+      "$value": "8px",
+      "$type": "dimension"
+    },
+    "12": {
+      "$value": "12px",
+      "$type": "dimension"
+    },
+    "16": {
+      "$value": "16px",
+      "$type": "dimension"
+    },
+    "24": {
+      "$value": "24px",
+      "$type": "dimension"
+    },
+    "32": {
+      "$value": "32px",
+      "$type": "dimension"
+    }
+  }
+}

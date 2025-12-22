@@ -1,0 +1,34 @@
+{
+  "color": {
+    "background": {
+      "primary": {
+        "$value": "{neutral.900}",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "{neutral.1000}",
+        "$type": "color"
+      }
+    },
+    "text": {
+      "primary": {
+        "$value": "{neutral.0}",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "{neutral.50}",
+        "$type": "color"
+      }
+    },
+    "brand": {
+      "primary": {
+        "$value": "{brand.blue.600}",
+        "$type": "color"
+      },
+      "secondary": {
+        "$value": "{brand.green.600}",
+        "$type": "color"
+      }
+    }
+  }
+}

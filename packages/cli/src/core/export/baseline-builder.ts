@@ -75,6 +75,33 @@ export function buildBaselineKey(
 }
 
 /**
+ * Normalize token value for Figma import
+ *
+ * Figma expects:
+ * - Dimension values as raw numbers (no units): 16 instead of "16px"
+ * - Color values as hex strings: "#FF0000"
+ * - Number values as numbers: 400, 1.5
+ *
+ * This is ONLY used for export-baseline (code → Figma flow).
+ * The sync pipeline (Figma → code) does the opposite transformation.
+ *
+ * @param value - Token value from DTCG file
+ * @param type - DTCG token type
+ * @returns Normalized value for Figma
+ */
+function normalizeFigmaValue(value: unknown, type: string): unknown {
+  // Strip units from dimension values (e.g., "16px" → 16, "1.5rem" → 1.5)
+  if (type === 'dimension' && typeof value === 'string') {
+    const match = value.match(/^(-?\d+(?:\.\d+)?)(px|rem|em|%)?$/);
+    if (match) {
+      return Number.parseFloat(match[1]);
+    }
+  }
+
+  return value;
+}
+
+/**
  * Build baseline entry from parsed token
  *
  * @param token - Parsed token
@@ -91,7 +118,7 @@ export function buildBaselineEntry(
     collection,
     mode,
     path: token.path,
-    value: token.value,
+    value: normalizeFigmaValue(token.value, token.type),
     type: token.type,
   };
 

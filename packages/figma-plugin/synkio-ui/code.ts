@@ -735,17 +735,25 @@ function getOrCreateMode(
   collection: VariableCollection,
   modeName: string
 ): string {
+  console.log(`[getOrCreateMode] Collection: ${collection.name}, Mode: ${modeName}`);
+  console.log(`[getOrCreateMode] Existing modes:`, collection.modes.map(m => `${m.name} (${m.modeId})`));
+
   const existingMode = collection.modes.find(m => m.name === modeName);
   if (existingMode) {
+    console.log(`[getOrCreateMode] Found existing mode: ${existingMode.name} (${existingMode.modeId})`);
     return existingMode.modeId;
   }
 
   if (collection.modes.length === 1 && collection.modes[0].name === 'Mode 1') {
+    console.log(`[getOrCreateMode] Renaming default 'Mode 1' to '${modeName}'`);
     collection.renameMode(collection.modes[0].modeId, modeName);
     return collection.modes[0].modeId;
   }
 
-  return collection.addMode(modeName);
+  console.log(`[getOrCreateMode] Creating new mode: ${modeName}`);
+  const newModeId = collection.addMode(modeName);
+  console.log(`[getOrCreateMode] Created mode: ${modeName} (${newModeId})`);
+  return newModeId;
 }
 
 function mapTokenTypeToFigma(type: string): VariableResolvedDataType {
@@ -803,7 +811,8 @@ function convertValueToFigma(
     const match = value.match(/^\{(.+)\}$/);
     if (match) {
       const refPath = match[1];
-      const varId = variableLookup.get(refPath);
+      // Case-insensitive lookup
+      const varId = caseInsensitiveGet(variableLookup, refPath);
 
       if (!varId) {
         throw new Error(`Cannot resolve reference: {${refPath}}`);
@@ -837,7 +846,8 @@ function sortByDependencies(tokens: TokenEntry[]): TokenEntry[] {
   const tokenMap = new Map<string, TokenEntry>();
 
   for (const token of tokens) {
-    const key = `${token.collection}.${token.path}`;
+    // Include mode in key to avoid overwriting tokens with same path but different modes
+    const key = `${token.collection}.${token.path}:${token.mode}`;
     tokenMap.set(key, token);
 
     const refs = extractReferences(token.value);
@@ -916,6 +926,27 @@ function resolveReference(
   throw new Error(`Cannot resolve reference: {${refPath}}`);
 }
 
+/**
+ * Case-insensitive map lookup helper
+ * Returns the value for a key, ignoring case differences
+ */
+function caseInsensitiveGet<V>(map: Map<string, V>, key: string): V | undefined {
+  // Try exact match first (fastest)
+  if (map.has(key)) {
+    return map.get(key);
+  }
+
+  // Fall back to case-insensitive search
+  const lowerKey = key.toLowerCase();
+  for (const [k, v] of map) {
+    if (k.toLowerCase() === lowerKey) {
+      return v;
+    }
+  }
+
+  return undefined;
+}
+
 async function applyBaselineToFigma(): Promise<void> {
   const baseline = getBaselineSnapshot();
 
@@ -935,8 +966,11 @@ async function applyBaselineToFigma(): Promise<void> {
     let updated = 0;
     let skipped = 0;
 
+    console.log(`[applyBaseline] Processing ${sortedTokens.length} tokens`);
+
     for (const token of sortedTokens) {
       const fullPath = `${token.collection}.${token.path}`;
+      console.log(`[applyBaseline] Token: ${fullPath}, mode: ${token.mode}, value:`, token.value);
 
       try {
         const collection = await getOrCreateCollection(token.collection, collectionMap);
@@ -955,10 +989,20 @@ async function applyBaselineToFigma(): Promise<void> {
           }
         }
 
+        // Check if we already created this variable in this import (different mode)
+        if (!variable) {
+          const varId = createdVars.get(fullPath);
+          if (varId) {
+            variable = await figma.variables.getVariableByIdAsync(varId);
+            console.log(`[applyBaseline] Reusing variable from earlier mode: ${fullPath}`);
+          }
+        }
+
         if (!variable) {
           const figmaType = mapTokenTypeToFigma(token.type);
           const figmaName = token.path.replace(/\./g, '/');
           variable = figma.variables.createVariable(figmaName, collection, figmaType);
+          console.log(`[applyBaseline] Created new variable: ${figmaName}`);
           created++;
         } else {
           updated++;
@@ -966,6 +1010,7 @@ async function applyBaselineToFigma(): Promise<void> {
 
         createdVars.set(fullPath, variable.id);
 
+        // Build lookup map with both created and existing variables
         const variableLookup = new Map<string, string>();
         for (const [path, varId] of createdVars) {
           variableLookup.set(path, varId);

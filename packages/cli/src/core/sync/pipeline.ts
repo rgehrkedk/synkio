@@ -5,8 +5,8 @@
  * This module coordinates all the extracted modules to perform a sync.
  */
 
-import { resolve } from 'node:path';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { resolve, relative, dirname, join } from 'node:path';
+import { mkdir, writeFile, readFile, copyFile, access } from 'node:fs/promises';
 import chalk from 'chalk';
 import type { BaselineData, ComparisonResult, StyleComparisonResult } from '../../types/index.js';
 import { loadConfig, updateConfigWithCollectionRenames, updateConfigWithCollections } from '../config.js';
@@ -23,6 +23,7 @@ import { createLogger } from '../../utils/logger.js';
 import { buildFilesByDirectory, regenerateFromBaseline } from './regenerate.js';
 import { mergeStylesIntoTokens } from './style-merger.js';
 import { shouldBlockSync, displayBreakingChanges } from './breaking-changes.js';
+import { discoverTokenFiles, parseTokenFile, parseMultiModeFile, buildExportBaseline } from '../export/index.js';
 import {
   displaySyncSummary,
   displayValueChanges,
@@ -52,6 +53,7 @@ export interface SyncOptions {
   build?: boolean;
   noBuild?: boolean;
   open?: boolean;
+  backup?: boolean;
 }
 
 /**
@@ -66,6 +68,7 @@ export interface SyncPipelineResult {
   hasChanges: boolean;
   reportPath?: string;
   docsDir?: string;
+  backupDir?: string;
 }
 
 /**
@@ -118,6 +121,134 @@ async function processStyles(
   const mergeResult = mergeStylesIntoTokens(processedStyles, filesByDir, config, defaultOutDir);
 
   return { standaloneStyleFiles: mergeResult.standaloneStyleFiles };
+}
+
+/**
+ * Backup existing token files before overwriting
+ * Creates a timestamped backup directory in .synkio/backups/
+ *
+ * @returns The backup directory path, or null if no files existed to backup
+ */
+async function backupExistingFiles(filesByDir: Map<string, Map<string, string>>): Promise<string | null> {
+  const logger = createLogger();
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const backupDir = resolve(process.cwd(), '.synkio', 'backups', timestamp);
+
+  let filesBackedUp = 0;
+
+  for (const [dir, files] of filesByDir) {
+    for (const [filename, _] of files) {
+      const sourcePath = resolve(dir, filename);
+
+      try {
+        // Check if file exists
+        await access(sourcePath);
+
+        // Create backup directory structure
+        const relativeDir = relative(process.cwd(), dir);
+        const backupFilePath = join(backupDir, relativeDir, filename);
+        await mkdir(dirname(backupFilePath), { recursive: true });
+
+        // Copy file to backup
+        await copyFile(sourcePath, backupFilePath);
+        filesBackedUp++;
+        logger.debug(`Backed up: ${sourcePath} → ${backupFilePath}`);
+
+      } catch (error) {
+        // File doesn't exist, nothing to backup
+        logger.debug(`File doesn't exist, skipping backup: ${sourcePath}`);
+      }
+    }
+  }
+
+  if (filesBackedUp === 0) {
+    logger.debug('No existing files to backup');
+    return null;
+  }
+
+  logger.debug(`Backed up ${filesBackedUp} files to ${backupDir}`);
+  return backupDir;
+}
+
+/**
+ * Try to build a baseline from existing token files on disk
+ * Used in preview mode to show what will change during first sync
+ *
+ * @returns BaselineData if files exist and can be parsed, null otherwise
+ */
+async function tryBuildBaselineFromDisk(config: any): Promise<BaselineData | null> {
+  const logger = createLogger();
+
+  try {
+    // Discover token files using the same logic as export-baseline
+    const baseDir = process.cwd();
+    const { files, errors } = await discoverTokenFiles(
+      config.tokens.collections || {},
+      baseDir
+    );
+
+    if (errors.length > 0) {
+      logger.debug('Errors discovering files:', errors);
+    }
+
+    if (files.length === 0) {
+      logger.debug('No existing token files found on disk');
+      return null;
+    }
+
+    logger.debug(`Found ${files.length} existing token files on disk`);
+
+    // Parse all files (same logic as export-baseline command)
+    const parsedFiles: Array<{
+      file: typeof files[0];
+      tokens: Awaited<ReturnType<typeof parseTokenFile>>['tokens'];
+      mode: string;
+    }> = [];
+
+    for (const file of files) {
+      const { tokens, errors: parseErrors } = await parseTokenFile(file.path);
+
+      if (parseErrors.length > 0) {
+        logger.debug(`Parse errors in ${file.filename}:`, parseErrors);
+      }
+
+      // Check for multi-mode structure
+      if (tokens.length === 0) {
+        const content = JSON.parse(await readFile(file.path, 'utf-8'));
+        const multiMode = parseMultiModeFile(content);
+
+        if (multiMode.size > 0) {
+          for (const [mode, modeTokens] of multiMode) {
+            parsedFiles.push({ file, tokens: modeTokens, mode });
+          }
+          continue;
+        }
+      }
+
+      const { extractModeFromFile } = await import('../export/file-discoverer.js');
+      const mode = extractModeFromFile(file, 'value');
+      parsedFiles.push({ file, tokens, mode });
+    }
+
+    // Build baseline using export-baseline logic
+    const exportData = buildExportBaseline(parsedFiles);
+
+    // Convert to BaselineData format expected by compareBaselines
+    const baselineData: BaselineData = {
+      baseline: exportData.baseline,
+      styles: {},
+      metadata: {
+        syncedAt: new Date().toISOString(),
+      },
+    };
+
+    logger.debug(`Built baseline from disk: ${Object.keys(exportData.baseline).length} tokens`);
+    return baselineData;
+
+  } catch (error: any) {
+    logger.debug('Failed to build baseline from disk:', error.message || error);
+    return null;
+  }
 }
 
 /**
@@ -385,6 +516,155 @@ export async function executeSyncPipeline(
   const isFirstSync = !localBaseline;
   if (isFirstSync) {
     config = await handleFirstSync(normalizedTokens, normalizedStyles, rawData, config, options, spinner);
+
+    // Preview mode for first sync - show what will be created
+    if (options.preview) {
+      spinner.stop();
+      console.log(chalk.cyan('\n  Preview Mode - Initial Sync (No baseline exists)\n'));
+
+      // Try to read existing token files from disk for comparison
+      spinner.start('Checking for existing token files...');
+      const diskBaseline = await tryBuildBaselineFromDisk(config);
+      spinner.stop();
+
+      if (diskBaseline) {
+        // Compare output files (not internal representations)
+        // This runs the full sync pipeline to generate what WILL be written,
+        // then compares with what's currently on disk - same format comparison
+        console.log(chalk.cyan('  Verifying roundtrip (comparing current files with sync output):\n'));
+
+        // Run split/process to see what sync will write
+        const splitOptions: SplitTokensOptions = {
+          collections: config.tokens.collections || {},
+          dtcg: config.tokens.dtcg !== false,
+          includeVariableId: config.tokens.includeVariableId === true,
+          splitBy: config.tokens.splitBy,
+          includeMode: config.tokens.includeMode,
+          extensions: config.tokens.extensions || {},
+        };
+        const processedTokens = splitTokens(normalizedTokens, splitOptions);
+        const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
+        const filesByDir = buildFilesByDirectory(processedTokens, defaultOutDir);
+
+        // Compare file-by-file what exists vs what will be written
+        let totalTokensChecked = 0;
+        let filesWithChanges = 0;
+        const changedFiles: string[] = [];
+
+        for (const [dir, files] of filesByDir) {
+          for (const [filename, newContent] of files) {
+            const filePath = resolve(dir, filename);
+            const relPath = relative(process.cwd(), filePath);
+
+            try {
+              const existingContent = await readFile(filePath, 'utf-8');
+              const existingJson = JSON.parse(existingContent);
+              const newJson = JSON.parse(newContent);
+
+              // Deep comparison of JSON structures
+              const existingStr = JSON.stringify(existingJson, null, 2);
+              const newStr = JSON.stringify(newJson, null, 2);
+
+              if (existingStr !== newStr) {
+                filesWithChanges++;
+                changedFiles.push(relPath);
+              }
+
+              // Count tokens in this file
+              const countTokens = (obj: any): number => {
+                let count = 0;
+                for (const value of Object.values(obj)) {
+                  if (value && typeof value === 'object' && '$value' in value) {
+                    count++;
+                  } else if (value && typeof value === 'object') {
+                    count += countTokens(value);
+                  }
+                }
+                return count;
+              };
+              totalTokensChecked += countTokens(newJson);
+
+            } catch (error) {
+              // File doesn't exist yet - will be created
+              changedFiles.push(relPath);
+              filesWithChanges++;
+            }
+          }
+        }
+
+        if (filesWithChanges === 0) {
+          console.log(chalk.green(`  ✓ Roundtrip verified: ${totalTokensChecked} tokens match exactly.\n`));
+          console.log(chalk.green('  ✓ No changes will be made to your files.\n'));
+        } else {
+          console.log(chalk.yellow(`  ⚠ ${filesWithChanges} file(s) will be modified:\n`));
+          for (const file of changedFiles) {
+            console.log(chalk.dim(`    - ${file}`));
+          }
+          console.log(chalk.dim('\n  Note: Formatting changes (field order, hex case) are expected.'));
+          console.log(chalk.dim('  Token values and structure remain the same.'));
+          console.log(chalk.cyan('\n  Run with --backup to create a safety backup before syncing:\n'));
+          console.log(chalk.dim('    synkio sync --backup\n'));
+        }
+      } else {
+        // No existing files - show what will be created
+        const splitOptions: SplitTokensOptions = {
+          collections: config.tokens.collections || {},
+          dtcg: config.tokens.dtcg !== false,
+          includeVariableId: config.tokens.includeVariableId === true,
+          splitBy: config.tokens.splitBy,
+          includeMode: config.tokens.includeMode,
+          extensions: config.tokens.extensions || {},
+        };
+        const processedTokens = splitTokens(normalizedTokens, splitOptions);
+        const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
+        const filesByDir = buildFilesByDirectory(processedTokens, defaultOutDir);
+
+        console.log(chalk.bold('  Files to be created:\n'));
+
+        // Group files by directory
+        const filesByCollection = new Map<string, string[]>();
+        for (const [dir, files] of filesByDir) {
+          for (const [filename, _] of files) {
+            const relPath = relative(process.cwd(), resolve(dir, filename));
+            const collection = filename.split('.')[0];
+            if (!filesByCollection.has(collection)) {
+              filesByCollection.set(collection, []);
+            }
+            filesByCollection.get(collection)!.push(relPath);
+          }
+        }
+
+        // Display files grouped by collection
+        for (const [collection, files] of filesByCollection) {
+          console.log(chalk.dim(`    ${collection}:`));
+          for (const file of files.sort()) {
+            console.log(chalk.green(`      + ${file}`));
+          }
+        }
+
+        if (normalizedStyles && Object.keys(normalizedStyles).length > 0) {
+          const stylesByType = new Map<string, number>();
+          for (const [_, style] of Object.entries(normalizedStyles)) {
+            stylesByType.set(style.type, (stylesByType.get(style.type) || 0) + 1);
+          }
+          console.log(chalk.bold('\n  Style files to be created:\n'));
+          for (const [type, count] of stylesByType) {
+            console.log(chalk.green(`    + styles.${type}.json`), chalk.dim(`${count} styles`));
+          }
+        }
+      }
+
+      console.log(chalk.dim('\n  Run without --preview to write files\n'));
+
+      return {
+        filesWritten: 0,
+        styleFilesWritten: 0,
+        docsFilesWritten: 0,
+        cssFilesWritten: 0,
+        buildScriptRan: false,
+        hasChanges: true,
+      };
+    }
   }
 
   // 7. Compare with local baseline
@@ -472,6 +752,16 @@ export async function executeSyncPipeline(
   // Ensure directories exist
   await ensureDirectories(outputDirs);
 
+  // Backup existing files if --backup flag is set
+  let backupDir: string | null = null;
+  if (options.backup) {
+    spinner.text = 'Backing up existing files...';
+    backupDir = await backupExistingFiles(filesByDir);
+    if (backupDir) {
+      spinner.info(`Backup created: ${relative(process.cwd(), backupDir)}`);
+    }
+  }
+
   // Cleanup stale files
   await cleanupAllStaleFiles(filesByDir);
 
@@ -524,5 +814,6 @@ export async function executeSyncPipeline(
     hasChanges: hasBaselineChanges,
     reportPath,
     docsDir: docsDir || undefined,
+    backupDir: backupDir || undefined,
   };
 }

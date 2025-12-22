@@ -370,7 +370,14 @@ export function updateConfigWithCollections(
 
   // Build collections config
   const collectionsConfig: Record<string, { splitBy: SplitBy; dir?: string; file?: string }> = {};
+  const existingCollections = json.tokens.collections || {};
+
   for (const collection of collections) {
+    // Skip if collection already exists in config - preserve user's custom settings
+    if (existingCollections[collection.name]) {
+      continue;
+    }
+
     const config: { splitBy: SplitBy; dir?: string; file?: string } = {
       splitBy: collection.splitBy,
     };
@@ -384,9 +391,14 @@ export function updateConfigWithCollections(
     collectionsConfig[collection.name] = config;
   }
 
-  // Set collections (merge with existing if present)
+  // Only update if there are new collections to add
+  if (Object.keys(collectionsConfig).length === 0) {
+    return { updated: false };
+  }
+
+  // Merge only new collections with existing
   json.tokens.collections = {
-    ...json.tokens.collections,
+    ...existingCollections,
     ...collectionsConfig,
   };
 

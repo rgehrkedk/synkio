@@ -1,0 +1,311 @@
+{
+  "baseline": {
+    "VariableID:3:505:primitives.value": {
+      "variableId": "VariableID:3:505",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "brand.blue.500",
+      "value": "#0066ff",
+      "type": "color"
+    },
+    "VariableID:3:506:primitives.value": {
+      "variableId": "VariableID:3:506",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "brand.blue.600",
+      "value": "#0052cc",
+      "type": "color"
+    },
+    "VariableID:3:507:primitives.value": {
+      "variableId": "VariableID:3:507",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "brand.green.500",
+      "value": "#00c853",
+      "type": "color"
+    },
+    "VariableID:3:508:primitives.value": {
+      "variableId": "VariableID:3:508",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "brand.green.600",
+      "value": "#00a846",
+      "type": "color"
+    },
+    "VariableID:3:509:primitives.value": {
+      "variableId": "VariableID:3:509",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "neutral.0",
+      "value": "#ffffff",
+      "type": "color"
+    },
+    "VariableID:3:510:primitives.value": {
+      "variableId": "VariableID:3:510",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "neutral.50",
+      "value": "#f8f9fa",
+      "type": "color"
+    },
+    "VariableID:3:511:primitives.value": {
+      "variableId": "VariableID:3:511",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "neutral.100",
+      "value": "#e9ecef",
+      "type": "color"
+    },
+    "VariableID:3:512:primitives.value": {
+      "variableId": "VariableID:3:512",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "neutral.900",
+      "value": "#212529",
+      "type": "color"
+    },
+    "VariableID:3:513:primitives.value": {
+      "variableId": "VariableID:3:513",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "neutral.1000",
+      "value": "#000000",
+      "type": "color"
+    },
+    "VariableID:3:514:primitives.value": {
+      "variableId": "VariableID:3:514",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "spacing.0",
+      "value": 0,
+      "type": "float"
+    },
+    "VariableID:3:515:primitives.value": {
+      "variableId": "VariableID:3:515",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "spacing.4",
+      "value": 4,
+      "type": "float"
+    },
+    "VariableID:3:516:primitives.value": {
+      "variableId": "VariableID:3:516",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "spacing.8",
+      "value": 8,
+      "type": "float"
+    },
+    "VariableID:3:517:primitives.value": {
+      "variableId": "VariableID:3:517",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "spacing.12",
+      "value": 12,
+      "type": "float"
+    },
+    "VariableID:3:518:primitives.value": {
+      "variableId": "VariableID:3:518",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "spacing.16",
+      "value": 16,
+      "type": "float"
+    },
+    "VariableID:3:519:primitives.value": {
+      "variableId": "VariableID:3:519",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "spacing.24",
+      "value": 24,
+      "type": "float"
+    },
+    "VariableID:3:520:primitives.value": {
+      "variableId": "VariableID:3:520",
+      "collectionId": "VariableCollectionId:3:504",
+      "modeId": "3:22",
+      "collection": "primitives",
+      "mode": "value",
+      "path": "spacing.32",
+      "value": 32,
+      "type": "float"
+    },
+    "VariableID:3:522:semantic.dark": {
+      "variableId": "VariableID:3:522",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:23",
+      "collection": "semantic",
+      "mode": "dark",
+      "path": "color.background.primary",
+      "value": {
+        "$ref": "VariableID:3:512"
+      },
+      "type": "color"
+    },
+    "VariableID:3:522:semantic.light": {
+      "variableId": "VariableID:3:522",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:24",
+      "collection": "semantic",
+      "mode": "light",
+      "path": "color.background.primary",
+      "value": {
+        "$ref": "VariableID:3:509"
+      },
+      "type": "color"
+    },
+    "VariableID:3:523:semantic.dark": {
+      "variableId": "VariableID:3:523",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:23",
+      "collection": "semantic",
+      "mode": "dark",
+      "path": "color.background.secondary",
+      "value": {
+        "$ref": "VariableID:3:513"
+      },
+      "type": "color"
+    },
+    "VariableID:3:523:semantic.light": {
+      "variableId": "VariableID:3:523",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:24",
+      "collection": "semantic",
+      "mode": "light",
+      "path": "color.background.secondary",
+      "value": {
+        "$ref": "VariableID:3:510"
+      },
+      "type": "color"
+    },
+    "VariableID:3:524:semantic.dark": {
+      "variableId": "VariableID:3:524",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:23",
+      "collection": "semantic",
+      "mode": "dark",
+      "path": "color.text.primary",
+      "value": {
+        "$ref": "VariableID:3:509"
+      },
+      "type": "color"
+    },
+    "VariableID:3:524:semantic.light": {
+      "variableId": "VariableID:3:524",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:24",
+      "collection": "semantic",
+      "mode": "light",
+      "path": "color.text.primary",
+      "value": {
+        "$ref": "VariableID:3:512"
+      },
+      "type": "color"
+    },
+    "VariableID:3:525:semantic.dark": {
+      "variableId": "VariableID:3:525",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:23",
+      "collection": "semantic",
+      "mode": "dark",
+      "path": "color.text.secondary",
+      "value": {
+        "$ref": "VariableID:3:510"
+      },
+      "type": "color"
+    },
+    "VariableID:3:525:semantic.light": {
+      "variableId": "VariableID:3:525",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:24",
+      "collection": "semantic",
+      "mode": "light",
+      "path": "color.text.secondary",
+      "value": {
+        "$ref": "VariableID:3:512"
+      },
+      "type": "color"
+    },
+    "VariableID:3:526:semantic.dark": {
+      "variableId": "VariableID:3:526",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:23",
+      "collection": "semantic",
+      "mode": "dark",
+      "path": "color.brand.primary",
+      "value": {
+        "$ref": "VariableID:3:506"
+      },
+      "type": "color"
+    },
+    "VariableID:3:526:semantic.light": {
+      "variableId": "VariableID:3:526",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:24",
+      "collection": "semantic",
+      "mode": "light",
+      "path": "color.brand.primary",
+      "value": {
+        "$ref": "VariableID:3:505"
+      },
+      "type": "color"
+    },
+    "VariableID:3:527:semantic.dark": {
+      "variableId": "VariableID:3:527",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:23",
+      "collection": "semantic",
+      "mode": "dark",
+      "path": "color.brand.secondary",
+      "value": {
+        "$ref": "VariableID:3:508"
+      },
+      "type": "color"
+    },
+    "VariableID:3:527:semantic.light": {
+      "variableId": "VariableID:3:527",
+      "collectionId": "VariableCollectionId:3:521",
+      "modeId": "3:24",
+      "collection": "semantic",
+      "mode": "light",
+      "path": "color.brand.secondary",
+      "value": {
+        "$ref": "VariableID:3:507"
+      },
+      "type": "color"
+    }
+  },
+  "metadata": {
+    "syncedAt": "2025-12-22T12:40:04.026Z"
+  }
+}

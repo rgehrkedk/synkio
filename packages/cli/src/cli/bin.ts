@@ -71,6 +71,7 @@ function showHelp(command?: string) {
             console.log('Breaking changes (path changes, deleted variables/modes) are blocked by default.\n');
             console.log('Options:');
             console.log('  --preview           Show what would change without syncing');
+            console.log('  --backup            Backup existing files before overwriting');
             console.log('  --force             Apply changes even if breaking');
             console.log('  --build             Run build pipeline without prompting');
             console.log('  --no-build          Skip build pipeline entirely');
@@ -231,6 +232,7 @@ switch (command) {
         syncCommand({
             force: syncOptions.force as boolean,
             preview: syncOptions.preview as boolean,
+            backup: syncOptions.backup as boolean,
             report: syncOptions.report as boolean,
             noReport: syncOptions.noReport as boolean,
             collection: syncOptions.collection as string,

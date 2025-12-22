@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "figma": {
+    "fileId": "qmjlybtw5qOom9BhYRTUBC",
+    "accessToken": "${FIGMA_TOKEN}"
+  },
+  "tokens": {
+    "dir": "tokens",
+    "includeVariableId": false,
+    "collections": {
+      "primitives": {
+        "splitBy": "none",
+        "dir": "tokens/primitives",
+        "file": "primitives"
+      },
+      "semantic": {
+        "splitBy": "mode",
+        "dir": "tokens/semantic",
+        "file": "semantic"
+      }
+    }
+  },
+  "build": {
+    "css": {
+      "enabled": false
+    }
+  }
+}

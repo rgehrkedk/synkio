@@ -785,6 +785,89 @@ describe('baseline-builder', () => {
         scopes: ['ALL_SCOPES', 'FRAME_FILL'],
       });
     });
+
+    describe('value normalization for Figma', () => {
+      it('should strip px units from dimension values', () => {
+        const token: ParsedToken = {
+          path: 'spacing.base',
+          value: '16px',
+          type: 'dimension',
+        };
+
+        const entry = buildBaselineEntry(token, 'globals', 'value');
+
+        expect(entry.value).toBe(16);
+        expect(entry.type).toBe('dimension');
+      });
+
+      it('should strip rem units from dimension values', () => {
+        const token: ParsedToken = {
+          path: 'spacing.large',
+          value: '1.5rem',
+          type: 'dimension',
+        };
+
+        const entry = buildBaselineEntry(token, 'globals', 'value');
+
+        expect(entry.value).toBe(1.5);
+      });
+
+      it('should handle dimension values without units', () => {
+        const token: ParsedToken = {
+          path: 'spacing.zero',
+          value: '0',
+          type: 'dimension',
+        };
+
+        const entry = buildBaselineEntry(token, 'globals', 'value');
+
+        expect(entry.value).toBe(0);
+      });
+
+      it('should handle negative dimension values', () => {
+        const token: ParsedToken = {
+          path: 'spacing.negative',
+          value: '-8px',
+          type: 'dimension',
+        };
+
+        const entry = buildBaselineEntry(token, 'globals', 'value');
+
+        expect(entry.value).toBe(-8);
+      });
+
+      it('should not modify non-dimension types', () => {
+        const colorToken: ParsedToken = {
+          path: 'colors.primary',
+          value: '#0066FF',
+          type: 'color',
+        };
+
+        const numberToken: ParsedToken = {
+          path: 'fontWeight.bold',
+          value: 700,
+          type: 'number',
+        };
+
+        const colorEntry = buildBaselineEntry(colorToken, 'theme', 'light');
+        const numberEntry = buildBaselineEntry(numberToken, 'theme', 'light');
+
+        expect(colorEntry.value).toBe('#0066FF');
+        expect(numberEntry.value).toBe(700);
+      });
+
+      it('should preserve numeric dimension values as-is', () => {
+        const token: ParsedToken = {
+          path: 'spacing.base',
+          value: 16,
+          type: 'dimension',
+        };
+
+        const entry = buildBaselineEntry(token, 'globals', 'value');
+
+        expect(entry.value).toBe(16);
+      });
+    });
   });
 
   describe('buildExportBaseline', () => {

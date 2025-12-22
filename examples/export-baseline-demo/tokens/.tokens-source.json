@@ -1,0 +1,135 @@
+{
+  "tokens": {
+    "brand": {
+      "blue": {
+        "500": {
+          "$value": "#0066ff",
+          "$type": "color"
+        },
+        "600": {
+          "$value": "#0052cc",
+          "$type": "color"
+        }
+      },
+      "green": {
+        "500": {
+          "$value": "#00c853",
+          "$type": "color"
+        },
+        "600": {
+          "$value": "#00a846",
+          "$type": "color"
+        }
+      }
+    },
+    "neutral": {
+      "0": {
+        "$value": "#ffffff",
+        "$type": "color"
+      },
+      "50": {
+        "$value": "#f8f9fa",
+        "$type": "color"
+      },
+      "100": {
+        "$value": "#e9ecef",
+        "$type": "color"
+      },
+      "900": {
+        "$value": "#212529",
+        "$type": "color"
+      },
+      "1000": {
+        "$value": "#000000",
+        "$type": "color"
+      }
+    },
+    "spacing": {
+      "0": {
+        "$value": 0,
+        "$type": "dimension"
+      },
+      "4": {
+        "$value": 4,
+        "$type": "dimension"
+      },
+      "8": {
+        "$value": 8,
+        "$type": "dimension"
+      },
+      "12": {
+        "$value": 12,
+        "$type": "dimension"
+      },
+      "16": {
+        "$value": 16,
+        "$type": "dimension"
+      },
+      "24": {
+        "$value": 24,
+        "$type": "dimension"
+      },
+      "32": {
+        "$value": 32,
+        "$type": "dimension"
+      }
+    },
+    "color": {
+      "background": {
+        "primary": {
+          "$value": "{neutral.0}",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "{neutral.50}",
+          "$type": "color"
+        }
+      },
+      "text": {
+        "primary": {
+          "$value": "{neutral.900}",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "{neutral.900}",
+          "$type": "color"
+        }
+      },
+      "brand": {
+        "primary": {
+          "$value": "{brand.blue.500}",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "{brand.green.500}",
+          "$type": "color"
+        }
+      }
+    }
+  },
+  "$metadata": {
+    "syncedAt": "2025-12-22T12:40:04.026Z",
+    "source": {
+      "figmaFileId": "qmjlybtw5qOom9BhYRTUBC"
+    },
+    "output": {
+      "mode": "json",
+      "dtcg": true,
+      "dir": "tokens"
+    },
+    "variableNaming": {
+      "prefix": "--",
+      "separator": "-",
+      "example": "--color-primary-500"
+    },
+    "collections": [
+      "primitives",
+      "semantic"
+    ],
+    "modes": [
+      "dark",
+      "light",
+      "value"
+    ]
+  }
+}
