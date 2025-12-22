@@ -35,6 +35,7 @@ Synkio addresses the same market pain point as Tokens Studio (Enterprise API loc
 4. [Competitive Positioning](#4-competitive-positioning)
 5. [SWOT Analysis](#5-swot-analysis)
 6. [Strategic Recommendations](#6-strategic-recommendations)
+7. [Outreach Strategy & Partnership Offers](#7-outreach-strategy--partnership-offers)
 
 ---
 
@@ -447,6 +448,268 @@ If Synkio gains significant traction:
 
 ---
 
+## 7. Outreach Strategy & Partnership Offers
+
+### 7.1 Owner Profile
+
+**Repository:** https://github.com/rgehrkedk/synkio
+**Owner:** rgehrkedk (GitHub handle)
+**Project Status:** Active development (v1.4.0, recent commits)
+**License:** MIT (allows commercial use and acquisition)
+
+**Inferred Profile:**
+- Technical founder/developer (strong TypeScript, CLI tooling expertise)
+- Design systems background (understands token workflows)
+- Open source advocate (MIT license, public repo)
+- Likely freelancer, agency, or small company (not VC-backed)
+
+### 7.2 Outreach Approach
+
+#### Initial Contact Strategy
+
+**Recommended Channels (in order):**
+1. GitHub - Open an issue titled "Partnership Discussion - Tokens Studio"
+2. LinkedIn - Direct message to owner
+3. Twitter/X - If publicly active
+4. Email - If discoverable from GitHub profile
+
+**Tone:** Respectful, collaborative, non-threatening. Acknowledge their innovation.
+
+#### Opening Message Template
+
+```
+Subject: Tokens Studio + Synkio - Exploring Collaboration
+
+Hi [Name],
+
+I'm [Your Name] from Tokens Studio. We've been following Synkio's
+development and are genuinely impressed by your approach to the
+design tokens space.
+
+Your ID-based diffing system and the hybrid plugin + CLI architecture
+are elegant solutions to problems we're also working on. Rather than
+compete, we're exploring whether there's an opportunity to collaborate.
+
+Would you be open to a 30-minute call to explore possibilities? No
+strings attached - just an exploratory conversation.
+
+Best,
+[Your Name]
+Tokens Studio
+```
+
+### 7.3 Partnership Offer Options
+
+#### Option A: Technology Licensing (Low Commitment)
+
+**What We Offer:**
+- One-time license fee: $15,000 - $50,000
+- Ongoing royalty: 2-5% of revenue from features using licensed tech
+- Public attribution in product
+
+**What We Get:**
+- License to ID-based diffing algorithm
+- Rights to integrate hybrid plugin architecture
+- Technical consultation (10-20 hours)
+
+**Pitch Angle:**
+> "Your ID-based diffing is genuinely innovative. We'd like to license
+> this technology for our product while you continue developing Synkio
+> independently."
+
+**Pros:** Low risk, owner keeps full control, immediate value
+**Cons:** Doesn't eliminate competition, limited strategic benefit
+
+---
+
+#### Option B: Integration Partnership (Medium Commitment)
+
+**What We Offer:**
+- Co-marketing and joint case studies
+- Featured integration in Tokens Studio docs
+- Technical support and API access
+- Revenue share on referred customers: 15-25%
+- Engineering collaboration on shared features
+
+**What We Get:**
+- Synkio recommends Tokens Studio for advanced features
+- Shared roadmap visibility
+- First-mover advantage on integration
+- Reduced direct competition
+
+**Structure:**
+```
+┌─────────────────┐      ┌─────────────────────┐
+│     Synkio      │ ───► │    Tokens Studio    │
+│  (Basic sync)   │      │  (Advanced features)│
+└─────────────────┘      └─────────────────────┘
+        │                         │
+        └─────── Upgrade Path ────┘
+```
+
+**Pitch Angle:**
+> "Your CLI-first approach complements our plugin-first model. Let's
+> create an upgrade path where Synkio users naturally grow into Tokens
+> Studio when they need Graph Engine, multi-tool support, or Pro docs."
+
+**Pros:** Win-win, expands total market, reduces competition
+**Cons:** Requires ongoing coordination, owner must agree to positioning
+
+---
+
+#### Option C: Acqui-hire (High Commitment)
+
+**What We Offer:**
+- Competitive salary + signing bonus: $150,000 - $250,000 base
+- Equity stake in Tokens Studio: 0.5% - 2.0%
+- Title: Senior/Staff Engineer or Technical Lead
+- Full creative control over CLI tooling
+- Remote-first role
+
+**What We Get:**
+- Owner joins Tokens Studio team
+- Full rights to Synkio codebase
+- ID-based diffing integrated into core product
+- CLI expertise in-house
+- Synkio sunset or rebrand as "Tokens Studio CLI"
+
+**Pitch Angle:**
+> "You've built something special. We'd love to have you lead our CLI
+> tooling efforts and integrate your innovations into Tokens Studio.
+> You'd have the resources to take your ideas further while reaching
+> millions of designers and developers."
+
+**Pros:** Eliminates competition, acquires talent and technology
+**Cons:** High cost, owner may prefer independence, integration challenges
+
+---
+
+#### Option D: Full Acquisition (Highest Commitment)
+
+**What We Offer:**
+- Cash acquisition: $100,000 - $500,000
+  - Base: Calculated on 3-5x annual value (npm downloads, GitHub stars)
+  - Premium: For strategic value of technology
+- Retention bonus for 12-24 month transition
+- Option to join team or advisor role
+
+**Valuation Framework:**
+| Factor | Weight | Synkio Assessment |
+|--------|--------|-------------------|
+| Technology (ID-diffing, CLI) | 40% | High value |
+| User base (npm downloads) | 25% | Early stage |
+| Community (GitHub stars) | 15% | Growing |
+| Strategic threat elimination | 20% | Moderate |
+
+**Pitch Angle:**
+> "We'd like to acquire Synkio and integrate it as our official CLI
+> offering. This gives you an exit while ensuring your work reaches
+> the widest possible audience through Tokens Studio's distribution."
+
+**Pros:** Complete control, eliminates competition, technology + community acquired
+**Cons:** Highest cost, complex negotiation, potential community backlash
+
+---
+
+### 7.4 Negotiation Talking Points
+
+#### Value We Bring to Owner
+
+1. **Distribution:** Access to Tokens Studio's existing user base (100k+ plugin installs)
+2. **Resources:** Engineering, design, and marketing support
+3. **Sustainability:** Ongoing funding vs. unpaid open source work
+4. **Credibility:** Association with established brand
+5. **Focus:** Let us handle business while they focus on engineering
+
+#### Their Likely Concerns
+
+| Concern | Response |
+|---------|----------|
+| "I want to stay independent" | Options A & B preserve independence |
+| "I don't want Synkio to die" | Commit to maintaining CLI product line |
+| "What about existing users?" | Ensure backward compatibility, migration path |
+| "I'm not interested in working for a company" | Offer advisor role or pure acquisition |
+| "The community will be upset" | Joint announcement, emphasize continuity |
+
+#### Our Non-Negotiables
+
+- Rights to ID-based diffing technology
+- Ability to prevent direct competition (in some form)
+- Clear IP transfer for any acquisition
+
+#### Our Flexibility
+
+- Timeline (not urgent)
+- Payment structure (cash, equity, royalties)
+- Ongoing involvement (full-time, advisor, none)
+- Brand treatment (rebrand, co-brand, maintain)
+
+### 7.5 Conversation Flow
+
+```
+Phase 1: Discovery (Call 1)
+├── Build rapport
+├── Understand their motivations
+├── Learn about their roadmap
+└── Gauge interest in collaboration
+
+Phase 2: Exploration (Call 2)
+├── Present partnership spectrum (A-D)
+├── Discuss which options interest them
+├── Identify deal-breakers
+└── Get ballpark expectations
+
+Phase 3: Proposal (Call 3)
+├── Present formal offer
+├── Address concerns
+├── Negotiate terms
+└── Agree on next steps
+
+Phase 4: Due Diligence (If proceeding)
+├── Code review
+├── Legal review (IP, license)
+├── Financial terms finalization
+└── Transition planning
+```
+
+### 7.6 Risk Assessment
+
+| Risk | Likelihood | Mitigation |
+|------|------------|------------|
+| Owner not interested | Medium | Lead with respect, multiple options |
+| Asks for too much | Low | Have walk-away threshold defined |
+| Competitor approaches them first | Low | Move quickly but not desperately |
+| Community backlash on acquisition | Medium | Joint announcement, maintain OSS |
+| Integration fails post-acquisition | Medium | Clear technical due diligence |
+
+### 7.7 Decision Matrix
+
+**When to Pursue Each Option:**
+
+| Scenario | Recommended Offer |
+|----------|-------------------|
+| Owner wants to stay independent, just wants recognition | Option A (License) |
+| Owner open to collaboration, wants ongoing relationship | Option B (Partnership) |
+| Owner burned out on OSS, interested in full-time role | Option C (Acqui-hire) |
+| Owner wants exit, ready to move on | Option D (Acquisition) |
+| Owner not interested in any collaboration | Monitor and compete |
+
+### 7.8 Recommended First Offer
+
+Based on current analysis, we recommend starting with **Option B (Integration Partnership)** as the opening position:
+
+**Rationale:**
+1. Lowest barrier to acceptance
+2. Tests relationship before deeper commitment
+3. Provides value to both parties immediately
+4. Preserves optionality for future acquisition
+5. Doesn't require significant upfront capital
+
+**Fallback:** If owner is looking for an exit, pivot to Option C or D.
+**Walk-away:** If owner is hostile or demands unreasonable terms.
+
+---
+
 ## Appendix A: Technical Deep Dive
 
 ### Synkio Codebase Structure
@@ -509,6 +772,7 @@ Framework: Vitest (modern, fast, ESM-native)
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | December 2025 | Product Strategy Team | Initial analysis |
+| 1.1 | December 2025 | Business Development | Added outreach strategy and partnership offers |
 
 ---
 
