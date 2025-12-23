@@ -7,40 +7,46 @@
 
 ## Summary
 
-| Severity | Count |
-|----------|-------|
-| Critical | 1 |
-| High | 4 |
-| Medium | 6 |
-| Low | 4 |
-| **Total** | **15** |
+| Severity | Count | Fixed |
+|----------|-------|-------|
+| Critical | 1 | 1 ✅ |
+| High | 4 | 0 |
+| Medium | 6 | 0 |
+| Low | 4 | 0 |
+| **Total** | **15** | **1** |
 
 ---
 
 ## Critical Issues
 
-### 1. Shell Injection Vulnerability in Build Runner
+### 1. ✅ FIXED: Shell Injection Vulnerability in Build Runner
 
-**File:** `packages/cli/src/core/sync/build-runner.ts:73`
+**File:** `packages/cli/src/core/sync/build-runner.ts`
 **Severity:** CRITICAL
+**Status:** Fixed
 
-**Issue:** The `buildScript` string from config is passed directly to `execSync` without sanitization:
+**Original Issue:** The `buildScript` string from config was passed directly to `execSync` without sanitization.
 
-```typescript
-execSync(buildScript, {
-  stdio: 'inherit',
-  cwd: process.cwd(),
-});
-```
+**Fix Applied:**
+1. Added `validateBuildScript()` function that validates scripts before execution
+2. Implemented allowlist of recognized build tool prefixes (npm, yarn, pnpm, node, etc.)
+3. Added blocklist of dangerous patterns (command substitution, eval, curl|sh, etc.)
+4. Replaced `execSync` with `spawnSync` for more controlled execution
+5. Added 5-minute timeout protection
+6. Added comprehensive test coverage (27 tests)
 
-A malicious `synkio.config.json` could execute arbitrary shell commands. While config files are typically under user control, this is still a security risk if:
-- Config files are auto-generated or pulled from external sources
-- The tool is used in CI/CD pipelines with untrusted input
+**Validated Prefixes:**
+- Package managers: `npm run`, `npm exec`, `npx`, `yarn`, `pnpm`, `bun`
+- Node.js: `node`, `tsx`, `ts-node`, `deno`
+- Build tools: `make`, `gradle`, `mvn`, `cargo`, `go`
+- Scripts: `python`, `python3`, `ruby`, `bash`, `sh`, `./script`
 
-**Suggested Fix:**
-- Use `spawnSync` with explicit argument parsing instead of `execSync`
-- Alternatively, validate that the script matches expected patterns
-- At minimum, document the security implications in the config schema
+**Blocked Patterns:**
+- Command substitution: `$(...)`, backticks
+- Variable expansion: `${...}`
+- Dangerous commands: `eval`, `source`, `curl|sh`, `wget|sh`
+- System writes: `> /etc/`, `> /usr/`
+- Destructive: `rm -rf /`
 
 ---
 
