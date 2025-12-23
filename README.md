@@ -4,8 +4,33 @@
 
 [![npm version](https://img.shields.io/npm/v/synkio.svg)](https://www.npmjs.com/package/synkio)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
 
 Synkio is a developer-friendly CLI that bridges the gap between Figma design variables and your codebase. It bypasses the need for Figma's Enterprise REST API by utilizing the Plugin API, giving you a powerful sync workflow on any Figma plan.
+
+---
+
+## Table of Contents
+
+- [Why Synkio?](#why-synkio)
+- [How It Works](#how-it-works)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Commands](#commands)
+- [Configuration](#configuration)
+- [Example Output](#example-output)
+- [Smart Safety Checks](#smart-safety-checks)
+- [Documentation Site](#documentation-site)
+- [Troubleshooting](#troubleshooting)
+- [Examples](#examples)
+- [Development](#development)
+- [Documentation](#documentation)
+- [Repository Structure](#repository-structure)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
+
+---
 
 ## Why Synkio?
 
@@ -19,35 +44,58 @@ Most token sync tools require expensive Figma Enterprise licenses to access vari
 ### Comparison
 
 | Feature | Synkio | Tokens Studio | SaaS Platforms | Figma Enterprise API |
-|---------|--------|---------------|----------------|----------------------|
-| **Figma Plan** | Any (Free, Pro, Org) | Any | Varies | Enterprise Only |
-| **Cost** | Free (Open Source) | Freemium | Subscription ($$$) | Included in Ent. Plan |
-| **Data Source** | Native Figma Variables | Proprietary JSON | Cloud Database | Native Figma Variables |
-| **Sync Method** | Hybrid (Plugin + CLI) | Plugin (Git Sync) | Cloud Connector | Direct REST API |
-| **Safety Logic** | ID-based Diffing | Git Diff (File-based) | Version Control | Manual (Custom Code) |
-| **Setup Time** | < 5 min | High (Figma config heavy) | Medium (Account setup) | Depends (Custom Scripting) |
-| **Developer UX** | CLI / Terminal | GUI / Plugin | Web Dashboard | Custom |
+|---------|:------:|:-------------:|:--------------:|:--------------------:|
+| **Any Figma Plan** | ✓ | ✓ | Varies | ✗ |
+| **Free & Open Source** | ✓ | ✗ | ✗ | N/A |
+| **Native Figma Variables** | ✓ | ✗ | ✗ | ✓ |
+| **ID-based Diffing** | ✓ | ✗ | ✗ | ✗ |
+| **CLI-first UX** | ✓ | ✗ | ✗ | ✗ |
+| **Setup Time** | < 5 min | High | Medium | Varies |
+
+---
 
 ## How It Works
 
 Synkio uses a "Hybrid Sync" method:
+
+```
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│   Figma File    │      │   Figma API     │      │  Your Project   │
+│                 │      │                 │      │                 │
+│  ┌───────────┐  │      │                 │      │  tokens/        │
+│  │  Plugin   │──┼──────┼─► sharedData ───┼──────┼─► *.json        │
+│  └───────────┘  │      │                 │      │                 │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+     Run once              CLI fetches             DTCG-compliant
+                           via standard API        token files
+```
 
 1. **The Plugin** — Runs inside Figma to read variables and store them in the file's `sharedPluginData`
 2. **The CLI** — Fetches this data via the standard Figma API, compares it with your local tokens, and generates output files
 
 This gives you the accuracy of an internal plugin with the automation speed of a CLI.
 
+---
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- **Node.js 18.0.0 or higher** — [Download Node.js](https://nodejs.org/)
+- **Figma Account** — Free, Professional, or Organization plan
+- **Figma Personal Access Token** — [Generate one here](https://www.figma.com/developers/api#access-tokens)
+
+---
+
 ## Quick Start
 
-### Using the npm Package
-
-#### 1. Install
+### 1. Install
 
 ```bash
 npm install synkio --save-dev
 ```
 
-#### 2. Initialize
+### 2. Initialize
 
 ```bash
 npx synkio init
@@ -59,15 +107,15 @@ This creates:
 
 **Important:** Copy `.env.example` to `.env` and add your Figma token.
 
-#### 3. Prepare Figma File
+### 3. Prepare Figma File
 
 1. Open your Figma file
-2. Install and run the [Synkio Sync plugin](packages/figma-plugin/synkio-sync/)
+2. Run **Plugins > Synkio**
 3. Click **"Prepare for Sync"**
 
 This snapshots your variables so the CLI can access them.
 
-#### 4. Sync
+### 4. Sync
 
 ```bash
 npx synkio sync
@@ -75,52 +123,7 @@ npx synkio sync
 
 Your tokens are now in your project!
 
-### Cloning the Repository
-
-If you're cloning this repo for development:
-
-#### 1. Install dependencies
-
-```bash
-# From repo root
-cd packages/cli
-npm install
-npm run build
-```
-
-#### 2. Link the CLI locally
-
-```bash
-npm link
-```
-
-#### 3. Build the Figma plugin
-
-```bash
-cd ../../packages/figma-plugin/synkio-sync
-npm install
-npm run build
-```
-
-#### 4. Set up the demo app
-
-```bash
-cd ../../../examples/demo-app
-npm install
-
-# Create .env file in the demo-app root
-echo "FIGMA_TOKEN=your_figma_token_here" > .env
-```
-
-#### 5. Run sync
-
-```bash
-# Use the linked CLI
-synkio sync
-
-# Or use the built CLI directly
-node ../../packages/cli/dist/cli/bin.js sync
-```
+---
 
 ## Commands
 
@@ -130,22 +133,23 @@ node ../../packages/cli/dist/cli/bin.js sync
 | `synkio sync` | Fetch tokens from Figma |
 | `synkio sync --preview` | Preview changes without applying |
 | `synkio sync --watch` | Poll for changes automatically |
+| `synkio sync --backup` | Create backup before syncing |
 | `synkio sync --collection=<name>` | Sync specific collection(s) |
 | `synkio sync --force` | Overwrite local files, ignoring safety warnings |
 | `synkio sync --regenerate` | Regenerate files from existing baseline |
+| `synkio import` | Import from Figma's native JSON export (no plugin) |
+| `synkio export-baseline` | Export tokens for Figma import (code → Figma) |
 | `synkio docs` | Generate documentation site |
+| `synkio docs --open` | Generate and open docs in browser |
 | `synkio rollback` | Revert to previous sync |
+| `synkio rollback --preview` | Preview what rollback would restore |
 | `synkio validate` | Check config and connection |
+| `synkio tokens` | Debug utility to view current baseline |
+| `synkio --version` | Show CLI version |
 
-## Smart Safety Checks
+See the [User Guide](packages/cli/USER_GUIDE.md) for full command options and examples.
 
-Synkio acts as a gatekeeper for your design system. Unlike simple exporters, it understands the difference between a rename and a deletion:
-
-- **Renames** — If a designer changes `Brand Blue` to `Primary Blue`, Synkio sees the ID match and reports it as a **rename**, not a deletion
-- **Deletions** — Blocks sync if a variable used in your code has been deleted in Figma
-- **Mode Changes** — Detects if a theme mode (e.g., "Dark Mode") was added or removed
-
-Use `npx synkio sync --preview` to see a full report of changes without writing any files.
+---
 
 ## Configuration
 
@@ -159,7 +163,8 @@ Synkio is configured via `synkio.config.json`:
     "accessToken": "${FIGMA_TOKEN}"
   },
   "tokens": {
-    "dir": "tokens"
+    "dir": "tokens",
+    "splitBy": "mode"
   }
 }
 ```
@@ -178,63 +183,235 @@ Synkio focuses on syncing tokens. For build pipelines, use the `build.script` op
 
 This runs your custom build command after sync, letting you integrate Style Dictionary or any other tool.
 
-See the [User Guide](packages/cli/USER_GUIDE.md) for full configuration options.
+See the [User Guide](packages/cli/USER_GUIDE.md) for full configuration options including:
+- Per-collection splitting strategies (`mode`, `group`, `none`)
+- CSS custom properties generation
+- Figma styles (paint, text, effect) sync
+- Import/export configuration
+
+---
+
+## Example Output
+
+After running `synkio sync`, your token files will look like this (DTCG format):
+
+```json
+{
+  "colors": {
+    "primary": {
+      "$value": "#0066cc",
+      "$type": "color"
+    },
+    "secondary": {
+      "$value": "#6b7280",
+      "$type": "color"
+    }
+  },
+  "spacing": {
+    "sm": {
+      "$value": "8px",
+      "$type": "dimension"
+    },
+    "md": {
+      "$value": "16px",
+      "$type": "dimension"
+    }
+  }
+}
+```
+
+---
+
+## Smart Safety Checks
+
+Synkio acts as a gatekeeper for your design system. Unlike simple exporters, it understands the difference between a rename and a deletion:
+
+- **Renames** — If a designer changes `Brand Blue` to `Primary Blue`, Synkio sees the ID match and reports it as a **rename**, not a deletion
+- **Deletions** — Blocks sync if a variable used in your code has been deleted in Figma
+- **Mode Changes** — Detects if a theme mode (e.g., "Dark Mode") was added or removed
+
+Use `npx synkio sync --preview` to see a full report of changes without writing any files.
+
+```
+BREAKING CHANGES DETECTED
+
+  Path changes: 1
+    colors.primary → colors.brand.primary
+
+  These changes may break your code.
+
+  Run 'synkio sync --force' to apply anyway.
+```
+
+---
+
+## Documentation Site
+
+Generate a static documentation site for your design tokens:
+
+```bash
+npx synkio docs --open
+```
+
+The generated site includes:
+- Color palettes with visual swatches
+- Typography scales with previews
+- Spacing tokens visualization
+- CSS custom properties reference
+- Copy-to-clipboard functionality
+
+Output directory: `.synkio/docs/` (configurable)
+
+See the [Hosting Guide](docs/HOSTING.md) for deployment options (GitHub Pages, Netlify, Vercel).
+
+---
 
 ## Troubleshooting
 
 ### "FIGMA_TOKEN environment variable is not set"
 
-Make sure your `.env` file is in the **project root** (where you run `npx synkio sync`), not in subdirectories. The CLI uses [dotenv](https://www.npmjs.com/package/dotenv) which loads from the current working directory.
+Make sure your `.env` file is in the **project root** (where you run `npx synkio sync`), not in subdirectories:
 
-```bash
-# Correct location
+```
 my-project/
-├── .env
-├── synkio.config.json
-└── tokens/
-
-# Wrong location
-my-project/
-├── .synkio/
-│   └── .env
+├── .env              ✓ Correct
 ├── synkio.config.json
 └── tokens/
 ```
 
-**Note for repo contributors:** When developing locally (cloning the repo), `npx synkio` fetches from npm instead of using your local build. Use one of these instead:
+### "No plugin data found"
+
+Run the Synkio Figma plugin and click "Prepare for Sync" before running the CLI.
+
+### "Cannot find module" or ESM errors
+
+Synkio requires Node.js 18+. Check your version:
 
 ```bash
-# After running npm link in packages/cli
-synkio sync
-
-# Or run the built CLI directly
-node ../../packages/cli/dist/cli/bin.js sync
+node --version
 ```
+
+### Debug mode
+
+Enable verbose logging for troubleshooting:
+
+```bash
+DEBUG=synkio npx synkio sync
+```
+
+---
+
+## Examples
+
+The repository includes working examples to help you get started:
+
+| Example | Description |
+|---------|-------------|
+| [demo-app](examples/demo-app/) | Full integration example with CSS generation |
+| [import-demo](examples/import-demo/) | Import workflow using Figma's native JSON export |
+| [export-baseline-demo](examples/export-baseline-demo/) | Code-to-Figma roundtrip workflow |
+| [starter-app](examples/starter-app/) | Minimal starter template |
+
+---
+
+## Development
+
+If you're cloning this repo for development:
+
+### 1. Install dependencies
+
+```bash
+cd packages/cli
+npm install
+npm run build
+```
+
+### 2. Link the CLI locally
+
+```bash
+npm link
+```
+
+### 3. Build the Figma plugin
+
+```bash
+cd ../figma-plugin/synkio-sync
+npm install
+npm run build
+```
+
+### 4. Run tests
+
+```bash
+cd ../../cli
+npm run test
+npm run test:watch  # Watch mode
+```
+
+**Note:** When developing locally, `npx synkio` fetches from npm. Use one of these instead:
+
+```bash
+synkio sync                              # After npm link
+node packages/cli/dist/cli/bin.js sync   # Direct execution
+```
+
+---
 
 ## Documentation
 
 - [User Guide](packages/cli/USER_GUIDE.md) — Complete reference for all commands and options
+- [Configuration Guide](docs/CONFIGURATION.md) — Detailed configuration options
+- [Hosting Guide](docs/HOSTING.md) — Deploy your documentation site
 - [CLI Package](packages/cli/) — npm package source
-- [Figma Plugin](packages/figma-plugin/synkio-sync/) — Figma plugin source
+- [Figma Plugin](packages/figma-plugin/) — Figma plugin source
+
+---
 
 ## Repository Structure
 
 ```
 synkio/
 ├── packages/
-│   ├── cli/                 # npm package (synkio)
-│   │   ├── src/             # TypeScript source
-│   │   └── USER_GUIDE.md    # Full documentation
+│   ├── cli/                    # npm package (synkio)
+│   │   ├── src/                # TypeScript source
+│   │   │   ├── cli/            # Command implementations
+│   │   │   ├── core/           # Business logic (sync, compare, tokens)
+│   │   │   ├── types/          # Zod schemas and TypeScript types
+│   │   │   └── utils/          # Shared utilities
+│   │   └── USER_GUIDE.md       # Full documentation
 │   └── figma-plugin/
-│       └── synkio-sync/     # Figma plugin
+│       ├── synkio-sync/        # Minimal sync plugin
+│       └── synkio-ui/          # UI plugin with diff view
+├── examples/                   # Working example projects
+├── docs/                       # Additional documentation
 └── README.md
 ```
+
+---
 
 ## Contributing
 
 Synkio is an open source project built to solve a specific frustration: the lack of easy variable syncing for non-Enterprise teams.
 
 Contributions are welcome! If there's a way to make the TypeScript cleaner, the CLI faster, or the tests more robust, please open a Pull Request.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## Security
+
+- **Local-only tokens** — Your Figma access token is stored in your local `.env` file and never sent to third-party servers
+- **Standard Figma API** — Synkio only communicates with official Figma API endpoints
+- **No telemetry** — The CLI does not collect any usage data or analytics
+
+Report security vulnerabilities via [GitHub Issues](https://github.com/rgehrkedk/synkio/issues).
+
+---
 
 ## License
 
