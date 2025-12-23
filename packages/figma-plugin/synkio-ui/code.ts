@@ -6,6 +6,9 @@
 import { chunkData, reassembleChunks } from './lib/chunking';
 import { compareSnapshots } from './lib/compare';
 import { addHistoryEntry, parseHistory, serializeHistory } from './lib/history';
+import { getSettings, saveSettings, saveLastFetchInfo, getLastFetchInfo } from './lib/settings';
+import { fetchRemoteBaseline, checkForUpdates } from './lib/remote-fetch';
+import { parseGitHubUrl, buildGitHubRawUrl } from './lib/github';
 import type {
   SyncData,
   TokenEntry,
@@ -1114,6 +1117,20 @@ figma.ui.onmessage = async (msg) => {
     if (msg.type === 'ready') {
       uiReady = true;
       await sendDiffToUI();
+
+      // Auto-check for updates if enabled
+      const settings = await getSettings();
+      if (settings.remote.enabled && settings.autoCheckOnOpen) {
+        const lastFetch = await getLastFetchInfo();
+        const result = await checkForUpdates(settings, lastFetch.hash);
+        if (result.hasUpdates) {
+          figma.ui.postMessage({
+            type: 'update-check-result',
+            hasUpdates: true,
+            autoCheck: true,  // Flag to show non-intrusive notification
+          });
+        }
+      }
     }
 
     if (msg.type === 'sync') {
@@ -1306,6 +1323,152 @@ figma.ui.onmessage = async (msg) => {
 
     if (msg.type === 'apply-to-figma') {
       await applyBaselineToFigma();
+    }
+
+    if (msg.type === 'fetch-remote') {
+      const settings = await getSettings();
+
+      if (!settings.remote.enabled) {
+        figma.ui.postMessage({
+          type: 'fetch-error',
+          error: 'Remote sync not configured. Go to Settings to set up.'
+        });
+        return;
+      }
+
+      figma.ui.postMessage({ type: 'fetch-started' });
+
+      const result = await fetchRemoteBaseline(settings);
+
+      if (!result.success) {
+        figma.ui.postMessage({
+          type: 'fetch-error',
+          error: result.error
+        });
+        return;
+      }
+
+      // Save the fetched baseline (reuse existing saveBaselineSnapshot function)
+      saveBaselineSnapshot(result.data!);
+
+      // Save fetch metadata
+      await saveLastFetchInfo(result.timestamp, result.hash);
+
+      // Add to history
+      const userName = figma.currentUser?.name ?? 'Unknown';
+      const tokenCount = result.data!.tokens.length;
+      const styleCount = result.data!.styles?.length ?? 0;
+      addToHistory({
+        u: userName,
+        t: Date.now(),
+        c: tokenCount + styleCount,
+        p: [`Fetched from ${settings.remote.type}: ${tokenCount} tokens, ${styleCount} styles`],
+      });
+
+      // Recalculate diff
+      await sendDiffToUI();
+
+      figma.ui.postMessage({
+        type: 'fetch-success',
+        source: result.source,
+        tokenCount,
+        styleCount,
+        timestamp: result.timestamp,
+      });
+    }
+
+    if (msg.type === 'check-for-updates') {
+      const settings = await getSettings();
+
+      if (!settings.remote.enabled) {
+        figma.ui.postMessage({ type: 'update-check-result', hasUpdates: false });
+        return;
+      }
+
+      const lastFetch = await getLastFetchInfo();
+      const result = await checkForUpdates(settings, lastFetch.hash);
+
+      figma.ui.postMessage({
+        type: 'update-check-result',
+        hasUpdates: result.hasUpdates,
+        error: result.error,
+      });
+    }
+
+    if (msg.type === 'get-settings') {
+      const settings = await getSettings();
+      const lastFetch = await getLastFetchInfo();
+
+      figma.ui.postMessage({
+        type: 'settings-update',
+        settings,
+        lastFetch,
+      });
+    }
+
+    if (msg.type === 'save-settings') {
+      const { settings } = msg;
+      await saveSettings(settings);
+      figma.ui.postMessage({ type: 'settings-saved' });
+      figma.notify('Settings saved');
+    }
+
+    if (msg.type === 'test-github-connection') {
+      const { github } = msg;
+
+      try {
+        // Build test URL
+        const info = {
+          owner: github.owner,
+          repo: github.repo,
+          branch: github.branch || 'main',
+          path: github.path || '.synkio/export-baseline.json',
+        };
+
+        const url = github.token
+          ? `https://api.github.com/repos/${info.owner}/${info.repo}/contents/${info.path}?ref=${info.branch}`
+          : buildGitHubRawUrl(info);
+
+        const headers: Record<string, string> = { 'Accept': 'application/json' };
+        if (github.token) {
+          headers['Authorization'] = `Bearer ${github.token}`;
+          headers['Accept'] = 'application/vnd.github.v3.raw';
+        }
+
+        const response = await fetch(url, { method: 'HEAD', headers });
+
+        if (response.ok) {
+          figma.ui.postMessage({
+            type: 'connection-test-result',
+            success: true,
+            isPrivate: !!github.token,
+          });
+        } else if (response.status === 404) {
+          figma.ui.postMessage({
+            type: 'connection-test-result',
+            success: false,
+            error: 'File not found. Check repository, branch, and path.',
+          });
+        } else if (response.status === 401 || response.status === 403) {
+          figma.ui.postMessage({
+            type: 'connection-test-result',
+            success: false,
+            error: github.token ? 'Invalid token or insufficient permissions.' : 'Private repository. Add a token.',
+          });
+        } else {
+          figma.ui.postMessage({
+            type: 'connection-test-result',
+            success: false,
+            error: `HTTP ${response.status}`,
+          });
+        }
+      } catch (err) {
+        figma.ui.postMessage({
+          type: 'connection-test-result',
+          success: false,
+          error: 'Network error. Check your connection.',
+        });
+      }
     }
 
     if (msg.type === 'close') {

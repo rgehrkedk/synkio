@@ -10,6 +10,7 @@ import { tokensCommand } from './commands/tokens.js';
 import { docsCommand } from './commands/docs.js';
 import { importCommand } from './commands/import.js';
 import { exportBaselineCommand } from './commands/export-baseline.js';
+import { serveCommand } from './commands/serve.js';
 
 const require = createRequire(import.meta.url);
 const pkg = require('../../package.json');
@@ -152,6 +153,21 @@ function showHelp(command?: string) {
             console.log('  synkio export-baseline --output ./for-figma.json');
             console.log('  synkio export-baseline --preview');
             break;
+        case 'serve':
+            console.log('Usage: synkio serve [options]\n');
+            console.log('Start a local HTTP server to serve the baseline file for the Figma plugin.\n');
+            console.log('The server provides endpoints for the plugin to fetch the export baseline,');
+            console.log('enabling local development workflows without manual file imports.\n');
+            console.log('Options:');
+            console.log('  --port=<number>     Port to listen on (default: 3847)\n');
+            console.log('Endpoints:');
+            console.log('  GET /               Serves .synkio/export-baseline.json');
+            console.log('  GET /baseline       Serves .synkio/export-baseline.json');
+            console.log('  GET /health         Health check endpoint\n');
+            console.log('Examples:');
+            console.log('  synkio serve');
+            console.log('  synkio serve --port=8080');
+            break;
         default:
             console.log(`synkio v${pkg.version}\n`);
             console.log('Usage: synkio <command> [options]\n');
@@ -160,6 +176,7 @@ function showHelp(command?: string) {
             console.log('  sync            Sync tokens from Figma');
             console.log('  import          Import tokens from Figma native JSON export');
             console.log('  export-baseline Export token files to baseline format');
+            console.log('  serve           Start HTTP server for Figma plugin');
             console.log('  docs            Generate token documentation site');
             console.log('  rollback        Revert to previous token version');
             console.log('  validate        Check configuration and connection');
@@ -290,6 +307,13 @@ switch (command) {
         config: exportOptions.config as string,
         preview: exportOptions.preview as boolean,
         verbose: exportOptions.verbose as boolean,
+    });
+    break;
+  }
+  case 'serve': {
+    const serveOptions = parseArgs(args);
+    serveCommand({
+        port: serveOptions.port as string | number,
     });
     break;
   }
