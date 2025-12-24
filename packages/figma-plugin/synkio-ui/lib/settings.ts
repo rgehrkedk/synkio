@@ -3,6 +3,8 @@
  * Manages remote sync configuration using figma.clientStorage
  */
 
+import { sanitizeString, sanitizeUrl, sanitizeToken, sanitizePath } from './sanitize';
+
 // =============================================================================
 // Types
 // =============================================================================
@@ -21,6 +23,7 @@ export interface RemoteSettings {
   url?: string;
   github?: RemoteGitHubSettings;
   localhostPort?: number;
+  localhostToken?: string;  // For localhost authentication
 }
 
 export interface PluginSettings {
@@ -42,10 +45,19 @@ const STORAGE_KEYS = {
   GITHUB_PATH: 'synkio_github_path',
   GITHUB_TOKEN: 'synkio_github_token',
   LOCALHOST_PORT: 'synkio_localhost_port',
+  LOCALHOST_TOKEN: 'synkio_localhost_token',
   AUTO_CHECK: 'synkio_auto_check',
   LAST_FETCH: 'synkio_last_fetch',
   LAST_REMOTE_HASH: 'synkio_last_remote_hash',
 } as const;
+
+// =============================================================================
+// Validation Constants
+// =============================================================================
+
+const MIN_PORT = 1;
+const MAX_PORT = 65535;
+const DEFAULT_LOCALHOST_PORT = 3847;
 
 // =============================================================================
 // Default Settings
@@ -73,6 +85,114 @@ export function getDefaultSettings(): PluginSettings {
 // =============================================================================
 
 /**
+ * Validate port number, returning default if invalid
+ */
+function validatePort(value: unknown): number {
+  if (value === undefined || value === null) {
+    return DEFAULT_LOCALHOST_PORT;
+  }
+
+  const port = typeof value === 'string' ? parseInt(value, 10) : Number(value);
+
+  if (isNaN(port) || port < MIN_PORT || port > MAX_PORT) {
+    return DEFAULT_LOCALHOST_PORT;
+  }
+
+  return port;
+}
+
+// =============================================================================
+// URL Validation Functions
+// =============================================================================
+
+/**
+ * URL validation result
+ */
+interface UrlValidationResult {
+  valid: boolean;
+  error?: string;
+  normalized?: string;
+}
+
+/**
+ * Validate and normalize a URL for remote fetch
+ */
+export function validateRemoteUrl(url: string): UrlValidationResult {
+  if (!url || typeof url !== 'string') {
+    return { valid: false, error: 'URL is required' };
+  }
+
+  const trimmed = url.trim();
+
+  if (trimmed.length === 0) {
+    return { valid: false, error: 'URL cannot be empty' };
+  }
+
+  // Check for valid URL format
+  try {
+    const parsed = new URL(trimmed);
+
+    // Only allow http/https
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return { valid: false, error: 'URL must use http or https protocol' };
+    }
+
+    // Warn about http (not https)
+    if (parsed.protocol === 'http:' && parsed.hostname !== 'localhost' && parsed.hostname !== '127.0.0.1') {
+      return {
+        valid: true,
+        normalized: trimmed,
+        error: 'Warning: Using HTTP instead of HTTPS. Data may be transmitted insecurely.',
+      };
+    }
+
+    return { valid: true, normalized: trimmed };
+  } catch (e) {
+    return { valid: false, error: 'Invalid URL format' };
+  }
+}
+
+/**
+ * Validate GitHub settings
+ */
+export function validateGitHubSettings(github: RemoteGitHubSettings): UrlValidationResult {
+  if (!github.owner || github.owner.trim().length === 0) {
+    return { valid: false, error: 'GitHub owner/organization is required' };
+  }
+
+  if (!github.repo || github.repo.trim().length === 0) {
+    return { valid: false, error: 'GitHub repository name is required' };
+  }
+
+  // Validate owner format (alphanumeric, hyphens)
+  if (!/^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/.test(github.owner)) {
+    return { valid: false, error: 'Invalid GitHub owner format' };
+  }
+
+  // Validate repo format
+  if (!/^[a-zA-Z0-9._-]+$/.test(github.repo)) {
+    return { valid: false, error: 'Invalid GitHub repository format' };
+  }
+
+  // Validate branch (no spaces, common branch chars)
+  if (github.branch && !/^[a-zA-Z0-9._/-]+$/.test(github.branch)) {
+    return { valid: false, error: 'Invalid branch name format' };
+  }
+
+  // Validate path (no path traversal)
+  if (github.path) {
+    if (github.path.includes('..')) {
+      return { valid: false, error: 'Path cannot contain ".."' };
+    }
+    if (github.path.startsWith('/')) {
+      return { valid: false, error: 'Path should not start with "/"' };
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
  * Get a value from clientStorage with fallback
  */
 async function getStorageValue(key: string, defaultValue: string = ''): Promise<string> {
@@ -95,7 +215,14 @@ async function getStorageBoolean(key: string, defaultValue: boolean): Promise<bo
 async function getStorageNumber(key: string, defaultValue: number): Promise<number> {
   const value = await figma.clientStorage.getAsync(key);
   if (value === undefined) return defaultValue;
+
   const parsed = parseInt(value, 10);
+
+  // Validate port range if this is a port key
+  if (key === STORAGE_KEYS.LOCALHOST_PORT) {
+    return validatePort(parsed);
+  }
+
   return isNaN(parsed) ? defaultValue : parsed;
 }
 
@@ -130,6 +257,7 @@ export async function getSettings(): Promise<PluginSettings> {
   // Read other remote settings
   const remoteUrl = await getStorageValue(STORAGE_KEYS.REMOTE_URL, '');
   const localhostPort = await getStorageNumber(STORAGE_KEYS.LOCALHOST_PORT, defaults.remote.localhostPort!);
+  const localhostToken = await getStorageValue(STORAGE_KEYS.LOCALHOST_TOKEN, '');
 
   // Read general settings
   const autoCheckOnOpen = await getStorageBoolean(STORAGE_KEYS.AUTO_CHECK, defaults.autoCheckOnOpen);
@@ -147,6 +275,7 @@ export async function getSettings(): Promise<PluginSettings> {
         token: githubToken || undefined,
       },
       localhostPort: localhostPort,
+      localhostToken: localhostToken || undefined,
     },
     autoCheckOnOpen: autoCheckOnOpen,
   };
@@ -169,11 +298,15 @@ export async function saveSettings(settings: Partial<PluginSettings>): Promise<v
     }
 
     if (remote.url !== undefined) {
-      await setStorageValue(STORAGE_KEYS.REMOTE_URL, remote.url);
+      await setStorageValue(STORAGE_KEYS.REMOTE_URL, sanitizeUrl(remote.url));
     }
 
     if (remote.localhostPort !== undefined) {
       await setStorageValue(STORAGE_KEYS.LOCALHOST_PORT, remote.localhostPort);
+    }
+
+    if (remote.localhostToken !== undefined) {
+      await setStorageValue(STORAGE_KEYS.LOCALHOST_TOKEN, sanitizeToken(remote.localhostToken));
     }
 
     // Update GitHub settings
@@ -181,23 +314,23 @@ export async function saveSettings(settings: Partial<PluginSettings>): Promise<v
       const { github } = remote;
 
       if (github.owner !== undefined) {
-        await setStorageValue(STORAGE_KEYS.GITHUB_OWNER, github.owner);
+        await setStorageValue(STORAGE_KEYS.GITHUB_OWNER, sanitizeString(github.owner, 100));
       }
 
       if (github.repo !== undefined) {
-        await setStorageValue(STORAGE_KEYS.GITHUB_REPO, github.repo);
+        await setStorageValue(STORAGE_KEYS.GITHUB_REPO, sanitizeString(github.repo, 100));
       }
 
       if (github.branch !== undefined) {
-        await setStorageValue(STORAGE_KEYS.GITHUB_BRANCH, github.branch);
+        await setStorageValue(STORAGE_KEYS.GITHUB_BRANCH, sanitizeString(github.branch, 100));
       }
 
       if (github.path !== undefined) {
-        await setStorageValue(STORAGE_KEYS.GITHUB_PATH, github.path);
+        await setStorageValue(STORAGE_KEYS.GITHUB_PATH, sanitizePath(github.path));
       }
 
       if (github.token !== undefined) {
-        await setStorageValue(STORAGE_KEYS.GITHUB_TOKEN, github.token);
+        await setStorageValue(STORAGE_KEYS.GITHUB_TOKEN, sanitizeToken(github.token));
       }
     }
   }

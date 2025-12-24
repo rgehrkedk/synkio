@@ -179,6 +179,30 @@ function convertCLIBaselineToSyncData(cliBaseline: any): SyncData | { error: str
 // Fetch Functions
 // =============================================================================
 
+const DEFAULT_TIMEOUT = 30000; // 30 seconds
+
+/**
+ * Fetch with timeout support
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeout: number = DEFAULT_TIMEOUT
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 /**
  * Fetch remote baseline from configured source
  * @param settings - Plugin settings
@@ -192,8 +216,8 @@ export async function fetchRemoteBaseline(settings: PluginSettings): Promise<Fet
     const url = buildFetchUrl(settings);
     const headers = buildHeaders(settings);
 
-    // Fetch from remote
-    const response = await fetch(url, { headers });
+    // Fetch from remote with timeout
+    const response = await fetchWithTimeout(url, { headers });
 
     // Handle HTTP errors
     if (!response.ok) {
@@ -225,10 +249,45 @@ export async function fetchRemoteBaseline(settings: PluginSettings): Promise<Fet
 
       // GitHub API returns base64-encoded content in a wrapper
       if (parsedData.content && parsedData.encoding === 'base64') {
-        // Decode base64 content
-        const decodedContent = atob(parsedData.content.replace(/\n/g, ''));
-        parsedData = JSON.parse(decodedContent);
-        responseText = decodedContent; // Update for hash calculation
+        try {
+          // Remove newlines and decode
+          const base64Content = parsedData.content.replace(/\n/g, '');
+
+          // Validate base64 format before decoding
+          if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64Content)) {
+            return {
+              success: false,
+              error: 'Invalid base64 encoding in GitHub response',
+              source: url,
+              timestamp,
+              hash: '',
+            };
+          }
+
+          const decodedContent = atob(base64Content);
+
+          try {
+            parsedData = JSON.parse(decodedContent);
+          } catch (jsonError) {
+            return {
+              success: false,
+              error: 'GitHub response contains invalid JSON after decoding',
+              source: url,
+              timestamp,
+              hash: '',
+            };
+          }
+
+          responseText = decodedContent; // Update for hash calculation
+        } catch (decodeError) {
+          return {
+            success: false,
+            error: 'Failed to decode GitHub API response. The file may be corrupted.',
+            source: url,
+            timestamp,
+            hash: '',
+          };
+        }
       }
     } catch (e) {
       return {
@@ -288,6 +347,17 @@ export async function fetchRemoteBaseline(settings: PluginSettings): Promise<Fet
   } catch (error) {
     // Handle network errors
     const message = (error as Error).message || String(error);
+
+    // Handle abort error specifically
+    if (message.includes('aborted') || (error as Error).name === 'AbortError') {
+      return {
+        success: false,
+        error: 'Request timed out. The server took too long to respond.',
+        source: buildFetchUrl(settings),
+        timestamp,
+        hash: '',
+      };
+    }
 
     let errorMessage: string;
     if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
