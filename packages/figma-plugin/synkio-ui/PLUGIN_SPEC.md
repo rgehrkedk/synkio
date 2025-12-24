@@ -16,17 +16,32 @@ This document breaks down the Figma plugin codebase for maintenance purposes and
 
 ### Immediate Actions Required
 
-| Priority | Issue | Location | Action | Lines Saved |
-|----------|-------|----------|--------|-------------|
-| **P0** | Dead file | `shared.ts` | DELETE entire file | 166 lines |
-| **P0** | Duplicate function | `code.ts:631-688` | DELETE, use lib/remote-fetch.ts | 57 lines |
-| **P0** | Dead function | `code.ts:895-930` | DELETE `resolveReference()` | 35 lines |
-| **P1** | Unused exports | `lib/github.ts` | Remove 3 functions | 75 lines |
-| **P1** | Unused exports | `lib/settings.ts` | Remove 2 functions | 75 lines |
-| **P1** | Unused exports | `lib/types.ts` | Remove 5 types | 25 lines |
-| **P2** | Duplicate types | `ui.ts:5-32` | Import from lib/types.ts | 27 lines |
+| Priority | Issue | Location | Action | Lines |
+|----------|-------|----------|--------|-------|
+| **P0** | Dead file | `shared.ts` | DELETE entire file | -166 |
+| **P0** | Duplicate function | `code.ts:631-688` | DELETE, use lib/remote-fetch.ts | -57 |
+| **P0** | Dead function | `code.ts:895-930` | DELETE `resolveReference()` | -35 |
+| **P1** | Unused exports | `lib/types.ts` | Remove 5 types | -25 |
+| **P1** | Incomplete integration | `lib/github.ts` | KEEP - wire up validation | 0 |
+| **P1** | Incomplete integration | `lib/settings.ts` | KEEP - wire up validation | 0 |
+| **P2** | Duplicate types | `ui.ts:5-32` | Keep (separate bundles) | 0 |
 
-**Total lines to remove: ~460 lines (~18% of codebase)**
+**Total lines to remove: ~283 lines (~11% of codebase)**
+
+### Validation Functions to Integrate (Not Dead Code)
+
+These functions were intentionally written for better UX but never wired up:
+
+| Function | Location | Purpose |
+|----------|----------|---------|
+| `validateGitHubSettings()` | lib/settings.ts:158-193 | Validate owner/repo format, prevent path traversal |
+| `validateRemoteUrl()` | lib/settings.ts:120-153 | Validate URL format, warn about HTTP |
+| `validateGitHubToken()` | lib/github.ts:201-250 | Validate token scopes before save |
+| `isGitHubUrl()` | lib/github.ts:147-173 | Auto-detect GitHub URL format |
+
+**Current UX Gap:** Settings are saved without validation. Users can save invalid GitHub settings or use tokens with wrong scopes.
+
+**Recommended Fix:** Wire up these validators in the `save-settings` and `test-github-connection` handlers.
 
 ---
 
@@ -122,48 +137,108 @@ function resolveReference(
 
 ---
 
-### 4. UNUSED EXPORTS: `lib/github.ts`
+### 4. INCOMPLETE INTEGRATION: `lib/github.ts` Validation Functions
 
-**Exported but never imported:**
+**NOT dead code - these are validation utilities that were written but never wired up:**
 
-| Export | Lines | Status |
-|--------|-------|--------|
-| `isGitHubUrl()` | 147-173 (26 lines) | UNUSED |
-| `TokenInfo` interface | 178-183 (5 lines) | UNUSED |
-| `validateGitHubToken()` | 201-250 (49 lines) | UNUSED |
+| Export | Lines | Intended Purpose |
+|--------|-------|------------------|
+| `isGitHubUrl()` | 147-173 | Auto-detect if input is GitHub URL vs custom URL |
+| `TokenInfo` interface | 178-183 | Return type for token validation |
+| `validateGitHubToken()` | 201-250 | Validate token scopes (repo, public_repo, contents:read) |
 
-**Evidence:**
-```bash
-grep -r "isGitHubUrl\|validateGitHubToken\|TokenInfo" . --include="*.ts"
-# Only results are definitions in lib/github.ts
+**Current UX Gap:**
+```typescript
+// code.ts:1416-1472 - test-github-connection handler
+// Currently does inline HTTP HEAD request instead of using validateGitHubToken()
+// No scope validation - users can use tokens with wrong permissions
 ```
 
-**Action Options:**
-1. **DELETE** if not planned for future use
-2. **Keep but mark** with `// @internal - not currently used` comment
+**Intended Integration:**
+```typescript
+// handlers/settings.ts - SHOULD BE
+if (msg.type === 'test-github-connection') {
+  const { github } = msg;
 
-**Recommendation:** DELETE - these can be re-added from git history if needed.
+  // 1. Validate settings format first
+  const settingsValid = validateGitHubSettings(github);
+  if (!settingsValid.valid) {
+    figma.ui.postMessage({ type: 'connection-test-result', success: false, error: settingsValid.error });
+    return;
+  }
+
+  // 2. Validate token scopes if token provided
+  if (github.token) {
+    const tokenInfo = await validateGitHubToken(github.token);
+    if (!tokenInfo.valid) {
+      figma.ui.postMessage({ type: 'connection-test-result', success: false, error: tokenInfo.error });
+      return;
+    }
+    if (tokenInfo.warning) {
+      // Show warning about overly permissive token
+    }
+  }
+
+  // 3. Then test actual connection
+  // ...
+}
+```
+
+**Recommendation:** KEEP and INTEGRATE (improves UX and security)
 
 ---
 
-### 5. UNUSED EXPORTS: `lib/settings.ts`
+### 5. INCOMPLETE INTEGRATION: `lib/settings.ts` Validation Functions
 
-**Exported but never imported:**
+**NOT dead code - validation utilities that should be wired up:**
 
-| Export | Lines | Status |
-|--------|-------|--------|
-| `validateRemoteUrl()` | 120-153 (33 lines) | UNUSED |
-| `validateGitHubSettings()` | 158-193 (35 lines) | UNUSED |
+| Export | Lines | Intended Purpose |
+|--------|-------|------------------|
+| `validateRemoteUrl()` | 120-153 | Validate custom URL format, warn about HTTP |
+| `validateGitHubSettings()` | 158-193 | Validate owner/repo format, prevent path traversal |
 
-**Evidence:**
-```bash
-grep -r "validateRemoteUrl\|validateGitHubSettings" . --include="*.ts"
-# Only results are definitions in lib/settings.ts
+**Current UX Gap:**
+```typescript
+// code.ts:1409-1414 - save-settings handler
+if (msg.type === 'save-settings') {
+  const { settings } = msg;
+  await saveSettings(settings);  // ⚠️ NO VALIDATION - saves invalid settings
+  figma.ui.postMessage({ type: 'settings-saved' });
+}
 ```
 
-**Recommendation:** These validation functions SHOULD be used but aren't. Two options:
-1. **DELETE** now and re-add when implementing validation
-2. **INTEGRATE** into save flow (better UX)
+**Intended Integration:**
+```typescript
+// handlers/settings.ts - SHOULD BE
+if (msg.type === 'save-settings') {
+  const { settings } = msg;
+
+  // Validate before saving
+  if (settings.remote.type === 'github' && settings.remote.github) {
+    const result = validateGitHubSettings(settings.remote.github);
+    if (!result.valid) {
+      figma.ui.postMessage({ type: 'settings-error', error: result.error });
+      return;
+    }
+  }
+
+  if (settings.remote.type === 'url' && settings.remote.url) {
+    const result = validateRemoteUrl(settings.remote.url);
+    if (!result.valid) {
+      figma.ui.postMessage({ type: 'settings-error', error: result.error });
+      return;
+    }
+    if (result.error) {  // Warning about HTTP
+      figma.ui.postMessage({ type: 'settings-warning', warning: result.error });
+    }
+  }
+
+  await saveSettings(settings);
+  figma.ui.postMessage({ type: 'settings-saved' });
+}
+```
+
+**Recommendation:** KEEP and INTEGRATE (prevents invalid settings, better error messages)
 
 ---
 
@@ -425,11 +500,14 @@ After making changes, verify:
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
-| Total TypeScript lines | ~2,575 | ~2,115 | -460 (-18%) |
+| Total TypeScript lines | ~2,575 | ~2,292 | -283 (-11%) |
 | Files | 11 | 10 | -1 |
 | Duplicate functions | 2 | 0 | -2 |
 | Dead functions | 1 | 0 | -1 |
-| Unused exports | 10 | 0 | -10 |
+| Dead types | 5 | 0 | -5 |
+| Validation functions | 4 unused | 4 integrated | 0 |
+
+**Key Insight:** The validation functions in `lib/github.ts` and `lib/settings.ts` are NOT dead code. They represent an incomplete feature where validation was written but never wired into the UI handlers. Integrating these will improve UX by preventing invalid settings from being saved.
 
 The codebase will be cleaner, more maintainable, and easier to understand after these changes.
 
