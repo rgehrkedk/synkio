@@ -1,594 +1,334 @@
-# Synkio Figma Plugin - Code Breakdown & Cleanup Spec
+# Synkio Figma Plugin - Complete Refactor Spec
 
-## Overview
+## Executive Summary
 
-This document breaks down the Figma plugin codebase for maintenance purposes and identifies legacy/redundant code that should be removed.
+This document defines the full refactor plan for the Synkio Figma Plugin codebase. The goal is to transform a ~2,575 line codebase with monolithic files into a maintainable, modular architecture.
 
 **Current State:**
-- ~2,575 lines of TypeScript
-- Multiple code duplications identified
-- Dead code files and functions present
-- Type definitions scattered across files
+- `code.ts`: 1,481 lines (backend logic)
+- `ui.ts`: 930 lines (frontend logic)
+- `shared.ts`: 166 lines (100% dead code)
+- `lib/*.ts`: 8 utility files (~1,400 lines total)
+- Dead code, duplicate functions, unused exports
+- Validation functions written but never wired up
+
+**Target State:**
+- Modular folder structure with focused modules (<400 lines each)
+- No dead code
+- All validation functions integrated
+- UI broken into reusable components
+- Clear separation of concerns
 
 ---
 
-## Code Cleanup Summary
+## Architectural Decisions
 
-### Immediate Actions Required
-
-| Priority | Issue | Location | Action | Lines |
-|----------|-------|----------|--------|-------|
-| **P0** | Dead file | `shared.ts` | DELETE entire file | -166 |
-| **P0** | Duplicate function | `code.ts:631-688` | DELETE, use lib/remote-fetch.ts | -57 |
-| **P0** | Dead function | `code.ts:895-930` | DELETE `resolveReference()` | -35 |
-| **P1** | Unused exports | `lib/types.ts` | Remove 5 types | -25 |
-| **P1** | Incomplete integration | `lib/github.ts` | KEEP - wire up validation | 0 |
-| **P1** | Incomplete integration | `lib/settings.ts` | KEEP - wire up validation | 0 |
-| **P2** | Duplicate types | `ui.ts:5-32` | Keep (separate bundles) | 0 |
-
-**Total lines to remove: ~283 lines (~11% of codebase)**
-
-### Validation Functions to Integrate (Not Dead Code)
-
-These functions were intentionally written for better UX but never wired up:
-
-| Function | Location | Purpose |
-|----------|----------|---------|
-| `validateGitHubSettings()` | lib/settings.ts:158-193 | Validate owner/repo format, prevent path traversal |
-| `validateRemoteUrl()` | lib/settings.ts:120-153 | Validate URL format, warn about HTTP |
-| `validateGitHubToken()` | lib/github.ts:201-250 | Validate token scopes before save |
-| `isGitHubUrl()` | lib/github.ts:147-173 | Auto-detect GitHub URL format |
-
-**Current UX Gap:** Settings are saved without validation. Users can save invalid GitHub settings or use tokens with wrong scopes.
-
-**Recommended Fix:** Wire up these validators in the `save-settings` and `test-github-connection` handlers.
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **UI Framework** | Vanilla JS (no framework) | Plugin is small, no complex state management needed. Adding React/Preact adds bundle size and complexity. |
+| **Component Pattern** | Module pattern with functions | Simple, tree-shakeable, works well with esbuild. |
+| **Type Sharing** | Keep duplicated in ui.ts | Backend and frontend are separate bundles. Build-time sharing adds complexity with minimal benefit. |
+| **Build System** | Keep esbuild | Fast, simple, already works. Just update entry points. |
+| **Testing** | Manual testing per phase | No existing test infrastructure. Each phase verified before next. |
+| **Phasing** | 4 sequential phases | Each phase is independently shippable. |
 
 ---
 
-## Detailed Breakdown
+## Phase Overview
 
-### 1. DEAD FILE: `shared.ts` (166 lines)
+| Phase | Focus | Lines Changed | Risk |
+|-------|-------|---------------|------|
+| **1** | Dead code cleanup | -283 lines | Low |
+| **2** | Validation integration | +50 lines | Low |
+| **3** | Backend restructuring | 0 net (reorganize) | Medium |
+| **4** | UI componentization | 0 net (reorganize) | Medium |
 
-**Status:** DELETE ENTIRE FILE
+---
 
-**Evidence:**
+## Phase 1: Dead Code Cleanup
+
+### 1.1 DELETE: `shared.ts` (166 lines)
+
+**File:** `shared.ts`
+**Action:** Delete entire file
+**Evidence:** Zero imports anywhere in codebase
+
 ```bash
-# No imports found
-grep -r "from './shared" . → 0 results
+# Verification
+grep -r "from './shared" . # 0 results
+grep -r "from \"./shared" . # 0 results
 ```
 
-**Contents (all duplicated elsewhere):**
+All code in `shared.ts` is duplicated in `lib/` modules:
 
-| Code in shared.ts | Already exists in |
-|-------------------|-------------------|
+| Code in shared.ts | Duplicated in |
+|-------------------|---------------|
 | `TokenEntry` interface | `lib/types.ts:9-21` |
 | `SyncData` interface | `lib/types.ts:119-124` |
 | `ChangeType` type | `lib/types.ts:126` |
 | `DiffEntry` interface | `lib/types.ts:128-136` |
 | `SyncEvent` interface | `lib/types.ts:138-143` |
-| `chunkData()` function | `lib/chunking.ts:8-14` |
-| `reassembleChunks()` function | `lib/chunking.ts:16-25` |
-| `addHistoryEntry()` function | `lib/history.ts:9-14` |
-| `parseHistory()` function | `lib/history.ts:17-23` |
-| `serializeHistory()` function | `lib/history.ts:26-28` |
-| `compareSnapshots()` function | `lib/compare.ts:33-196` (improved version) |
+| `chunkData()` | `lib/chunking.ts:8-14` |
+| `reassembleChunks()` | `lib/chunking.ts:16-25` |
+| `addHistoryEntry()` | `lib/history.ts:9-14` |
+| `parseHistory()` | `lib/history.ts:17-23` |
+| `serializeHistory()` | `lib/history.ts:26-28` |
+| `compareSnapshots()` | `lib/compare.ts:33-196` (improved version) |
 
-**Note:** The `compareSnapshots()` in `shared.ts` is an older, simpler version. The `lib/compare.ts` version includes style support and rename detection.
+### 1.2 DELETE: Duplicate `convertCLIBaselineToSyncData` (57 lines)
 
----
+**Location:** `code.ts:631-688`
+**Also exists:** `lib/remote-fetch.ts:119-176` (identical)
 
-### 2. DUPLICATE FUNCTION: `convertCLIBaselineToSyncData`
+**Steps:**
+1. Export from `lib/remote-fetch.ts`:
+   ```typescript
+   // Change line 119 from:
+   function convertCLIBaselineToSyncData(...)
+   // To:
+   export function convertCLIBaselineToSyncData(...)
+   ```
 
-**Defined in TWO places:**
-- `code.ts:631-688` (57 lines)
-- `lib/remote-fetch.ts:119-176` (57 lines)
+2. Update `code.ts` imports:
+   ```typescript
+   import { fetchRemoteBaseline, checkForUpdates, convertCLIBaselineToSyncData } from './lib/remote-fetch';
+   ```
 
-**The code is IDENTICAL.**
+3. Delete `code.ts` lines 619-688 (interface + function)
 
-**Action:** Delete from `code.ts`, import from `lib/remote-fetch.ts`
+### 1.3 DELETE: Dead `resolveReference` function (35 lines)
 
-```typescript
-// code.ts - BEFORE (line 631)
-function convertCLIBaselineToSyncData(cliBaseline: any): SyncData | { error: string } {
-  // ... 57 lines of duplicate code
-}
+**Location:** `code.ts:895-930`
+**Evidence:** Function is never called anywhere
 
-// code.ts - AFTER
-import { convertCLIBaselineToSyncData } from './lib/remote-fetch';
-```
-
-**Note:** The function in `lib/remote-fetch.ts` is NOT currently exported. Need to add `export`:
-
-```typescript
-// lib/remote-fetch.ts - Line 119
-// Change from:
-function convertCLIBaselineToSyncData(...)
-// To:
-export function convertCLIBaselineToSyncData(...)
-```
-
----
-
-### 3. DEAD FUNCTION: `resolveReference()`
-
-**Location:** `code.ts:895-930` (35 lines)
-
-**Evidence:**
 ```bash
+# Verification
 grep -r "resolveReference(" .
-# Only result is the definition itself at line 895
+# Only result is the definition itself
 ```
 
-**This function is never called.** The code uses `caseInsensitiveGet()` directly instead.
+The codebase uses `caseInsensitiveGet()` directly instead.
 
-**Action:** DELETE lines 895-930
+**Action:** Delete lines 895-930
 
-```typescript
-// DELETE THIS ENTIRE BLOCK (code.ts:895-930)
-function resolveReference(
-  refPath: string,
-  currentCollection: string,
-  existingVars: Map<string, Variable>,
-  createdVars: Map<string, string>
-): string {
-  // ... 35 lines of dead code
-}
-```
+### 1.4 CLEAN: Unused exports in `lib/types.ts` (25 lines)
+
+These types are defined but never imported outside `lib/`:
+
+| Export | Line | Status |
+|--------|------|--------|
+| `ChangeType` | 126 | Unused |
+| `DiffEntry` | 128-136 | Redefined in ui.ts |
+| `CollectionRename` | 145-148 | Redefined in ui.ts |
+| `ModeRename` | 150-154 | Redefined in ui.ts |
+| `ComparisonResult` | 156-160 | Unused |
+
+**Action:** Remove these exports from `lib/types.ts`
+
+### Phase 1 Summary
+
+| Item | Lines Removed |
+|------|---------------|
+| `shared.ts` | -166 |
+| Duplicate function | -57 |
+| Dead function | -35 |
+| Unused types | -25 |
+| **Total** | **-283 lines** |
 
 ---
 
-### 4. INCOMPLETE INTEGRATION: `lib/github.ts` Validation Functions
+## Phase 2: Validation Integration
 
-**NOT dead code - these are validation utilities that were written but never wired up:**
+These validation functions were written but never wired into the UI handlers. They provide better UX by preventing invalid settings from being saved.
 
-| Export | Lines | Intended Purpose |
-|--------|-------|------------------|
-| `isGitHubUrl()` | 147-173 | Auto-detect if input is GitHub URL vs custom URL |
-| `TokenInfo` interface | 178-183 | Return type for token validation |
-| `validateGitHubToken()` | 201-250 | Validate token scopes (repo, public_repo, contents:read) |
+### 2.1 Validation Functions to Wire Up
 
-**Current UX Gap:**
+| Function | Location | Purpose |
+|----------|----------|---------|
+| `validateGitHubSettings()` | lib/settings.ts:158-193 | Validate owner/repo format |
+| `validateRemoteUrl()` | lib/settings.ts:120-153 | Validate URL format, warn HTTP |
+| `validateGitHubToken()` | lib/github.ts:201-250 | Validate token scopes |
+| `isGitHubUrl()` | lib/github.ts:147-173 | Auto-detect GitHub URL |
+
+### 2.2 Wire into `save-settings` handler
+
+**Current code (code.ts:1409-1414):**
 ```typescript
-// code.ts:1416-1472 - test-github-connection handler
-// Currently does inline HTTP HEAD request instead of using validateGitHubToken()
-// No scope validation - users can use tokens with wrong permissions
-```
-
-**Intended Integration:**
-```typescript
-// handlers/settings.ts - SHOULD BE
-if (msg.type === 'test-github-connection') {
-  const { github } = msg;
-
-  // 1. Validate settings format first
-  const settingsValid = validateGitHubSettings(github);
-  if (!settingsValid.valid) {
-    figma.ui.postMessage({ type: 'connection-test-result', success: false, error: settingsValid.error });
-    return;
-  }
-
-  // 2. Validate token scopes if token provided
-  if (github.token) {
-    const tokenInfo = await validateGitHubToken(github.token);
-    if (!tokenInfo.valid) {
-      figma.ui.postMessage({ type: 'connection-test-result', success: false, error: tokenInfo.error });
-      return;
-    }
-    if (tokenInfo.warning) {
-      // Show warning about overly permissive token
-    }
-  }
-
-  // 3. Then test actual connection
-  // ...
-}
-```
-
-**Recommendation:** KEEP and INTEGRATE (improves UX and security)
-
----
-
-### 5. INCOMPLETE INTEGRATION: `lib/settings.ts` Validation Functions
-
-**NOT dead code - validation utilities that should be wired up:**
-
-| Export | Lines | Intended Purpose |
-|--------|-------|------------------|
-| `validateRemoteUrl()` | 120-153 | Validate custom URL format, warn about HTTP |
-| `validateGitHubSettings()` | 158-193 | Validate owner/repo format, prevent path traversal |
-
-**Current UX Gap:**
-```typescript
-// code.ts:1409-1414 - save-settings handler
 if (msg.type === 'save-settings') {
   const { settings } = msg;
-  await saveSettings(settings);  // ⚠️ NO VALIDATION - saves invalid settings
+  await saveSettings(settings);  // NO VALIDATION
   figma.ui.postMessage({ type: 'settings-saved' });
+  figma.notify('Settings saved');
 }
 ```
 
-**Intended Integration:**
+**Updated code:**
 ```typescript
-// handlers/settings.ts - SHOULD BE
+import { validateGitHubSettings, validateRemoteUrl } from './lib/settings';
+
 if (msg.type === 'save-settings') {
   const { settings } = msg;
 
-  // Validate before saving
+  // Validate GitHub settings
   if (settings.remote.type === 'github' && settings.remote.github) {
-    const result = validateGitHubSettings(settings.remote.github);
-    if (!result.valid) {
-      figma.ui.postMessage({ type: 'settings-error', error: result.error });
+    const validation = validateGitHubSettings(settings.remote.github);
+    if (!validation.valid) {
+      figma.ui.postMessage({ type: 'settings-error', error: validation.error });
+      figma.notify(validation.error, { error: true });
       return;
     }
   }
 
+  // Validate custom URL
   if (settings.remote.type === 'url' && settings.remote.url) {
-    const result = validateRemoteUrl(settings.remote.url);
-    if (!result.valid) {
-      figma.ui.postMessage({ type: 'settings-error', error: result.error });
+    const validation = validateRemoteUrl(settings.remote.url);
+    if (!validation.valid) {
+      figma.ui.postMessage({ type: 'settings-error', error: validation.error });
+      figma.notify(validation.error, { error: true });
       return;
     }
-    if (result.error) {  // Warning about HTTP
-      figma.ui.postMessage({ type: 'settings-warning', warning: result.error });
+    if (validation.warning) {
+      figma.notify(validation.warning, { timeout: 4000 });
     }
   }
 
   await saveSettings(settings);
-  figma.ui.postMessage({ type: 'settings-saved' });
+  figma.ui.postMessage({ type: 'settings-saved', settings });
+  figma.notify('Settings saved');
 }
 ```
 
-**Recommendation:** KEEP and INTEGRATE (prevents invalid settings, better error messages)
+### 2.3 Wire into `test-github-connection` handler
 
----
+**Current code (code.ts:1416-1472):**
+- Does inline HTTP HEAD request
+- No token scope validation
+- No settings format validation
 
-### 6. UNUSED EXPORTS: `lib/types.ts`
-
-**Never imported outside of lib/ folder:**
-
-| Export | Line | Imported by |
-|--------|------|-------------|
-| `ChangeType` | 126 | None |
-| `DiffEntry` | 128-136 | None (redefined in ui.ts) |
-| `CollectionRename` | 145-148 | None (redefined in ui.ts) |
-| `ModeRename` | 150-154 | None (redefined in ui.ts) |
-| `ComparisonResult` | 156-160 | None |
-
-**Action:** These types SHOULD be used by `ui.ts` but are redefined locally instead.
-
----
-
-### 7. DUPLICATE TYPES: `ui.ts`
-
-**Lines 5-32 redefine types that exist in `lib/types.ts`:**
-
+**Updated code:**
 ```typescript
-// ui.ts - Lines 5-32 (DUPLICATES)
-interface DiffEntry {        // Same as lib/types.ts:128
-  id: string;
-  name: string;
-  type: 'added' | 'deleted' | 'modified' | 'renamed';
-  oldName?: string;
-  oldValue?: any;
-  newValue?: any;
-  collection: string;
-  mode: string;
-}
+import { validateGitHubSettings } from './lib/settings';
+import { validateGitHubToken } from './lib/github';
 
-interface CollectionRename {  // Same as lib/types.ts:145
-  oldCollection: string;
-  newCollection: string;
-}
+if (msg.type === 'test-github-connection') {
+  const { github } = msg;
 
-interface ModeRename {        // Same as lib/types.ts:150
-  collection: string;
-  oldMode: string;
-  newMode: string;
-}
+  // 1. Validate settings format
+  const settingsValid = validateGitHubSettings(github);
+  if (!settingsValid.valid) {
+    figma.ui.postMessage({
+      type: 'connection-test-result',
+      success: false,
+      error: settingsValid.error
+    });
+    return;
+  }
 
-interface SyncEvent {         // Same as lib/types.ts:138
-  u: string;
-  t: number;
-  c: number;
-  p?: string[];
+  // 2. Validate token scopes (if token provided)
+  if (github.token) {
+    const tokenInfo = await validateGitHubToken(github.token);
+    if (!tokenInfo.valid) {
+      figma.ui.postMessage({
+        type: 'connection-test-result',
+        success: false,
+        error: tokenInfo.error
+      });
+      return;
+    }
+    if (tokenInfo.warning) {
+      // Token works but has excessive permissions
+      figma.notify(tokenInfo.warning, { timeout: 5000 });
+    }
+  }
+
+  // 3. Test actual connection (existing logic)
+  try {
+    // ... existing HTTP HEAD logic
+  }
 }
 ```
 
-**Problem:** `ui.ts` runs in browser context (no access to `lib/`).
+### 2.4 Add UI support for validation errors
 
-**Solution Options:**
-1. Keep duplicates (current state) - they're separate bundles
-2. Create shared types file that both can import during build
-
-**Recommendation:** Keep as-is since UI and code.ts are separate bundles. Document this intentional duplication.
-
----
-
-## File Structure After Cleanup
-
-```
-synkio-ui/
-├── code.ts              # 1,481 → ~1,330 lines (-150)
-├── ui.ts                # 930 lines (unchanged - types intentionally duplicated)
-├── shared.ts            # DELETE (166 lines)
-├── ui.template.html     # 994 lines (unchanged)
-│
-├── lib/
-│   ├── types.ts         # 161 → ~136 lines (-25)
-│   ├── compare.ts       # 197 lines (unchanged)
-│   ├── settings.ts      # 364 → ~296 lines (-68)
-│   ├── remote-fetch.ts  # 412 lines (add export)
-│   ├── github.ts        # 251 → ~175 lines (-76)
-│   ├── history.ts       # 28 lines (unchanged)
-│   ├── sanitize.ts      # 96 lines (unchanged)
-│   └── chunking.ts      # 25 lines (unchanged)
-```
-
----
-
-## Implementation Steps
-
-### Step 1: Delete `shared.ts`
-
-```bash
-rm packages/figma-plugin/synkio-ui/shared.ts
-```
-
-### Step 2: Fix `convertCLIBaselineToSyncData` duplication
-
-1. Export from remote-fetch.ts:
+**Add new message type handling in ui.ts:**
 ```typescript
-// lib/remote-fetch.ts line 119
-export function convertCLIBaselineToSyncData(cliBaseline: any): SyncData | { error: string } {
+if (msg && msg.type === 'settings-error') {
+  saveSettingsBtn.disabled = false;
+  saveSettingsBtn.textContent = 'Save Settings';
+
+  // Show error in settings panel
+  const errorEl = document.getElementById('settings-error');
+  if (errorEl) {
+    errorEl.textContent = msg.error;
+    errorEl.style.display = 'block';
+  }
+}
 ```
 
-2. Update code.ts imports:
-```typescript
-// code.ts - add to imports
-import { fetchRemoteBaseline, checkForUpdates, convertCLIBaselineToSyncData } from './lib/remote-fetch';
-```
+### Phase 2 Summary
 
-3. Delete code.ts lines 619-688 (CLIBaseline interface + function)
-
-### Step 3: Delete dead `resolveReference` function
-
-Delete code.ts lines 895-930
-
-### Step 4: Clean unused exports from lib/github.ts
-
-Delete these blocks:
-- Lines 147-173: `isGitHubUrl()` function
-- Lines 175-183: `TokenInfo` interface
-- Lines 185-189: `MINIMUM_SCOPE` and `ACCEPTABLE_SCOPES` constants
-- Lines 201-250: `validateGitHubToken()` function
-
-### Step 5: Clean unused exports from lib/settings.ts
-
-Delete these blocks:
-- Lines 107-116: `UrlValidationResult` interface
-- Lines 120-153: `validateRemoteUrl()` function
-- Lines 158-193: `validateGitHubSettings()` function
-
-### Step 6: Clean unused exports from lib/types.ts
-
-Delete these blocks:
-- Line 126: `ChangeType` type
-- Lines 128-136: `DiffEntry` interface
-- Lines 145-160: `CollectionRename`, `ModeRename`, `ComparisonResult`
+| Change | Impact |
+|--------|--------|
+| Wire validation into save-settings | Better UX: prevents invalid settings |
+| Wire validation into test-connection | Better UX: validates token scopes |
+| Add UI error handling | Shows validation errors to user |
+| **Net lines** | +50 lines |
 
 ---
 
-## Module Dependency Graph
+## Phase 3: Backend Restructuring
 
-```
-code.ts
-├── lib/chunking.ts      ✓ (used: chunkData, reassembleChunks)
-├── lib/compare.ts       ✓ (used: compareSnapshots, SimpleDiff, SimpleCompareResult)
-├── lib/history.ts       ✓ (used: addHistoryEntry, parseHistory, serializeHistory)
-├── lib/settings.ts      ✓ (used: getSettings, saveSettings, saveLastFetchInfo, getLastFetchInfo)
-│   └── lib/sanitize.ts  ✓ (internal dependency)
-├── lib/remote-fetch.ts  ✓ (used: fetchRemoteBaseline, checkForUpdates)
-│   ├── lib/settings.ts  ✓ (internal)
-│   ├── lib/github.ts    ✓ (internal)
-│   └── lib/types.ts     ✓ (internal)
-├── lib/github.ts        ✓ (used: parseGitHubUrl, buildGitHubRawUrl)
-└── lib/types.ts         ✓ (used: SyncData, TokenEntry, SyncEvent, StyleEntry, etc.)
+Restructure `code.ts` (1,481 lines) into focused modules under `src/`.
 
-ui.ts (browser bundle - no lib/ imports)
-└── Communicates via postMessage with code.ts
-```
-
----
-
-## Functions by File
-
-### code.ts (Backend) - Key Functions
-
-| Function | Lines | Status |
-|----------|-------|--------|
-| `getExcludedCollections()` | 46-54 | ✓ KEEP |
-| `getExcludedStyleTypes()` | 59-67 | ✓ KEEP |
-| `resolveValue()` | 72-87 | ✓ KEEP |
-| `collectTokens()` | 92-131 | ✓ KEEP |
-| `buildVariableMap()` | 140-155 | ✓ KEEP |
-| `roundValue()` | 161-164 | ✓ KEEP |
-| `formatPx()` | 169-172 | ✓ KEEP |
-| `rgbaToString()` | 177-187 | ✓ KEEP |
-| `fontStyleToWeight()` | 192-204 | ✓ KEEP |
-| `formatLineHeight()` | 209-218 | ✓ KEEP |
-| `formatLetterSpacing()` | 223-229 | ✓ KEEP |
-| `mapTextCase()` | 234-241 | ✓ KEEP |
-| `mapTextDecoration()` | 246-252 | ✓ KEEP |
-| `mapGradientType()` | 257-266 | ✓ KEEP |
-| `convertPaintStyle()` | 271-337 | ✓ KEEP |
-| `convertTextStyle()` | 343-396 | ✓ KEEP |
-| `formatShadow()` | 401-422 | ✓ KEEP |
-| `convertEffectStyle()` | 427-478 | ✓ KEEP |
-| `collectStyles()` | 483-514 | ✓ KEEP |
-| `getBaselineSnapshot()` | 519-534 | ✓ KEEP |
-| `saveBaselineSnapshot()` | 539-574 | ✓ KEEP |
-| `getHistory()` | 579-582 | ✓ KEEP |
-| `addToHistory()` | 587-591 | ✓ KEEP |
-| `filterBaselineByExclusions()` | 596-615 | ✓ KEEP |
-| `convertCLIBaselineToSyncData()` | 631-688 | **DELETE (duplicate)** |
-| `buildExistingVariableMap()` | 694-710 | ✓ KEEP |
-| `buildCollectionMap()` | 712-721 | ✓ KEEP |
-| `getOrCreateCollection()` | 723-735 | ✓ KEEP |
-| `getOrCreateMode()` | 737-760 | ✓ KEEP |
-| `mapTokenTypeToFigma()` | 762-778 | ✓ KEEP |
-| `parseColorValue()` | 780-801 | ✓ KEEP |
-| `convertValueToFigma()` | 803-837 | ✓ KEEP |
-| `extractReferences()` | 839-845 | ✓ KEEP |
-| `sortByDependencies()` | 847-893 | ✓ KEEP |
-| `resolveReference()` | 895-930 | **DELETE (dead code)** |
-| `caseInsensitiveGet()` | 936-951 | ✓ KEEP |
-| `applyBaselineToFigma()` | 953-1053 | ✓ KEEP |
-| `sendDiffToUI()` | 1058-1110 | ✓ KEEP |
-
-### ui.ts (Frontend) - All Functions
-
-| Function | Lines | Status |
-|----------|-------|--------|
-| `updateRemoteStatus()` | 108-154 | ✓ KEEP |
-| `showSettingsPanel()` | 156-160 | ✓ KEEP |
-| `hideSettingsPanel()` | 162-164 | ✓ KEEP |
-| `updateSourceTypeVisibility()` | 166-172 | ✓ KEEP |
-| `populateSettingsForm()` | 174-203 | ✓ KEEP |
-| `renderCollections()` | 398-401 | ✓ KEEP |
-| `renderStyleTypes()` | 404-407 | ✓ KEEP |
-| `updateCollectionsView()` | 410-469 | ✓ KEEP |
-| `validateCollections()` | 472-483 | ✓ KEEP |
-| `updateExcludedBadge()` | 486-497 | ✓ KEEP |
-| `renderDiffs()` | 500-625 | ✓ KEEP |
-| `renderHistory()` | 628-674 | ✓ KEEP |
-| `toggleChanges()` | 677-685 | ✓ KEEP |
-| `escapeHtml()` | 691-695 | ✓ KEEP |
-| `formatValue()` | 698-703 | ✓ KEEP |
-| `formatTimeAgo()` | 706-715 | ✓ KEEP |
-| `updateStatus()` | 718-726 | ✓ KEEP |
-
----
-
-## Testing After Cleanup
-
-After making changes, verify:
-
-1. **Build succeeds:**
-   ```bash
-   cd packages/figma-plugin/synkio-ui
-   npm run build
-   ```
-
-2. **No runtime errors** - Load plugin in Figma and test:
-   - [ ] Sync button works
-   - [ ] Import baseline works
-   - [ ] Apply to Figma works
-   - [ ] Remote fetch works (GitHub, URL, localhost)
-   - [ ] Collections exclusion works
-   - [ ] History shows correctly
-
-3. **CLI can still read data:**
-   ```bash
-   cd packages/cli
-   npm run build
-   npx synkio sync
-   ```
-
----
-
-## Summary
-
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Total TypeScript lines | ~2,575 | ~2,292 | -283 (-11%) |
-| Files | 11 | 10 | -1 |
-| Duplicate functions | 2 | 0 | -2 |
-| Dead functions | 1 | 0 | -1 |
-| Dead types | 5 | 0 | -5 |
-| Validation functions | 4 unused | 4 integrated | 0 |
-
-**Key Insight:** The validation functions in `lib/github.ts` and `lib/settings.ts` are NOT dead code. They represent an incomplete feature where validation was written but never wired into the UI handlers. Integrating these will improve UX by preventing invalid settings from being saved.
-
-The codebase will be cleaner, more maintainable, and easier to understand after these changes.
-
----
-
-## Phase 2: Folder Restructuring
-
-After cleaning up dead code, restructure `code.ts` (1,481 lines) into logical modules.
-
-### Current Problem
-
-`code.ts` is a monolithic file with 6 distinct responsibilities:
-
-| Responsibility | Lines | Functions |
-|----------------|-------|-----------|
-| Variable Collection | 72-131 | 2 functions |
-| Style Collection | 133-514 | 15 functions |
-| Baseline Storage | 516-615 | 5 functions |
-| Apply to Figma | 690-1053 | 13 functions |
-| UI Communication | 1055-1110 | 1 function |
-| Message Handlers | 1115-1480 | 1 large block |
-
-### Proposed Folder Structure
+### 3.1 Proposed Folder Structure
 
 ```
 synkio-ui/
 ├── src/
-│   ├── main.ts                 # Entry point (50 lines)
+│   ├── main.ts                 # Entry point (~50 lines)
 │   │   - figma.showUI()
-│   │   - figma.ui.onmessage router
+│   │   - Message router
 │   │
 │   ├── collect/
-│   │   ├── variables.ts        # Variable collection (60 lines)
+│   │   ├── variables.ts        # Variable collection (~60 lines)
 │   │   │   - collectTokens()
 │   │   │   - resolveValue()
 │   │   │
-│   │   └── styles.ts           # Style collection (380 lines)
+│   │   └── styles.ts           # Style collection (~380 lines)
 │   │       - collectStyles()
 │   │       - convertPaintStyle()
 │   │       - convertTextStyle()
 │   │       - convertEffectStyle()
-│   │       - buildVariableMap()
-│   │       - formatShadow()
-│   │       - (all format/map helpers)
+│   │       - Helper functions
 │   │
 │   ├── baseline/
-│   │   ├── storage.ts          # Baseline CRUD (80 lines)
+│   │   ├── storage.ts          # Baseline CRUD (~80 lines)
 │   │   │   - getBaselineSnapshot()
 │   │   │   - saveBaselineSnapshot()
 │   │   │
-│   │   └── exclusions.ts       # Collection filtering (50 lines)
+│   │   └── exclusions.ts       # Collection filtering (~50 lines)
 │   │       - getExcludedCollections()
 │   │       - getExcludedStyleTypes()
 │   │       - filterBaselineByExclusions()
 │   │
 │   ├── apply/
-│   │   └── index.ts            # Apply baseline to Figma (300 lines)
+│   │   └── index.ts            # Apply baseline to Figma (~300 lines)
 │   │       - applyBaselineToFigma()
-│   │       - buildExistingVariableMap()
-│   │       - buildCollectionMap()
-│   │       - getOrCreateCollection()
-│   │       - getOrCreateMode()
-│   │       - mapTokenTypeToFigma()
-│   │       - parseColorValue()
-│   │       - convertValueToFigma()
-│   │       - sortByDependencies()
-│   │       - extractReferences()
-│   │       - caseInsensitiveGet()
+│   │       - Variable creation helpers
+│   │       - Type conversion helpers
 │   │
 │   ├── handlers/
-│   │   ├── sync.ts             # Sync message handler
+│   │   ├── sync.ts             # Sync handler
 │   │   ├── import.ts           # Import baseline handler
 │   │   ├── remote.ts           # Remote fetch handlers
-│   │   ├── collections.ts      # Collection/style exclusion handlers
-│   │   └── settings.ts         # Settings handlers
+│   │   ├── collections.ts      # Collection/style exclusion
+│   │   └── settings.ts         # Settings handlers (with validation)
 │   │
 │   └── ui/
-│       └── diff.ts             # UI communication (60 lines)
+│       └── diff.ts             # UI communication (~60 lines)
 │           - sendDiffToUI()
 │
-├── lib/                        # Shared utilities (unchanged)
+├── lib/                        # Unchanged utilities
 │   ├── types.ts
 │   ├── compare.ts
 │   ├── settings.ts
@@ -598,207 +338,11 @@ synkio-ui/
 │   ├── sanitize.ts
 │   └── chunking.ts
 │
-├── ui.ts                       # Frontend (unchanged)
-└── ui.template.html            # HTML/CSS (unchanged)
+├── ui.ts                       # Frontend (Phase 4)
+└── ui.template.html
 ```
 
-### Module Breakdown
-
-#### 1. `src/main.ts` (~50 lines)
-
-Entry point that initializes the plugin and routes messages:
-
-```typescript
-import { handleSync } from './handlers/sync';
-import { handleImport } from './handlers/import';
-import { handleRemoteFetch } from './handlers/remote';
-// ...
-
-figma.showUI(__html__, { width: 400, height: 600, themeColors: true });
-
-figma.ui.onmessage = async (msg) => {
-  switch (msg.type) {
-    case 'sync': return handleSync();
-    case 'import-baseline': return handleImport(msg);
-    case 'fetch-remote': return handleRemoteFetch();
-    // ...
-  }
-};
-```
-
-#### 2. `src/collect/variables.ts` (~60 lines)
-
-```typescript
-export async function collectTokens(): Promise<TokenEntry[]>
-export function resolveValue(value: VariableValue, type: string): any
-```
-
-#### 3. `src/collect/styles.ts` (~380 lines)
-
-All style-related functions:
-
-```typescript
-// Main export
-export async function collectStyles(): Promise<StyleEntry[]>
-
-// Style converters
-export function convertPaintStyle(style: PaintStyle, variableMap: Map<string, string>): PaintStyleEntry | null
-export function convertTextStyle(style: TextStyle, variableMap: Map<string, string>): TextStyleEntry
-export function convertEffectStyle(style: EffectStyle, variableMap: Map<string, string>): EffectStyleEntry
-
-// Helpers (internal)
-function buildVariableMap(): Promise<Map<string, string>>
-function formatShadow(effect: DropShadowEffect | InnerShadowEffect, variableMap: Map<string, string>): ShadowObject
-function roundValue(value: number, decimals?: number): number
-function formatPx(value: number): string
-function rgbaToString(color: RGB | RGBA, opacity?: number): string
-function fontStyleToWeight(style: string): number
-function formatLineHeight(lineHeight: LineHeight): string | number
-function formatLetterSpacing(letterSpacing: LetterSpacing): string
-function mapTextCase(textCase: TextCase): string | undefined
-function mapTextDecoration(decoration: TextDecoration): string | undefined
-function mapGradientType(type: string): 'linear' | 'radial' | 'angular' | 'diamond'
-```
-
-#### 4. `src/baseline/storage.ts` (~80 lines)
-
-```typescript
-export function getBaselineSnapshot(): SyncData | null
-export function saveBaselineSnapshot(data: SyncData): void
-```
-
-#### 5. `src/baseline/exclusions.ts` (~50 lines)
-
-```typescript
-export function getExcludedCollections(): string[]
-export function getExcludedStyleTypes(): StyleType[]
-export function filterBaselineByExclusions(baseline: SyncData): SyncData
-```
-
-#### 6. `src/apply/index.ts` (~300 lines)
-
-All "apply baseline to Figma" logic:
-
-```typescript
-export async function applyBaselineToFigma(): Promise<void>
-
-// Helpers (internal)
-function buildExistingVariableMap(): Promise<Map<string, Variable>>
-function buildCollectionMap(): Promise<Map<string, VariableCollection>>
-function getOrCreateCollection(name: string, collectionMap: Map<string, VariableCollection>): Promise<VariableCollection>
-function getOrCreateMode(collection: VariableCollection, modeName: string): string
-function mapTokenTypeToFigma(type: string): VariableResolvedDataType
-function parseColorValue(color: string): RGBA
-function convertValueToFigma(value: unknown, type: string, variableLookup: Map<string, string>): VariableValue
-function extractReferences(value: unknown): string[]
-function sortByDependencies(tokens: TokenEntry[]): TokenEntry[]
-function caseInsensitiveGet<V>(map: Map<string, V>, key: string): V | undefined
-```
-
-#### 7. `src/handlers/*.ts` (~200 lines total)
-
-Split message handlers into focused modules:
-
-```typescript
-// handlers/sync.ts
-export async function handleSync(): Promise<void>
-
-// handlers/import.ts
-export async function handleImport(msg: { baselineJson: string }): Promise<void>
-
-// handlers/remote.ts
-export async function handleRemoteFetch(): Promise<void>
-export async function handleCheckForUpdates(): Promise<void>
-
-// handlers/collections.ts
-export async function handleGetCollections(): Promise<void>
-export async function handleSaveExcludedCollections(msg: { excluded: string[] }): Promise<void>
-export async function handleGetStyleTypes(): Promise<void>
-export async function handleSaveExcludedStyleTypes(msg: { excluded: string[] }): Promise<void>
-
-// handlers/settings.ts
-export async function handleGetSettings(): Promise<void>
-export async function handleSaveSettings(msg: { settings: PluginSettings }): Promise<void>
-export async function handleTestGitHubConnection(msg: { github: GitHubSettings }): Promise<void>
-```
-
-#### 8. `src/ui/diff.ts` (~60 lines)
-
-```typescript
-export async function sendDiffToUI(): Promise<void>
-```
-
-### Build Configuration Update
-
-Update `build.js` to handle `src/` folder:
-
-```javascript
-// build.js
-const esbuild = require('esbuild');
-
-esbuild.build({
-  entryPoints: ['src/main.ts', 'ui.ts'],  // Changed from code.ts
-  bundle: true,
-  outdir: '.',
-  outbase: 'src',
-  // ...
-});
-```
-
-Or use a simpler approach with a barrel export:
-
-```javascript
-// build.js - keep entry point as code.ts
-esbuild.build({
-  entryPoints: ['code.ts', 'ui.ts'],  // code.ts re-exports from src/
-  // ...
-});
-```
-
-```typescript
-// code.ts - becomes a thin re-export layer
-export * from './src/main';
-```
-
-### Migration Steps
-
-1. **Create folder structure:**
-   ```bash
-   mkdir -p src/{collect,baseline,apply,handlers,ui}
-   ```
-
-2. **Extract modules in order:**
-   - `src/collect/variables.ts` (no dependencies)
-   - `src/collect/styles.ts` (no dependencies)
-   - `src/baseline/exclusions.ts` (no dependencies)
-   - `src/baseline/storage.ts` (depends on lib/chunking)
-   - `src/apply/index.ts` (depends on baseline/exclusions)
-   - `src/ui/diff.ts` (depends on collect/*, baseline/*)
-   - `src/handlers/*.ts` (depends on all above)
-   - `src/main.ts` (imports handlers, wires up message router)
-
-3. **Update imports in each file**
-
-4. **Update build.js**
-
-5. **Test build:**
-   ```bash
-   npm run build
-   ```
-
-6. **Delete old `code.ts`** (after verifying build works)
-
-### Benefits
-
-| Aspect | Before | After |
-|--------|--------|-------|
-| Largest file | 1,481 lines | ~380 lines |
-| Files | 1 monolithic | 10 focused modules |
-| Finding code | Scroll 1400 lines | Navigate to folder |
-| Testing | Hard to unit test | Each module testable |
-| Code review | All changes in one file | Changes scoped to module |
-
-### Dependency Graph (After Refactor)
+### 3.2 Module Dependencies
 
 ```
 src/main.ts
@@ -812,7 +356,7 @@ src/main.ts
 ├── src/handlers/import.ts
 │   ├── src/baseline/storage.ts
 │   ├── src/ui/diff.ts
-│   └── lib/remote-fetch.ts (convertCLIBaselineToSyncData)
+│   └── lib/remote-fetch.ts
 │
 ├── src/handlers/remote.ts
 │   ├── src/baseline/storage.ts
@@ -823,17 +367,521 @@ src/main.ts
 │   └── src/baseline/exclusions.ts
 │
 ├── src/handlers/settings.ts
-│   └── lib/settings.ts
+│   ├── lib/settings.ts
+│   └── lib/github.ts (validation)
 │
-└── src/apply/index.ts (standalone, triggered by handler)
+└── src/apply/index.ts
     └── src/baseline/storage.ts
 ```
 
-### Priority
+### 3.3 Entry Point Pattern
 
-This restructuring is **Phase 2** work, to be done AFTER the dead code cleanup (Phase 1).
+**Option A: Keep `code.ts` as thin wrapper**
+```typescript
+// code.ts (becomes ~10 lines)
+export * from './src/main';
+```
 
-Recommended approach:
-1. Complete Phase 1 cleanup first (-460 lines)
-2. Commit and verify everything works
-3. Then do Phase 2 restructuring in a separate PR
+**Option B: Change entry point to `src/main.ts`**
+```javascript
+// build.js
+esbuild.build({
+  entryPoints: ['src/main.ts', 'ui.ts'],
+  outdir: 'dist',
+  // ...
+});
+```
+
+**Decision:** Use Option A for minimal build config changes.
+
+### 3.4 Migration Steps
+
+1. Create folder structure:
+   ```bash
+   mkdir -p src/{collect,baseline,apply,handlers,ui}
+   ```
+
+2. Extract modules in dependency order:
+   - `src/collect/variables.ts` (no dependencies)
+   - `src/collect/styles.ts` (no dependencies)
+   - `src/baseline/exclusions.ts` (no dependencies)
+   - `src/baseline/storage.ts` (depends on lib/chunking)
+   - `src/apply/index.ts` (depends on baseline/exclusions)
+   - `src/ui/diff.ts` (depends on collect/*, baseline/*)
+   - `src/handlers/*.ts` (depends on all above)
+   - `src/main.ts` (imports handlers, wires router)
+
+3. Update `code.ts` to re-export:
+   ```typescript
+   export * from './src/main';
+   ```
+
+4. Verify build:
+   ```bash
+   npm run build
+   ```
+
+### Phase 3 Summary
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Largest file | 1,481 lines | ~380 lines |
+| Backend files | 1 monolithic | 10 focused |
+| Finding code | Scroll 1400 lines | Navigate to folder |
+
+---
+
+## Phase 4: UI Componentization
+
+Restructure `ui.ts` (930 lines) into focused components.
+
+### 4.1 Current ui.ts Analysis
+
+| Section | Lines | Responsibility |
+|---------|-------|----------------|
+| Interfaces | 5-65 | Type definitions |
+| State | 67-76 | Global state variables |
+| DOM Elements | 78-105 | Element references |
+| Remote Status | 107-203 | Remote sync UI |
+| Tab Switching | 205-225 | Navigation |
+| Remote Handlers | 227-300 | Button handlers |
+| Action Handlers | 302-395 | Main actions |
+| Collections Render | 397-497 | Collections view |
+| Diff Render | 499-625 | Diff view |
+| History Render | 627-685 | History view |
+| Utilities | 690-726 | Helper functions |
+| Message Handler | 728-929 | Message routing |
+
+### 4.2 Proposed UI Structure
+
+```
+synkio-ui/
+├── ui/
+│   ├── main.ts                 # Entry point (~100 lines)
+│   │   - Initialize components
+│   │   - Message router
+│   │   - State management
+│   │
+│   ├── components/
+│   │   ├── remote-status.ts    # Remote sync status bar (~100 lines)
+│   │   │   - updateRemoteStatus()
+│   │   │   - Button handlers
+│   │   │
+│   │   ├── settings-panel.ts   # Settings modal (~130 lines)
+│   │   │   - showSettingsPanel()
+│   │   │   - hideSettingsPanel()
+│   │   │   - populateSettingsForm()
+│   │   │   - updateSourceTypeVisibility()
+│   │   │
+│   │   ├── tab-bar.ts          # Tab navigation (~30 lines)
+│   │   │   - Tab switching
+│   │   │
+│   │   ├── diff-list.ts        # Pending changes view (~130 lines)
+│   │   │   - renderDiffs()
+│   │   │
+│   │   ├── history-list.ts     # Sync history view (~60 lines)
+│   │   │   - renderHistory()
+│   │   │   - toggleChanges()
+│   │   │
+│   │   ├── collections-list.ts # Collections/styles filter (~100 lines)
+│   │   │   - renderCollections()
+│   │   │   - renderStyleTypes()
+│   │   │   - updateCollectionsView()
+│   │   │   - validateCollections()
+│   │   │   - updateExcludedBadge()
+│   │   │
+│   │   ├── action-bar.ts       # Main action buttons (~100 lines)
+│   │   │   - Sync button handler
+│   │   │   - Import button handler
+│   │   │   - Apply button handler
+│   │   │
+│   │   └── status-indicator.ts # Sync status dot (~20 lines)
+│   │       - updateStatus()
+│   │
+│   ├── types.ts                # UI-specific types (~60 lines)
+│   │   - DiffEntry
+│   │   - CollectionRename
+│   │   - ModeRename
+│   │   - SyncEvent
+│   │   - CollectionInfo
+│   │   - StyleTypeInfo
+│   │   - RemoteSettings
+│   │   - RemoteStatus
+│   │
+│   └── utils.ts                # Shared utilities (~30 lines)
+│       - escapeHtml()
+│       - formatValue()
+│       - formatTimeAgo()
+│
+└── ui.ts                       # Thin wrapper → ui/main.ts
+```
+
+### 4.3 Component Pattern
+
+Each component follows a consistent pattern:
+
+```typescript
+// ui/components/status-indicator.ts
+
+interface StatusState {
+  diffCount: number;
+}
+
+// DOM references (grabbed once on init)
+let statusDot: HTMLElement;
+let statusText: HTMLElement;
+
+export function initStatusIndicator() {
+  statusDot = document.getElementById('statusDot')!;
+  statusText = document.getElementById('statusText')!;
+}
+
+export function updateStatus(diffCount: number) {
+  if (diffCount > 0) {
+    statusDot.className = 'status-dot unsynced';
+    statusText.textContent = 'Unsynced changes';
+  } else {
+    statusDot.className = 'status-dot synced';
+    statusText.textContent = 'Synced';
+  }
+}
+```
+
+### 4.4 State Management
+
+Simple module-level state (no external library needed):
+
+```typescript
+// ui/main.ts
+
+import { initDiffList, renderDiffs } from './components/diff-list';
+import { initHistoryList, renderHistory } from './components/history-list';
+// ...
+
+// Centralized state
+interface UIState {
+  diffs: DiffEntry[];
+  collectionRenames: CollectionRename[];
+  modeRenames: ModeRename[];
+  history: SyncEvent[];
+  collections: CollectionInfo[];
+  styleTypes: StyleTypeInfo[];
+  isSyncing: boolean;
+  remoteStatus: RemoteStatus;
+  remoteSettings: RemoteSettings;
+}
+
+const state: UIState = {
+  diffs: [],
+  collectionRenames: [],
+  modeRenames: [],
+  history: [],
+  collections: [],
+  styleTypes: [],
+  isSyncing: false,
+  remoteStatus: { state: 'idle' },
+  remoteSettings: { sourceType: 'disabled' },
+};
+
+// Initialize all components
+function init() {
+  initStatusIndicator();
+  initRemoteStatus();
+  initSettingsPanel();
+  initTabBar();
+  initDiffList();
+  initHistoryList();
+  initCollectionsList();
+  initActionBar();
+}
+
+// Message handler routes to components
+window.onmessage = (event) => {
+  const msg = event.data.pluginMessage;
+  if (!msg) return;
+
+  switch (msg.type) {
+    case 'update':
+      state.diffs = msg.diffs;
+      state.collectionRenames = msg.collectionRenames || [];
+      state.modeRenames = msg.modeRenames || [];
+      state.history = msg.history;
+      renderDiffs(state.diffs, state.collectionRenames, state.modeRenames);
+      renderHistory(state.history);
+      updateStatus(state.diffs.length + state.collectionRenames.length + state.modeRenames.length);
+      break;
+
+    // ... other cases delegate to components
+  }
+};
+
+init();
+parent.postMessage({ pluginMessage: { type: 'ready' } }, '*');
+```
+
+### 4.5 Migration Steps
+
+1. Create folder structure:
+   ```bash
+   mkdir -p ui/components
+   ```
+
+2. Extract in order (leaf components first):
+   - `ui/utils.ts` (no dependencies)
+   - `ui/types.ts` (no dependencies)
+   - `ui/components/status-indicator.ts`
+   - `ui/components/tab-bar.ts`
+   - `ui/components/diff-list.ts` (depends on utils)
+   - `ui/components/history-list.ts` (depends on utils)
+   - `ui/components/collections-list.ts` (depends on utils)
+   - `ui/components/action-bar.ts`
+   - `ui/components/remote-status.ts`
+   - `ui/components/settings-panel.ts`
+   - `ui/main.ts` (imports all)
+
+3. Update `ui.ts` to re-export:
+   ```typescript
+   export * from './ui/main';
+   ```
+
+4. Verify build and test in Figma
+
+### Phase 4 Summary
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Largest file | 930 lines | ~130 lines |
+| Frontend files | 1 monolithic | 12 focused |
+| Component reuse | None | Composable modules |
+
+---
+
+## Build Configuration
+
+### Current build.js
+
+```javascript
+const esbuild = require('esbuild');
+const fs = require('fs');
+
+// Build code.ts (backend)
+esbuild.buildSync({
+  entryPoints: ['code.ts'],
+  bundle: true,
+  outfile: 'code.js',
+  format: 'iife',
+  target: 'es2017',
+});
+
+// Build ui.ts (frontend)
+esbuild.buildSync({
+  entryPoints: ['ui.ts'],
+  bundle: true,
+  outfile: 'ui.js',
+  format: 'iife',
+  target: 'es2017',
+});
+
+// Inject ui.js into HTML
+const html = fs.readFileSync('ui.template.html', 'utf8');
+const js = fs.readFileSync('ui.js', 'utf8');
+const final = html.replace('/* UI_SCRIPT */', js);
+fs.writeFileSync('ui.html', final);
+```
+
+### No Changes Needed
+
+Because we use thin wrapper re-exports (`code.ts` → `src/main.ts`, `ui.ts` → `ui/main.ts`), the build configuration remains unchanged.
+
+---
+
+## Testing Checklist
+
+### After Phase 1 (Dead Code Cleanup)
+- [ ] `npm run build` succeeds
+- [ ] Plugin loads in Figma
+- [ ] Sync button works
+- [ ] Import baseline works
+- [ ] Apply to Figma works
+- [ ] Remote fetch works
+- [ ] Collections exclusion works
+- [ ] History shows correctly
+
+### After Phase 2 (Validation Integration)
+- [ ] Invalid GitHub repo format shows error
+- [ ] Invalid URL shows error
+- [ ] HTTP URL shows warning
+- [ ] Invalid token shows specific scope error
+- [ ] Overly permissive token shows warning
+- [ ] Valid settings save successfully
+
+### After Phase 3 (Backend Restructuring)
+- [ ] All Phase 1 tests pass
+- [ ] All Phase 2 tests pass
+- [ ] No console errors
+
+### After Phase 4 (UI Componentization)
+- [ ] All previous tests pass
+- [ ] Tab switching works
+- [ ] Settings panel opens/closes
+- [ ] All button states work correctly
+
+---
+
+## Summary
+
+| Phase | Effort | Risk | Benefit |
+|-------|--------|------|---------|
+| 1: Dead Code | 2 hours | Low | -283 lines, cleaner codebase |
+| 2: Validation | 2 hours | Low | Better UX, prevents invalid settings |
+| 3: Backend | 4 hours | Medium | Maintainable modules |
+| 4: UI | 4 hours | Medium | Reusable components |
+| **Total** | **12 hours** | | **Professional codebase** |
+
+### Dependency Order
+
+```
+Phase 1 → Phase 2 → Phase 3 → Phase 4
+   │         │         │         │
+   │         │         │         └── UI components
+   │         │         └── Backend modules
+   │         └── Validation wiring
+   └── Dead code removal
+```
+
+Each phase is independently shippable and can be reviewed/tested before proceeding.
+
+---
+
+## Appendix: Functions by Module
+
+### Backend Modules (Phase 3)
+
+#### src/collect/variables.ts
+- `collectTokens()`
+- `resolveValue()`
+
+#### src/collect/styles.ts
+- `collectStyles()`
+- `convertPaintStyle()`
+- `convertTextStyle()`
+- `convertEffectStyle()`
+- `buildVariableMap()`
+- `formatShadow()`
+- `roundValue()`
+- `formatPx()`
+- `rgbaToString()`
+- `fontStyleToWeight()`
+- `formatLineHeight()`
+- `formatLetterSpacing()`
+- `mapTextCase()`
+- `mapTextDecoration()`
+- `mapGradientType()`
+
+#### src/baseline/storage.ts
+- `getBaselineSnapshot()`
+- `saveBaselineSnapshot()`
+- `getHistory()`
+- `addToHistory()`
+
+#### src/baseline/exclusions.ts
+- `getExcludedCollections()`
+- `getExcludedStyleTypes()`
+- `filterBaselineByExclusions()`
+
+#### src/apply/index.ts
+- `applyBaselineToFigma()`
+- `buildExistingVariableMap()`
+- `buildCollectionMap()`
+- `getOrCreateCollection()`
+- `getOrCreateMode()`
+- `mapTokenTypeToFigma()`
+- `parseColorValue()`
+- `convertValueToFigma()`
+- `extractReferences()`
+- `sortByDependencies()`
+- `caseInsensitiveGet()`
+
+#### src/ui/diff.ts
+- `sendDiffToUI()`
+
+#### src/handlers/sync.ts
+- `handleSync()`
+
+#### src/handlers/import.ts
+- `handleImport()`
+
+#### src/handlers/remote.ts
+- `handleRemoteFetch()`
+- `handleCheckForUpdates()`
+
+#### src/handlers/collections.ts
+- `handleGetCollections()`
+- `handleSaveExcludedCollections()`
+- `handleGetStyleTypes()`
+- `handleSaveExcludedStyleTypes()`
+
+#### src/handlers/settings.ts
+- `handleGetSettings()`
+- `handleSaveSettings()` (with validation)
+- `handleTestGitHubConnection()` (with validation)
+
+### UI Components (Phase 4)
+
+#### ui/components/status-indicator.ts
+- `initStatusIndicator()`
+- `updateStatus()`
+
+#### ui/components/tab-bar.ts
+- `initTabBar()`
+
+#### ui/components/diff-list.ts
+- `initDiffList()`
+- `renderDiffs()`
+
+#### ui/components/history-list.ts
+- `initHistoryList()`
+- `renderHistory()`
+- `toggleChanges()`
+
+#### ui/components/collections-list.ts
+- `initCollectionsList()`
+- `renderCollections()`
+- `renderStyleTypes()`
+- `updateCollectionsView()`
+- `validateCollections()`
+- `updateExcludedBadge()`
+
+#### ui/components/action-bar.ts
+- `initActionBar()`
+- Sync button handler
+- Import button handler
+- Apply button handler
+
+#### ui/components/remote-status.ts
+- `initRemoteStatus()`
+- `updateRemoteStatus()`
+- Fetch/check button handlers
+
+#### ui/components/settings-panel.ts
+- `initSettingsPanel()`
+- `showSettingsPanel()`
+- `hideSettingsPanel()`
+- `populateSettingsForm()`
+- `updateSourceTypeVisibility()`
+- Save/test handlers
+
+#### ui/utils.ts
+- `escapeHtml()`
+- `formatValue()`
+- `formatTimeAgo()`
+
+#### ui/types.ts
+- `DiffEntry`
+- `CollectionRename`
+- `ModeRename`
+- `SyncEvent`
+- `CollectionInfo`
+- `StyleTypeInfo`
+- `RemoteSettings`
+- `RemoteStatus`
