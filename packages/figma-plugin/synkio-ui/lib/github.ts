@@ -171,3 +171,80 @@ export function isGitHubUrl(input: string): boolean {
     return false;
   }
 }
+
+/**
+ * GitHub token validation result
+ */
+export interface TokenInfo {
+  valid: boolean;
+  scopes?: string[];
+  warning?: string;
+  error?: string;
+}
+
+/**
+ * Required minimum scope for reading file contents
+ */
+const MINIMUM_SCOPE = 'contents:read';
+const ACCEPTABLE_SCOPES = ['repo', 'public_repo', 'contents:read'];
+
+/**
+ * Check GitHub token validity and scopes
+ *
+ * Validates the token by calling the GitHub API /user endpoint and checking
+ * the X-OAuth-Scopes header to determine permissions. Warns if the token has
+ * excessive permissions (write access when only read is needed).
+ *
+ * @param token - GitHub personal access token
+ * @returns Token validation result with scopes and warnings
+ */
+export async function validateGitHubToken(token: string): Promise<TokenInfo> {
+  try {
+    const response = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    });
+
+    if (response.status === 401) {
+      return { valid: false, error: 'Token is invalid or expired' };
+    }
+
+    if (!response.ok) {
+      return { valid: false, error: `GitHub API error: ${response.status}` };
+    }
+
+    // Check OAuth scopes from response header
+    const scopesHeader = response.headers.get('X-OAuth-Scopes');
+    const scopes = scopesHeader ? scopesHeader.split(',').map(s => s.trim()) : [];
+
+    // Check for acceptable scope
+    const hasAcceptableScope = scopes.some(scope => ACCEPTABLE_SCOPES.includes(scope));
+
+    if (!hasAcceptableScope && scopes.length > 0) {
+      return {
+        valid: false,
+        scopes,
+        error: `Token missing required scope. Need one of: ${ACCEPTABLE_SCOPES.join(', ')}`,
+      };
+    }
+
+    // Warn about overly permissive scopes
+    const hasFullRepoAccess = scopes.includes('repo');
+    const hasWriteAccess = scopes.some(s =>
+      s.includes('write') || s.includes('delete') || s.includes('admin')
+    );
+
+    let warning: string | undefined;
+    if (hasWriteAccess) {
+      warning = 'Token has write permissions. Consider using a read-only token (contents:read) for better security.';
+    } else if (hasFullRepoAccess) {
+      warning = 'Token has full repo access. Consider using contents:read scope for minimal permissions.';
+    }
+
+    return { valid: true, scopes, warning };
+  } catch (error) {
+    return { valid: false, error: 'Network error validating token' };
+  }
+}
