@@ -12,7 +12,7 @@ export interface DocsOptions {
   title?: string;       // Documentation title
   open?: boolean;       // Open in browser after generating
   watch?: boolean;      // Watch for changes and regenerate
-  config?: string;      // Config file path (default: 'tokensrc.json')
+  config?: string;      // Config file path (default: 'synkio.config.json')
 }
 
 export async function docsCommand(options: DocsOptions = {}) {

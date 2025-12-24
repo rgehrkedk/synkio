@@ -1,6 +1,6 @@
 import { writeFile, readFile, access } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { DEFAULT_CONFIG_FILE } from '../../core/config.js';
+import { CONFIG_FILE } from '../../core/config.js';
 import { prompt } from '../utils.js';
 import { FigmaClient } from '../../core/figma.js';
 import { createLogger } from '../../utils/logger.js';
@@ -205,11 +205,11 @@ export async function initCommand(options: InitOptions = {}) {
     const config = generateConfig(fileId, options.baseUrl);
 
     // Write config file
-    const configPath = resolve(process.cwd(), DEFAULT_CONFIG_FILE);
+    const configPath = resolve(process.cwd(), CONFIG_FILE);
     await writeFile(configPath, JSON.stringify(config, null, 2) + '\n');
 
     console.log('Created:');
-    console.log(chalk.green(`  ✓ ${DEFAULT_CONFIG_FILE}`));
+    console.log(chalk.green(`  ✓ ${CONFIG_FILE}`));
 
     // Create .env.example (not .env)
     await ensureEnvExample();

@@ -70,8 +70,6 @@ This creates:
 - `synkio.config.json` — Configuration file
 - `.env.example` — Template for your `FIGMA_TOKEN`
 
-> **Note:** Legacy `tokensrc.json` files are still supported but deprecated.
-
 ### 3. Run the Figma Plugin
 
 1. Open your Figma file
@@ -440,8 +438,6 @@ See the full [Hosting Guide](../../docs/HOSTING.md) for detailed setup instructi
 ## Configuration
 
 Configuration is stored in `synkio.config.json` in your project root.
-
-> **Note:** Legacy `tokensrc.json` files are still supported but deprecated. You'll see a warning when using the old filename.
 
 ### Basic Config
 

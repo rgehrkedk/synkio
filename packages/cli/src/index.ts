@@ -27,8 +27,7 @@ export {
   loadConfig,
   findConfigFile,
   updateConfigWithCollectionRenames,
-  DEFAULT_CONFIG_FILE,
-  CONFIG_FILES,
+  CONFIG_FILE,
   ConfigSchema,
 } from './core/config.js';
 export type { Config } from './core/config.js';

@@ -3,11 +3,8 @@ import { resolve } from 'node:path';
 import { z } from 'zod';
 import type { CollectionRename } from '../types/index.js';
 
-/** Config file names in priority order (first found wins) */
-export const CONFIG_FILES = ['synkio.config.json', 'tokensrc.json'] as const;
-
-/** Default config file name for new projects */
-export const DEFAULT_CONFIG_FILE = 'synkio.config.json';
+/** Config file name */
+export const CONFIG_FILE = 'synkio.config.json';
 
 // Figma configuration
 const FigmaConfigSchema = z.object({
@@ -147,24 +144,19 @@ export type DocsPlatform = z.infer<typeof DocsPlatformSchema>;
 
 /**
  * Find config file in current directory
- * Returns the path and whether it's using a deprecated filename
  */
-export function findConfigFile(explicitPath?: string): { path: string; isDeprecated: boolean } | null {
+export function findConfigFile(explicitPath?: string): string | null {
   if (explicitPath) {
     const fullPath = resolve(process.cwd(), explicitPath);
     if (existsSync(fullPath)) {
-      return { path: fullPath, isDeprecated: false };
+      return fullPath;
     }
     return null;
   }
 
-  // Auto-discover config file
-  for (const filename of CONFIG_FILES) {
-    const fullPath = resolve(process.cwd(), filename);
-    if (existsSync(fullPath)) {
-      const isDeprecated = filename === 'tokensrc.json';
-      return { path: fullPath, isDeprecated };
-    }
+  const fullPath = resolve(process.cwd(), CONFIG_FILE);
+  if (existsSync(fullPath)) {
+    return fullPath;
   }
 
   return null;
@@ -176,26 +168,15 @@ export function findConfigFile(explicitPath?: string): { path: string; isDepreca
  * @returns Parsed and validated config
  */
 export function loadConfig(explicitPath?: string): Config {
-  const found = findConfigFile(explicitPath);
+  const fullPath = findConfigFile(explicitPath);
 
-  if (!found) {
+  if (!fullPath) {
     if (explicitPath) {
       throw new Error(`Config file not found at ${resolve(process.cwd(), explicitPath)}`);
     }
     throw new Error(
-      `No config file found. Looked for:\n` +
-      CONFIG_FILES.map(f => `  - ${f}`).join('\n') +
-      `\n\nRun 'synkio init' to create a config file.`
-    );
-  }
-
-  const { path: fullPath, isDeprecated } = found;
-
-  // Warn about deprecated filename
-  if (isDeprecated) {
-    console.warn(
-      `\n⚠️  Warning: 'tokensrc.json' is deprecated.\n` +
-      `   Rename to 'synkio.config.json' for future compatibility.\n`
+      `No config file found. Expected: ${CONFIG_FILE}\n\n` +
+      `Run 'synkio init' to create a config file.`
     );
   }
 
@@ -247,12 +228,11 @@ export function updateConfigWithCollectionRenames(
     return { updated: false, renames: [] };
   }
 
-  const found = findConfigFile(explicitPath);
-  if (!found) {
+  const fullPath = findConfigFile(explicitPath);
+  if (!fullPath) {
     return { updated: false, renames: [] };
   }
 
-  const fullPath = found.path;
   let content: string;
 
   try {
@@ -342,12 +322,11 @@ export function updateConfigWithCollections(
     return { updated: false };
   }
 
-  const found = findConfigFile(explicitPath);
-  if (!found) {
+  const fullPath = findConfigFile(explicitPath);
+  if (!fullPath) {
     return { updated: false };
   }
 
-  const fullPath = found.path;
   let content: string;
 
   try {
@@ -419,12 +398,11 @@ export function updateConfigWithBuildScript(
   buildScript: string,
   explicitPath?: string
 ): { updated: boolean; configPath?: string } {
-  const found = findConfigFile(explicitPath);
-  if (!found) {
+  const fullPath = findConfigFile(explicitPath);
+  if (!fullPath) {
     return { updated: false };
   }
 
-  const fullPath = found.path;
   let content: string;
 
   try {
