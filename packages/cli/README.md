@@ -104,8 +104,6 @@ Use `npx synkio sync --preview` to see a full report of changes without writing 
 
 Synkio is configured via `synkio.config.json`:
 
-> **Note:** Legacy `tokensrc.json` files are still supported but deprecated. You'll see a warning when using the old filename.
-
 ```json
 {
   "version": "1.0.0",

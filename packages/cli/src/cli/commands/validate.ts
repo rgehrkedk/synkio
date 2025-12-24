@@ -10,8 +10,8 @@ export async function validateCommand() {
 
   try {
     // 1. Find and validate config
-    const found = findConfigFile();
-    const configFileName = found?.path.split('/').pop() || 'config';
+    const configPath = findConfigFile();
+    const configFileName = configPath?.split('/').pop() || 'config';
     spinner.text = `Validating ${configFileName}...`;
     const config = loadConfig();
     spinner.succeed(`${configFileName} is valid.`);
