@@ -14,7 +14,7 @@ import { FigmaClient } from '../figma.js';
 import { splitTokens, splitStyles, normalizePluginData, normalizeStyleData, hasStyles, getStyleCount } from '../tokens.js';
 import type { SplitTokensOptions, StylesSplitOptions } from '../tokens.js';
 import { readBaseline, writeBaseline } from '../baseline.js';
-import { compareBaselines, hasChanges, getChangeCounts, generateDiffReport, printDiffSummary, compareStyleBaselines, hasStyleChanges, getStyleChangeCounts } from '../compare.js';
+import { compareBaselines, hasChanges, getChangeCounts, generateDiffReport, printDiffSummary, compareStyleBaselines, hasStyleChanges, getStyleChangeCounts, printStyleDiffSummary } from '../compare.js';
 import { generateIntermediateFromBaseline, generateDocsFromBaseline } from '../output.js';
 import { discoverCollectionsFromTokens } from '../utils/index.js';
 import { filterPhantomModes } from '../../utils/figma.js';
@@ -318,8 +318,6 @@ function handleComparison(
     console.log(chalk.cyan('\n  Preview Mode - No changes will be applied\n'));
     printDiffSummary(result);
     if (hasStyleChanges(styleResult)) {
-      // Import and use printStyleDiffSummary from compare.js
-      const { printStyleDiffSummary } = require('../compare.js');
       printStyleDiffSummary(styleResult);
     }
     return { result, styleResult, shouldProceed: false, hasBaselineChanges };
