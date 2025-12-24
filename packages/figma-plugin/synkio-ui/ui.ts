@@ -44,6 +44,26 @@ interface StyleTypeInfo {
   excluded: boolean;
 }
 
+interface RemoteSettings {
+  sourceType: 'disabled' | 'github' | 'url' | 'localhost';
+  github?: {
+    repo: string;
+    branch: string;
+    path: string;
+    token?: string;
+  };
+  customUrl?: string;
+  localhostPort?: number;
+  autoCheck?: boolean;
+}
+
+interface RemoteStatus {
+  state: 'idle' | 'fetching' | 'checking' | 'error';
+  lastFetched?: number;
+  error?: string;
+  updatesAvailable?: number;
+}
+
 let currentDiffs: DiffEntry[] = [];
 let currentCollectionRenames: CollectionRename[] = [];
 let currentModeRenames: ModeRename[] = [];
@@ -51,6 +71,8 @@ let currentHistory: SyncEvent[] = [];
 let currentCollections: CollectionInfo[] = [];
 let currentStyleTypes: StyleTypeInfo[] = [];
 let isSyncing = false;
+let remoteStatus: RemoteStatus = { state: 'idle' };
+let remoteSettings: RemoteSettings = { sourceType: 'disabled' };
 
 // Elements
 const syncButton = document.getElementById('syncButton') as HTMLButtonElement;
@@ -72,6 +94,114 @@ const saveCollectionsBtn = document.getElementById('saveCollectionsBtn') as HTML
 const collectionsWarning = document.getElementById('collectionsWarning')!;
 const excludedBadge = document.getElementById('excludedBadge')!;
 
+// Remote sync elements
+const remoteStatusEl = document.getElementById('remote-status')!;
+const fetchBtn = document.getElementById('fetch-btn') as HTMLButtonElement;
+const checkBtn = document.getElementById('check-btn') as HTMLButtonElement;
+const settingsBtn = document.getElementById('settings-btn') as HTMLButtonElement;
+const settingsPanel = document.getElementById('settings-panel')!;
+const backBtn = document.getElementById('back-btn') as HTMLButtonElement;
+const saveSettingsBtn = document.getElementById('save-settings-btn') as HTMLButtonElement;
+const testConnectionBtn = document.getElementById('test-connection-btn') as HTMLButtonElement;
+
+// Remote sync functions
+function updateRemoteStatus() {
+  const { state, lastFetched, error, updatesAvailable } = remoteStatus;
+
+  if (remoteSettings.sourceType === 'disabled') {
+    remoteStatusEl.innerHTML = `
+      <span style="color: #999; font-size: 11px;">Remote sync disabled</span>
+    `;
+    fetchBtn.disabled = true;
+    checkBtn.disabled = true;
+    return;
+  }
+
+  fetchBtn.disabled = false;
+  checkBtn.disabled = false;
+
+  if (state === 'fetching') {
+    remoteStatusEl.innerHTML = `
+      <span style="color: #666; font-size: 11px;">⏳ Fetching from remote...</span>
+    `;
+    fetchBtn.disabled = true;
+    checkBtn.disabled = true;
+  } else if (state === 'checking') {
+    remoteStatusEl.innerHTML = `
+      <span style="color: #666; font-size: 11px;">🔍 Checking for updates...</span>
+    `;
+    checkBtn.disabled = true;
+  } else if (state === 'error') {
+    remoteStatusEl.innerHTML = `
+      <span style="color: #dc2626; font-size: 11px;">❌ ${escapeHtml(error || 'Failed to fetch')}</span>
+    `;
+  } else if (updatesAvailable !== undefined && updatesAvailable > 0) {
+    remoteStatusEl.innerHTML = `
+      <span style="color: #ea580c; font-size: 11px;">
+        ${updatesAvailable} update${updatesAvailable !== 1 ? 's' : ''} available
+      </span>
+    `;
+  } else if (lastFetched) {
+    const timeAgo = formatTimeAgo(lastFetched);
+    remoteStatusEl.innerHTML = `
+      <span style="color: #10b981; font-size: 11px;">✓ Up to date • Last fetched ${timeAgo}</span>
+    `;
+  } else {
+    remoteStatusEl.innerHTML = `
+      <span style="color: #999; font-size: 11px;">Ready to fetch</span>
+    `;
+  }
+}
+
+function showSettingsPanel() {
+  settingsPanel.classList.remove('hidden');
+  // Request current settings from code.ts
+  parent.postMessage({ pluginMessage: { type: 'get-settings' } }, '*');
+}
+
+function hideSettingsPanel() {
+  settingsPanel.classList.add('hidden');
+}
+
+function updateSourceTypeVisibility() {
+  const sourceType = (document.querySelector('input[name="source-type"]:checked') as HTMLInputElement)?.value;
+
+  document.getElementById('github-settings')!.classList.toggle('hidden', sourceType !== 'github');
+  document.getElementById('url-settings')!.classList.toggle('hidden', sourceType !== 'url');
+  document.getElementById('localhost-settings')!.classList.toggle('hidden', sourceType !== 'localhost');
+}
+
+function populateSettingsForm(settings: RemoteSettings) {
+  remoteSettings = settings;
+
+  // Set source type
+  const sourceTypeRadio = document.querySelector(`input[name="source-type"][value="${settings.sourceType}"]`) as HTMLInputElement;
+  if (sourceTypeRadio) sourceTypeRadio.checked = true;
+
+  // GitHub settings
+  if (settings.github) {
+    (document.getElementById('github-repo') as HTMLInputElement).value = settings.github.repo || '';
+    (document.getElementById('github-branch') as HTMLInputElement).value = settings.github.branch || 'main';
+    (document.getElementById('github-path') as HTMLInputElement).value = settings.github.path || '.synkio/export-baseline.json';
+    (document.getElementById('github-token') as HTMLInputElement).value = settings.github.token || '';
+  }
+
+  // Custom URL
+  if (settings.customUrl) {
+    (document.getElementById('custom-url') as HTMLInputElement).value = settings.customUrl;
+  }
+
+  // Localhost port
+  if (settings.localhostPort) {
+    (document.getElementById('localhost-port') as HTMLInputElement).value = String(settings.localhostPort);
+  }
+
+  // Auto check
+  (document.getElementById('auto-check') as HTMLInputElement).checked = settings.autoCheck || false;
+
+  updateSourceTypeVisibility();
+}
+
 // Tab switching
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -92,6 +222,81 @@ document.querySelectorAll('.tab').forEach(tab => {
       parent.postMessage({ pluginMessage: { type: 'get-style-types' } }, '*');
     }
   });
+});
+
+// Remote sync button handlers
+fetchBtn.addEventListener('click', () => {
+  remoteStatus.state = 'fetching';
+  updateRemoteStatus();
+  parent.postMessage({ pluginMessage: { type: 'fetch-remote' } }, '*');
+});
+
+checkBtn.addEventListener('click', () => {
+  remoteStatus.state = 'checking';
+  updateRemoteStatus();
+  parent.postMessage({ pluginMessage: { type: 'check-for-updates' } }, '*');
+});
+
+settingsBtn.addEventListener('click', () => {
+  showSettingsPanel();
+});
+
+backBtn.addEventListener('click', () => {
+  hideSettingsPanel();
+});
+
+// Source type radio change handler
+document.querySelectorAll('input[name="source-type"]').forEach(radio => {
+  radio.addEventListener('change', updateSourceTypeVisibility);
+});
+
+testConnectionBtn.addEventListener('click', () => {
+  const repo = (document.getElementById('github-repo') as HTMLInputElement).value;
+  const branch = (document.getElementById('github-branch') as HTMLInputElement).value;
+  const path = (document.getElementById('github-path') as HTMLInputElement).value;
+  const token = (document.getElementById('github-token') as HTMLInputElement).value;
+
+  testConnectionBtn.disabled = true;
+  testConnectionBtn.textContent = 'Testing...';
+
+  parent.postMessage({
+    pluginMessage: {
+      type: 'test-github-connection',
+      github: { repo, branch, path, token }
+    }
+  }, '*');
+});
+
+saveSettingsBtn.addEventListener('click', () => {
+  const sourceType = (document.querySelector('input[name="source-type"]:checked') as HTMLInputElement)?.value as RemoteSettings['sourceType'];
+
+  const settings: RemoteSettings = {
+    sourceType,
+    autoCheck: (document.getElementById('auto-check') as HTMLInputElement).checked
+  };
+
+  if (sourceType === 'github') {
+    settings.github = {
+      repo: (document.getElementById('github-repo') as HTMLInputElement).value,
+      branch: (document.getElementById('github-branch') as HTMLInputElement).value,
+      path: (document.getElementById('github-path') as HTMLInputElement).value,
+      token: (document.getElementById('github-token') as HTMLInputElement).value || undefined
+    };
+  } else if (sourceType === 'url') {
+    settings.customUrl = (document.getElementById('custom-url') as HTMLInputElement).value;
+  } else if (sourceType === 'localhost') {
+    settings.localhostPort = parseInt((document.getElementById('localhost-port') as HTMLInputElement).value) || 3847;
+  }
+
+  saveSettingsBtn.disabled = true;
+  saveSettingsBtn.textContent = 'Saving...';
+
+  parent.postMessage({
+    pluginMessage: {
+      type: 'save-settings',
+      settings
+    }
+  }, '*');
 });
 
 // Sync button
@@ -636,7 +841,89 @@ window.onmessage = (event) => {
     applyButton.innerHTML = '<span>✨</span><span>Apply to Figma</span>';
     alert('Apply failed: ' + msg.error);
   }
+
+  // Remote sync message handlers
+  if (msg && msg.type === 'fetch-started') {
+    remoteStatus.state = 'fetching';
+    updateRemoteStatus();
+  }
+
+  if (msg && msg.type === 'fetch-success') {
+    remoteStatus.state = 'idle';
+    remoteStatus.lastFetched = Date.now();
+    remoteStatus.error = undefined;
+    updateRemoteStatus();
+
+    // Show success feedback
+    const originalHtml = fetchBtn.innerHTML;
+    fetchBtn.innerHTML = '✓ Fetched';
+    fetchBtn.style.background = '#10b981';
+    fetchBtn.style.color = 'white';
+    setTimeout(() => {
+      fetchBtn.innerHTML = originalHtml;
+      fetchBtn.style.background = '';
+      fetchBtn.style.color = '';
+    }, 2000);
+  }
+
+  if (msg && msg.type === 'fetch-error') {
+    remoteStatus.state = 'error';
+    remoteStatus.error = msg.error;
+    updateRemoteStatus();
+  }
+
+  if (msg && msg.type === 'update-check-result') {
+    remoteStatus.state = 'idle';
+    remoteStatus.updatesAvailable = msg.updatesAvailable || 0;
+    updateRemoteStatus();
+  }
+
+  if (msg && msg.type === 'settings-update') {
+    populateSettingsForm(msg.settings);
+  }
+
+  if (msg && msg.type === 'settings-saved') {
+    remoteSettings = msg.settings;
+    saveSettingsBtn.disabled = false;
+    saveSettingsBtn.textContent = 'Save Settings';
+
+    // Show success feedback
+    const originalText = saveSettingsBtn.textContent;
+    saveSettingsBtn.textContent = 'Saved!';
+    saveSettingsBtn.style.background = '#10b981';
+    setTimeout(() => {
+      saveSettingsBtn.textContent = originalText;
+      saveSettingsBtn.style.background = '';
+    }, 1500);
+
+    // Update status display with new settings
+    updateRemoteStatus();
+
+    // Close settings panel
+    setTimeout(() => {
+      hideSettingsPanel();
+    }, 1000);
+  }
+
+  if (msg && msg.type === 'connection-test-result') {
+    testConnectionBtn.disabled = false;
+    testConnectionBtn.textContent = 'Test Connection';
+
+    if (msg.success) {
+      testConnectionBtn.textContent = '✓ Connection OK';
+      testConnectionBtn.style.background = '#10b981';
+      testConnectionBtn.style.color = 'white';
+      setTimeout(() => {
+        testConnectionBtn.textContent = 'Test Connection';
+        testConnectionBtn.style.background = '';
+        testConnectionBtn.style.color = '';
+      }, 2000);
+    } else {
+      alert('Connection failed: ' + msg.error);
+    }
+  }
 };
 
-// Tell plugin we're ready
+// Tell plugin we're ready and initialize remote status
 parent.postMessage({ pluginMessage: { type: 'ready' } }, '*');
+updateRemoteStatus();
