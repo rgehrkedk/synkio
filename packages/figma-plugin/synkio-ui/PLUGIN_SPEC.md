@@ -432,3 +432,330 @@ After making changes, verify:
 | Unused exports | 10 | 0 | -10 |
 
 The codebase will be cleaner, more maintainable, and easier to understand after these changes.
+
+---
+
+## Phase 2: Folder Restructuring
+
+After cleaning up dead code, restructure `code.ts` (1,481 lines) into logical modules.
+
+### Current Problem
+
+`code.ts` is a monolithic file with 6 distinct responsibilities:
+
+| Responsibility | Lines | Functions |
+|----------------|-------|-----------|
+| Variable Collection | 72-131 | 2 functions |
+| Style Collection | 133-514 | 15 functions |
+| Baseline Storage | 516-615 | 5 functions |
+| Apply to Figma | 690-1053 | 13 functions |
+| UI Communication | 1055-1110 | 1 function |
+| Message Handlers | 1115-1480 | 1 large block |
+
+### Proposed Folder Structure
+
+```
+synkio-ui/
+├── src/
+│   ├── main.ts                 # Entry point (50 lines)
+│   │   - figma.showUI()
+│   │   - figma.ui.onmessage router
+│   │
+│   ├── collect/
+│   │   ├── variables.ts        # Variable collection (60 lines)
+│   │   │   - collectTokens()
+│   │   │   - resolveValue()
+│   │   │
+│   │   └── styles.ts           # Style collection (380 lines)
+│   │       - collectStyles()
+│   │       - convertPaintStyle()
+│   │       - convertTextStyle()
+│   │       - convertEffectStyle()
+│   │       - buildVariableMap()
+│   │       - formatShadow()
+│   │       - (all format/map helpers)
+│   │
+│   ├── baseline/
+│   │   ├── storage.ts          # Baseline CRUD (80 lines)
+│   │   │   - getBaselineSnapshot()
+│   │   │   - saveBaselineSnapshot()
+│   │   │
+│   │   └── exclusions.ts       # Collection filtering (50 lines)
+│   │       - getExcludedCollections()
+│   │       - getExcludedStyleTypes()
+│   │       - filterBaselineByExclusions()
+│   │
+│   ├── apply/
+│   │   └── index.ts            # Apply baseline to Figma (300 lines)
+│   │       - applyBaselineToFigma()
+│   │       - buildExistingVariableMap()
+│   │       - buildCollectionMap()
+│   │       - getOrCreateCollection()
+│   │       - getOrCreateMode()
+│   │       - mapTokenTypeToFigma()
+│   │       - parseColorValue()
+│   │       - convertValueToFigma()
+│   │       - sortByDependencies()
+│   │       - extractReferences()
+│   │       - caseInsensitiveGet()
+│   │
+│   ├── handlers/
+│   │   ├── sync.ts             # Sync message handler
+│   │   ├── import.ts           # Import baseline handler
+│   │   ├── remote.ts           # Remote fetch handlers
+│   │   ├── collections.ts      # Collection/style exclusion handlers
+│   │   └── settings.ts         # Settings handlers
+│   │
+│   └── ui/
+│       └── diff.ts             # UI communication (60 lines)
+│           - sendDiffToUI()
+│
+├── lib/                        # Shared utilities (unchanged)
+│   ├── types.ts
+│   ├── compare.ts
+│   ├── settings.ts
+│   ├── remote-fetch.ts
+│   ├── github.ts
+│   ├── history.ts
+│   ├── sanitize.ts
+│   └── chunking.ts
+│
+├── ui.ts                       # Frontend (unchanged)
+└── ui.template.html            # HTML/CSS (unchanged)
+```
+
+### Module Breakdown
+
+#### 1. `src/main.ts` (~50 lines)
+
+Entry point that initializes the plugin and routes messages:
+
+```typescript
+import { handleSync } from './handlers/sync';
+import { handleImport } from './handlers/import';
+import { handleRemoteFetch } from './handlers/remote';
+// ...
+
+figma.showUI(__html__, { width: 400, height: 600, themeColors: true });
+
+figma.ui.onmessage = async (msg) => {
+  switch (msg.type) {
+    case 'sync': return handleSync();
+    case 'import-baseline': return handleImport(msg);
+    case 'fetch-remote': return handleRemoteFetch();
+    // ...
+  }
+};
+```
+
+#### 2. `src/collect/variables.ts` (~60 lines)
+
+```typescript
+export async function collectTokens(): Promise<TokenEntry[]>
+export function resolveValue(value: VariableValue, type: string): any
+```
+
+#### 3. `src/collect/styles.ts` (~380 lines)
+
+All style-related functions:
+
+```typescript
+// Main export
+export async function collectStyles(): Promise<StyleEntry[]>
+
+// Style converters
+export function convertPaintStyle(style: PaintStyle, variableMap: Map<string, string>): PaintStyleEntry | null
+export function convertTextStyle(style: TextStyle, variableMap: Map<string, string>): TextStyleEntry
+export function convertEffectStyle(style: EffectStyle, variableMap: Map<string, string>): EffectStyleEntry
+
+// Helpers (internal)
+function buildVariableMap(): Promise<Map<string, string>>
+function formatShadow(effect: DropShadowEffect | InnerShadowEffect, variableMap: Map<string, string>): ShadowObject
+function roundValue(value: number, decimals?: number): number
+function formatPx(value: number): string
+function rgbaToString(color: RGB | RGBA, opacity?: number): string
+function fontStyleToWeight(style: string): number
+function formatLineHeight(lineHeight: LineHeight): string | number
+function formatLetterSpacing(letterSpacing: LetterSpacing): string
+function mapTextCase(textCase: TextCase): string | undefined
+function mapTextDecoration(decoration: TextDecoration): string | undefined
+function mapGradientType(type: string): 'linear' | 'radial' | 'angular' | 'diamond'
+```
+
+#### 4. `src/baseline/storage.ts` (~80 lines)
+
+```typescript
+export function getBaselineSnapshot(): SyncData | null
+export function saveBaselineSnapshot(data: SyncData): void
+```
+
+#### 5. `src/baseline/exclusions.ts` (~50 lines)
+
+```typescript
+export function getExcludedCollections(): string[]
+export function getExcludedStyleTypes(): StyleType[]
+export function filterBaselineByExclusions(baseline: SyncData): SyncData
+```
+
+#### 6. `src/apply/index.ts` (~300 lines)
+
+All "apply baseline to Figma" logic:
+
+```typescript
+export async function applyBaselineToFigma(): Promise<void>
+
+// Helpers (internal)
+function buildExistingVariableMap(): Promise<Map<string, Variable>>
+function buildCollectionMap(): Promise<Map<string, VariableCollection>>
+function getOrCreateCollection(name: string, collectionMap: Map<string, VariableCollection>): Promise<VariableCollection>
+function getOrCreateMode(collection: VariableCollection, modeName: string): string
+function mapTokenTypeToFigma(type: string): VariableResolvedDataType
+function parseColorValue(color: string): RGBA
+function convertValueToFigma(value: unknown, type: string, variableLookup: Map<string, string>): VariableValue
+function extractReferences(value: unknown): string[]
+function sortByDependencies(tokens: TokenEntry[]): TokenEntry[]
+function caseInsensitiveGet<V>(map: Map<string, V>, key: string): V | undefined
+```
+
+#### 7. `src/handlers/*.ts` (~200 lines total)
+
+Split message handlers into focused modules:
+
+```typescript
+// handlers/sync.ts
+export async function handleSync(): Promise<void>
+
+// handlers/import.ts
+export async function handleImport(msg: { baselineJson: string }): Promise<void>
+
+// handlers/remote.ts
+export async function handleRemoteFetch(): Promise<void>
+export async function handleCheckForUpdates(): Promise<void>
+
+// handlers/collections.ts
+export async function handleGetCollections(): Promise<void>
+export async function handleSaveExcludedCollections(msg: { excluded: string[] }): Promise<void>
+export async function handleGetStyleTypes(): Promise<void>
+export async function handleSaveExcludedStyleTypes(msg: { excluded: string[] }): Promise<void>
+
+// handlers/settings.ts
+export async function handleGetSettings(): Promise<void>
+export async function handleSaveSettings(msg: { settings: PluginSettings }): Promise<void>
+export async function handleTestGitHubConnection(msg: { github: GitHubSettings }): Promise<void>
+```
+
+#### 8. `src/ui/diff.ts` (~60 lines)
+
+```typescript
+export async function sendDiffToUI(): Promise<void>
+```
+
+### Build Configuration Update
+
+Update `build.js` to handle `src/` folder:
+
+```javascript
+// build.js
+const esbuild = require('esbuild');
+
+esbuild.build({
+  entryPoints: ['src/main.ts', 'ui.ts'],  // Changed from code.ts
+  bundle: true,
+  outdir: '.',
+  outbase: 'src',
+  // ...
+});
+```
+
+Or use a simpler approach with a barrel export:
+
+```javascript
+// build.js - keep entry point as code.ts
+esbuild.build({
+  entryPoints: ['code.ts', 'ui.ts'],  // code.ts re-exports from src/
+  // ...
+});
+```
+
+```typescript
+// code.ts - becomes a thin re-export layer
+export * from './src/main';
+```
+
+### Migration Steps
+
+1. **Create folder structure:**
+   ```bash
+   mkdir -p src/{collect,baseline,apply,handlers,ui}
+   ```
+
+2. **Extract modules in order:**
+   - `src/collect/variables.ts` (no dependencies)
+   - `src/collect/styles.ts` (no dependencies)
+   - `src/baseline/exclusions.ts` (no dependencies)
+   - `src/baseline/storage.ts` (depends on lib/chunking)
+   - `src/apply/index.ts` (depends on baseline/exclusions)
+   - `src/ui/diff.ts` (depends on collect/*, baseline/*)
+   - `src/handlers/*.ts` (depends on all above)
+   - `src/main.ts` (imports handlers, wires up message router)
+
+3. **Update imports in each file**
+
+4. **Update build.js**
+
+5. **Test build:**
+   ```bash
+   npm run build
+   ```
+
+6. **Delete old `code.ts`** (after verifying build works)
+
+### Benefits
+
+| Aspect | Before | After |
+|--------|--------|-------|
+| Largest file | 1,481 lines | ~380 lines |
+| Files | 1 monolithic | 10 focused modules |
+| Finding code | Scroll 1400 lines | Navigate to folder |
+| Testing | Hard to unit test | Each module testable |
+| Code review | All changes in one file | Changes scoped to module |
+
+### Dependency Graph (After Refactor)
+
+```
+src/main.ts
+├── src/handlers/sync.ts
+│   ├── src/collect/variables.ts
+│   ├── src/collect/styles.ts
+│   ├── src/baseline/storage.ts
+│   ├── src/ui/diff.ts
+│   └── lib/history.ts
+│
+├── src/handlers/import.ts
+│   ├── src/baseline/storage.ts
+│   ├── src/ui/diff.ts
+│   └── lib/remote-fetch.ts (convertCLIBaselineToSyncData)
+│
+├── src/handlers/remote.ts
+│   ├── src/baseline/storage.ts
+│   ├── src/ui/diff.ts
+│   └── lib/remote-fetch.ts
+│
+├── src/handlers/collections.ts
+│   └── src/baseline/exclusions.ts
+│
+├── src/handlers/settings.ts
+│   └── lib/settings.ts
+│
+└── src/apply/index.ts (standalone, triggered by handler)
+    └── src/baseline/storage.ts
+```
+
+### Priority
+
+This restructuring is **Phase 2** work, to be done AFTER the dead code cleanup (Phase 1).
+
+Recommended approach:
+1. Complete Phase 1 cleanup first (-460 lines)
+2. Commit and verify everything works
+3. Then do Phase 2 restructuring in a separate PR
