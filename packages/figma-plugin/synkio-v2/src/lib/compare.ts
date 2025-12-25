@@ -6,6 +6,7 @@
 import {
   BaselineData,
   BaselineEntry,
+  StyleBaselineEntry,
   ComparisonResult,
   ValueChange,
   PathChange,
@@ -14,6 +15,10 @@ import {
   ModeRename,
   ModeChange,
   CollectionRename,
+  StyleValueChange,
+  StylePathChange,
+  NewStyle,
+  DeletedStyle,
 } from './types';
 
 // =============================================================================
@@ -37,6 +42,10 @@ export function compareBaselines(
     deletedModes: [],
     newVariables: [],
     deletedVariables: [],
+    styleValueChanges: [],
+    stylePathChanges: [],
+    newStyles: [],
+    deletedStyles: [],
   };
 
   const oldEntries = Object.values(oldBaseline.baseline);
@@ -171,7 +180,85 @@ export function compareBaselines(
     }
   }
 
+  // Compare styles
+  compareStyles(oldBaseline.styles, newBaseline.styles, result);
+
   return result;
+}
+
+// =============================================================================
+// Style Comparison
+// =============================================================================
+
+function compareStyles(
+  oldStyles: Record<string, StyleBaselineEntry> | undefined,
+  newStyles: Record<string, StyleBaselineEntry> | undefined,
+  result: ComparisonResult
+): void {
+  if (!oldStyles && !newStyles) return;
+
+  const oldStyleEntries = oldStyles ? Object.values(oldStyles) : [];
+  const newStyleEntries = newStyles ? Object.values(newStyles) : [];
+
+  // Build ID-based lookup maps
+  const oldByStyleId = new Map<string, StyleBaselineEntry>();
+  const newByStyleId = new Map<string, StyleBaselineEntry>();
+
+  for (const entry of oldStyleEntries) {
+    oldByStyleId.set(entry.styleId, entry);
+  }
+
+  for (const entry of newStyleEntries) {
+    newByStyleId.set(entry.styleId, entry);
+  }
+
+  // Compare by style ID
+  for (const [styleId, oldStyle] of oldByStyleId) {
+    const newStyle = newByStyleId.get(styleId);
+
+    if (!newStyle) {
+      // Style deleted
+      result.deletedStyles.push({
+        styleId,
+        path: oldStyle.path,
+        value: oldStyle.value,
+        styleType: oldStyle.type,
+      });
+    } else {
+      // Style exists in both - check for changes
+      if (oldStyle.path !== newStyle.path) {
+        // Path change (rename)
+        result.stylePathChanges.push({
+          styleId,
+          oldPath: oldStyle.path,
+          newPath: newStyle.path,
+          value: newStyle.value,
+          styleType: newStyle.type,
+        });
+      } else if (!valuesEqual(oldStyle.value, newStyle.value)) {
+        // Value change
+        result.styleValueChanges.push({
+          styleId,
+          path: newStyle.path,
+          oldValue: oldStyle.value,
+          newValue: newStyle.value,
+          styleType: newStyle.type,
+        });
+      }
+    }
+  }
+
+  // Find new styles
+  for (const [styleId, newStyle] of newByStyleId) {
+    if (!oldByStyleId.has(styleId)) {
+      result.newStyles.push({
+        styleId,
+        path: newStyle.path,
+        value: newStyle.value,
+        styleType: newStyle.type,
+      });
+    }
+  }
 }
 
 // =============================================================================
@@ -344,6 +431,10 @@ export function compareByPath(
     deletedModes: [],
     newVariables: [],
     deletedVariables: [],
+    styleValueChanges: [],
+    stylePathChanges: [],
+    newStyles: [],
+    deletedStyles: [],
   };
 
   const oldByPath = new Map<string, BaselineEntry>();
@@ -399,7 +490,72 @@ export function compareByPath(
     }
   }
 
+  // Compare styles (using path-based approach)
+  compareStylesByPath(oldBaseline.styles, newBaseline.styles, result);
+
   return result;
+}
+
+/**
+ * Compare styles by path (for code baselines that may not have style IDs)
+ */
+function compareStylesByPath(
+  oldStyles: Record<string, StyleBaselineEntry> | undefined,
+  newStyles: Record<string, StyleBaselineEntry> | undefined,
+  result: ComparisonResult
+): void {
+  if (!oldStyles && !newStyles) return;
+
+  const oldStyleEntries = oldStyles ? Object.values(oldStyles) : [];
+  const newStyleEntries = newStyles ? Object.values(newStyles) : [];
+
+  // Build path-based lookup maps
+  const oldByPath = new Map<string, StyleBaselineEntry>();
+  const newByPath = new Map<string, StyleBaselineEntry>();
+
+  for (const entry of oldStyleEntries) {
+    oldByPath.set(entry.path, entry);
+  }
+
+  for (const entry of newStyleEntries) {
+    newByPath.set(entry.path, entry);
+  }
+
+  // Compare by path
+  for (const [path, oldStyle] of oldByPath) {
+    const newStyle = newByPath.get(path);
+
+    if (!newStyle) {
+      // Style deleted
+      result.deletedStyles.push({
+        styleId: oldStyle.styleId,
+        path: oldStyle.path,
+        value: oldStyle.value,
+        styleType: oldStyle.type,
+      });
+    } else if (!valuesEqual(oldStyle.value, newStyle.value)) {
+      // Value change
+      result.styleValueChanges.push({
+        styleId: newStyle.styleId || oldStyle.styleId,
+        path: newStyle.path,
+        oldValue: oldStyle.value,
+        newValue: newStyle.value,
+        styleType: newStyle.type,
+      });
+    }
+  }
+
+  // Find new styles
+  for (const [path, newStyle] of newByPath) {
+    if (!oldByPath.has(path)) {
+      result.newStyles.push({
+        styleId: newStyle.styleId,
+        path: newStyle.path,
+        value: newStyle.value,
+        styleType: newStyle.type,
+      });
+    }
+  }
 }
 
 // =============================================================================
@@ -415,7 +571,11 @@ export function hasChanges(result: ComparisonResult): boolean {
     result.collectionRenames.length > 0 ||
     result.modeRenames.length > 0 ||
     result.newModes.length > 0 ||
-    result.deletedModes.length > 0
+    result.deletedModes.length > 0 ||
+    result.styleValueChanges.length > 0 ||
+    result.stylePathChanges.length > 0 ||
+    result.newStyles.length > 0 ||
+    result.deletedStyles.length > 0
   );
 }
 
@@ -423,7 +583,9 @@ export function hasBreakingChanges(result: ComparisonResult): boolean {
   return (
     result.pathChanges.length > 0 ||
     result.deletedVariables.length > 0 ||
-    result.deletedModes.length > 0
+    result.deletedModes.length > 0 ||
+    result.stylePathChanges.length > 0 ||
+    result.deletedStyles.length > 0
   );
 }
 
@@ -432,6 +594,19 @@ export function countChanges(result: ComparisonResult): number {
     result.valueChanges.length +
     result.pathChanges.length +
     result.newVariables.length +
-    result.deletedVariables.length
+    result.deletedVariables.length +
+    result.styleValueChanges.length +
+    result.stylePathChanges.length +
+    result.newStyles.length +
+    result.deletedStyles.length
+  );
+}
+
+export function countStyleChanges(result: ComparisonResult): number {
+  return (
+    result.styleValueChanges.length +
+    result.stylePathChanges.length +
+    result.newStyles.length +
+    result.deletedStyles.length
   );
 }

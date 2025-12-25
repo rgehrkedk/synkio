@@ -3,6 +3,11 @@
 // Lightweight, framework-free component system for Figma plugin UI
 // =============================================================================
 
+import { Icon, DiffIcon, StatusIcon, IconName, IconSize, IconCircle } from './icons';
+
+// Re-export icon utilities for screen usage
+export { Icon, IconCircle, IconName };
+
 // =============================================================================
 // Core Helpers
 // =============================================================================
@@ -307,7 +312,8 @@ export function Section(props: SectionProps): HTMLDivElement {
 
     let chevron: HTMLSpanElement | null = null;
     if (collapsible) {
-      chevron = el('span', { class: 'section__chevron' }, '\u25BC');
+      chevron = el('span', { class: 'section__chevron' });
+      chevron.appendChild(Icon('chevron-down', 'sm'));
       if (!isExpanded) {
         chevron.classList.add('section__chevron--collapsed');
       }
@@ -463,19 +469,15 @@ export function DiffItem(props: DiffItemProps): HTMLDivElement {
   // Header with icon and path
   const header = el('div', { class: 'diff-item__header' });
 
-  const iconMap: Record<DiffType, string> = {
-    added: '+',
-    modified: '~',
-    deleted: '-',
-    renamed: '\u2194',
-  };
-
-  const icon = el('span', { class: `diff-item__icon diff-item__icon--${type}` }, iconMap[type]);
-  header.appendChild(icon);
+  const iconWrapper = el('span', { class: `diff-item__icon diff-item__icon--${type}` });
+  iconWrapper.appendChild(DiffIcon(type, 'xs'));
+  header.appendChild(iconWrapper);
 
   if (type === 'renamed' && oldPath) {
     header.appendChild(el('span', { class: 'diff-item__path diff-item__old-path' }, oldPath));
-    header.appendChild(el('span', { class: 'diff-item__arrow' }, '\u2192'));
+    const arrowEl = el('span', { class: 'diff-item__arrow' });
+    arrowEl.appendChild(Icon('arrow-right', 'xs'));
+    header.appendChild(arrowEl);
     header.appendChild(el('span', { class: 'diff-item__path' }, path));
   } else {
     header.appendChild(el('span', { class: 'diff-item__path' }, path));
@@ -496,7 +498,9 @@ export function DiffItem(props: DiffItemProps): HTMLDivElement {
     if (type === 'modified' && oldValue) {
       const changeEl = el('div', { class: 'diff-item__value-change' });
       changeEl.appendChild(el('span', { class: 'diff-item__old-value' }, oldValue));
-      changeEl.appendChild(el('span', { class: 'diff-item__arrow' }, '\u2192'));
+      const arrowEl = el('span', { class: 'diff-item__arrow' });
+      arrowEl.appendChild(Icon('arrow-right', 'xs'));
+      changeEl.appendChild(arrowEl);
       changeEl.appendChild(el('span', {}, value || ''));
       valueEl.appendChild(changeEl);
     } else if (value) {
@@ -720,7 +724,7 @@ export function Spinner(message?: string): HTMLDivElement {
 // =============================================================================
 
 export interface EmptyStateProps {
-  icon?: string;
+  icon?: IconName;
   title: string;
   description?: string;
   action?: {
@@ -740,7 +744,13 @@ const emptyStateStyles = `
     text-align: center;
   }
   .empty-state__icon {
-    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-bg-secondary);
     color: var(--color-text-tertiary);
   }
   .empty-state__title {
@@ -761,7 +771,9 @@ export function EmptyState(props: EmptyStateProps): HTMLDivElement {
   const empty = el('div', { class: 'empty-state' });
 
   if (icon) {
-    empty.appendChild(el('div', { class: 'empty-state__icon' }, icon));
+    const iconWrapper = el('div', { class: 'empty-state__icon' });
+    iconWrapper.appendChild(Icon(icon, 'xl'));
+    empty.appendChild(iconWrapper);
   }
   empty.appendChild(el('div', { class: 'empty-state__title' }, title));
   if (description) {
@@ -827,15 +839,11 @@ const alertStyles = `
 export function Alert(props: AlertProps): HTMLDivElement {
   const { type, title, message } = props;
 
-  const iconMap: Record<string, string> = {
-    info: '\u2139',
-    warning: '\u26A0',
-    error: '\u2715',
-    success: '\u2713',
-  };
-
   const alert = el('div', { class: `alert alert--${type}` });
-  alert.appendChild(el('span', { class: 'alert__icon' }, iconMap[type]));
+
+  const iconWrapper = el('span', { class: 'alert__icon' });
+  iconWrapper.appendChild(StatusIcon(type, 'sm'));
+  alert.appendChild(iconWrapper);
 
   const content = el('div', { class: 'alert__content' });
   if (title) {
@@ -911,7 +919,8 @@ export function Header(props: HeaderProps): HTMLElement {
 
   const left = el('div', { class: 'header__left' });
   if (showBack) {
-    const backBtn = el('button', { class: 'header__back' }, '\u2190');
+    const backBtn = el('button', { class: 'header__back' });
+    backBtn.appendChild(Icon('chevron-left', 'md'));
     if (onBack) {
       backBtn.addEventListener('click', onBack);
     }

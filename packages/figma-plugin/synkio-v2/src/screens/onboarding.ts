@@ -11,6 +11,7 @@ import {
   Checkbox,
   Input,
   Spinner,
+  Icon,
 } from '../ui/components';
 import {
   createPageLayout,
@@ -54,9 +55,11 @@ function buildWelcomeStep(actions: RouterActions): HTMLElement {
     style: 'text-align: center; padding: var(--spacing-2xl) 0;',
   });
 
-  hero.appendChild(el('div', {
-    style: 'font-size: 48px; margin-bottom: var(--spacing-md);',
-  }, '\u25C9'));
+  const logoWrapper = el('div', {
+    style: 'display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: var(--color-primary); border-radius: 16px; margin-bottom: var(--spacing-md); color: white;',
+  });
+  logoWrapper.appendChild(Icon('sync', 'xl'));
+  hero.appendChild(logoWrapper);
 
   hero.appendChild(el('div', {
     style: 'font-size: var(--font-size-2xl); font-weight: 600; margin-bottom: var(--spacing-xs);',
@@ -145,9 +148,11 @@ function buildSetupStep(state: PluginState, actions: RouterActions): HTMLElement
   const successBanner = el('div', {
     style: 'text-align: center; padding: var(--spacing-lg) 0;',
   });
-  successBanner.appendChild(el('div', {
-    style: 'font-size: 32px; margin-bottom: var(--spacing-sm);',
-  }, '\u2713'));
+  const checkWrapper = el('div', {
+    style: 'display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: color-mix(in srgb, var(--color-success) 15%, transparent); border-radius: 50%; margin-bottom: var(--spacing-sm); color: var(--color-success);',
+  });
+  checkWrapper.appendChild(Icon('check', 'lg'));
+  successBanner.appendChild(checkWrapper);
   successBanner.appendChild(el('div', {
     style: 'font-size: var(--font-size-lg); font-weight: 500;',
   }, 'File scanned!'));
@@ -264,9 +269,11 @@ function buildCompleteStep(actions: RouterActions): HTMLElement {
     style: 'text-align: center; padding: var(--spacing-2xl) 0;',
   });
 
-  successSection.appendChild(el('div', {
-    style: 'font-size: 48px; margin-bottom: var(--spacing-md);',
-  }, '\u2713'));
+  const successIconWrapper = el('div', {
+    style: 'display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: color-mix(in srgb, var(--color-success) 15%, transparent); border-radius: 50%; margin-bottom: var(--spacing-md); color: var(--color-success);',
+  });
+  successIconWrapper.appendChild(Icon('check', 'xl'));
+  successSection.appendChild(successIconWrapper);
 
   successSection.appendChild(el('div', {
     style: 'font-size: var(--font-size-xl); font-weight: 600; margin-bottom: var(--spacing-xs);',
@@ -306,18 +313,27 @@ function buildCompleteStep(actions: RouterActions): HTMLElement {
 
   commandBox.appendChild(el('span', {}, 'npx synkio sync'));
 
-  const copyBtn = Button({
-    label: '\uD83D\uDCCB',
-    variant: 'ghost',
-    size: 'sm',
-    onClick: () => {
-      navigator.clipboard?.writeText('npx synkio sync');
-      // Visual feedback
-      copyBtn.textContent = '\u2713';
-      setTimeout(() => {
-        copyBtn.textContent = '\uD83D\uDCCB';
-      }, 1500);
-    },
+  const copyBtn = el('button', {
+    style: 'background: none; border: none; padding: 6px; cursor: pointer; border-radius: var(--radius-sm); color: var(--color-text-secondary); display: flex; align-items: center; justify-content: center;',
+  });
+  copyBtn.appendChild(Icon('copy', 'sm'));
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard?.writeText('npx synkio sync');
+    // Visual feedback
+    copyBtn.innerHTML = '';
+    copyBtn.appendChild(Icon('check', 'sm'));
+    copyBtn.style.color = 'var(--color-success)';
+    setTimeout(() => {
+      copyBtn.innerHTML = '';
+      copyBtn.appendChild(Icon('copy', 'sm'));
+      copyBtn.style.color = 'var(--color-text-secondary)';
+    }, 1500);
+  });
+  copyBtn.addEventListener('mouseenter', () => {
+    copyBtn.style.background = 'var(--color-bg-tertiary)';
+  });
+  copyBtn.addEventListener('mouseleave', () => {
+    copyBtn.style.background = 'none';
   });
   commandBox.appendChild(copyBtn);
 

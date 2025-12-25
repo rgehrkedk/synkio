@@ -2,7 +2,7 @@
 // Apply Screen - Code to Figma
 // =============================================================================
 
-import { PluginState, ComparisonResult, RemoteSettings } from '../lib/types';
+import { PluginState, ComparisonResult, RemoteSettings, StyleValueChange, StylePathChange, NewStyle, DeletedStyle, StyleType } from '../lib/types';
 import { RouterActions } from '../ui/router';
 import {
   el,
@@ -15,6 +15,8 @@ import {
   Spinner,
   EmptyState,
   Input,
+  Icon,
+  IconName,
 } from '../ui/components';
 import {
   createPageLayout,
@@ -74,7 +76,7 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
   // GitHub option
   const githubOption = buildSourceOption({
     selected: remoteSettings.source === 'github',
-    icon: '\uD83D\uDCE6',
+    iconName: 'github',
     title: 'GitHub Repository',
     description: isGitHubConfigured
       ? `${remoteSettings.github?.owner}/${remoteSettings.github?.repo} \u00B7 ${remoteSettings.github?.branch || 'main'}`
@@ -91,7 +93,7 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
   // Import option
   const importOption = buildSourceOption({
     selected: false,
-    icon: '\uD83D\uDCC1',
+    iconName: 'folder',
     title: 'Import JSON File',
     description: 'Manually select export-baseline.json',
     configured: true,
@@ -195,7 +197,7 @@ function buildPreviewView(state: PluginState, actions: RouterActions, header: HT
     message: 'These changes will be applied to Figma variables in this file.',
   }));
 
-  // Diff sections grouped by collection
+  // Diff sections grouped by collection (variables)
   const groupedDiffs = groupByCollection(codeDiff);
 
   for (const [collection, changes] of Object.entries(groupedDiffs)) {
@@ -208,6 +210,23 @@ function buildPreviewView(state: PluginState, actions: RouterActions, header: HT
       children: diffItems,
     });
     contentChildren.push(section);
+  }
+
+  // Style sections grouped by type
+  if (countStyleChanges(codeDiff) > 0) {
+    const groupedStyles = groupStylesByType(codeDiff);
+
+    for (const [styleType, changes] of Object.entries(groupedStyles)) {
+      const diffItems = buildStyleDiffItems(changes);
+      const section = Section({
+        title: styleType,
+        count: diffItems.length,
+        collapsible: true,
+        defaultExpanded: true,
+        children: diffItems,
+      });
+      contentChildren.push(section);
+    }
   }
 
   const content = createContentArea(contentChildren);
@@ -252,7 +271,7 @@ function buildPreviewView(state: PluginState, actions: RouterActions, header: HT
 
 interface SourceOptionProps {
   selected: boolean;
-  icon: string;
+  iconName: IconName;
   title: string;
   description: string;
   configured: boolean;
@@ -261,7 +280,7 @@ interface SourceOptionProps {
 }
 
 function buildSourceOption(props: SourceOptionProps): HTMLElement {
-  const { selected, icon, title, description, configured, lastFetch, onClick } = props;
+  const { selected, iconName, title, description, configured, lastFetch, onClick } = props;
 
   const option = el('div', {
     style: `
@@ -306,22 +325,37 @@ function buildSourceOption(props: SourceOptionProps): HTMLElement {
     }));
   }
 
+  // Icon
+  const iconWrapper = el('div', {
+    style: `
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-md);
+      color: var(--color-text-secondary);
+      flex-shrink: 0;
+    `,
+  });
+  iconWrapper.appendChild(Icon(iconName, 'md'));
+
   // Content
   const content = el('div', { style: 'flex: 1; min-width: 0;' });
   content.appendChild(el('div', { style: 'font-weight: 500; font-size: var(--font-size-sm);' }, title));
   content.appendChild(el('div', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); margin-top: 2px;' }, description));
 
-  // Status
+  option.appendChild(radio);
+  option.appendChild(iconWrapper);
+  option.appendChild(content);
+
+  // Status badge
   if (!configured) {
     const badge = el('span', {
       style: 'font-size: var(--font-size-xs); padding: 2px 6px; background: var(--color-bg-tertiary); border-radius: 4px; color: var(--color-text-secondary);',
     }, 'Setup');
-    option.appendChild(radio);
-    option.appendChild(content);
     option.appendChild(badge);
-  } else {
-    option.appendChild(radio);
-    option.appendChild(content);
   }
 
   return option;
@@ -334,6 +368,13 @@ interface GroupedChanges {
   modified: Array<{ path: string; oldValue: unknown; newValue: unknown; type: string }>;
   deleted: Array<{ path: string; value: unknown; type: string }>;
   renamed: Array<{ oldPath: string; newPath: string; value: unknown; type: string }>;
+}
+
+interface GroupedStyleChanges {
+  added: NewStyle[];
+  modified: StyleValueChange[];
+  deleted: DeletedStyle[];
+  renamed: StylePathChange[];
 }
 
 function groupByCollection(diff: ComparisonResult): Record<string, GroupedChanges> {
@@ -360,6 +401,36 @@ function groupByCollection(diff: ComparisonResult): Record<string, GroupedChange
 
   for (const item of diff.pathChanges) {
     getOrCreate(item.collection).renamed.push(item);
+  }
+
+  return grouped;
+}
+
+function groupStylesByType(diff: ComparisonResult): Record<string, GroupedStyleChanges> {
+  const grouped: Record<string, GroupedStyleChanges> = {};
+
+  const getOrCreate = (styleType: string): GroupedStyleChanges => {
+    const label = styleType === 'paint' ? 'Paint Styles' : styleType === 'text' ? 'Text Styles' : 'Effect Styles';
+    if (!grouped[label]) {
+      grouped[label] = { added: [], modified: [], deleted: [], renamed: [] };
+    }
+    return grouped[label];
+  };
+
+  for (const item of diff.newStyles) {
+    getOrCreate(item.styleType).added.push(item);
+  }
+
+  for (const item of diff.styleValueChanges) {
+    getOrCreate(item.styleType).modified.push(item);
+  }
+
+  for (const item of diff.deletedStyles) {
+    getOrCreate(item.styleType).deleted.push(item);
+  }
+
+  for (const item of diff.stylePathChanges) {
+    getOrCreate(item.styleType).renamed.push(item);
   }
 
   return grouped;
@@ -407,12 +478,65 @@ function buildDiffItems(changes: GroupedChanges): HTMLElement[] {
   return items;
 }
 
+function buildStyleDiffItems(changes: GroupedStyleChanges): HTMLElement[] {
+  const items: HTMLElement[] = [];
+
+  for (const item of changes.added) {
+    items.push(DiffItem({
+      type: 'added',
+      path: item.path,
+      value: formatValue(item.value),
+    }));
+  }
+
+  for (const item of changes.modified) {
+    items.push(DiffItem({
+      type: 'modified',
+      path: item.path,
+      value: formatValue(item.newValue),
+      oldValue: formatValue(item.oldValue),
+    }));
+  }
+
+  for (const item of changes.renamed) {
+    items.push(DiffItem({
+      type: 'renamed',
+      path: item.newPath,
+      oldPath: item.oldPath,
+      value: formatValue(item.value),
+    }));
+  }
+
+  for (const item of changes.deleted) {
+    items.push(DiffItem({
+      type: 'deleted',
+      path: item.path,
+      value: `was ${formatValue(item.value)}`,
+    }));
+  }
+
+  return items;
+}
+
 function countChanges(diff: ComparisonResult): number {
   return (
     diff.valueChanges.length +
     diff.pathChanges.length +
     diff.newVariables.length +
-    diff.deletedVariables.length
+    diff.deletedVariables.length +
+    diff.styleValueChanges.length +
+    diff.stylePathChanges.length +
+    diff.newStyles.length +
+    diff.deletedStyles.length
+  );
+}
+
+function countStyleChanges(diff: ComparisonResult): number {
+  return (
+    diff.styleValueChanges.length +
+    diff.stylePathChanges.length +
+    diff.newStyles.length +
+    diff.deletedStyles.length
   );
 }
 

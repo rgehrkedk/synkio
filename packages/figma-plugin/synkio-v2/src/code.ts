@@ -8,6 +8,7 @@ import {
   PluginState,
   BaselineData,
   BaselineEntry,
+  StyleBaselineEntry,
   TokenEntry,
   StyleEntry,
   SyncEvent,
@@ -462,16 +463,40 @@ async function handleApplyToFigma() {
       updated++;
     }
 
+    // Apply new styles
+    for (const newStyle of diff.newStyles) {
+      if (codeBaseline.styles) {
+        await createOrUpdateStyle(codeBaseline.styles, newStyle);
+        created++;
+      }
+    }
+
+    // Apply style value changes
+    for (const styleChange of diff.styleValueChanges) {
+      if (codeBaseline.styles) {
+        await createOrUpdateStyle(codeBaseline.styles, styleChange);
+        updated++;
+      }
+    }
+
     // Update history
     const user = figma.currentUser?.name || 'unknown';
     const history = loadSimple<SyncEvent[]>(KEYS.HISTORY) || [];
+
+    const allChangePaths = [
+      ...diff.newVariables.map(v => v.path),
+      ...diff.valueChanges.map(v => v.path),
+      ...diff.newStyles.map(s => `[style] ${s.path}`),
+      ...diff.styleValueChanges.map(s => `[style] ${s.path}`),
+    ];
+
     const newEvent: SyncEvent = {
       id: Date.now().toString(),
       timestamp: Date.now(),
       user,
       direction: 'from-code',
       changeCount: created + updated,
-      changes: [...diff.newVariables, ...diff.valueChanges].map(v => v.path),
+      changes: allChangePaths.slice(0, 20),
     };
 
     const updatedHistory = [newEvent, ...history].slice(0, 10);
@@ -611,10 +636,25 @@ function buildBaseline(tokens: TokenEntry[], styles: StyleEntry[]): BaselineData
     };
   }
 
-  // TODO: Add styles to baseline
+  // Build styles baseline
+  const stylesBaseline: Record<string, StyleBaselineEntry> = {};
+
+  for (const style of styles) {
+    // Key format: styleId
+    const key = style.styleId;
+
+    stylesBaseline[key] = {
+      styleId: style.styleId,
+      type: style.type,
+      path: style.path,
+      value: style.value,
+      description: style.description,
+    };
+  }
 
   return {
     baseline,
+    styles: Object.keys(stylesBaseline).length > 0 ? stylesBaseline : undefined,
     metadata: {
       syncedAt: new Date().toISOString(),
     },
@@ -678,6 +718,251 @@ async function createOrUpdateVariable(
   // Set value
   const value = convertValueForFigma(change.value, change.type);
   variable.setValueForMode(modeId, value);
+}
+
+// =============================================================================
+// Style Creation/Update
+// =============================================================================
+
+async function createOrUpdateStyle(
+  stylesBaseline: Record<string, StyleBaselineEntry>,
+  change: { path: string; value: unknown; styleType: StyleType; styleId?: string }
+): Promise<void> {
+  const styleName = change.path.replace(/\./g, '/');
+
+  // Try to find existing style
+  let existingStyle: PaintStyle | TextStyle | EffectStyle | null = null;
+
+  if (change.styleId) {
+    existingStyle = figma.getStyleById(change.styleId) as PaintStyle | TextStyle | EffectStyle | null;
+  }
+
+  if (!existingStyle) {
+    // Try to find by name
+    if (change.styleType === 'paint') {
+      existingStyle = figma.getLocalPaintStyles().find(s => s.name === styleName) || null;
+    } else if (change.styleType === 'text') {
+      existingStyle = figma.getLocalTextStyles().find(s => s.name === styleName) || null;
+    } else if (change.styleType === 'effect') {
+      existingStyle = figma.getLocalEffectStyles().find(s => s.name === styleName) || null;
+    }
+  }
+
+  // Get the style value from baseline
+  const styleEntry = Object.values(stylesBaseline).find(s => s.path === change.path);
+  if (!styleEntry) return;
+
+  const styleValue = styleEntry.value as Record<string, unknown>;
+
+  if (change.styleType === 'paint') {
+    if (!existingStyle) {
+      existingStyle = figma.createPaintStyle();
+      existingStyle.name = styleName;
+    }
+
+    const paints = convertToPaints(styleValue);
+    if (paints) {
+      (existingStyle as PaintStyle).paints = paints;
+    }
+  } else if (change.styleType === 'text') {
+    if (!existingStyle) {
+      existingStyle = figma.createTextStyle();
+      existingStyle.name = styleName;
+    }
+
+    await applyTypographyStyle(existingStyle as TextStyle, styleValue);
+  } else if (change.styleType === 'effect') {
+    if (!existingStyle) {
+      existingStyle = figma.createEffectStyle();
+      existingStyle.name = styleName;
+    }
+
+    const effects = convertToEffects(styleValue);
+    if (effects) {
+      (existingStyle as EffectStyle).effects = effects;
+    }
+  }
+}
+
+function convertToPaints(styleValue: Record<string, unknown>): Paint[] | null {
+  if (!styleValue.$type) return null;
+
+  if (styleValue.$type === 'color') {
+    const colorValue = styleValue.$value as string;
+    const rgba = parseColor(colorValue);
+    return [{
+      type: 'SOLID',
+      color: { r: rgba.r, g: rgba.g, b: rgba.b },
+      opacity: rgba.a,
+    }];
+  }
+
+  if (styleValue.$type === 'gradient') {
+    const gradientData = styleValue.$value as {
+      gradientType: string;
+      stops: Array<{ color: string; position: number }>;
+      angle?: number;
+    };
+
+    const gradientTypeMap: Record<string, 'GRADIENT_LINEAR' | 'GRADIENT_RADIAL' | 'GRADIENT_ANGULAR' | 'GRADIENT_DIAMOND'> = {
+      linear: 'GRADIENT_LINEAR',
+      radial: 'GRADIENT_RADIAL',
+      angular: 'GRADIENT_ANGULAR',
+      diamond: 'GRADIENT_DIAMOND',
+    };
+
+    const gradientStops: ColorStop[] = gradientData.stops.map(stop => {
+      const rgba = parseColor(stop.color);
+      return {
+        position: stop.position,
+        color: { r: rgba.r, g: rgba.g, b: rgba.b, a: rgba.a },
+      };
+    });
+
+    return [{
+      type: gradientTypeMap[gradientData.gradientType] || 'GRADIENT_LINEAR',
+      gradientStops,
+      gradientTransform: [[1, 0, 0], [0, 1, 0]], // Identity transform
+    }];
+  }
+
+  return null;
+}
+
+async function applyTypographyStyle(style: TextStyle, styleValue: Record<string, unknown>): Promise<void> {
+  if (styleValue.$type !== 'typography') return;
+
+  const typographyValue = styleValue.$value as {
+    fontFamily: string;
+    fontSize: string;
+    fontWeight: number | string;
+    lineHeight: string | number;
+    letterSpacing: string;
+    textTransform?: string;
+    textDecoration?: string;
+  };
+
+  // Load font
+  const fontWeight = typeof typographyValue.fontWeight === 'number'
+    ? weightToStyle(typographyValue.fontWeight)
+    : typographyValue.fontWeight;
+
+  try {
+    await figma.loadFontAsync({ family: typographyValue.fontFamily, style: fontWeight });
+    style.fontName = { family: typographyValue.fontFamily, style: fontWeight };
+  } catch {
+    // Font not available, try loading default
+    try {
+      await figma.loadFontAsync({ family: typographyValue.fontFamily, style: 'Regular' });
+      style.fontName = { family: typographyValue.fontFamily, style: 'Regular' };
+    } catch {
+      // Keep existing font
+    }
+  }
+
+  // Font size
+  const fontSize = parseFloat(typographyValue.fontSize);
+  if (!isNaN(fontSize)) {
+    style.fontSize = fontSize;
+  }
+
+  // Line height
+  if (typographyValue.lineHeight === 'auto') {
+    style.lineHeight = { unit: 'AUTO' };
+  } else if (typeof typographyValue.lineHeight === 'string') {
+    if (typographyValue.lineHeight.endsWith('%')) {
+      style.lineHeight = { unit: 'PERCENT', value: parseFloat(typographyValue.lineHeight) };
+    } else {
+      style.lineHeight = { unit: 'PIXELS', value: parseFloat(typographyValue.lineHeight) };
+    }
+  } else if (typeof typographyValue.lineHeight === 'number') {
+    style.lineHeight = { unit: 'PIXELS', value: typographyValue.lineHeight };
+  }
+
+  // Letter spacing
+  if (typographyValue.letterSpacing.endsWith('%')) {
+    style.letterSpacing = { unit: 'PERCENT', value: parseFloat(typographyValue.letterSpacing) };
+  } else {
+    style.letterSpacing = { unit: 'PIXELS', value: parseFloat(typographyValue.letterSpacing) };
+  }
+
+  // Text case
+  if (typographyValue.textTransform) {
+    const caseMap: Record<string, TextCase> = {
+      uppercase: 'UPPER',
+      lowercase: 'LOWER',
+      capitalize: 'TITLE',
+      'small-caps': 'SMALL_CAPS',
+    };
+    style.textCase = caseMap[typographyValue.textTransform] || 'ORIGINAL';
+  }
+
+  // Text decoration
+  if (typographyValue.textDecoration) {
+    const decorationMap: Record<string, TextDecoration> = {
+      underline: 'UNDERLINE',
+      'line-through': 'STRIKETHROUGH',
+    };
+    style.textDecoration = decorationMap[typographyValue.textDecoration] || 'NONE';
+  }
+}
+
+function weightToStyle(weight: number): string {
+  const weightMap: Record<number, string> = {
+    100: 'Thin',
+    200: 'Extra Light',
+    300: 'Light',
+    400: 'Regular',
+    500: 'Medium',
+    600: 'Semi Bold',
+    700: 'Bold',
+    800: 'Extra Bold',
+    900: 'Black',
+  };
+  return weightMap[weight] || 'Regular';
+}
+
+function convertToEffects(styleValue: Record<string, unknown>): Effect[] | null {
+  if (!styleValue.$type) return null;
+
+  if (styleValue.$type === 'shadow') {
+    const shadowData = styleValue.$value;
+    const shadows = Array.isArray(shadowData) ? shadowData : [shadowData];
+
+    return shadows.map((shadow: {
+      offsetX: string;
+      offsetY: string;
+      blur: string;
+      spread: string;
+      color: string;
+      inset?: boolean;
+    }) => {
+      const rgba = parseColor(shadow.color);
+      return {
+        type: shadow.inset ? 'INNER_SHADOW' : 'DROP_SHADOW',
+        color: rgba,
+        offset: {
+          x: parseFloat(shadow.offsetX),
+          y: parseFloat(shadow.offsetY),
+        },
+        radius: parseFloat(shadow.blur),
+        spread: parseFloat(shadow.spread),
+        visible: true,
+        blendMode: 'NORMAL',
+      } as DropShadowEffect | InnerShadowEffect;
+    });
+  }
+
+  if (styleValue.$type === 'blur') {
+    const blurData = styleValue.$value as { radius: string };
+    return [{
+      type: 'LAYER_BLUR',
+      radius: parseFloat(blurData.radius),
+      visible: true,
+    }];
+  }
+
+  return null;
 }
 
 function getResolvedType(type: string): VariableResolvedDataType {

@@ -2,7 +2,7 @@
 // Sync Screen - Figma to Code
 // =============================================================================
 
-import { PluginState, ComparisonResult, ValueChange, PathChange, NewVariable, DeletedVariable } from '../lib/types';
+import { PluginState, ComparisonResult, ValueChange, PathChange, NewVariable, DeletedVariable, StyleValueChange, StylePathChange, NewStyle, DeletedStyle } from '../lib/types';
 import { RouterActions } from '../ui/router';
 import {
   el,
@@ -42,7 +42,7 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
   if (!syncBaseline) {
     const content = createContentArea([
       EmptyState({
-        icon: '\uD83D\uDE80',
+        icon: 'rocket',
         title: 'Ready to sync',
         description: 'Click the button below to create your first sync. This will save your Figma variables so the CLI can fetch them.',
       }),
@@ -80,8 +80,10 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
   // Breaking changes warning
   if (breakingChanges > 0) {
     const warningParts: string[] = [];
-    if (syncDiff!.pathChanges.length > 0) warningParts.push(`${syncDiff!.pathChanges.length} rename${syncDiff!.pathChanges.length === 1 ? '' : 's'}`);
-    if (syncDiff!.deletedVariables.length > 0) warningParts.push(`${syncDiff!.deletedVariables.length} deletion${syncDiff!.deletedVariables.length === 1 ? '' : 's'}`);
+    const totalRenames = syncDiff!.pathChanges.length + syncDiff!.stylePathChanges.length;
+    const totalDeletions = syncDiff!.deletedVariables.length + syncDiff!.deletedStyles.length;
+    if (totalRenames > 0) warningParts.push(`${totalRenames} rename${totalRenames === 1 ? '' : 's'}`);
+    if (totalDeletions > 0) warningParts.push(`${totalDeletions} deletion${totalDeletions === 1 ? '' : 's'}`);
 
     contentChildren.push(Alert({
       type: 'warning',
@@ -90,7 +92,7 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
     }));
   }
 
-  // Diff sections grouped by collection
+  // Diff sections grouped by collection (variables)
   if (syncDiff && hasChanges) {
     const groupedDiffs = groupByCollection(syncDiff);
 
@@ -105,13 +107,30 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
       });
       contentChildren.push(section);
     }
+
+    // Style sections grouped by type
+    if (countStyleChanges(syncDiff) > 0) {
+      const groupedStyles = groupStylesByType(syncDiff);
+
+      for (const [styleType, changes] of Object.entries(groupedStyles)) {
+        const diffItems = buildStyleDiffItems(changes);
+        const section = Section({
+          title: styleType,
+          count: diffItems.length,
+          collapsible: true,
+          defaultExpanded: true,
+          children: diffItems,
+        });
+        contentChildren.push(section);
+      }
+    }
   }
 
   // No changes state
   if (!hasChanges) {
     contentChildren.push(
       EmptyState({
-        icon: '\u2713',
+        icon: 'check',
         title: 'Everything is in sync!',
         description: syncBaseline?.metadata?.syncedAt
           ? `No changes since last sync on ${formatDate(syncBaseline.metadata.syncedAt)}`
@@ -149,6 +168,13 @@ interface GroupedChanges {
   renamed: PathChange[];
 }
 
+interface GroupedStyleChanges {
+  added: NewStyle[];
+  modified: StyleValueChange[];
+  deleted: DeletedStyle[];
+  renamed: StylePathChange[];
+}
+
 function groupByCollection(diff: ComparisonResult): Record<string, GroupedChanges> {
   const grouped: Record<string, GroupedChanges> = {};
 
@@ -176,6 +202,80 @@ function groupByCollection(diff: ComparisonResult): Record<string, GroupedChange
   }
 
   return grouped;
+}
+
+function groupStylesByType(diff: ComparisonResult): Record<string, GroupedStyleChanges> {
+  const grouped: Record<string, GroupedStyleChanges> = {};
+
+  const getOrCreate = (styleType: string): GroupedStyleChanges => {
+    const label = styleType === 'paint' ? 'Paint Styles' : styleType === 'text' ? 'Text Styles' : 'Effect Styles';
+    if (!grouped[label]) {
+      grouped[label] = { added: [], modified: [], deleted: [], renamed: [] };
+    }
+    return grouped[label];
+  };
+
+  for (const item of diff.newStyles) {
+    getOrCreate(item.styleType).added.push(item);
+  }
+
+  for (const item of diff.styleValueChanges) {
+    getOrCreate(item.styleType).modified.push(item);
+  }
+
+  for (const item of diff.deletedStyles) {
+    getOrCreate(item.styleType).deleted.push(item);
+  }
+
+  for (const item of diff.stylePathChanges) {
+    getOrCreate(item.styleType).renamed.push(item);
+  }
+
+  return grouped;
+}
+
+function buildStyleDiffItems(changes: GroupedStyleChanges): HTMLElement[] {
+  const items: HTMLElement[] = [];
+
+  // Added
+  for (const item of changes.added) {
+    items.push(DiffItem({
+      type: 'added',
+      path: item.path,
+      value: formatValue(item.value),
+    }));
+  }
+
+  // Modified
+  for (const item of changes.modified) {
+    items.push(DiffItem({
+      type: 'modified',
+      path: item.path,
+      value: formatValue(item.newValue),
+      oldValue: formatValue(item.oldValue),
+    }));
+  }
+
+  // Renamed
+  for (const item of changes.renamed) {
+    items.push(DiffItem({
+      type: 'renamed',
+      path: item.newPath,
+      oldPath: item.oldPath,
+      value: formatValue(item.value),
+    }));
+  }
+
+  // Deleted
+  for (const item of changes.deleted) {
+    items.push(DiffItem({
+      type: 'deleted',
+      path: item.path,
+      value: `was ${formatValue(item.value)}`,
+    }));
+  }
+
+  return items;
 }
 
 function buildDiffItems(changes: GroupedChanges): HTMLElement[] {
@@ -229,12 +329,30 @@ function countChanges(diff: ComparisonResult): number {
     diff.valueChanges.length +
     diff.pathChanges.length +
     diff.newVariables.length +
-    diff.deletedVariables.length
+    diff.deletedVariables.length +
+    diff.styleValueChanges.length +
+    diff.stylePathChanges.length +
+    diff.newStyles.length +
+    diff.deletedStyles.length
   );
 }
 
 function countBreakingChanges(diff: ComparisonResult): number {
-  return diff.pathChanges.length + diff.deletedVariables.length;
+  return (
+    diff.pathChanges.length +
+    diff.deletedVariables.length +
+    diff.stylePathChanges.length +
+    diff.deletedStyles.length
+  );
+}
+
+function countStyleChanges(diff: ComparisonResult): number {
+  return (
+    diff.styleValueChanges.length +
+    diff.stylePathChanges.length +
+    diff.newStyles.length +
+    diff.deletedStyles.length
+  );
 }
 
 function formatValue(value: unknown): string {

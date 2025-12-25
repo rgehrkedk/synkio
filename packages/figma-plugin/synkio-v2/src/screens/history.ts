@@ -9,6 +9,7 @@ import {
   Header,
   Card,
   EmptyState,
+  Icon,
 } from '../ui/components';
 import {
   createPageLayout,
@@ -31,7 +32,7 @@ export function HistoryScreen(state: PluginState, actions: RouterActions): HTMLE
   if (history.length === 0) {
     contentChildren.push(
       EmptyState({
-        icon: '\uD83D\uDCDC',
+        icon: 'history',
         title: 'No history yet',
         description: 'Your sync history will appear here after your first sync.',
       })
@@ -94,7 +95,8 @@ function buildHistoryItem(event: SyncEvent): HTMLElement {
       }
     `,
   });
-  directionBadge.appendChild(el('span', {}, event.direction === 'to-code' ? 'SYNC \u25B6' : 'APPLY \u25C0'));
+  directionBadge.appendChild(Icon(event.direction === 'to-code' ? 'upload' : 'download', 'xs'));
+  directionBadge.appendChild(el('span', {}, event.direction === 'to-code' ? 'SYNC' : 'APPLY'));
 
   const timeLabel = el('span', {
     style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary);',

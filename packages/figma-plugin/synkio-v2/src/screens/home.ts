@@ -10,6 +10,8 @@ import {
   Card,
   Button,
   StatusIndicator,
+  Icon,
+  IconCircle,
 } from '../ui/components';
 import {
   createPageLayout,
@@ -33,15 +35,22 @@ export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElem
   const activitySection = buildActivitySection(history, actions);
 
   // Settings button for header
-  const settingsBtn = Button({
-    label: '\u2699',
-    variant: 'ghost',
-    size: 'sm',
-    onClick: () => actions.navigate('settings'),
+  const settingsBtn = el('button', {
+    style: 'background: none; border: none; padding: 6px; cursor: pointer; border-radius: var(--radius-sm); color: var(--color-text-secondary); display: flex; align-items: center; justify-content: center;',
+  });
+  settingsBtn.appendChild(Icon('settings', 'md'));
+  settingsBtn.addEventListener('click', () => actions.navigate('settings'));
+  settingsBtn.addEventListener('mouseenter', () => {
+    settingsBtn.style.background = 'var(--color-bg-secondary)';
+    settingsBtn.style.color = 'var(--color-text)';
+  });
+  settingsBtn.addEventListener('mouseleave', () => {
+    settingsBtn.style.background = 'none';
+    settingsBtn.style.color = 'var(--color-text-secondary)';
   });
 
   const header = Header({
-    title: '\u25C9 Synkio',
+    title: 'Synkio',
     rightAction: settingsBtn,
   });
 
@@ -79,13 +88,18 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
   const visual = el('div', { style: 'display: flex; align-items: center; justify-content: center; gap: var(--spacing-xl); margin: var(--spacing-lg) 0;' });
 
   const figmaBox = el('div', { style: 'display: flex; flex-direction: column; align-items: center; gap: var(--spacing-xs);' });
-  figmaBox.appendChild(el('div', { style: 'width: 48px; height: 48px; border: 2px solid var(--color-border); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 20px;' }, '\uD83C\uDFA8'));
+  const figmaIconBox = el('div', { style: 'width: 48px; height: 48px; border: 2px solid var(--color-border); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary);' });
+  figmaIconBox.appendChild(Icon('figma', 'lg'));
+  figmaBox.appendChild(figmaIconBox);
   figmaBox.appendChild(el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-secondary);' }, 'Figma'));
 
-  const arrow = el('div', { style: 'font-size: 20px; color: var(--color-text-tertiary);' }, '\u2194');
+  const arrow = el('div', { style: 'color: var(--color-text-tertiary);' });
+  arrow.appendChild(Icon('arrow-left-right', 'lg'));
 
   const codeBox = el('div', { style: 'display: flex; flex-direction: column; align-items: center; gap: var(--spacing-xs);' });
-  codeBox.appendChild(el('div', { style: 'width: 48px; height: 48px; border: 2px solid var(--color-border); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 20px;' }, '\uD83D\uDCBB'));
+  const codeIconBox = el('div', { style: 'width: 48px; height: 48px; border: 2px solid var(--color-border); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary);' });
+  codeIconBox.appendChild(Icon('code', 'lg'));
+  codeBox.appendChild(codeIconBox);
   codeBox.appendChild(el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-secondary);' }, 'Code'));
 
   visual.appendChild(figmaBox);
@@ -232,18 +246,18 @@ function buildActivitySection(history: SyncEvent[], actions: RouterActions): HTM
 function buildActivityItem(event: SyncEvent): HTMLElement {
   const date = new Date(event.timestamp);
   const timeAgo = getTimeAgo(date);
-  const directionIcon = event.direction === 'to-code' ? '\u25B6' : '\u25C0';
   const directionLabel = event.direction === 'to-code' ? 'synced' : 'applied';
 
   const item = el('div', { style: 'display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm); background: var(--color-bg-secondary); border-radius: var(--radius-md);' });
 
-  const icon = el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary);' }, directionIcon);
-  const text = el('span', { style: 'font-size: var(--font-size-xs); flex: 1;' });
-  text.innerHTML = `<strong>@${event.user}</strong> ${directionLabel} ${event.changeCount} token${event.changeCount === 1 ? '' : 's'}`;
+  const iconWrapper = el('span', { style: 'color: var(--color-text-tertiary); display: flex; align-items: center;' });
+  iconWrapper.appendChild(Icon(event.direction === 'to-code' ? 'upload' : 'download', 'sm'));
+  const textEl = el('span', { style: 'font-size: var(--font-size-xs); flex: 1;' });
+  textEl.innerHTML = `<strong>@${event.user}</strong> ${directionLabel} ${event.changeCount} token${event.changeCount === 1 ? '' : 's'}`;
   const time = el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary);' }, timeAgo);
 
-  item.appendChild(icon);
-  item.appendChild(text);
+  item.appendChild(iconWrapper);
+  item.appendChild(textEl);
   item.appendChild(time);
 
   return item;
@@ -257,7 +271,11 @@ function countChanges(diff: PluginState['syncDiff']): number {
     diff.valueChanges.length +
     diff.pathChanges.length +
     diff.newVariables.length +
-    diff.deletedVariables.length
+    diff.deletedVariables.length +
+    diff.styleValueChanges.length +
+    diff.stylePathChanges.length +
+    diff.newStyles.length +
+    diff.deletedStyles.length
   );
 }
 

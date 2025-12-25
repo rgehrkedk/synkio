@@ -211,6 +211,45 @@ export interface ComparisonResult {
   deletedModes: ModeChange[];
   newVariables: NewVariable[];
   deletedVariables: DeletedVariable[];
+  // Style changes
+  styleValueChanges: StyleValueChange[];
+  stylePathChanges: StylePathChange[];
+  newStyles: NewStyle[];
+  deletedStyles: DeletedStyle[];
+}
+
+// =============================================================================
+// Style Comparison Types
+// =============================================================================
+
+export interface StyleValueChange {
+  styleId: string;
+  path: string;
+  oldValue: unknown;
+  newValue: unknown;
+  styleType: StyleType;
+}
+
+export interface StylePathChange {
+  styleId: string;
+  oldPath: string;
+  newPath: string;
+  value: unknown;
+  styleType: StyleType;
+}
+
+export interface NewStyle {
+  styleId: string;
+  path: string;
+  value: unknown;
+  styleType: StyleType;
+}
+
+export interface DeletedStyle {
+  styleId: string;
+  path: string;
+  value: unknown;
+  styleType: StyleType;
 }
 
 export interface DiffSummary {
