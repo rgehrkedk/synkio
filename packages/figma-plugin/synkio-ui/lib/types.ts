@@ -158,3 +158,34 @@ export interface ComparisonResult {
   collectionRenames: CollectionRename[];
   modeRenames: ModeRename[];
 }
+
+// =============================================================================
+// Baseline Types (Phase 1: Separate Sync and Code Baselines)
+// =============================================================================
+
+/**
+ * Sync Baseline - Used for Figma→Code workflow (Changes Since Last Sync)
+ * Always contains variableId for ID-based comparison
+ * Created by the Sync button
+ */
+export interface SyncBaseline {
+  type: 'sync';
+  tokens: TokenEntry[];      // Always has variableId
+  styles?: StyleEntry[];
+  timestamp: string;
+  syncedTo: 'local' | 'remote';  // Where it was synced to
+}
+
+/**
+ * Code Baseline - Used for Code→Figma workflow (Compare with Code)
+ * May lack variableId for path-based comparison
+ * Created by Remote Fetch or Import actions
+ */
+export interface CodeBaseline {
+  type: 'code';
+  tokens: TokenEntry[];      // May lack variableId
+  styles?: StyleEntry[];
+  source: 'fetch' | 'import';
+  sourceUrl?: string;
+  timestamp: string;
+}

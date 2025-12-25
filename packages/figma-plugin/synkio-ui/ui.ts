@@ -53,7 +53,8 @@ interface RemoteSettings {
     token?: string;
   };
   customUrl?: string;
-  localhostPort?: number;
+  localhostUrl?: string;
+  localhostToken?: string;
   autoCheck?: boolean;
 }
 
@@ -63,6 +64,19 @@ interface RemoteStatus {
   error?: string;
   updatesAvailable?: number;
 }
+
+// State for diff tabs
+let activeDiffTab: 'sync' | 'code' = 'sync';
+let syncDiffs: DiffEntry[] = [];
+let syncCollectionRenames: CollectionRename[] = [];
+let syncModeRenames: ModeRename[] = [];
+let syncTimestamp: number | undefined;
+let codeDiffs: DiffEntry[] = [];
+let codeCollectionRenames: CollectionRename[] = [];
+let codeModeRenames: ModeRename[] = [];
+let codeTimestamp: number | undefined;
+let codeSource: string | undefined;  // "fetch", "import", etc.
+let codeSourceUrl: string | undefined;
 
 let currentDiffs: DiffEntry[] = [];
 let currentCollectionRenames: CollectionRename[] = [];
@@ -93,6 +107,16 @@ const collectionsList = document.getElementById('collectionsList')!;
 const saveCollectionsBtn = document.getElementById('saveCollectionsBtn') as HTMLButtonElement;
 const collectionsWarning = document.getElementById('collectionsWarning')!;
 const excludedBadge = document.getElementById('excludedBadge')!;
+
+// Diff tab elements
+const syncDiffView = document.getElementById('syncDiffView')!;
+const codeDiffView = document.getElementById('codeDiffView')!;
+const syncDiffHeader = document.getElementById('syncDiffHeader')!;
+const codeDiffHeader = document.getElementById('codeDiffHeader')!;
+const syncDiffContent = document.getElementById('syncDiffContent')!;
+const codeDiffContent = document.getElementById('codeDiffContent')!;
+const syncTabBadge = document.getElementById('syncTabBadge')!;
+const codeTabBadge = document.getElementById('codeTabBadge')!;
 
 // Remote sync elements
 const remoteStatusEl = document.getElementById('remote-status')!;
@@ -191,9 +215,12 @@ function populateSettingsForm(settings: RemoteSettings) {
     (document.getElementById('custom-url') as HTMLInputElement).value = settings.customUrl;
   }
 
-  // Localhost port
-  if (settings.localhostPort) {
-    (document.getElementById('localhost-port') as HTMLInputElement).value = String(settings.localhostPort);
+  // Localhost settings
+  if (settings.localhostUrl) {
+    (document.getElementById('localhost-url') as HTMLInputElement).value = settings.localhostUrl;
+  }
+  if (settings.localhostToken) {
+    (document.getElementById('localhost-token') as HTMLInputElement).value = settings.localhostToken;
   }
 
   // Auto check
@@ -202,12 +229,13 @@ function populateSettingsForm(settings: RemoteSettings) {
   updateSourceTypeVisibility();
 }
 
-// Tab switching
-document.querySelectorAll('.tab').forEach(tab => {
+// Tab switching (main navigation: Diff/History/Collections)
+document.querySelectorAll('[data-tab]').forEach(tab => {
   tab.addEventListener('click', () => {
     const targetTab = (tab as HTMLElement).dataset.tab;
 
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    // Only update main navigation tabs (not diff sub-tabs)
+    document.querySelectorAll('[data-tab]').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
 
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -224,11 +252,80 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
+// Diff tab switching (Sync vs Code)
+document.querySelectorAll('[data-diff-tab]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetDiffTab = (tab as HTMLElement).dataset.diffTab as 'sync' | 'code';
+
+    activeDiffTab = targetDiffTab;
+
+    // Update tab active states
+    document.querySelectorAll('[data-diff-tab]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    // Update view visibility
+    syncDiffView.classList.toggle('active', targetDiffTab === 'sync');
+    codeDiffView.classList.toggle('active', targetDiffTab === 'code');
+
+    // Re-render current view
+    renderDiffs();
+  });
+});
+
 // Remote sync button handlers
-fetchBtn.addEventListener('click', () => {
+fetchBtn.addEventListener('click', async () => {
   remoteStatus.state = 'fetching';
   updateRemoteStatus();
-  parent.postMessage({ pluginMessage: { type: 'fetch-remote' } }, '*');
+
+  // For localhost/tunnel, fetch directly from UI
+  if (remoteSettings.sourceType === 'localhost') {
+    const baseUrl = remoteSettings.localhostUrl;
+    if (!baseUrl) {
+      remoteStatus.state = 'error';
+      remoteStatus.error = 'Server URL not configured. Go to Settings.';
+      updateRemoteStatus();
+      return;
+    }
+
+    try {
+      const token = remoteSettings.localhostToken;
+      let url = baseUrl;
+      if (token) {
+        url += (url.includes('?') ? '&' : '?') + `token=${encodeURIComponent(token)}`;
+      }
+
+      console.log('[Synkio] Fetching from:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+          ...(token ? { 'X-Synkio-Token': token } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Invalid or missing token');
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      // Send the fetched data to the backend for processing
+      parent.postMessage({ pluginMessage: { type: 'process-remote-data', data } }, '*');
+    } catch (error: any) {
+      remoteStatus.state = 'error';
+      remoteStatus.error = error.message?.includes('Failed to fetch') || error.message?.includes('Content Security Policy')
+        ? 'Cannot connect. Use an HTTPS tunnel (e.g., ngrok).'
+        : error.message;
+      updateRemoteStatus();
+    }
+  } else {
+    // For GitHub/URL, let the backend handle it
+    parent.postMessage({ pluginMessage: { type: 'fetch-remote' } }, '*');
+  }
 });
 
 checkBtn.addEventListener('click', () => {
@@ -285,7 +382,8 @@ saveSettingsBtn.addEventListener('click', () => {
   } else if (sourceType === 'url') {
     settings.customUrl = (document.getElementById('custom-url') as HTMLInputElement).value;
   } else if (sourceType === 'localhost') {
-    settings.localhostPort = parseInt((document.getElementById('localhost-port') as HTMLInputElement).value) || 3847;
+    settings.localhostUrl = (document.getElementById('localhost-url') as HTMLInputElement).value || undefined;
+    settings.localhostToken = (document.getElementById('localhost-token') as HTMLInputElement).value || undefined;
   }
 
   saveSettingsBtn.disabled = true;
@@ -496,28 +594,119 @@ function updateExcludedBadge() {
   }
 }
 
-// Render diff view
-function renderDiffs(diffs: DiffEntry[], collectionRenames: CollectionRename[] = [], modeRenames: ModeRename[] = []) {
-  currentDiffs = diffs;
-  currentCollectionRenames = collectionRenames;
-  currentModeRenames = modeRenames;
+// Render diff view - delegates to specific tab renderers
+function renderDiffs() {
+  renderSyncDiffs();
+  renderCodeDiffs();
+  updateDiffBadges();
+}
+
+// Render sync diffs (Changes Since Last Sync)
+function renderSyncDiffs() {
+  const diffs = syncDiffs;
+  const collectionRenames = syncCollectionRenames;
+  const modeRenames = syncModeRenames;
 
   const totalChanges = diffs.length + collectionRenames.length + modeRenames.length;
-  diffHeader.textContent = `Pending Changes (${totalChanges})`;
+  syncDiffHeader.textContent = `Changes Since Last Sync (${totalChanges})`;
+
+  // Show timestamp if available
+  let timestampHtml = '';
+  if (syncTimestamp) {
+    const timeAgo = formatTimeAgo(syncTimestamp);
+    timestampHtml = `
+      <div style="font-size: 10px; color: #999; margin-bottom: 12px; padding: 0 4px;">
+        Last synced: ${timeAgo}
+      </div>
+    `;
+  }
 
   if (totalChanges === 0) {
-    diffContent.innerHTML = `
+    syncDiffContent.innerHTML = `
+      ${timestampHtml}
       <div class="empty-state dashed">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
           <path d="M9 12l2 2 4-4"/>
         </svg>
-        <p>Everything is up to date</p>
+        <p>No changes since last sync</p>
       </div>
     `;
     return;
   }
 
+  syncDiffContent.innerHTML = `${timestampHtml}<div class="diff-list">${renderDiffContent(diffs, collectionRenames, modeRenames)}</div>`;
+}
+
+// Render code diffs (Compare with Code)
+function renderCodeDiffs() {
+  const diffs = codeDiffs;
+  const collectionRenames = codeCollectionRenames;
+  const modeRenames = codeModeRenames;
+
+  const totalChanges = diffs.length + collectionRenames.length + modeRenames.length;
+  codeDiffHeader.textContent = `Compare with Code (${totalChanges})`;
+
+  // Show source and timestamp if available
+  let metadataHtml = '';
+  if (codeTimestamp || codeSource || codeSourceUrl) {
+    const parts: string[] = [];
+
+    if (codeSource === 'fetch' && codeSourceUrl) {
+      parts.push(`Source: <a href="${escapeHtml(codeSourceUrl)}" target="_blank" style="color: #18A0FB; text-decoration: none;">${escapeHtml(codeSourceUrl)}</a>`);
+    } else if (codeSource === 'import') {
+      parts.push('Imported from file');
+    }
+
+    if (codeTimestamp) {
+      const timeAgo = formatTimeAgo(codeTimestamp);
+      parts.push(`Last fetched: ${timeAgo}`);
+    }
+
+    if (parts.length > 0) {
+      metadataHtml = `
+        <div style="font-size: 10px; color: #999; margin-bottom: 12px; padding: 0 4px;">
+          ${parts.join(' • ')}
+        </div>
+      `;
+    }
+  }
+
+  // Check if we have no code baseline at all
+  if (totalChanges === 0 && !codeTimestamp) {
+    codeDiffContent.innerHTML = `
+      <div class="empty-state dashed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <p>Fetch tokens to compare with Figma</p>
+        <button class="btn btn-secondary" style="margin-top: 12px;" onclick="document.getElementById('fetch-btn').click()">Fetch Latest</button>
+      </div>
+    `;
+    return;
+  }
+
+  if (totalChanges === 0) {
+    codeDiffContent.innerHTML = `
+      ${metadataHtml}
+      <div class="empty-state dashed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+        <p>Figma matches your code tokens</p>
+      </div>
+    `;
+    return;
+  }
+
+  codeDiffContent.innerHTML = `${metadataHtml}<div class="diff-list">${renderDiffContent(diffs, collectionRenames, modeRenames)}</div>`;
+}
+
+// Shared diff content rendering logic
+function renderDiffContent(diffs: DiffEntry[], collectionRenames: CollectionRename[], modeRenames: ModeRename[]): string {
   let html = '';
 
   // Render collection renames first (most significant)
@@ -621,7 +810,27 @@ function renderDiffs(diffs: DiffEntry[], collectionRenames: CollectionRename[] =
     }).join('');
   }
 
-  diffContent.innerHTML = `<div class="diff-list">${html}</div>`;
+  return html;
+}
+
+// Update badge counts for diff tabs
+function updateDiffBadges() {
+  const syncTotal = syncDiffs.length + syncCollectionRenames.length + syncModeRenames.length;
+  const codeTotal = codeDiffs.length + codeCollectionRenames.length + codeModeRenames.length;
+
+  if (syncTotal > 0) {
+    syncTabBadge.textContent = String(syncTotal);
+    syncTabBadge.style.display = 'inline';
+  } else {
+    syncTabBadge.style.display = 'none';
+  }
+
+  if (codeTotal > 0) {
+    codeTabBadge.textContent = String(codeTotal);
+    codeTabBadge.style.display = 'inline';
+  } else {
+    codeTabBadge.style.display = 'none';
+  }
 }
 
 // Render history
@@ -729,9 +938,14 @@ function updateStatus(diffCount: number) {
 window.onmessage = (event) => {
   const msg = event.data.pluginMessage;
 
+  // Legacy 'update' message - maps to sync diffs for backward compatibility
   if (msg && msg.type === 'update') {
-    const totalChanges = msg.diffs.length + (msg.collectionRenames?.length || 0) + (msg.modeRenames?.length || 0);
-    renderDiffs(msg.diffs, msg.collectionRenames || [], msg.modeRenames || []);
+    syncDiffs = msg.diffs || [];
+    syncCollectionRenames = msg.collectionRenames || [];
+    syncModeRenames = msg.modeRenames || [];
+
+    const totalChanges = syncDiffs.length + syncCollectionRenames.length + syncModeRenames.length;
+    renderDiffs();
     renderHistory(msg.history);
     updateStatus(totalChanges);
 
@@ -750,6 +964,56 @@ window.onmessage = (event) => {
     syncButton.disabled = false;
     syncIcon.textContent = '';
     syncText.textContent = 'Sync';
+  }
+
+  // New message type: update-sync-diffs (Changes Since Sync)
+  if (msg && msg.type === 'update-sync-diffs') {
+    syncDiffs = msg.diffs || [];
+    syncCollectionRenames = msg.collectionRenames || [];
+    syncModeRenames = msg.modeRenames || [];
+    syncTimestamp = msg.timestamp;
+
+    renderDiffs();
+
+    const totalChanges = syncDiffs.length + syncCollectionRenames.length + syncModeRenames.length;
+    updateStatus(totalChanges);
+
+    // Reset sync button
+    isSyncing = false;
+    syncButton.disabled = false;
+    syncIcon.textContent = '';
+    syncText.textContent = 'Sync';
+
+    // Auto-switch to sync tab if it has new changes
+    if (totalChanges > 0 && activeDiffTab !== 'sync') {
+      activeDiffTab = 'sync';
+      document.querySelectorAll('[data-diff-tab]').forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-diff-tab="sync"]')?.classList.add('active');
+      syncDiffView.classList.add('active');
+      codeDiffView.classList.remove('active');
+    }
+  }
+
+  // New message type: update-code-diffs (Compare with Code)
+  if (msg && msg.type === 'update-code-diffs') {
+    codeDiffs = msg.diffs || [];
+    codeCollectionRenames = msg.collectionRenames || [];
+    codeModeRenames = msg.modeRenames || [];
+    codeTimestamp = msg.timestamp;
+    codeSource = msg.source;
+    codeSourceUrl = msg.sourceUrl;
+
+    renderDiffs();
+
+    // Auto-switch to code tab when code diffs arrive
+    const totalChanges = codeDiffs.length + codeCollectionRenames.length + codeModeRenames.length;
+    if (totalChanges > 0) {
+      activeDiffTab = 'code';
+      document.querySelectorAll('[data-diff-tab]').forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-diff-tab="code"]')?.classList.add('active');
+      syncDiffView.classList.remove('active');
+      codeDiffView.classList.add('active');
+    }
   }
 
   if (msg && msg.type === 'collections-update') {
@@ -880,10 +1144,13 @@ window.onmessage = (event) => {
 
   if (msg && msg.type === 'settings-update') {
     populateSettingsForm(msg.settings);
+    updateRemoteStatus();
   }
 
   if (msg && msg.type === 'settings-saved') {
-    remoteSettings = msg.settings;
+    if (msg.settings) {
+      remoteSettings = msg.settings;
+    }
     saveSettingsBtn.disabled = false;
     saveSettingsBtn.textContent = 'Save Settings';
 
@@ -924,6 +1191,7 @@ window.onmessage = (event) => {
   }
 };
 
-// Tell plugin we're ready and initialize remote status
+// Tell plugin we're ready and request settings
 parent.postMessage({ pluginMessage: { type: 'ready' } }, '*');
+parent.postMessage({ pluginMessage: { type: 'get-settings' } }, '*');
 updateRemoteStatus();

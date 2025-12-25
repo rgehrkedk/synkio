@@ -63,7 +63,9 @@ export function buildFetchUrl(settings: PluginSettings): string {
 
   if (remote.type === 'localhost') {
     const port = remote.localhostPort || 3847;
-    return `http://localhost:${port}/baseline`;
+    const token = remote.localhostToken;
+    const url = `http://localhost:${port}/baseline`;
+    return token ? `${url}?token=${encodeURIComponent(token)}` : url;
   }
 
   throw new Error(`Unknown remote type: ${remote.type}`);
@@ -83,6 +85,11 @@ export function buildHeaders(settings: PluginSettings): Record<string, string> {
   if (settings.remote.type === 'github' && settings.remote.github?.token) {
     headers['Authorization'] = `Bearer ${settings.remote.github.token}`;
     headers['Accept'] = 'application/vnd.github.v3.raw';
+  }
+
+  // Add localhost token header
+  if (settings.remote.type === 'localhost' && settings.remote.localhostToken) {
+    headers['X-Synkio-Token'] = settings.remote.localhostToken;
   }
 
   return headers;
@@ -182,25 +189,20 @@ function convertCLIBaselineToSyncData(cliBaseline: any): SyncData | { error: str
 const DEFAULT_TIMEOUT = 30000; // 30 seconds
 
 /**
- * Fetch with timeout support
+ * Fetch with timeout support (Figma sandbox compatible - no AbortController)
  */
 async function fetchWithTimeout(
   url: string,
   options: RequestInit,
   timeout: number = DEFAULT_TIMEOUT
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  // Figma plugin sandbox doesn't have AbortController, so we use a race
+  const fetchPromise = fetch(url, options);
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('Request timeout')), timeout);
+  });
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    return response;
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return Promise.race([fetchPromise, timeoutPromise]);
 }
 
 /**

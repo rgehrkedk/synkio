@@ -1,0 +1,34 @@
+{
+  "base": {
+    "$value": 0,
+    "$type": "number"
+  },
+  "dropdown": {
+    "$value": 100,
+    "$type": "number"
+  },
+  "sticky": {
+    "$value": 200,
+    "$type": "number"
+  },
+  "overlay": {
+    "$value": 300,
+    "$type": "number"
+  },
+  "modal": {
+    "$value": 400,
+    "$type": "number"
+  },
+  "toast": {
+    "$value": 500,
+    "$type": "number"
+  },
+  "tooltip": {
+    "$value": 600,
+    "$type": "number"
+  },
+  "max": {
+    "$value": 9999,
+    "$type": "number"
+  }
+}

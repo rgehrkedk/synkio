@@ -22,7 +22,7 @@ export interface RemoteSettings {
   type: 'url' | 'github' | 'localhost';
   url?: string;
   github?: RemoteGitHubSettings;
-  localhostPort?: number;
+  localhostUrl?: string;    // Full URL (e.g., ngrok tunnel)
   localhostToken?: string;  // For localhost authentication
 }
 
@@ -44,7 +44,7 @@ const STORAGE_KEYS = {
   GITHUB_BRANCH: 'synkio_github_branch',
   GITHUB_PATH: 'synkio_github_path',
   GITHUB_TOKEN: 'synkio_github_token',
-  LOCALHOST_PORT: 'synkio_localhost_port',
+  LOCALHOST_URL: 'synkio_localhost_url',
   LOCALHOST_TOKEN: 'synkio_localhost_token',
   AUTO_CHECK: 'synkio_auto_check',
   LAST_FETCH: 'synkio_last_fetch',
@@ -74,7 +74,7 @@ export function getDefaultSettings(): PluginSettings {
         branch: 'main',
         path: '.synkio/export-baseline.json',
       },
-      localhostPort: 3847,
+      localhostUrl: '',
     },
     autoCheckOnOpen: true,
   };
@@ -256,7 +256,7 @@ export async function getSettings(): Promise<PluginSettings> {
 
   // Read other remote settings
   const remoteUrl = await getStorageValue(STORAGE_KEYS.REMOTE_URL, '');
-  const localhostPort = await getStorageNumber(STORAGE_KEYS.LOCALHOST_PORT, defaults.remote.localhostPort!);
+  const localhostUrl = await getStorageValue(STORAGE_KEYS.LOCALHOST_URL, '');
   const localhostToken = await getStorageValue(STORAGE_KEYS.LOCALHOST_TOKEN, '');
 
   // Read general settings
@@ -274,7 +274,7 @@ export async function getSettings(): Promise<PluginSettings> {
         path: githubPath,
         token: githubToken || undefined,
       },
-      localhostPort: localhostPort,
+      localhostUrl: localhostUrl || undefined,
       localhostToken: localhostToken || undefined,
     },
     autoCheckOnOpen: autoCheckOnOpen,
@@ -301,8 +301,8 @@ export async function saveSettings(settings: Partial<PluginSettings>): Promise<v
       await setStorageValue(STORAGE_KEYS.REMOTE_URL, sanitizeUrl(remote.url));
     }
 
-    if (remote.localhostPort !== undefined) {
-      await setStorageValue(STORAGE_KEYS.LOCALHOST_PORT, remote.localhostPort);
+    if (remote.localhostUrl !== undefined) {
+      await setStorageValue(STORAGE_KEYS.LOCALHOST_URL, sanitizeUrl(remote.localhostUrl));
     }
 
     if (remote.localhostToken !== undefined) {

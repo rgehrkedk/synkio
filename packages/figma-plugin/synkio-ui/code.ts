@@ -4,7 +4,7 @@
  */
 
 import { chunkData, reassembleChunks } from './lib/chunking';
-import { compareSnapshots } from './lib/compare';
+import { compareSnapshots, compareSinceSyncBaseline, compareWithCodeBaseline } from './lib/compare';
 import { addHistoryEntry, parseHistory, serializeHistory } from './lib/history';
 import { getSettings, saveSettings, saveLastFetchInfo, getLastFetchInfo } from './lib/settings';
 import { fetchRemoteBaseline, checkForUpdates } from './lib/remote-fetch';
@@ -25,10 +25,14 @@ import type {
   ShadowValue,
   ShadowObject,
   BlurValue,
+  SyncBaseline,
+  CodeBaseline,
 } from './lib/types';
 import type { SimpleDiff, SimpleCompareResult } from './lib/compare';
 
 const NAMESPACE = 'synkio';
+const SYNC_BASELINE_KEY = 'synkio:syncBaseline';
+const CODE_BASELINE_KEY = 'synkio:codeBaseline';
 
 // Show UI
 figma.showUI(__html__, {
@@ -535,6 +539,7 @@ function getBaselineSnapshot(): SyncData | null {
 
 /**
  * Save baseline snapshot to storage
+ * @deprecated Use saveSyncBaseline() or saveCodeBaseline() instead
  */
 function saveBaselineSnapshot(data: SyncData): void {
   const json = JSON.stringify(data);
@@ -571,6 +576,188 @@ function saveBaselineSnapshot(data: SyncData): void {
   figma.root.setSharedPluginData(NAMESPACE, 'timestamp', data.timestamp);
   figma.root.setSharedPluginData(NAMESPACE, 'tokenCount', String(data.tokens.length));
   figma.root.setSharedPluginData(NAMESPACE, 'styleCount', String(data.styles?.length || 0));
+}
+
+// =============================================================================
+// New Baseline Storage Functions (Phase 1)
+// =============================================================================
+
+/**
+ * Save sync baseline (Figma→Code workflow)
+ * Stores baseline created by Sync button with variableId for ID-based comparison
+ */
+function saveSyncBaseline(baseline: SyncBaseline): void {
+  const json = JSON.stringify(baseline);
+  const chunks = chunkData(json);
+
+  // Clear old sync baseline chunks
+  const oldCount = figma.root.getSharedPluginData(NAMESPACE, 'syncBaseline_chunkCount');
+  if (oldCount) {
+    for (let i = 0; i < parseInt(oldCount, 10); i++) {
+      figma.root.setSharedPluginData(NAMESPACE, 'syncBaseline_chunk_' + i, '');
+    }
+  }
+
+  // Save new sync baseline chunks
+  figma.root.setSharedPluginData(NAMESPACE, 'syncBaseline_chunkCount', String(chunks.length));
+  chunks.forEach((chunk, i) => {
+    figma.root.setSharedPluginData(NAMESPACE, 'syncBaseline_chunk_' + i, chunk);
+  });
+  figma.root.setSharedPluginData(NAMESPACE, 'syncBaseline_timestamp', baseline.timestamp);
+
+  console.log(`[saveSyncBaseline] Saved sync baseline with ${baseline.tokens.length} tokens to sharedPluginData`);
+
+  // ALSO save to chunk_* keys (for CLI to read) - CLI expects SyncData format
+  const cliData: SyncData = {
+    version: '3.0.0',
+    timestamp: baseline.timestamp,
+    tokens: baseline.tokens,
+    styles: baseline.styles,
+  };
+  const cliJson = JSON.stringify(cliData);
+  const cliChunks = chunkData(cliJson);
+
+  const oldCliCount = figma.root.getSharedPluginData(NAMESPACE, 'chunkCount');
+  if (oldCliCount) {
+    for (let i = 0; i < parseInt(oldCliCount, 10); i++) {
+      figma.root.setSharedPluginData(NAMESPACE, 'chunk_' + i, '');
+    }
+  }
+
+  figma.root.setSharedPluginData(NAMESPACE, 'chunkCount', String(cliChunks.length));
+  cliChunks.forEach((chunk, i) => {
+    figma.root.setSharedPluginData(NAMESPACE, 'chunk_' + i, chunk);
+  });
+  figma.root.setSharedPluginData(NAMESPACE, 'version', cliData.version);
+  figma.root.setSharedPluginData(NAMESPACE, 'timestamp', cliData.timestamp);
+  figma.root.setSharedPluginData(NAMESPACE, 'tokenCount', String(cliData.tokens.length));
+  figma.root.setSharedPluginData(NAMESPACE, 'styleCount', String(cliData.styles?.length || 0));
+}
+
+/**
+ * Get sync baseline (Figma→Code workflow)
+ * Returns baseline created by Sync button
+ */
+function getSyncBaseline(): SyncBaseline | null {
+  const countStr = figma.root.getSharedPluginData(NAMESPACE, 'syncBaseline_chunkCount');
+  if (!countStr) return null;
+
+  const count = parseInt(countStr, 10);
+  const json = reassembleChunks(
+    (i) => figma.root.getSharedPluginData(NAMESPACE, 'syncBaseline_chunk_' + i),
+    count
+  );
+
+  try {
+    const baseline = JSON.parse(json) as SyncBaseline;
+    console.log(`[getSyncBaseline] Loaded sync baseline with ${baseline.tokens.length} tokens`);
+    return baseline;
+  } catch (e) {
+    console.error('[getSyncBaseline] Failed to parse sync baseline:', e);
+    return null;
+  }
+}
+
+/**
+ * Save code baseline (Code→Figma workflow)
+ * Stores baseline from Remote Fetch or Import for path-based comparison
+ */
+function saveCodeBaseline(baseline: CodeBaseline): void {
+  const json = JSON.stringify(baseline);
+  const chunks = chunkData(json);
+
+  // Clear old code baseline chunks
+  const oldCount = figma.root.getSharedPluginData(NAMESPACE, 'codeBaseline_chunkCount');
+  if (oldCount) {
+    for (let i = 0; i < parseInt(oldCount, 10); i++) {
+      figma.root.setSharedPluginData(NAMESPACE, 'codeBaseline_chunk_' + i, '');
+    }
+  }
+
+  // Save new code baseline chunks
+  figma.root.setSharedPluginData(NAMESPACE, 'codeBaseline_chunkCount', String(chunks.length));
+  chunks.forEach((chunk, i) => {
+    figma.root.setSharedPluginData(NAMESPACE, 'codeBaseline_chunk_' + i, chunk);
+  });
+  figma.root.setSharedPluginData(NAMESPACE, 'codeBaseline_timestamp', baseline.timestamp);
+
+  console.log(`[saveCodeBaseline] Saved code baseline with ${baseline.tokens.length} tokens from ${baseline.source}`);
+}
+
+/**
+ * Get code baseline (Code→Figma workflow)
+ * Returns baseline from Remote Fetch or Import
+ */
+function getCodeBaseline(): CodeBaseline | null {
+  const countStr = figma.root.getSharedPluginData(NAMESPACE, 'codeBaseline_chunkCount');
+  if (!countStr) return null;
+
+  const count = parseInt(countStr, 10);
+  const json = reassembleChunks(
+    (i) => figma.root.getSharedPluginData(NAMESPACE, 'codeBaseline_chunk_' + i),
+    count
+  );
+
+  try {
+    const baseline = JSON.parse(json) as CodeBaseline;
+    console.log(`[getCodeBaseline] Loaded code baseline with ${baseline.tokens.length} tokens from ${baseline.source}`);
+    return baseline;
+  } catch (e) {
+    console.error('[getCodeBaseline] Failed to parse code baseline:', e);
+    return null;
+  }
+}
+
+/**
+ * Migrate old baseline format to new format
+ * Detects old baseline_chunk_* keys and migrates to appropriate new structure
+ */
+function migrateOldBaseline(): void {
+  const oldBaseline = getBaselineSnapshot();
+  if (!oldBaseline) {
+    console.log('[migrateOldBaseline] No old baseline found - skipping migration');
+    return;
+  }
+
+  // Check if we've already migrated
+  const syncBaseline = getSyncBaseline();
+  if (syncBaseline) {
+    console.log('[migrateOldBaseline] New baseline format already exists - skipping migration');
+    return;
+  }
+
+  console.log('[migrateOldBaseline] Found old baseline format - beginning migration');
+
+  // Check if tokens have variableId to determine migration target
+  const hasVariableIds = oldBaseline.tokens.length > 0 &&
+    oldBaseline.tokens.every(t => !!t.variableId);
+
+  if (hasVariableIds) {
+    // All tokens have variableId - migrate to SyncBaseline
+    const newSyncBaseline: SyncBaseline = {
+      type: 'sync',
+      tokens: oldBaseline.tokens,
+      styles: oldBaseline.styles,
+      timestamp: oldBaseline.timestamp,
+      syncedTo: 'local', // Default to local since we don't know
+    };
+    saveSyncBaseline(newSyncBaseline);
+    console.log('[migrateOldBaseline] Migrated to SyncBaseline (all tokens have variableId)');
+  } else {
+    // Some tokens lack variableId - migrate to CodeBaseline
+    const newCodeBaseline: CodeBaseline = {
+      type: 'code',
+      tokens: oldBaseline.tokens,
+      styles: oldBaseline.styles,
+      source: 'import', // Most likely from import if lacking variableId
+      timestamp: oldBaseline.timestamp,
+    };
+    saveCodeBaseline(newCodeBaseline);
+    console.log('[migrateOldBaseline] Migrated to CodeBaseline (some tokens lack variableId)');
+  }
+
+  // Keep old baseline for backward compatibility - don't delete yet
+  console.log('[migrateOldBaseline] Migration complete - old baseline preserved for compatibility');
 }
 
 /**
@@ -1053,7 +1240,124 @@ async function applyBaselineToFigma(): Promise<void> {
 }
 
 /**
- * Calculate diff and send to UI
+ * Send sync diff to UI (Figma → Code workflow)
+ * Uses sync baseline with ID-based comparison
+ */
+async function sendSyncDiffToUI() {
+  const currentTokens = await collectTokens();
+  const currentStyles = await collectStyles();
+  const current: SyncData = {
+    version: '3.0.0',
+    timestamp: new Date().toISOString(),
+    tokens: currentTokens,
+    styles: currentStyles.length > 0 ? currentStyles : undefined,
+  };
+
+  const syncBaseline = getSyncBaseline();
+  let diffs: SimpleDiff[] = [];
+
+  if (syncBaseline) {
+    // Convert SyncBaseline to SyncData for comparison
+    const baselineData: SyncData = {
+      version: '3.0.0',
+      timestamp: syncBaseline.timestamp,
+      tokens: syncBaseline.tokens,
+      styles: syncBaseline.styles,
+    };
+
+    // Filter baseline to match current exclusions before comparing
+    const filteredBaseline = filterBaselineByExclusions(baselineData);
+    const result = compareSinceSyncBaseline(current, filteredBaseline);
+    diffs = result.diffs;
+  } else {
+    // No sync baseline yet - all current tokens are "new"
+    diffs = currentTokens.map(token => ({
+      id: token.variableId + ':' + token.mode,
+      name: token.path,
+      type: 'added' as const,
+      newValue: token.value,
+      collection: token.collection,
+      mode: token.mode,
+    }));
+    // Also add styles as new items
+    diffs = diffs.concat(currentStyles.map(style => ({
+      id: style.styleId,
+      name: style.path,
+      type: 'added' as const,
+      newValue: style.value,
+      collection: `${style.type}-styles`,
+      mode: 'value',
+    })));
+  }
+
+  const history = getHistory();
+  const excludedCount = getExcludedCollections().length;
+  const excludedStyleCount = getExcludedStyleTypes().length;
+
+  figma.ui.postMessage({
+    type: 'update',
+    diffs: diffs,
+    history: history,
+    hasBaseline: !!syncBaseline,
+    excludedCount: excludedCount,
+    excludedStyleCount: excludedStyleCount,
+  });
+}
+
+/**
+ * Send code diff to UI (Code → Figma workflow)
+ * Uses code baseline with path-based comparison
+ */
+async function sendCodeDiffToUI() {
+  const currentTokens = await collectTokens();
+  const currentStyles = await collectStyles();
+  const current: SyncData = {
+    version: '3.0.0',
+    timestamp: new Date().toISOString(),
+    tokens: currentTokens,
+    styles: currentStyles.length > 0 ? currentStyles : undefined,
+  };
+
+  const codeBaseline = getCodeBaseline();
+  let diffs: SimpleDiff[] = [];
+
+  if (codeBaseline) {
+    // Convert CodeBaseline to SyncData for comparison
+    const baselineData: SyncData = {
+      version: '3.0.0',
+      timestamp: codeBaseline.timestamp,
+      tokens: codeBaseline.tokens,
+      styles: codeBaseline.styles,
+    };
+
+    // Filter baseline to match current exclusions before comparing
+    const filteredBaseline = filterBaselineByExclusions(baselineData);
+    const result = compareWithCodeBaseline(current, filteredBaseline);
+    diffs = result.diffs;
+  }
+
+  const history = getHistory();
+  const excludedCount = getExcludedCollections().length;
+  const excludedStyleCount = getExcludedStyleTypes().length;
+
+  figma.ui.postMessage({
+    type: 'code-update',
+    diffs: diffs,
+    history: history,
+    hasBaseline: !!codeBaseline,
+    sourceInfo: codeBaseline ? {
+      source: codeBaseline.source,
+      sourceUrl: codeBaseline.sourceUrl,
+      timestamp: codeBaseline.timestamp,
+    } : undefined,
+    excludedCount: excludedCount,
+    excludedStyleCount: excludedStyleCount,
+  });
+}
+
+/**
+ * Calculate diff and send to UI (legacy unified function)
+ * @deprecated Use sendSyncDiffToUI() or sendCodeDiffToUI() instead
  */
 async function sendDiffToUI() {
   const currentTokens = await collectTokens();
@@ -1116,6 +1420,10 @@ figma.ui.onmessage = async (msg) => {
   try {
     if (msg.type === 'ready') {
       uiReady = true;
+
+      // Run migration on first load if needed
+      migrateOldBaseline();
+
       await sendDiffToUI();
 
       // Auto-check for updates if enabled
@@ -1190,7 +1498,17 @@ figma.ui.onmessage = async (msg) => {
         }
       }
 
-      // Save new baseline
+      // Save new baseline (using new SyncBaseline format)
+      const syncBaseline: SyncBaseline = {
+        type: 'sync',
+        tokens: currentTokens,
+        styles: currentStyles.length > 0 ? currentStyles : undefined,
+        timestamp: snapshot.timestamp,
+        syncedTo: 'local', // TODO: Detect if syncing to remote
+      };
+      saveSyncBaseline(syncBaseline);
+
+      // Also save using old format for backward compatibility with CLI
       saveBaselineSnapshot(snapshot);
 
       // Add to history with paths
@@ -1207,8 +1525,8 @@ figma.ui.onmessage = async (msg) => {
         : `Synced ${tokenCount} changes`;
       figma.notify(notifyMsg);
 
-      // Refresh UI
-      await sendDiffToUI();
+      // Refresh UI with sync diff
+      await sendSyncDiffToUI();
     }
 
     if (msg.type === 'get-collections') {
@@ -1299,7 +1617,17 @@ figma.ui.onmessage = async (msg) => {
         return;
       }
 
-      // Save as new baseline
+      // Save as new code baseline (Code→Figma workflow)
+      const codeBaseline: CodeBaseline = {
+        type: 'code',
+        tokens: result.tokens,
+        styles: result.styles,
+        source: 'import',
+        timestamp: result.timestamp,
+      };
+      saveCodeBaseline(codeBaseline);
+
+      // Also save using old format for backward compatibility
       saveBaselineSnapshot(result);
 
       // Add to history
@@ -1348,7 +1676,20 @@ figma.ui.onmessage = async (msg) => {
         return;
       }
 
-      // Save the fetched baseline (reuse existing saveBaselineSnapshot function)
+      // Save as code baseline (Code→Figma workflow)
+      const codeBaseline: CodeBaseline = {
+        type: 'code',
+        tokens: result.data!.tokens,
+        styles: result.data!.styles,
+        source: 'fetch',
+        sourceUrl: settings.remote.type === 'github'
+          ? `github.com/${settings.remote.github?.owner}/${settings.remote.github?.repo}`
+          : settings.remote.url,
+        timestamp: result.data!.timestamp,
+      };
+      saveCodeBaseline(codeBaseline);
+
+      // Also save using old format for backward compatibility
       saveBaselineSnapshot(result.data!);
 
       // Save fetch metadata
@@ -1377,6 +1718,66 @@ figma.ui.onmessage = async (msg) => {
       });
     }
 
+    // Handle data fetched from UI (for localhost - Figma sandbox can't access localhost)
+    if (msg.type === 'process-remote-data') {
+      const { data } = msg;
+
+      try {
+        // Convert CLI baseline format to SyncData if needed
+        const result = convertCLIBaselineToSyncData(data);
+        if ('error' in result) {
+          throw new Error(result.error);
+        }
+        const syncData = result;
+
+        // Save as code baseline (Code→Figma workflow)
+        const codeBaseline: CodeBaseline = {
+          type: 'code',
+          tokens: syncData.tokens,
+          styles: syncData.styles,
+          source: 'fetch',
+          sourceUrl: 'localhost',
+          timestamp: syncData.timestamp,
+        };
+        saveCodeBaseline(codeBaseline);
+
+        // Also save using old format for backward compatibility
+        saveBaselineSnapshot(syncData);
+
+        // Save fetch metadata
+        const timestamp = new Date().toISOString();
+        const hash = JSON.stringify(data).length.toString(); // Simple hash
+        await saveLastFetchInfo(timestamp, hash);
+
+        // Add to history
+        const userName = figma.currentUser?.name ?? 'Unknown';
+        const tokenCount = syncData.tokens.length;
+        const styleCount = syncData.styles?.length ?? 0;
+        addToHistory({
+          u: userName,
+          t: Date.now(),
+          c: tokenCount + styleCount,
+          p: [`Fetched from localhost: ${tokenCount} tokens, ${styleCount} styles`],
+        });
+
+        // Recalculate diff
+        await sendDiffToUI();
+
+        figma.ui.postMessage({
+          type: 'fetch-success',
+          source: 'localhost',
+          tokenCount,
+          styleCount,
+          timestamp,
+        });
+      } catch (error: any) {
+        figma.ui.postMessage({
+          type: 'fetch-error',
+          error: error.message || 'Failed to process remote data',
+        });
+      }
+    }
+
     if (msg.type === 'check-for-updates') {
       const settings = await getSettings();
 
@@ -1399,17 +1800,60 @@ figma.ui.onmessage = async (msg) => {
       const settings = await getSettings();
       const lastFetch = await getLastFetchInfo();
 
+      // Convert backend format to UI format
+      const uiSettings = {
+        sourceType: !settings.remote.enabled ? 'disabled' : settings.remote.type,
+        github: settings.remote.github ? {
+          repo: `${settings.remote.github.owner}/${settings.remote.github.repo}`,
+          branch: settings.remote.github.branch,
+          path: settings.remote.github.path,
+          token: settings.remote.github.token,
+        } : undefined,
+        customUrl: settings.remote.url,
+        localhostUrl: settings.remote.localhostUrl,
+        localhostToken: settings.remote.localhostToken,
+        autoCheck: settings.autoCheckOnOpen,
+      };
+
       figma.ui.postMessage({
         type: 'settings-update',
-        settings,
+        settings: uiSettings,
         lastFetch,
       });
     }
 
     if (msg.type === 'save-settings') {
-      const { settings } = msg;
-      await saveSettings(settings);
-      figma.ui.postMessage({ type: 'settings-saved' });
+      const { settings: uiSettings } = msg;
+
+      // Convert UI format to backend format
+      let githubOwner = '';
+      let githubRepo = '';
+      if (uiSettings.github?.repo) {
+        const parts = uiSettings.github.repo.split('/');
+        githubOwner = parts[0] || '';
+        githubRepo = parts[1] || '';
+      }
+
+      const backendSettings = {
+        remote: {
+          enabled: uiSettings.sourceType !== 'disabled',
+          type: uiSettings.sourceType === 'disabled' ? 'localhost' : uiSettings.sourceType,
+          url: uiSettings.customUrl,
+          github: {
+            owner: githubOwner,
+            repo: githubRepo,
+            branch: uiSettings.github?.branch || 'main',
+            path: uiSettings.github?.path || '.synkio/export-baseline.json',
+            token: uiSettings.github?.token,
+          },
+          localhostUrl: uiSettings.localhostUrl,
+          localhostToken: uiSettings.localhostToken,
+        },
+        autoCheckOnOpen: uiSettings.autoCheck || false,
+      };
+
+      await saveSettings(backendSettings);
+      figma.ui.postMessage({ type: 'settings-saved', settings: uiSettings });
       figma.notify('Settings saved');
     }
 
@@ -1417,10 +1861,19 @@ figma.ui.onmessage = async (msg) => {
       const { github } = msg;
 
       try {
+        // Parse owner/repo - UI may send combined "owner/repo" format
+        let owner = github.owner;
+        let repo = github.repo;
+        if (!owner && repo && repo.includes('/')) {
+          const parts = repo.split('/');
+          owner = parts[0];
+          repo = parts.slice(1).join('/'); // Handle repos with / in name
+        }
+
         // Build test URL
         const info = {
-          owner: github.owner,
-          repo: github.repo,
+          owner,
+          repo,
           branch: github.branch || 'main',
           path: github.path || '.synkio/export-baseline.json',
         };

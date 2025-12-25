@@ -223,6 +223,14 @@
       display: block;
     }
 
+    .diff-tab-view {
+      display: none;
+    }
+
+    .diff-tab-view.active {
+      display: block;
+    }
+
     /* Section Header */
     .section-header {
       font-size: 10px;
@@ -882,12 +890,16 @@
           </div>
         </div>
 
-        <!-- Localhost settings -->
+        <!-- Local Server settings -->
         <div id="localhost-settings" class="source-settings hidden">
           <div class="setting-group">
-            <label>Port</label>
-            <input type="number" id="localhost-port" value="3847">
-            <span class="setting-hint">Run `synkio serve` in your project</span>
+            <label>Server URL</label>
+            <input type="text" id="localhost-url" placeholder="https://your-tunnel.ngrok.io/baseline">
+            <span class="setting-hint">Use ngrok or similar tunnel (Figma blocks localhost)</span>
+          </div>
+          <div class="setting-group">
+            <label>Token</label>
+            <input type="text" id="localhost-token" placeholder="Optional - from synkio serve output">
           </div>
         </div>
 
@@ -962,8 +974,29 @@
 
     <div class="content">
       <div class="view active" id="diffView">
-        <div class="section-header" id="diffHeader">Pending Changes (0)</div>
-        <div id="diffContent"></div>
+        <!-- Diff Tabs: Changes Since Sync vs Compare with Code -->
+        <div class="tabs" style="margin-bottom: 12px;">
+          <button class="tab active" data-diff-tab="sync">
+            <span id="syncTabLabel">Changes Since Sync</span>
+            <span id="syncTabBadge" class="badge" style="display: none;">0</span>
+          </button>
+          <button class="tab" data-diff-tab="code">
+            <span id="codeTabLabel">Compare with Code</span>
+            <span id="codeTabBadge" class="badge" style="display: none;">0</span>
+          </button>
+        </div>
+
+        <!-- Sync Tab Content -->
+        <div class="diff-tab-view active" id="syncDiffView">
+          <div class="section-header" id="syncDiffHeader">Changes Since Last Sync (0)</div>
+          <div id="syncDiffContent"></div>
+        </div>
+
+        <!-- Code Tab Content -->
+        <div class="diff-tab-view" id="codeDiffView">
+          <div class="section-header" id="codeDiffHeader">Compare with Code (0)</div>
+          <div id="codeDiffContent"></div>
+        </div>
       </div>
 
       <div class="view" id="historyView">

@@ -223,6 +223,14 @@
       display: block;
     }
 
+    .diff-tab-view {
+      display: none;
+    }
+
+    .diff-tab-view.active {
+      display: block;
+    }
+
     /* Section Header */
     .section-header {
       font-size: 10px;
@@ -882,12 +890,16 @@
           </div>
         </div>
 
-        <!-- Localhost settings -->
+        <!-- Local Server settings -->
         <div id="localhost-settings" class="source-settings hidden">
           <div class="setting-group">
-            <label>Port</label>
-            <input type="number" id="localhost-port" value="3847">
-            <span class="setting-hint">Run `synkio serve` in your project</span>
+            <label>Server URL</label>
+            <input type="text" id="localhost-url" placeholder="https://your-tunnel.ngrok.io/baseline">
+            <span class="setting-hint">Use ngrok or similar tunnel (Figma blocks localhost)</span>
+          </div>
+          <div class="setting-group">
+            <label>Token</label>
+            <input type="text" id="localhost-token" placeholder="Optional - from synkio serve output">
           </div>
         </div>
 
@@ -962,8 +974,29 @@
 
     <div class="content">
       <div class="view active" id="diffView">
-        <div class="section-header" id="diffHeader">Pending Changes (0)</div>
-        <div id="diffContent"></div>
+        <!-- Diff Tabs: Changes Since Sync vs Compare with Code -->
+        <div class="tabs" style="margin-bottom: 12px;">
+          <button class="tab active" data-diff-tab="sync">
+            <span id="syncTabLabel">Changes Since Sync</span>
+            <span id="syncTabBadge" class="badge" style="display: none;">0</span>
+          </button>
+          <button class="tab" data-diff-tab="code">
+            <span id="codeTabLabel">Compare with Code</span>
+            <span id="codeTabBadge" class="badge" style="display: none;">0</span>
+          </button>
+        </div>
+
+        <!-- Sync Tab Content -->
+        <div class="diff-tab-view active" id="syncDiffView">
+          <div class="section-header" id="syncDiffHeader">Changes Since Last Sync (0)</div>
+          <div id="syncDiffContent"></div>
+        </div>
+
+        <!-- Code Tab Content -->
+        <div class="diff-tab-view" id="codeDiffView">
+          <div class="section-header" id="codeDiffHeader">Compare with Code (0)</div>
+          <div id="codeDiffContent"></div>
+        </div>
       </div>
 
       <div class="view" id="historyView">
@@ -991,282 +1024,394 @@
 
   <script>"use strict";
 (() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __propIsEnum = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b)) {
+        if (__propIsEnum.call(b, prop))
+          __defNormalProp(a, prop, b[prop]);
+      }
+    return a;
+  };
+  var __commonJS = (cb, mod) => function __require() {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  };
+  var __async = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
+
   // ui.ts
-  var currentDiffs = [];
-  var currentCollectionRenames = [];
-  var currentModeRenames = [];
-  var currentHistory = [];
-  var currentCollections = [];
-  var currentStyleTypes = [];
-  var isSyncing = false;
-  var remoteStatus = { state: "idle" };
-  var remoteSettings = { sourceType: "disabled" };
-  var syncButton = document.getElementById("syncButton");
-  var syncIcon = document.getElementById("syncIcon");
-  var syncText = document.getElementById("syncText");
-  var importButton = document.getElementById("importButton");
-  var fileInput = document.getElementById("fileInput");
-  var applyButton = document.getElementById("applyButton");
-  var statusDot = document.getElementById("statusDot");
-  var statusText = document.getElementById("statusText");
-  var diffHeader = document.getElementById("diffHeader");
-  var diffContent = document.getElementById("diffContent");
-  var historyContent = document.getElementById("historyContent");
-  var diffView = document.getElementById("diffView");
-  var historyView = document.getElementById("historyView");
-  var collectionsView = document.getElementById("collectionsView");
-  var collectionsList = document.getElementById("collectionsList");
-  var saveCollectionsBtn = document.getElementById("saveCollectionsBtn");
-  var collectionsWarning = document.getElementById("collectionsWarning");
-  var excludedBadge = document.getElementById("excludedBadge");
-  var remoteStatusEl = document.getElementById("remote-status");
-  var fetchBtn = document.getElementById("fetch-btn");
-  var checkBtn = document.getElementById("check-btn");
-  var settingsBtn = document.getElementById("settings-btn");
-  var settingsPanel = document.getElementById("settings-panel");
-  var backBtn = document.getElementById("back-btn");
-  var saveSettingsBtn = document.getElementById("save-settings-btn");
-  var testConnectionBtn = document.getElementById("test-connection-btn");
-  function updateRemoteStatus() {
-    const { state, lastFetched, error, updatesAvailable } = remoteStatus;
-    if (remoteSettings.sourceType === "disabled") {
-      remoteStatusEl.innerHTML = `
+  var require_ui = __commonJS({
+    "ui.ts"(exports) {
+      var activeDiffTab = "sync";
+      var syncDiffs = [];
+      var syncCollectionRenames = [];
+      var syncModeRenames = [];
+      var syncTimestamp;
+      var codeDiffs = [];
+      var codeCollectionRenames = [];
+      var codeModeRenames = [];
+      var codeTimestamp;
+      var codeSource;
+      var codeSourceUrl;
+      var currentHistory = [];
+      var currentCollections = [];
+      var currentStyleTypes = [];
+      var isSyncing = false;
+      var remoteStatus = { state: "idle" };
+      var remoteSettings = { sourceType: "disabled" };
+      var syncButton = document.getElementById("syncButton");
+      var syncIcon = document.getElementById("syncIcon");
+      var syncText = document.getElementById("syncText");
+      var importButton = document.getElementById("importButton");
+      var fileInput = document.getElementById("fileInput");
+      var applyButton = document.getElementById("applyButton");
+      var statusDot = document.getElementById("statusDot");
+      var statusText = document.getElementById("statusText");
+      var diffHeader = document.getElementById("diffHeader");
+      var diffContent = document.getElementById("diffContent");
+      var historyContent = document.getElementById("historyContent");
+      var diffView = document.getElementById("diffView");
+      var historyView = document.getElementById("historyView");
+      var collectionsView = document.getElementById("collectionsView");
+      var collectionsList = document.getElementById("collectionsList");
+      var saveCollectionsBtn = document.getElementById("saveCollectionsBtn");
+      var collectionsWarning = document.getElementById("collectionsWarning");
+      var excludedBadge = document.getElementById("excludedBadge");
+      var syncDiffView = document.getElementById("syncDiffView");
+      var codeDiffView = document.getElementById("codeDiffView");
+      var syncDiffHeader = document.getElementById("syncDiffHeader");
+      var codeDiffHeader = document.getElementById("codeDiffHeader");
+      var syncDiffContent = document.getElementById("syncDiffContent");
+      var codeDiffContent = document.getElementById("codeDiffContent");
+      var syncTabBadge = document.getElementById("syncTabBadge");
+      var codeTabBadge = document.getElementById("codeTabBadge");
+      var remoteStatusEl = document.getElementById("remote-status");
+      var fetchBtn = document.getElementById("fetch-btn");
+      var checkBtn = document.getElementById("check-btn");
+      var settingsBtn = document.getElementById("settings-btn");
+      var settingsPanel = document.getElementById("settings-panel");
+      var backBtn = document.getElementById("back-btn");
+      var saveSettingsBtn = document.getElementById("save-settings-btn");
+      var testConnectionBtn = document.getElementById("test-connection-btn");
+      function updateRemoteStatus() {
+        const { state, lastFetched, error, updatesAvailable } = remoteStatus;
+        if (remoteSettings.sourceType === "disabled") {
+          remoteStatusEl.innerHTML = `
       <span style="color: #999; font-size: 11px;">Remote sync disabled</span>
     `;
-      fetchBtn.disabled = true;
-      checkBtn.disabled = true;
-      return;
-    }
-    fetchBtn.disabled = false;
-    checkBtn.disabled = false;
-    if (state === "fetching") {
-      remoteStatusEl.innerHTML = `
+          fetchBtn.disabled = true;
+          checkBtn.disabled = true;
+          return;
+        }
+        fetchBtn.disabled = false;
+        checkBtn.disabled = false;
+        if (state === "fetching") {
+          remoteStatusEl.innerHTML = `
       <span style="color: #666; font-size: 11px;">\u23F3 Fetching from remote...</span>
     `;
-      fetchBtn.disabled = true;
-      checkBtn.disabled = true;
-    } else if (state === "checking") {
-      remoteStatusEl.innerHTML = `
+          fetchBtn.disabled = true;
+          checkBtn.disabled = true;
+        } else if (state === "checking") {
+          remoteStatusEl.innerHTML = `
       <span style="color: #666; font-size: 11px;">\u{1F50D} Checking for updates...</span>
     `;
-      checkBtn.disabled = true;
-    } else if (state === "error") {
-      remoteStatusEl.innerHTML = `
+          checkBtn.disabled = true;
+        } else if (state === "error") {
+          remoteStatusEl.innerHTML = `
       <span style="color: #dc2626; font-size: 11px;">\u274C ${escapeHtml(error || "Failed to fetch")}</span>
     `;
-    } else if (updatesAvailable !== void 0 && updatesAvailable > 0) {
-      remoteStatusEl.innerHTML = `
+        } else if (updatesAvailable !== void 0 && updatesAvailable > 0) {
+          remoteStatusEl.innerHTML = `
       <span style="color: #ea580c; font-size: 11px;">
         ${updatesAvailable} update${updatesAvailable !== 1 ? "s" : ""} available
       </span>
     `;
-    } else if (lastFetched) {
-      const timeAgo = formatTimeAgo(lastFetched);
-      remoteStatusEl.innerHTML = `
+        } else if (lastFetched) {
+          const timeAgo = formatTimeAgo(lastFetched);
+          remoteStatusEl.innerHTML = `
       <span style="color: #10b981; font-size: 11px;">\u2713 Up to date \u2022 Last fetched ${timeAgo}</span>
     `;
-    } else {
-      remoteStatusEl.innerHTML = `
+        } else {
+          remoteStatusEl.innerHTML = `
       <span style="color: #999; font-size: 11px;">Ready to fetch</span>
     `;
-    }
-  }
-  function showSettingsPanel() {
-    settingsPanel.classList.remove("hidden");
-    parent.postMessage({ pluginMessage: { type: "get-settings" } }, "*");
-  }
-  function hideSettingsPanel() {
-    settingsPanel.classList.add("hidden");
-  }
-  function updateSourceTypeVisibility() {
-    var _a;
-    const sourceType = (_a = document.querySelector('input[name="source-type"]:checked')) == null ? void 0 : _a.value;
-    document.getElementById("github-settings").classList.toggle("hidden", sourceType !== "github");
-    document.getElementById("url-settings").classList.toggle("hidden", sourceType !== "url");
-    document.getElementById("localhost-settings").classList.toggle("hidden", sourceType !== "localhost");
-  }
-  function populateSettingsForm(settings) {
-    remoteSettings = settings;
-    const sourceTypeRadio = document.querySelector(`input[name="source-type"][value="${settings.sourceType}"]`);
-    if (sourceTypeRadio)
-      sourceTypeRadio.checked = true;
-    if (settings.github) {
-      document.getElementById("github-repo").value = settings.github.repo || "";
-      document.getElementById("github-branch").value = settings.github.branch || "main";
-      document.getElementById("github-path").value = settings.github.path || ".synkio/export-baseline.json";
-      document.getElementById("github-token").value = settings.github.token || "";
-    }
-    if (settings.customUrl) {
-      document.getElementById("custom-url").value = settings.customUrl;
-    }
-    if (settings.localhostPort) {
-      document.getElementById("localhost-port").value = String(settings.localhostPort);
-    }
-    document.getElementById("auto-check").checked = settings.autoCheck || false;
-    updateSourceTypeVisibility();
-  }
-  document.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      const targetTab = tab.dataset.tab;
-      document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
-      document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
-      if (targetTab === "diff") {
-        diffView.classList.add("active");
-      } else if (targetTab === "history") {
-        historyView.classList.add("active");
-      } else if (targetTab === "collections") {
-        collectionsView.classList.add("active");
-        parent.postMessage({ pluginMessage: { type: "get-collections" } }, "*");
-        parent.postMessage({ pluginMessage: { type: "get-style-types" } }, "*");
-      }
-    });
-  });
-  fetchBtn.addEventListener("click", () => {
-    remoteStatus.state = "fetching";
-    updateRemoteStatus();
-    parent.postMessage({ pluginMessage: { type: "fetch-remote" } }, "*");
-  });
-  checkBtn.addEventListener("click", () => {
-    remoteStatus.state = "checking";
-    updateRemoteStatus();
-    parent.postMessage({ pluginMessage: { type: "check-for-updates" } }, "*");
-  });
-  settingsBtn.addEventListener("click", () => {
-    showSettingsPanel();
-  });
-  backBtn.addEventListener("click", () => {
-    hideSettingsPanel();
-  });
-  document.querySelectorAll('input[name="source-type"]').forEach((radio) => {
-    radio.addEventListener("change", updateSourceTypeVisibility);
-  });
-  testConnectionBtn.addEventListener("click", () => {
-    const repo = document.getElementById("github-repo").value;
-    const branch = document.getElementById("github-branch").value;
-    const path = document.getElementById("github-path").value;
-    const token = document.getElementById("github-token").value;
-    testConnectionBtn.disabled = true;
-    testConnectionBtn.textContent = "Testing...";
-    parent.postMessage({
-      pluginMessage: {
-        type: "test-github-connection",
-        github: { repo, branch, path, token }
-      }
-    }, "*");
-  });
-  saveSettingsBtn.addEventListener("click", () => {
-    var _a;
-    const sourceType = (_a = document.querySelector('input[name="source-type"]:checked')) == null ? void 0 : _a.value;
-    const settings = {
-      sourceType,
-      autoCheck: document.getElementById("auto-check").checked
-    };
-    if (sourceType === "github") {
-      settings.github = {
-        repo: document.getElementById("github-repo").value,
-        branch: document.getElementById("github-branch").value,
-        path: document.getElementById("github-path").value,
-        token: document.getElementById("github-token").value || void 0
-      };
-    } else if (sourceType === "url") {
-      settings.customUrl = document.getElementById("custom-url").value;
-    } else if (sourceType === "localhost") {
-      settings.localhostPort = parseInt(document.getElementById("localhost-port").value) || 3847;
-    }
-    saveSettingsBtn.disabled = true;
-    saveSettingsBtn.textContent = "Saving...";
-    parent.postMessage({
-      pluginMessage: {
-        type: "save-settings",
-        settings
-      }
-    }, "*");
-  });
-  syncButton.addEventListener("click", () => {
-    if (isSyncing)
-      return;
-    isSyncing = true;
-    syncButton.disabled = true;
-    syncIcon.textContent = "...";
-    syncText.textContent = "Syncing...";
-    parent.postMessage({ pluginMessage: { type: "sync" } }, "*");
-  });
-  importButton.addEventListener("click", () => {
-    fileInput.click();
-  });
-  fileInput.addEventListener("change", (e) => {
-    var _a;
-    const file = (_a = e.target.files) == null ? void 0 : _a[0];
-    if (!file)
-      return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      var _a2;
-      const baselineJson = (_a2 = event.target) == null ? void 0 : _a2.result;
-      if (!baselineJson)
-        return;
-      importButton.disabled = true;
-      importButton.textContent = "Importing...";
-      parent.postMessage({
-        pluginMessage: {
-          type: "import-baseline",
-          baselineJson
         }
-      }, "*");
-    };
-    reader.onerror = () => {
-      alert("Failed to read file");
-    };
-    reader.readAsText(file);
-    fileInput.value = "";
-  });
-  applyButton.addEventListener("click", () => {
-    applyButton.disabled = true;
-    applyButton.innerHTML = "<span>\u23F3</span><span>Applying...</span>";
-    parent.postMessage({
-      pluginMessage: {
-        type: "apply-to-figma"
       }
-    }, "*");
-  });
-  saveCollectionsBtn.addEventListener("click", () => {
-    const collectionCheckboxes = collectionsList.querySelectorAll("input[data-collection]");
-    const excludedCollections = [];
-    collectionCheckboxes.forEach((checkbox) => {
-      if (!checkbox.checked) {
-        excludedCollections.push(checkbox.dataset.collection || "");
+      function showSettingsPanel() {
+        settingsPanel.classList.remove("hidden");
+        parent.postMessage({ pluginMessage: { type: "get-settings" } }, "*");
       }
-    });
-    const styleCheckboxes = collectionsList.querySelectorAll("input[data-style-type]");
-    const excludedStyleTypes = [];
-    styleCheckboxes.forEach((checkbox) => {
-      if (!checkbox.checked) {
-        excludedStyleTypes.push(checkbox.dataset.styleType || "");
+      function hideSettingsPanel() {
+        settingsPanel.classList.add("hidden");
       }
-    });
-    if (collectionCheckboxes.length > 0 && excludedCollections.length === collectionCheckboxes.length) {
-      collectionsWarning.style.display = "block";
-      return;
-    }
-    collectionsWarning.style.display = "none";
-    saveCollectionsBtn.disabled = true;
-    saveCollectionsBtn.textContent = "Saving...";
-    parent.postMessage({ pluginMessage: { type: "save-excluded-collections", excluded: excludedCollections } }, "*");
-    parent.postMessage({ pluginMessage: { type: "save-excluded-style-types", excluded: excludedStyleTypes } }, "*");
-  });
-  function renderCollections(collections) {
-    currentCollections = collections;
-    updateCollectionsView();
-  }
-  function renderStyleTypes(styleTypes) {
-    currentStyleTypes = styleTypes;
-    updateCollectionsView();
-  }
-  function updateCollectionsView() {
-    let html = "";
-    if (currentCollections.length > 0) {
-      html += `
+      function updateSourceTypeVisibility() {
+        var _a;
+        const sourceType = (_a = document.querySelector('input[name="source-type"]:checked')) == null ? void 0 : _a.value;
+        document.getElementById("github-settings").classList.toggle("hidden", sourceType !== "github");
+        document.getElementById("url-settings").classList.toggle("hidden", sourceType !== "url");
+        document.getElementById("localhost-settings").classList.toggle("hidden", sourceType !== "localhost");
+      }
+      function populateSettingsForm(settings) {
+        remoteSettings = settings;
+        const sourceTypeRadio = document.querySelector(`input[name="source-type"][value="${settings.sourceType}"]`);
+        if (sourceTypeRadio)
+          sourceTypeRadio.checked = true;
+        if (settings.github) {
+          document.getElementById("github-repo").value = settings.github.repo || "";
+          document.getElementById("github-branch").value = settings.github.branch || "main";
+          document.getElementById("github-path").value = settings.github.path || ".synkio/export-baseline.json";
+          document.getElementById("github-token").value = settings.github.token || "";
+        }
+        if (settings.customUrl) {
+          document.getElementById("custom-url").value = settings.customUrl;
+        }
+        if (settings.localhostUrl) {
+          document.getElementById("localhost-url").value = settings.localhostUrl;
+        }
+        if (settings.localhostToken) {
+          document.getElementById("localhost-token").value = settings.localhostToken;
+        }
+        document.getElementById("auto-check").checked = settings.autoCheck || false;
+        updateSourceTypeVisibility();
+      }
+      document.querySelectorAll("[data-tab]").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const targetTab = tab.dataset.tab;
+          document.querySelectorAll("[data-tab]").forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+          document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+          if (targetTab === "diff") {
+            diffView.classList.add("active");
+          } else if (targetTab === "history") {
+            historyView.classList.add("active");
+          } else if (targetTab === "collections") {
+            collectionsView.classList.add("active");
+            parent.postMessage({ pluginMessage: { type: "get-collections" } }, "*");
+            parent.postMessage({ pluginMessage: { type: "get-style-types" } }, "*");
+          }
+        });
+      });
+      document.querySelectorAll("[data-diff-tab]").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const targetDiffTab = tab.dataset.diffTab;
+          activeDiffTab = targetDiffTab;
+          document.querySelectorAll("[data-diff-tab]").forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+          syncDiffView.classList.toggle("active", targetDiffTab === "sync");
+          codeDiffView.classList.toggle("active", targetDiffTab === "code");
+          renderDiffs();
+        });
+      });
+      fetchBtn.addEventListener("click", () => __async(exports, null, function* () {
+        var _a, _b;
+        remoteStatus.state = "fetching";
+        updateRemoteStatus();
+        if (remoteSettings.sourceType === "localhost") {
+          const baseUrl = remoteSettings.localhostUrl;
+          if (!baseUrl) {
+            remoteStatus.state = "error";
+            remoteStatus.error = "Server URL not configured. Go to Settings.";
+            updateRemoteStatus();
+            return;
+          }
+          try {
+            const token = remoteSettings.localhostToken;
+            let url = baseUrl;
+            if (token) {
+              url += (url.includes("?") ? "&" : "?") + `token=${encodeURIComponent(token)}`;
+            }
+            console.log("[Synkio] Fetching from:", url);
+            const response = yield fetch(url, {
+              method: "GET",
+              mode: "cors",
+              headers: __spreadValues({
+                "Accept": "application/json"
+              }, token ? { "X-Synkio-Token": token } : {})
+            });
+            if (!response.ok) {
+              if (response.status === 401) {
+                throw new Error("Invalid or missing token");
+              }
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            const data = yield response.json();
+            parent.postMessage({ pluginMessage: { type: "process-remote-data", data } }, "*");
+          } catch (error) {
+            remoteStatus.state = "error";
+            remoteStatus.error = ((_a = error.message) == null ? void 0 : _a.includes("Failed to fetch")) || ((_b = error.message) == null ? void 0 : _b.includes("Content Security Policy")) ? "Cannot connect. Use an HTTPS tunnel (e.g., ngrok)." : error.message;
+            updateRemoteStatus();
+          }
+        } else {
+          parent.postMessage({ pluginMessage: { type: "fetch-remote" } }, "*");
+        }
+      }));
+      checkBtn.addEventListener("click", () => {
+        remoteStatus.state = "checking";
+        updateRemoteStatus();
+        parent.postMessage({ pluginMessage: { type: "check-for-updates" } }, "*");
+      });
+      settingsBtn.addEventListener("click", () => {
+        showSettingsPanel();
+      });
+      backBtn.addEventListener("click", () => {
+        hideSettingsPanel();
+      });
+      document.querySelectorAll('input[name="source-type"]').forEach((radio) => {
+        radio.addEventListener("change", updateSourceTypeVisibility);
+      });
+      testConnectionBtn.addEventListener("click", () => {
+        const repo = document.getElementById("github-repo").value;
+        const branch = document.getElementById("github-branch").value;
+        const path = document.getElementById("github-path").value;
+        const token = document.getElementById("github-token").value;
+        testConnectionBtn.disabled = true;
+        testConnectionBtn.textContent = "Testing...";
+        parent.postMessage({
+          pluginMessage: {
+            type: "test-github-connection",
+            github: { repo, branch, path, token }
+          }
+        }, "*");
+      });
+      saveSettingsBtn.addEventListener("click", () => {
+        var _a;
+        const sourceType = (_a = document.querySelector('input[name="source-type"]:checked')) == null ? void 0 : _a.value;
+        const settings = {
+          sourceType,
+          autoCheck: document.getElementById("auto-check").checked
+        };
+        if (sourceType === "github") {
+          settings.github = {
+            repo: document.getElementById("github-repo").value,
+            branch: document.getElementById("github-branch").value,
+            path: document.getElementById("github-path").value,
+            token: document.getElementById("github-token").value || void 0
+          };
+        } else if (sourceType === "url") {
+          settings.customUrl = document.getElementById("custom-url").value;
+        } else if (sourceType === "localhost") {
+          settings.localhostUrl = document.getElementById("localhost-url").value || void 0;
+          settings.localhostToken = document.getElementById("localhost-token").value || void 0;
+        }
+        saveSettingsBtn.disabled = true;
+        saveSettingsBtn.textContent = "Saving...";
+        parent.postMessage({
+          pluginMessage: {
+            type: "save-settings",
+            settings
+          }
+        }, "*");
+      });
+      syncButton.addEventListener("click", () => {
+        if (isSyncing)
+          return;
+        isSyncing = true;
+        syncButton.disabled = true;
+        syncIcon.textContent = "...";
+        syncText.textContent = "Syncing...";
+        parent.postMessage({ pluginMessage: { type: "sync" } }, "*");
+      });
+      importButton.addEventListener("click", () => {
+        fileInput.click();
+      });
+      fileInput.addEventListener("change", (e) => {
+        var _a;
+        const file = (_a = e.target.files) == null ? void 0 : _a[0];
+        if (!file)
+          return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          var _a2;
+          const baselineJson = (_a2 = event.target) == null ? void 0 : _a2.result;
+          if (!baselineJson)
+            return;
+          importButton.disabled = true;
+          importButton.textContent = "Importing...";
+          parent.postMessage({
+            pluginMessage: {
+              type: "import-baseline",
+              baselineJson
+            }
+          }, "*");
+        };
+        reader.onerror = () => {
+          alert("Failed to read file");
+        };
+        reader.readAsText(file);
+        fileInput.value = "";
+      });
+      applyButton.addEventListener("click", () => {
+        applyButton.disabled = true;
+        applyButton.innerHTML = "<span>\u23F3</span><span>Applying...</span>";
+        parent.postMessage({
+          pluginMessage: {
+            type: "apply-to-figma"
+          }
+        }, "*");
+      });
+      saveCollectionsBtn.addEventListener("click", () => {
+        const collectionCheckboxes = collectionsList.querySelectorAll("input[data-collection]");
+        const excludedCollections = [];
+        collectionCheckboxes.forEach((checkbox) => {
+          if (!checkbox.checked) {
+            excludedCollections.push(checkbox.dataset.collection || "");
+          }
+        });
+        const styleCheckboxes = collectionsList.querySelectorAll("input[data-style-type]");
+        const excludedStyleTypes = [];
+        styleCheckboxes.forEach((checkbox) => {
+          if (!checkbox.checked) {
+            excludedStyleTypes.push(checkbox.dataset.styleType || "");
+          }
+        });
+        if (collectionCheckboxes.length > 0 && excludedCollections.length === collectionCheckboxes.length) {
+          collectionsWarning.style.display = "block";
+          return;
+        }
+        collectionsWarning.style.display = "none";
+        saveCollectionsBtn.disabled = true;
+        saveCollectionsBtn.textContent = "Saving...";
+        parent.postMessage({ pluginMessage: { type: "save-excluded-collections", excluded: excludedCollections } }, "*");
+        parent.postMessage({ pluginMessage: { type: "save-excluded-style-types", excluded: excludedStyleTypes } }, "*");
+      });
+      function renderCollections(collections) {
+        currentCollections = collections;
+        updateCollectionsView();
+      }
+      function renderStyleTypes(styleTypes) {
+        currentStyleTypes = styleTypes;
+        updateCollectionsView();
+      }
+      function updateCollectionsView() {
+        let html = "";
+        if (currentCollections.length > 0) {
+          html += `
       <div class="section-header">Variable Collections</div>
       ${currentCollections.map((col) => `
         <label class="collection-item">
@@ -1278,11 +1423,11 @@
         </label>
       `).join("")}
     `;
-    }
-    if (currentStyleTypes.length > 0) {
-      const hasStyles = currentStyleTypes.some((st) => st.count > 0);
-      if (hasStyles) {
-        html += `
+        }
+        if (currentStyleTypes.length > 0) {
+          const hasStyles = currentStyleTypes.some((st) => st.count > 0);
+          if (hasStyles) {
+            html += `
         <div class="section-header" style="margin-top: 16px;">Style Types</div>
         ${currentStyleTypes.filter((st) => st.count > 0).map((st) => `
           <label class="collection-item">
@@ -1294,10 +1439,10 @@
           </label>
         `).join("")}
       `;
-      }
-    }
-    if (currentCollections.length === 0 && currentStyleTypes.every((st) => st.count === 0)) {
-      html = `
+          }
+        }
+        if (currentCollections.length === 0 && currentStyleTypes.every((st) => st.count === 0)) {
+          html = `
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
@@ -1305,56 +1450,129 @@
         <p>No variable collections or styles found</p>
       </div>
     `;
-    }
-    collectionsList.innerHTML = html;
-    updateExcludedBadge();
-    collectionsList.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
-      checkbox.addEventListener("change", validateCollections);
-    });
-  }
-  function validateCollections() {
-    const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]');
-    const checkedCount = Array.from(checkboxes).filter((cb) => cb.checked).length;
-    if (checkedCount === 0) {
-      collectionsWarning.style.display = "block";
-      saveCollectionsBtn.disabled = true;
-    } else {
-      collectionsWarning.style.display = "none";
-      saveCollectionsBtn.disabled = false;
-    }
-  }
-  function updateExcludedBadge() {
-    const excludedCollections = currentCollections.filter((c) => c.excluded).length;
-    const excludedStyles = currentStyleTypes.filter((st) => st.excluded && st.count > 0).length;
-    const totalExcluded = excludedCollections + excludedStyles;
-    if (totalExcluded > 0) {
-      excludedBadge.textContent = totalExcluded + " excluded";
-      excludedBadge.style.display = "inline";
-    } else {
-      excludedBadge.style.display = "none";
-    }
-  }
-  function renderDiffs(diffs, collectionRenames = [], modeRenames = []) {
-    currentDiffs = diffs;
-    currentCollectionRenames = collectionRenames;
-    currentModeRenames = modeRenames;
-    const totalChanges = diffs.length + collectionRenames.length + modeRenames.length;
-    diffHeader.textContent = `Pending Changes (${totalChanges})`;
-    if (totalChanges === 0) {
-      diffContent.innerHTML = `
+        }
+        collectionsList.innerHTML = html;
+        updateExcludedBadge();
+        collectionsList.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+          checkbox.addEventListener("change", validateCollections);
+        });
+      }
+      function validateCollections() {
+        const checkboxes = collectionsList.querySelectorAll('input[type="checkbox"]');
+        const checkedCount = Array.from(checkboxes).filter((cb) => cb.checked).length;
+        if (checkedCount === 0) {
+          collectionsWarning.style.display = "block";
+          saveCollectionsBtn.disabled = true;
+        } else {
+          collectionsWarning.style.display = "none";
+          saveCollectionsBtn.disabled = false;
+        }
+      }
+      function updateExcludedBadge() {
+        const excludedCollections = currentCollections.filter((c) => c.excluded).length;
+        const excludedStyles = currentStyleTypes.filter((st) => st.excluded && st.count > 0).length;
+        const totalExcluded = excludedCollections + excludedStyles;
+        if (totalExcluded > 0) {
+          excludedBadge.textContent = totalExcluded + " excluded";
+          excludedBadge.style.display = "inline";
+        } else {
+          excludedBadge.style.display = "none";
+        }
+      }
+      function renderDiffs() {
+        renderSyncDiffs();
+        renderCodeDiffs();
+        updateDiffBadges();
+      }
+      function renderSyncDiffs() {
+        const diffs = syncDiffs;
+        const collectionRenames = syncCollectionRenames;
+        const modeRenames = syncModeRenames;
+        const totalChanges = diffs.length + collectionRenames.length + modeRenames.length;
+        syncDiffHeader.textContent = `Changes Since Last Sync (${totalChanges})`;
+        let timestampHtml = "";
+        if (syncTimestamp) {
+          const timeAgo = formatTimeAgo(syncTimestamp);
+          timestampHtml = `
+      <div style="font-size: 10px; color: #999; margin-bottom: 12px; padding: 0 4px;">
+        Last synced: ${timeAgo}
+      </div>
+    `;
+        }
+        if (totalChanges === 0) {
+          syncDiffContent.innerHTML = `
+      ${timestampHtml}
       <div class="empty-state dashed">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
           <path d="M9 12l2 2 4-4"/>
         </svg>
-        <p>Everything is up to date</p>
+        <p>No changes since last sync</p>
       </div>
     `;
-      return;
-    }
-    let html = "";
-    if (collectionRenames.length > 0) {
-      html += `<div class="rename-section">
+          return;
+        }
+        syncDiffContent.innerHTML = `${timestampHtml}<div class="diff-list">${renderDiffContent(diffs, collectionRenames, modeRenames)}</div>`;
+      }
+      function renderCodeDiffs() {
+        const diffs = codeDiffs;
+        const collectionRenames = codeCollectionRenames;
+        const modeRenames = codeModeRenames;
+        const totalChanges = diffs.length + collectionRenames.length + modeRenames.length;
+        codeDiffHeader.textContent = `Compare with Code (${totalChanges})`;
+        let metadataHtml = "";
+        if (codeTimestamp || codeSource || codeSourceUrl) {
+          const parts = [];
+          if (codeSource === "fetch" && codeSourceUrl) {
+            parts.push(`Source: <a href="${escapeHtml(codeSourceUrl)}" target="_blank" style="color: #18A0FB; text-decoration: none;">${escapeHtml(codeSourceUrl)}</a>`);
+          } else if (codeSource === "import") {
+            parts.push("Imported from file");
+          }
+          if (codeTimestamp) {
+            const timeAgo = formatTimeAgo(codeTimestamp);
+            parts.push(`Last fetched: ${timeAgo}`);
+          }
+          if (parts.length > 0) {
+            metadataHtml = `
+        <div style="font-size: 10px; color: #999; margin-bottom: 12px; padding: 0 4px;">
+          ${parts.join(" \u2022 ")}
+        </div>
+      `;
+          }
+        }
+        if (totalChanges === 0 && !codeTimestamp) {
+          codeDiffContent.innerHTML = `
+      <div class="empty-state dashed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <p>Fetch tokens to compare with Figma</p>
+        <button class="btn btn-secondary" style="margin-top: 12px;" onclick="document.getElementById('fetch-btn').click()">Fetch Latest</button>
+      </div>
+    `;
+          return;
+        }
+        if (totalChanges === 0) {
+          codeDiffContent.innerHTML = `
+      ${metadataHtml}
+      <div class="empty-state dashed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+        <p>Figma matches your code tokens</p>
+      </div>
+    `;
+          return;
+        }
+        codeDiffContent.innerHTML = `${metadataHtml}<div class="diff-list">${renderDiffContent(diffs, collectionRenames, modeRenames)}</div>`;
+      }
+      function renderDiffContent(diffs, collectionRenames, modeRenames) {
+        let html = "";
+        if (collectionRenames.length > 0) {
+          html += `<div class="rename-section">
       <div class="rename-section-header">Collection Renames (${collectionRenames.length})</div>
       ${collectionRenames.map((rename) => `
         <div class="diff-item">
@@ -1368,9 +1586,9 @@
         </div>
       `).join("")}
     </div>`;
-    }
-    if (modeRenames.length > 0) {
-      html += `<div class="rename-section">
+        }
+        if (modeRenames.length > 0) {
+          html += `<div class="rename-section">
       <div class="rename-section-header">Mode Renames (${modeRenames.length})</div>
       ${modeRenames.map((rename) => `
         <div class="diff-item">
@@ -1384,51 +1602,51 @@
         </div>
       `).join("")}
     </div>`;
-    }
-    if (diffs.length > 0) {
-      html += diffs.map((diff) => {
-        const iconMap = {
-          added: "+",
-          modified: "~",
-          deleted: "-",
-          renamed: "\u2194"
-        };
-        let valuesHtml = "";
-        if (diff.type === "renamed") {
-          valuesHtml = `
+        }
+        if (diffs.length > 0) {
+          html += diffs.map((diff) => {
+            const iconMap = {
+              added: "+",
+              modified: "~",
+              deleted: "-",
+              renamed: "\u2194"
+            };
+            let valuesHtml = "";
+            if (diff.type === "renamed") {
+              valuesHtml = `
           <div class="diff-values">
             <span class="old">${diff.oldName}</span>
             <span class="arrow">\u2192</span>
             <span class="new">${diff.name}</span>
           </div>
         `;
-          if (diff.oldValue !== void 0 && diff.newValue !== void 0) {
-            valuesHtml += `
+              if (diff.oldValue !== void 0 && diff.newValue !== void 0) {
+                valuesHtml += `
             <div class="diff-values">
               <span class="old">${formatValue(diff.oldValue)}</span>
               <span class="arrow">\u2192</span>
               <span class="new">${formatValue(diff.newValue)}</span>
             </div>
           `;
-          }
-        } else if (diff.type === "modified") {
-          valuesHtml = `
+              }
+            } else if (diff.type === "modified") {
+              valuesHtml = `
           <div class="diff-values">
             <span class="old">${formatValue(diff.oldValue)}</span>
             <span class="arrow">\u2192</span>
             <span class="new">${formatValue(diff.newValue)}</span>
           </div>
         `;
-        } else if (diff.type === "added") {
-          valuesHtml = `
+            } else if (diff.type === "added") {
+              valuesHtml = `
           <div class="diff-values">
             <span style="font-size: 9px; text-transform: uppercase; color: #999;">Value:</span>
             <span class="new">${formatValue(diff.newValue)}</span>
           </div>
         `;
-        }
-        const displayName = diff.type === "renamed" ? diff.name : diff.name;
-        return `
+            }
+            const displayName = diff.type === "renamed" ? diff.name : diff.name;
+            return `
         <div class="diff-item">
           <div class="diff-header">
             <div class="diff-badge ${diff.type}">${iconMap[diff.type]}</div>
@@ -1440,14 +1658,30 @@
           ${valuesHtml}
         </div>
       `;
-      }).join("");
-    }
-    diffContent.innerHTML = `<div class="diff-list">${html}</div>`;
-  }
-  function renderHistory(history) {
-    currentHistory = history;
-    if (history.length === 0) {
-      historyContent.innerHTML = `
+          }).join("");
+        }
+        return html;
+      }
+      function updateDiffBadges() {
+        const syncTotal = syncDiffs.length + syncCollectionRenames.length + syncModeRenames.length;
+        const codeTotal = codeDiffs.length + codeCollectionRenames.length + codeModeRenames.length;
+        if (syncTotal > 0) {
+          syncTabBadge.textContent = String(syncTotal);
+          syncTabBadge.style.display = "inline";
+        } else {
+          syncTabBadge.style.display = "none";
+        }
+        if (codeTotal > 0) {
+          codeTabBadge.textContent = String(codeTotal);
+          codeTabBadge.style.display = "inline";
+        } else {
+          codeTabBadge.style.display = "none";
+        }
+      }
+      function renderHistory(history) {
+        currentHistory = history;
+        if (history.length === 0) {
+          historyContent.innerHTML = `
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
@@ -1456,18 +1690,18 @@
         <p>No sync history found</p>
       </div>
     `;
-      return;
-    }
-    const html = history.map((event, index) => {
-      const initial = event.u.charAt(0).toUpperCase();
-      const timeAgo = formatTimeAgo(event.t);
-      const hasChanges = event.p && event.p.length > 0;
-      const changesHtml = hasChanges ? `
+          return;
+        }
+        const html = history.map((event, index) => {
+          const initial = event.u.charAt(0).toUpperCase();
+          const timeAgo = formatTimeAgo(event.t);
+          const hasChanges = event.p && event.p.length > 0;
+          const changesHtml = hasChanges ? `
       <div class="history-changes" id="changes-${index}" style="display: none;">
         ${event.p.map((path) => `<div class="history-change-item">${escapeHtml(path)}</div>`).join("")}
       </div>
     ` : "";
-      return `
+          return `
       <div class="history-item ${hasChanges ? "expandable" : ""}" ${hasChanges ? `onclick="toggleChanges(${index})"` : ""}>
         <div class="history-avatar">${initial}</div>
         <div class="history-details">
@@ -1483,210 +1717,257 @@
       </div>
       ${changesHtml}
     `;
-    }).join("");
-    historyContent.innerHTML = `<div class="history-list">${html}</div>`;
-  }
-  function toggleChanges(index) {
-    const changesEl = document.getElementById("changes-" + index);
-    const iconEl = document.getElementById("icon-" + index);
-    if (changesEl && iconEl) {
-      const isHidden = changesEl.style.display === "none";
-      changesEl.style.display = isHidden ? "block" : "none";
-      iconEl.textContent = isHidden ? "\u25BC" : "\u25B6";
-    }
-  }
-  window.toggleChanges = toggleChanges;
-  function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
-  function formatValue(value) {
-    if (typeof value === "object") {
-      return JSON.stringify(value);
-    }
-    return String(value);
-  }
-  function formatTimeAgo(timestamp) {
-    const seconds = Math.floor((Date.now() - timestamp) / 1e3);
-    if (seconds < 60)
-      return "Just now";
-    if (seconds < 3600)
-      return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400)
-      return `${Math.floor(seconds / 3600)}h ago`;
-    if (seconds < 604800)
-      return `${Math.floor(seconds / 86400)}d ago`;
-    return new Date(timestamp).toLocaleDateString();
-  }
-  function updateStatus(diffCount) {
-    if (diffCount > 0) {
-      statusDot.className = "status-dot unsynced";
-      statusText.textContent = "Unsynced changes";
-    } else {
-      statusDot.className = "status-dot synced";
-      statusText.textContent = "Synced";
-    }
-  }
-  window.onmessage = (event) => {
-    var _a, _b;
-    const msg = event.data.pluginMessage;
-    if (msg && msg.type === "update") {
-      const totalChanges = msg.diffs.length + (((_a = msg.collectionRenames) == null ? void 0 : _a.length) || 0) + (((_b = msg.modeRenames) == null ? void 0 : _b.length) || 0);
-      renderDiffs(msg.diffs, msg.collectionRenames || [], msg.modeRenames || []);
-      renderHistory(msg.history);
-      updateStatus(totalChanges);
-      if (msg.excludedCount !== void 0) {
-        if (msg.excludedCount > 0) {
-          excludedBadge.textContent = msg.excludedCount + " excluded";
-          excludedBadge.style.display = "inline";
-        } else {
-          excludedBadge.style.display = "none";
+        }).join("");
+        historyContent.innerHTML = `<div class="history-list">${html}</div>`;
+      }
+      function toggleChanges(index) {
+        const changesEl = document.getElementById("changes-" + index);
+        const iconEl = document.getElementById("icon-" + index);
+        if (changesEl && iconEl) {
+          const isHidden = changesEl.style.display === "none";
+          changesEl.style.display = isHidden ? "block" : "none";
+          iconEl.textContent = isHidden ? "\u25BC" : "\u25B6";
         }
       }
-      isSyncing = false;
-      syncButton.disabled = false;
-      syncIcon.textContent = "";
-      syncText.textContent = "Sync";
-    }
-    if (msg && msg.type === "collections-update") {
-      renderCollections(msg.collections);
-    }
-    if (msg && msg.type === "style-types-update") {
-      renderStyleTypes(msg.styleTypes);
-    }
-    if (msg && msg.type === "style-types-saved") {
-    }
-    if (msg && msg.type === "collections-saved") {
-      saveCollectionsBtn.disabled = false;
-      saveCollectionsBtn.textContent = "Save";
-      const originalText = saveCollectionsBtn.textContent;
-      saveCollectionsBtn.textContent = "Saved!";
-      saveCollectionsBtn.style.background = "#10b981";
-      setTimeout(() => {
-        saveCollectionsBtn.textContent = originalText;
-        saveCollectionsBtn.style.background = "";
-      }, 1500);
-      const collectionCheckboxes = collectionsList.querySelectorAll("input[data-collection]");
-      collectionCheckboxes.forEach((cb) => {
-        const col = currentCollections.find((c) => c.name === cb.dataset.collection);
-        if (col)
-          col.excluded = !cb.checked;
-      });
-      const styleCheckboxes = collectionsList.querySelectorAll("input[data-style-type]");
-      styleCheckboxes.forEach((cb) => {
-        const st = currentStyleTypes.find((s) => s.type === cb.dataset.styleType);
-        if (st)
-          st.excluded = !cb.checked;
-      });
-      updateExcludedBadge();
-    }
-    if (msg && msg.type === "import-success") {
-      importButton.disabled = false;
-      importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
-      importButton.innerHTML = "<span>\u2705</span><span>Imported!</span>";
-      importButton.style.background = "#10b981";
-      importButton.style.color = "white";
-      importButton.style.borderColor = "#10b981";
-      setTimeout(() => {
-        importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
-        importButton.style.background = "";
-        importButton.style.color = "";
-        importButton.style.borderColor = "";
-      }, 2e3);
-      applyButton.disabled = false;
-    }
-    if (msg && msg.type === "import-error") {
-      importButton.disabled = false;
-      importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
-      alert("Import failed: " + msg.error);
-    }
-    if (msg && msg.type === "apply-success") {
-      applyButton.disabled = false;
-      applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
-      applyButton.innerHTML = "<span>\u2705</span><span>Applied!</span>";
-      applyButton.style.background = "#10b981";
-      applyButton.style.color = "white";
-      applyButton.style.borderColor = "#10b981";
-      setTimeout(() => {
-        applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
-        applyButton.style.background = "";
-        applyButton.style.color = "";
-        applyButton.style.borderColor = "";
-      }, 2e3);
-    }
-    if (msg && msg.type === "apply-error") {
-      applyButton.disabled = false;
-      applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
-      alert("Apply failed: " + msg.error);
-    }
-    if (msg && msg.type === "fetch-started") {
-      remoteStatus.state = "fetching";
-      updateRemoteStatus();
-    }
-    if (msg && msg.type === "fetch-success") {
-      remoteStatus.state = "idle";
-      remoteStatus.lastFetched = Date.now();
-      remoteStatus.error = void 0;
-      updateRemoteStatus();
-      const originalHtml = fetchBtn.innerHTML;
-      fetchBtn.innerHTML = "\u2713 Fetched";
-      fetchBtn.style.background = "#10b981";
-      fetchBtn.style.color = "white";
-      setTimeout(() => {
-        fetchBtn.innerHTML = originalHtml;
-        fetchBtn.style.background = "";
-        fetchBtn.style.color = "";
-      }, 2e3);
-    }
-    if (msg && msg.type === "fetch-error") {
-      remoteStatus.state = "error";
-      remoteStatus.error = msg.error;
-      updateRemoteStatus();
-    }
-    if (msg && msg.type === "update-check-result") {
-      remoteStatus.state = "idle";
-      remoteStatus.updatesAvailable = msg.updatesAvailable || 0;
-      updateRemoteStatus();
-    }
-    if (msg && msg.type === "settings-update") {
-      populateSettingsForm(msg.settings);
-    }
-    if (msg && msg.type === "settings-saved") {
-      remoteSettings = msg.settings;
-      saveSettingsBtn.disabled = false;
-      saveSettingsBtn.textContent = "Save Settings";
-      const originalText = saveSettingsBtn.textContent;
-      saveSettingsBtn.textContent = "Saved!";
-      saveSettingsBtn.style.background = "#10b981";
-      setTimeout(() => {
-        saveSettingsBtn.textContent = originalText;
-        saveSettingsBtn.style.background = "";
-      }, 1500);
-      updateRemoteStatus();
-      setTimeout(() => {
-        hideSettingsPanel();
-      }, 1e3);
-    }
-    if (msg && msg.type === "connection-test-result") {
-      testConnectionBtn.disabled = false;
-      testConnectionBtn.textContent = "Test Connection";
-      if (msg.success) {
-        testConnectionBtn.textContent = "\u2713 Connection OK";
-        testConnectionBtn.style.background = "#10b981";
-        testConnectionBtn.style.color = "white";
-        setTimeout(() => {
-          testConnectionBtn.textContent = "Test Connection";
-          testConnectionBtn.style.background = "";
-          testConnectionBtn.style.color = "";
-        }, 2e3);
-      } else {
-        alert("Connection failed: " + msg.error);
+      window.toggleChanges = toggleChanges;
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
       }
+      function formatValue(value) {
+        if (typeof value === "object") {
+          return JSON.stringify(value);
+        }
+        return String(value);
+      }
+      function formatTimeAgo(timestamp) {
+        const seconds = Math.floor((Date.now() - timestamp) / 1e3);
+        if (seconds < 60)
+          return "Just now";
+        if (seconds < 3600)
+          return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400)
+          return `${Math.floor(seconds / 3600)}h ago`;
+        if (seconds < 604800)
+          return `${Math.floor(seconds / 86400)}d ago`;
+        return new Date(timestamp).toLocaleDateString();
+      }
+      function updateStatus(diffCount) {
+        if (diffCount > 0) {
+          statusDot.className = "status-dot unsynced";
+          statusText.textContent = "Unsynced changes";
+        } else {
+          statusDot.className = "status-dot synced";
+          statusText.textContent = "Synced";
+        }
+      }
+      window.onmessage = (event) => {
+        var _a, _b;
+        const msg = event.data.pluginMessage;
+        if (msg && msg.type === "update") {
+          syncDiffs = msg.diffs || [];
+          syncCollectionRenames = msg.collectionRenames || [];
+          syncModeRenames = msg.modeRenames || [];
+          const totalChanges = syncDiffs.length + syncCollectionRenames.length + syncModeRenames.length;
+          renderDiffs();
+          renderHistory(msg.history);
+          updateStatus(totalChanges);
+          if (msg.excludedCount !== void 0) {
+            if (msg.excludedCount > 0) {
+              excludedBadge.textContent = msg.excludedCount + " excluded";
+              excludedBadge.style.display = "inline";
+            } else {
+              excludedBadge.style.display = "none";
+            }
+          }
+          isSyncing = false;
+          syncButton.disabled = false;
+          syncIcon.textContent = "";
+          syncText.textContent = "Sync";
+        }
+        if (msg && msg.type === "update-sync-diffs") {
+          syncDiffs = msg.diffs || [];
+          syncCollectionRenames = msg.collectionRenames || [];
+          syncModeRenames = msg.modeRenames || [];
+          syncTimestamp = msg.timestamp;
+          renderDiffs();
+          const totalChanges = syncDiffs.length + syncCollectionRenames.length + syncModeRenames.length;
+          updateStatus(totalChanges);
+          isSyncing = false;
+          syncButton.disabled = false;
+          syncIcon.textContent = "";
+          syncText.textContent = "Sync";
+          if (totalChanges > 0 && activeDiffTab !== "sync") {
+            activeDiffTab = "sync";
+            document.querySelectorAll("[data-diff-tab]").forEach((t) => t.classList.remove("active"));
+            (_a = document.querySelector('[data-diff-tab="sync"]')) == null ? void 0 : _a.classList.add("active");
+            syncDiffView.classList.add("active");
+            codeDiffView.classList.remove("active");
+          }
+        }
+        if (msg && msg.type === "update-code-diffs") {
+          codeDiffs = msg.diffs || [];
+          codeCollectionRenames = msg.collectionRenames || [];
+          codeModeRenames = msg.modeRenames || [];
+          codeTimestamp = msg.timestamp;
+          codeSource = msg.source;
+          codeSourceUrl = msg.sourceUrl;
+          renderDiffs();
+          const totalChanges = codeDiffs.length + codeCollectionRenames.length + codeModeRenames.length;
+          if (totalChanges > 0) {
+            activeDiffTab = "code";
+            document.querySelectorAll("[data-diff-tab]").forEach((t) => t.classList.remove("active"));
+            (_b = document.querySelector('[data-diff-tab="code"]')) == null ? void 0 : _b.classList.add("active");
+            syncDiffView.classList.remove("active");
+            codeDiffView.classList.add("active");
+          }
+        }
+        if (msg && msg.type === "collections-update") {
+          renderCollections(msg.collections);
+        }
+        if (msg && msg.type === "style-types-update") {
+          renderStyleTypes(msg.styleTypes);
+        }
+        if (msg && msg.type === "style-types-saved") {
+        }
+        if (msg && msg.type === "collections-saved") {
+          saveCollectionsBtn.disabled = false;
+          saveCollectionsBtn.textContent = "Save";
+          const originalText = saveCollectionsBtn.textContent;
+          saveCollectionsBtn.textContent = "Saved!";
+          saveCollectionsBtn.style.background = "#10b981";
+          setTimeout(() => {
+            saveCollectionsBtn.textContent = originalText;
+            saveCollectionsBtn.style.background = "";
+          }, 1500);
+          const collectionCheckboxes = collectionsList.querySelectorAll("input[data-collection]");
+          collectionCheckboxes.forEach((cb) => {
+            const col = currentCollections.find((c) => c.name === cb.dataset.collection);
+            if (col)
+              col.excluded = !cb.checked;
+          });
+          const styleCheckboxes = collectionsList.querySelectorAll("input[data-style-type]");
+          styleCheckboxes.forEach((cb) => {
+            const st = currentStyleTypes.find((s) => s.type === cb.dataset.styleType);
+            if (st)
+              st.excluded = !cb.checked;
+          });
+          updateExcludedBadge();
+        }
+        if (msg && msg.type === "import-success") {
+          importButton.disabled = false;
+          importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
+          importButton.innerHTML = "<span>\u2705</span><span>Imported!</span>";
+          importButton.style.background = "#10b981";
+          importButton.style.color = "white";
+          importButton.style.borderColor = "#10b981";
+          setTimeout(() => {
+            importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
+            importButton.style.background = "";
+            importButton.style.color = "";
+            importButton.style.borderColor = "";
+          }, 2e3);
+          applyButton.disabled = false;
+        }
+        if (msg && msg.type === "import-error") {
+          importButton.disabled = false;
+          importButton.innerHTML = "<span>\u{1F4E5}</span><span>Import Baseline</span>";
+          alert("Import failed: " + msg.error);
+        }
+        if (msg && msg.type === "apply-success") {
+          applyButton.disabled = false;
+          applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
+          applyButton.innerHTML = "<span>\u2705</span><span>Applied!</span>";
+          applyButton.style.background = "#10b981";
+          applyButton.style.color = "white";
+          applyButton.style.borderColor = "#10b981";
+          setTimeout(() => {
+            applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
+            applyButton.style.background = "";
+            applyButton.style.color = "";
+            applyButton.style.borderColor = "";
+          }, 2e3);
+        }
+        if (msg && msg.type === "apply-error") {
+          applyButton.disabled = false;
+          applyButton.innerHTML = "<span>\u2728</span><span>Apply to Figma</span>";
+          alert("Apply failed: " + msg.error);
+        }
+        if (msg && msg.type === "fetch-started") {
+          remoteStatus.state = "fetching";
+          updateRemoteStatus();
+        }
+        if (msg && msg.type === "fetch-success") {
+          remoteStatus.state = "idle";
+          remoteStatus.lastFetched = Date.now();
+          remoteStatus.error = void 0;
+          updateRemoteStatus();
+          const originalHtml = fetchBtn.innerHTML;
+          fetchBtn.innerHTML = "\u2713 Fetched";
+          fetchBtn.style.background = "#10b981";
+          fetchBtn.style.color = "white";
+          setTimeout(() => {
+            fetchBtn.innerHTML = originalHtml;
+            fetchBtn.style.background = "";
+            fetchBtn.style.color = "";
+          }, 2e3);
+        }
+        if (msg && msg.type === "fetch-error") {
+          remoteStatus.state = "error";
+          remoteStatus.error = msg.error;
+          updateRemoteStatus();
+        }
+        if (msg && msg.type === "update-check-result") {
+          remoteStatus.state = "idle";
+          remoteStatus.updatesAvailable = msg.updatesAvailable || 0;
+          updateRemoteStatus();
+        }
+        if (msg && msg.type === "settings-update") {
+          populateSettingsForm(msg.settings);
+          updateRemoteStatus();
+        }
+        if (msg && msg.type === "settings-saved") {
+          if (msg.settings) {
+            remoteSettings = msg.settings;
+          }
+          saveSettingsBtn.disabled = false;
+          saveSettingsBtn.textContent = "Save Settings";
+          const originalText = saveSettingsBtn.textContent;
+          saveSettingsBtn.textContent = "Saved!";
+          saveSettingsBtn.style.background = "#10b981";
+          setTimeout(() => {
+            saveSettingsBtn.textContent = originalText;
+            saveSettingsBtn.style.background = "";
+          }, 1500);
+          updateRemoteStatus();
+          setTimeout(() => {
+            hideSettingsPanel();
+          }, 1e3);
+        }
+        if (msg && msg.type === "connection-test-result") {
+          testConnectionBtn.disabled = false;
+          testConnectionBtn.textContent = "Test Connection";
+          if (msg.success) {
+            testConnectionBtn.textContent = "\u2713 Connection OK";
+            testConnectionBtn.style.background = "#10b981";
+            testConnectionBtn.style.color = "white";
+            setTimeout(() => {
+              testConnectionBtn.textContent = "Test Connection";
+              testConnectionBtn.style.background = "";
+              testConnectionBtn.style.color = "";
+            }, 2e3);
+          } else {
+            alert("Connection failed: " + msg.error);
+          }
+        }
+      };
+      parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
+      parent.postMessage({ pluginMessage: { type: "get-settings" } }, "*");
+      updateRemoteStatus();
     }
-  };
-  parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
-  updateRemoteStatus();
+  });
+  require_ui();
 })();
 </script>
 </body>

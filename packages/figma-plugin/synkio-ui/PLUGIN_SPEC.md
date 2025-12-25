@@ -11,6 +11,7 @@ This document defines the full refactor plan for the Synkio Figma Plugin codebas
 - `lib/*.ts`: 8 utility files (~1,400 lines total)
 - Dead code, duplicate functions, unused exports
 - Validation functions written but never wired up
+- **Bug fixed:** Missing localhost token input field in settings UI (backend supported it in `lib/settings.ts` but UI never added the field)
 
 **Target State:**
 - Modular folder structure with focused modules (<400 lines each)
