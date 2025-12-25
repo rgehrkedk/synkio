@@ -1,0 +1,16 @@
+{
+  "name": "Synkio",
+  "id": "PLUGIN_ID_FROM_FIGMA",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "documentAccess": "dynamic-page",
+  "editorType": ["figma"],
+  "permissions": ["currentuser"],
+  "networkAccess": {
+    "allowedDomains": [
+      "api.github.com",
+      "raw.githubusercontent.com"
+    ]
+  }
+}
