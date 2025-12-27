@@ -110,6 +110,25 @@ export async function loadClientStorage<T>(key: string): Promise<T | null> {
 }
 
 // =============================================================================
+// Clear All Storage
+// =============================================================================
+
+export async function clearAllStorage(): Promise<void> {
+  // Clear chunked data
+  clearChunks(KEYS.SYNC_BASELINE);
+  clearChunks(KEYS.CODE_BASELINE);
+
+  // Clear simple data
+  figma.root.setSharedPluginData(NAMESPACE, KEYS.HISTORY, '');
+  figma.root.setSharedPluginData(NAMESPACE, KEYS.EXCLUDED_COLLECTIONS, '');
+  figma.root.setSharedPluginData(NAMESPACE, KEYS.EXCLUDED_STYLE_TYPES, '');
+  figma.root.setSharedPluginData(NAMESPACE, KEYS.SETTINGS, '');
+
+  // Clear client storage (persistent settings)
+  await figma.clientStorage.deleteAsync('settings');
+}
+
+// =============================================================================
 // Helpers
 // =============================================================================
 

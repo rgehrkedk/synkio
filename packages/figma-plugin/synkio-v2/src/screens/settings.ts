@@ -2,7 +2,7 @@
 // Settings Screen
 // =============================================================================
 
-import { PluginState, CollectionInfo, StyleTypeInfo, GitHubSettings } from '../lib/types';
+import { PluginState, CollectionInfo, StyleTypeInfo, GitHubSettings, RemoteSettings } from '../lib/types';
 import { RouterActions } from '../ui/router';
 import {
   el,
@@ -58,7 +58,7 @@ export function SettingsScreen(state: PluginState, actions: RouterActions): HTML
   contentChildren.push(buildGitHubSection(settings.remote, actions));
 
   // Advanced Section
-  contentChildren.push(buildAdvancedSection(actions));
+  contentChildren.push(buildAdvancedSection(settings.remote, actions));
 
   const content = createContentArea(contentChildren);
   return createPageLayout([header, content]);
@@ -284,14 +284,14 @@ function buildGitHubSection(remote: PluginState['settings']['remote'], actions: 
   });
 }
 
-function buildAdvancedSection(actions: RouterActions): HTMLElement {
+function buildAdvancedSection(remote: PluginState['settings']['remote'], actions: RouterActions): HTMLElement {
   const children: HTMLElement[] = [];
 
   // Auto-check toggle
   const autoCheckbox = Checkbox({
     label: 'Auto-check for code updates',
     sublabel: 'Check GitHub for updates when plugin opens',
-    checked: false, // TODO: get from state
+    checked: remote.autoCheck,
     onChange: (checked) => {
       actions.send({
         type: 'save-settings',
@@ -308,8 +308,7 @@ function buildAdvancedSection(actions: RouterActions): HTMLElement {
     fullWidth: true,
     onClick: () => {
       if (confirm('This will remove all baselines, history, and settings. Are you sure?')) {
-        // TODO: implement clear data
-        alert('Data cleared. Please reload the plugin.');
+        actions.send({ type: 'clear-all-data' });
       }
     },
   });

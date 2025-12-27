@@ -204,6 +204,11 @@ function handleMessage(event: MessageEvent) {
       updateConnectionStatus(message.success, message.error);
       router.updateState({}); // Trigger re-render
       break;
+
+    case 'data-cleared':
+      alert('All plugin data has been cleared. Please close and reopen the plugin.');
+      sendMessage({ type: 'close' });
+      break;
   }
 }
 

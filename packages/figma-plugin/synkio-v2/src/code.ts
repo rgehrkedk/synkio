@@ -24,6 +24,7 @@ import {
   loadSimple,
   saveClientStorage,
   loadClientStorage,
+  clearAllStorage,
   KEYS,
 } from './lib/storage';
 
@@ -109,6 +110,10 @@ figma.ui.onmessage = async (message: MessageToCode) => {
 
       case 'test-connection':
         await handleTestConnection();
+        break;
+
+      case 'clear-all-data':
+        await handleClearAllData();
         break;
 
       case 'close':
@@ -606,6 +611,11 @@ async function handleTestConnection() {
       error: String(error),
     });
   }
+}
+
+async function handleClearAllData() {
+  await clearAllStorage();
+  sendMessage({ type: 'data-cleared' });
 }
 
 // =============================================================================
