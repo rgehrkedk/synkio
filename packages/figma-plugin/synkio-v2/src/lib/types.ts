@@ -382,6 +382,7 @@ export type MessageToCode =
   | { type: 'get-settings' }
   | { type: 'save-settings'; settings: Partial<RemoteSettings> }
   | { type: 'test-connection' }
+  | { type: 'clear-all-data' }
   | { type: 'navigate'; screen: Screen }
   | { type: 'close' };
 
@@ -403,4 +404,5 @@ export type MessageToUI =
   | { type: 'apply-error'; error: string }
   | { type: 'history-update'; history: SyncEvent[] }
   | { type: 'settings-update'; settings: PluginSettings }
-  | { type: 'connection-test-result'; success: boolean; error?: string };
+  | { type: 'connection-test-result'; success: boolean; error?: string }
+  | { type: 'data-cleared' };
