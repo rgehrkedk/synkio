@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { Screen, PluginState, MessageToUI, MessageToCode, GitHubSettings } from '../lib/types';
-import { createRouter, Router, ScreenRenderer } from './router';
+import { createRouter, Router, ScreenRenderer, ScreenCleanup } from './router';
 import { injectStyles } from './components';
 import {
   HomeScreen,
@@ -13,6 +13,9 @@ import {
   SettingsScreen,
   OnboardingScreen,
   updateConnectionStatus,
+  resetOnboarding,
+  resetApplyScreen,
+  resetSettingsScreen,
 } from '../screens';
 
 // =============================================================================
@@ -78,8 +81,15 @@ function init() {
     return;
   }
 
+  // Screen cleanup registry - called when navigating away from a screen
+  const screenCleanup: Partial<Record<Screen, ScreenCleanup>> = {
+    onboarding: resetOnboarding,
+    apply: resetApplyScreen,
+    settings: resetSettingsScreen,
+  };
+
   // Create router
-  router = createRouter(app, screens, initialState, sendMessage);
+  router = createRouter(app, screens, initialState, sendMessage, screenCleanup);
 
   // Initial render
   router.render();
@@ -111,7 +121,9 @@ function handleMessage(event: MessageEvent) {
       break;
 
     case 'state-update':
+      console.log('state-update received, syncStatus=', message.state.syncStatus);
       router.updateState(message.state);
+      console.log('state-update applied, new state syncStatus=', router.getState().syncStatus);
       break;
 
     case 'sync-started':
@@ -130,11 +142,31 @@ function handleMessage(event: MessageEvent) {
       break;
 
     case 'collections-update':
-      router.updateState({ collections: message.collections });
+      // Update both collections and settings.excludedCollections to keep them in sync
+      const excludedCollectionNames = message.collections
+        .filter(c => c.excluded)
+        .map(c => c.name);
+      router.updateState({
+        collections: message.collections,
+        settings: {
+          ...router.getState().settings,
+          excludedCollections: excludedCollectionNames,
+        },
+      });
       break;
 
     case 'style-types-update':
-      router.updateState({ styleTypes: message.styleTypes });
+      // Update both styleTypes and settings.excludedStyleTypes to keep them in sync
+      const excludedStyleTypeNames = message.styleTypes
+        .filter(s => s.excluded)
+        .map(s => s.type);
+      router.updateState({
+        styleTypes: message.styleTypes,
+        settings: {
+          ...router.getState().settings,
+          excludedStyleTypes: excludedStyleTypeNames,
+        },
+      });
       break;
 
     case 'fetch-started':
@@ -210,6 +242,7 @@ function handleMessage(event: MessageEvent) {
       break;
 
     case 'data-cleared':
+      resetOnboarding(); // Reset UI state before closing
       alert('All plugin data has been cleared. Please close and reopen the plugin.');
       sendMessage({ type: 'close' });
       break;

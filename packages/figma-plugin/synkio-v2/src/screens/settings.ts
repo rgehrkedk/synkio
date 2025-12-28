@@ -26,6 +26,11 @@ import {
 let githubForm: Partial<GitHubSettings> = {};
 let connectionStatus: { tested: boolean; success?: boolean; error?: string } = { tested: false };
 
+export function resetSettingsScreen() {
+  githubForm = {};
+  connectionStatus = { tested: false };
+}
+
 export function SettingsScreen(state: PluginState, actions: RouterActions): HTMLElement {
   const { collections, styleTypes, settings } = state;
 

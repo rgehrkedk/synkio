@@ -4,6 +4,8 @@
 
 import {
   TokenEntry,
+  TokenValue,
+  TokenType,
   StyleEntry,
   CollectionInfo,
   StyleTypeInfo,
@@ -21,11 +23,17 @@ export interface CollectOptions {
   excludedCollections?: string[];
 }
 
-export function collectVariables(options: CollectOptions = {}): TokenEntry[] {
+export async function collectVariables(options: CollectOptions = {}): Promise<TokenEntry[]> {
   const { excludedCollections = [] } = options;
   const tokens: TokenEntry[] = [];
 
-  const collections = figma.variables.getLocalVariableCollections();
+  // Check if variables API is available
+  if (!figma.variables) {
+    console.warn('Variables API not available');
+    return tokens;
+  }
+
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
 
   for (const collection of collections) {
     // Skip excluded collections
@@ -36,7 +44,7 @@ export function collectVariables(options: CollectOptions = {}): TokenEntry[] {
     const isSingleMode = collection.modes.length === 1;
 
     for (const variableId of collection.variableIds) {
-      const variable = figma.variables.getVariableById(variableId);
+      const variable = await figma.variables.getVariableByIdAsync(variableId);
       if (!variable) continue;
 
       for (const mode of collection.modes) {
@@ -76,12 +84,12 @@ export function collectVariables(options: CollectOptions = {}): TokenEntry[] {
   return tokens;
 }
 
-function convertValue(value: VariableValue, resolvedType: VariableResolvedDataType): { value: unknown; type: string } {
+function convertValue(value: VariableValue, resolvedType: VariableResolvedDataType): { value: TokenValue; type: TokenType } {
   // Handle variable alias
   if (typeof value === 'object' && 'type' in value && value.type === 'VARIABLE_ALIAS') {
     return {
       value: { $ref: value.id },
-      type: resolvedType.toLowerCase(),
+      type: resolvedType.toLowerCase() as TokenType,
     };
   }
 
@@ -97,7 +105,7 @@ function convertValue(value: VariableValue, resolvedType: VariableResolvedDataTy
   // Handle float (check if dimension)
   if (resolvedType === 'FLOAT') {
     return {
-      value: value,
+      value: value as number,
       type: 'number',
     };
   }
@@ -105,7 +113,7 @@ function convertValue(value: VariableValue, resolvedType: VariableResolvedDataTy
   // Handle string
   if (resolvedType === 'STRING') {
     return {
-      value: value,
+      value: value as string,
       type: 'string',
     };
   }
@@ -113,12 +121,13 @@ function convertValue(value: VariableValue, resolvedType: VariableResolvedDataTy
   // Handle boolean
   if (resolvedType === 'BOOLEAN') {
     return {
-      value: value,
+      value: value as boolean,
       type: 'boolean',
     };
   }
 
-  return { value, type: 'unknown' };
+  // Fallback - treat as string
+  return { value: String(value), type: 'string' };
 }
 
 function rgbaToString(color: RGBA): string {
@@ -146,13 +155,13 @@ export interface StyleCollectOptions {
   excludedStyleTypes?: StyleType[];
 }
 
-export function collectStyles(options: StyleCollectOptions = {}): StyleEntry[] {
+export async function collectStyles(options: StyleCollectOptions = {}): Promise<StyleEntry[]> {
   const { excludedStyleTypes = [] } = options;
   const styles: StyleEntry[] = [];
 
   // Paint styles
   if (!excludedStyleTypes.includes('paint')) {
-    const paintStyles = figma.getLocalPaintStyles();
+    const paintStyles = await figma.getLocalPaintStylesAsync();
     for (const style of paintStyles) {
       const entry = convertPaintStyle(style);
       if (entry) styles.push(entry);
@@ -161,7 +170,7 @@ export function collectStyles(options: StyleCollectOptions = {}): StyleEntry[] {
 
   // Text styles
   if (!excludedStyleTypes.includes('text')) {
-    const textStyles = figma.getLocalTextStyles();
+    const textStyles = await figma.getLocalTextStylesAsync();
     for (const style of textStyles) {
       const entry = convertTextStyle(style);
       if (entry) styles.push(entry);
@@ -170,7 +179,7 @@ export function collectStyles(options: StyleCollectOptions = {}): StyleEntry[] {
 
   // Effect styles
   if (!excludedStyleTypes.includes('effect')) {
-    const effectStyles = figma.getLocalEffectStyles();
+    const effectStyles = await figma.getLocalEffectStylesAsync();
     for (const style of effectStyles) {
       const entry = convertEffectStyle(style);
       if (entry) styles.push(entry);
@@ -184,6 +193,11 @@ function convertPaintStyle(style: PaintStyle): PaintStyleEntry | null {
   if (style.paints.length === 0) return null;
 
   const paint = style.paints[0];
+
+  // Skip invisible or unsupported paint types
+  if (!paint.visible) return null;
+  if (paint.type === 'IMAGE' || paint.type === 'VIDEO') return null;
+
   const path = style.name.replace(/\//g, '.');
 
   if (paint.type === 'SOLID') {
@@ -199,9 +213,10 @@ function convertPaintStyle(style: PaintStyle): PaintStyleEntry | null {
     };
   }
 
-  if (paint.type.includes('GRADIENT')) {
-    const gradientType = paint.type.replace('_GRADIENT', '').toLowerCase() as 'linear' | 'radial' | 'angular' | 'diamond';
-    const stops = paint.gradientStops.map(stop => ({
+  if (paint.type === 'GRADIENT_LINEAR' || paint.type === 'GRADIENT_RADIAL' ||
+      paint.type === 'GRADIENT_ANGULAR' || paint.type === 'GRADIENT_DIAMOND') {
+    const gradientType = paint.type.replace('GRADIENT_', '').toLowerCase() as 'linear' | 'radial' | 'angular' | 'diamond';
+    const stops = paint.gradientStops.map((stop: ColorStop) => ({
       color: rgbaToString({ ...stop.color, a: stop.color.a }),
       position: stop.position,
     }));
@@ -368,8 +383,12 @@ function getTextDecoration(decoration: TextDecoration): string | undefined {
 // Collection Info
 // =============================================================================
 
-export function getCollectionInfos(): CollectionInfo[] {
-  const collections = figma.variables.getLocalVariableCollections();
+export async function getCollectionInfos(): Promise<CollectionInfo[]> {
+  if (!figma.variables) {
+    return [];
+  }
+
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
 
   return collections.map(collection => ({
     id: collection.id,
@@ -383,10 +402,16 @@ export function getCollectionInfos(): CollectionInfo[] {
   }));
 }
 
-export function getStyleTypeInfos(): StyleTypeInfo[] {
+export async function getStyleTypeInfos(): Promise<StyleTypeInfo[]> {
+  const [paintStyles, textStyles, effectStyles] = await Promise.all([
+    figma.getLocalPaintStylesAsync(),
+    figma.getLocalTextStylesAsync(),
+    figma.getLocalEffectStylesAsync(),
+  ]);
+
   return [
-    { type: 'paint', count: figma.getLocalPaintStyles().length, excluded: false },
-    { type: 'text', count: figma.getLocalTextStyles().length, excluded: false },
-    { type: 'effect', count: figma.getLocalEffectStyles().length, excluded: false },
+    { type: 'paint', count: paintStyles.length, excluded: false },
+    { type: 'text', count: textStyles.length, excluded: false },
+    { type: 'effect', count: effectStyles.length, excluded: false },
   ];
 }

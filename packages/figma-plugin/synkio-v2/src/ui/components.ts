@@ -3,10 +3,12 @@
 // Lightweight, framework-free component system for Figma plugin UI
 // =============================================================================
 
-import { Icon, DiffIcon, StatusIcon, IconName, IconSize, IconCircle } from './icons';
+import { Icon, DiffIcon, StatusIcon, IconCircle } from './icons';
+import type { IconName } from './icons';
 
 // Re-export icon utilities for screen usage
-export { Icon, IconCircle, IconName };
+export { Icon, IconCircle };
+export type { IconName };
 
 // =============================================================================
 // Core Helpers
@@ -50,14 +52,6 @@ export function clear(element: Element): void {
   while (element.firstChild) {
     element.removeChild(element.firstChild);
   }
-}
-
-export function show(element: HTMLElement): void {
-  element.style.display = '';
-}
-
-export function hide(element: HTMLElement): void {
-  element.style.display = 'none';
 }
 
 // =============================================================================

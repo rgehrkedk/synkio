@@ -73,10 +73,6 @@ export function clearChunks(key: string): void {
   figma.root.setSharedPluginData(NAMESPACE, `${key}_timestamp`, '');
 }
 
-export function getTimestamp(key: string): string | null {
-  return figma.root.getSharedPluginData(NAMESPACE, `${key}_timestamp`) || null;
-}
-
 // =============================================================================
 // Simple Storage (for small data)
 // =============================================================================
@@ -110,6 +106,60 @@ export async function loadClientStorage<T>(key: string): Promise<T | null> {
 }
 
 // =============================================================================
+// CLI-Compatible Storage
+// The CLI expects data in 'chunk_0', 'chunk_1', etc. keys with 'chunkCount'
+// This is different from our internal prefixed keys
+// =============================================================================
+
+export interface CLISyncData {
+  version: string;
+  timestamp: string;
+  tokens: unknown[];
+  styles?: unknown[];
+}
+
+export function saveForCLI(data: CLISyncData): void {
+  const json = JSON.stringify(data);
+  const chunks = chunkString(json, MAX_CHUNK_SIZE);
+
+  // Clear old CLI chunks first
+  const oldCount = figma.root.getSharedPluginData(NAMESPACE, 'chunkCount');
+  if (oldCount) {
+    const count = parseInt(oldCount, 10);
+    for (let i = 0; i < count; i++) {
+      figma.root.setSharedPluginData(NAMESPACE, `chunk_${i}`, '');
+    }
+  }
+
+  // Save chunk count and chunks
+  figma.root.setSharedPluginData(NAMESPACE, 'chunkCount', String(chunks.length));
+  for (let i = 0; i < chunks.length; i++) {
+    figma.root.setSharedPluginData(NAMESPACE, `chunk_${i}`, chunks[i]);
+  }
+
+  // Save metadata
+  figma.root.setSharedPluginData(NAMESPACE, 'version', data.version);
+  figma.root.setSharedPluginData(NAMESPACE, 'timestamp', data.timestamp);
+  figma.root.setSharedPluginData(NAMESPACE, 'tokenCount', String(data.tokens.length));
+  figma.root.setSharedPluginData(NAMESPACE, 'styleCount', String(data.styles?.length || 0));
+}
+
+export function clearCLIStorage(): void {
+  const oldCount = figma.root.getSharedPluginData(NAMESPACE, 'chunkCount');
+  if (oldCount) {
+    const count = parseInt(oldCount, 10);
+    for (let i = 0; i < count; i++) {
+      figma.root.setSharedPluginData(NAMESPACE, `chunk_${i}`, '');
+    }
+  }
+  figma.root.setSharedPluginData(NAMESPACE, 'chunkCount', '');
+  figma.root.setSharedPluginData(NAMESPACE, 'version', '');
+  figma.root.setSharedPluginData(NAMESPACE, 'timestamp', '');
+  figma.root.setSharedPluginData(NAMESPACE, 'tokenCount', '');
+  figma.root.setSharedPluginData(NAMESPACE, 'styleCount', '');
+}
+
+// =============================================================================
 // Clear All Storage
 // =============================================================================
 
@@ -117,6 +167,9 @@ export async function clearAllStorage(): Promise<void> {
   // Clear chunked data
   clearChunks(KEYS.SYNC_BASELINE);
   clearChunks(KEYS.CODE_BASELINE);
+
+  // Clear CLI-compatible storage
+  clearCLIStorage();
 
   // Clear simple data
   figma.root.setSharedPluginData(NAMESPACE, KEYS.HISTORY, '');

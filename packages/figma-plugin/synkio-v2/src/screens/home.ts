@@ -18,7 +18,6 @@ import {
   createContentArea,
   createColumn,
   createRow,
-  createText,
 } from '../ui/router';
 
 export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElement {

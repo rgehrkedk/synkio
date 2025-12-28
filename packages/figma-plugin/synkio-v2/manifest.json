@@ -1,5 +1,5 @@
 {
-  "name": "Synkio",
+  "name": "Synkio v2",
   "id": "PLUGIN_ID_FROM_FIGMA",
   "api": "1.0.0",
   "main": "dist/code.js",
@@ -9,8 +9,8 @@
   "permissions": ["currentuser"],
   "networkAccess": {
     "allowedDomains": [
-      "api.github.com",
-      "raw.githubusercontent.com"
+      "https://api.github.com",
+      "https://raw.githubusercontent.com"
     ]
   }
 }

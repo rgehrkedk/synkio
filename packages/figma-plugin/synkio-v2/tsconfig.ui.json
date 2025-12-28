@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+  },
+  "include": [
+    "src/ui/**/*.ts",
+    "src/screens/**/*.ts",
+    "src/lib/diff-utils.ts",
+    "src/lib/types.ts"
+  ]
+}

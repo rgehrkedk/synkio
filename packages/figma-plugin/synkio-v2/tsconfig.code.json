@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2020"],
+    "typeRoots": ["./node_modules/@figma"]
+  },
+  "include": [
+    "src/code.ts",
+    "src/lib/types.ts",
+    "src/lib/storage.ts",
+    "src/lib/collector.ts",
+    "src/lib/compare.ts",
+    "src/lib/debug.ts",
+    "src/handlers/**/*.ts",
+    "src/operations/**/*.ts",
+    "src/utils/**/*.ts"
+  ]
+}

@@ -6,6 +6,7 @@ import { Screen, PluginState } from '../lib/types';
 import { clear } from './components';
 
 export type ScreenRenderer = (state: PluginState, actions: RouterActions) => HTMLElement;
+export type ScreenCleanup = () => void;
 
 export interface RouterActions {
   navigate: (screen: Screen) => void;
@@ -24,12 +25,19 @@ export function createRouter(
   container: HTMLElement,
   screens: Record<Screen, ScreenRenderer>,
   initialState: PluginState,
-  sendMessage: (message: any) => void
+  sendMessage: (message: any) => void,
+  screenCleanup?: Partial<Record<Screen, ScreenCleanup>>
 ): Router {
   let state = initialState;
 
   const actions: RouterActions = {
     navigate: (screen: Screen) => {
+      // Call cleanup for current screen before switching
+      if (screenCleanup) {
+        const cleanup = screenCleanup[state.screen];
+        if (cleanup) cleanup();
+      }
+
       state = { ...state, screen };
       render();
     },
@@ -145,12 +153,6 @@ export function createColumn(children: HTMLElement[], gap: string = 'var(--spaci
   return col;
 }
 
-export function createSpacer(): HTMLElement {
-  const spacer = document.createElement('div');
-  spacer.style.flex = '1';
-  return spacer;
-}
-
 export function createDivider(): HTMLElement {
   const divider = document.createElement('hr');
   divider.style.cssText = `
@@ -159,19 +161,4 @@ export function createDivider(): HTMLElement {
     margin: var(--spacing-md) 0;
   `;
   return divider;
-}
-
-export function createText(content: string, style: 'title' | 'subtitle' | 'body' | 'caption' = 'body'): HTMLElement {
-  const text = document.createElement('span');
-  text.textContent = content;
-
-  const styles: Record<string, string> = {
-    title: `font-size: var(--font-size-xl); font-weight: 600; color: var(--color-text);`,
-    subtitle: `font-size: var(--font-size-md); font-weight: 500; color: var(--color-text);`,
-    body: `font-size: var(--font-size-sm); color: var(--color-text);`,
-    caption: `font-size: var(--font-size-xs); color: var(--color-text-secondary);`,
-  };
-
-  text.style.cssText = styles[style];
-  return text;
 }

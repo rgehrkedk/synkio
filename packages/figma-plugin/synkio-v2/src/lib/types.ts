@@ -252,15 +252,6 @@ export interface DeletedStyle {
   styleType: StyleType;
 }
 
-export interface DiffSummary {
-  added: number;
-  modified: number;
-  deleted: number;
-  renamed: number;
-  total: number;
-  hasBreakingChanges: boolean;
-}
-
 // =============================================================================
 // Collection Info
 // =============================================================================
@@ -403,7 +394,7 @@ export type MessageToUI =
   | { type: 'import-complete'; baseline: BaselineData; diff?: ComparisonResult }
   | { type: 'import-error'; error: string }
   | { type: 'apply-started' }
-  | { type: 'apply-complete'; summary: { created: number; updated: number } }
+  | { type: 'apply-complete'; summary: { created: number; updated: number; renamed: number } }
   | { type: 'apply-error'; error: string }
   | { type: 'history-update'; history: SyncEvent[] }
   | { type: 'settings-update'; settings: PluginSettings }
