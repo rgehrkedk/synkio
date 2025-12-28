@@ -7144,10 +7144,19 @@
     "VariableID:11235:17521:theme.dark": {
       "collection": "theme",
       "mode": "dark",
-      "path": "bg.primary.default",
+      "path": "bg.primary.base",
       "value": "{colors.neutral.950}",
       "type": "color",
-      "variableId": "VariableID:11235:17521"
+      "variableId": "VariableID:11235:17521",
+      "collectionId": "VariableCollectionId:9932:32",
+      "modeId": "9932:4",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "--bg-primary-bg"
+      }
     },
     "VariableID:14505:70616:theme.dark": {
       "collection": "theme",
@@ -8715,10 +8724,19 @@
     "VariableID:11235:17521:theme.light": {
       "collection": "theme",
       "mode": "light",
-      "path": "bg.primary.default",
+      "path": "bg.primary.base",
       "value": "{colors.neutral.50}",
       "type": "color",
-      "variableId": "VariableID:11235:17521"
+      "variableId": "VariableID:11235:17521",
+      "collectionId": "VariableCollectionId:9932:32",
+      "modeId": "9932:3",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "--bg-primary-bg"
+      }
     },
     "VariableID:14505:70616:theme.light": {
       "collection": "theme",
@@ -10249,10 +10267,25 @@
         ]
       }
     },
+    "S:464cde29146481259f8d7c374d00cb7f4c246e45,:effect": {
+      "styleId": "S:464cde29146481259f8d7c374d00cb7f4c246e45,",
+      "type": "effect",
+      "path": "effects.focus.error",
+      "value": {
+        "$type": "shadow",
+        "$value": {
+          "offsetX": "0px",
+          "offsetY": "0px",
+          "blur": "0px",
+          "spread": "4px",
+          "color": "rgba(168, 36, 46, 0.20)"
+        }
+      }
+    },
     "S:75af7dd018a81919aeaf170b767655b749def0e7,:effect": {
       "styleId": "S:75af7dd018a81919aeaf170b767655b749def0e7,",
       "type": "effect",
-      "path": "effects.focus.error",
+      "path": "effects.focus.errorSubtle",
       "value": {
         "$type": "shadow",
         "$value": {
@@ -10995,7 +11028,7 @@
     }
   },
   "metadata": {
-    "syncedAt": "2025-12-28T19:19:23.801Z",
+    "syncedAt": "2025-12-28T19:34:35.521Z",
     "source": "export"
   }
 }
