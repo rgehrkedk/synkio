@@ -92,14 +92,14 @@
             "offsetY": "9px",
             "blur": "22px",
             "spread": "0px",
-            "color": "{border.subtle.default}"
+            "color": "rgba(20, 33, 39, 0.10)"
           },
           {
             "offsetX": "0px",
             "offsetY": "4px",
             "blur": "18px",
             "spread": "0px",
-            "color": "{border.subtle.default}"
+            "color": "rgba(20, 33, 39, 0.10)"
           }
         ]
       },
@@ -224,6 +224,16 @@
         ]
       },
       "error": {
+        "$type": "shadow",
+        "$value": {
+          "offsetX": "0px",
+          "offsetY": "0px",
+          "blur": "0px",
+          "spread": "4px",
+          "color": "rgba(168, 36, 46, 0.20)"
+        }
+      },
+      "errorSubtle": {
         "$type": "shadow",
         "$value": {
           "offsetX": "0px",

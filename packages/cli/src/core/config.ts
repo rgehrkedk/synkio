@@ -112,7 +112,7 @@ const DocsPagesConfigSchema = z.object({
 // Sync behavior configuration
 const SyncConfigSchema = z.object({
   report: z.boolean().optional().default(true),        // Auto-generate report on sync
-  reportHistory: z.boolean().optional().default(false), // Keep timestamped reports as changelog
+  reportHistory: z.boolean().optional().default(true),  // Keep timestamped reports as changelog
 }).optional();
 
 // Import source configuration - maps Figma export files to collections

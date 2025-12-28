@@ -406,7 +406,7 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
       await mkdir(dirname(resolve(outputPath)), { recursive: true });
       await writeFile(resolve(outputPath), JSON.stringify(exportData, null, 2));
 
-      spinner.succeed(chalk.green('Baseline exported successfully!'));
+      spinner.succeed(chalk.green('Export baseline created!'));
       console.log('');
       console.log(chalk.dim('  Output:'), outputPath);
       console.log(chalk.dim('  Tokens:'), tokenCount);
@@ -420,10 +420,15 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
         console.log(chalk.dim('  Enriched:'), enrichMsg);
       }
       console.log('');
+      console.log(chalk.yellow('  Important:'));
+      console.log(chalk.dim('    Commit and push this file to your repository'));
+      console.log(chalk.dim('    so the Figma plugin can fetch it.'));
+      console.log('');
       console.log(chalk.cyan('  Next steps:'));
-      console.log(chalk.dim('    1. Open the Synkio plugin in Figma'));
-      console.log(chalk.dim('    2. Import this baseline file'));
-      console.log(chalk.dim('    3. Review the diff and click "Apply to Figma"'));
+      console.log(chalk.dim('    1. git add .synkio/export-baseline.json'));
+      console.log(chalk.dim('    2. git commit -m "Update export baseline"'));
+      console.log(chalk.dim('    3. git push'));
+      console.log(chalk.dim('    4. In Figma: Synkio plugin → "Apply from Code" → "Fetch from GitHub"'));
       console.log('');
     }
 

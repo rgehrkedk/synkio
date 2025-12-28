@@ -598,7 +598,7 @@ Generate a static documentation site:
 {
   "sync": {
     "report": true,
-    "reportHistory": false
+    "reportHistory": true
   }
 }
 ```
@@ -606,7 +606,7 @@ Generate a static documentation site:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `report` | `true` | Generate markdown report on sync |
-| `reportHistory` | `false` | Keep timestamped report history |
+| `reportHistory` | `true` | Keep timestamped report history in `.synkio/reports/` |
 
 ### Collection Options
 

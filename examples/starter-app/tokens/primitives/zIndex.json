@@ -1,34 +1,74 @@
 {
   "base": {
     "$value": 0,
-    "$type": "number"
+    "$type": "number",
+    "$extensions": {
+      "com.figma": {
+        "variableId": "VariableID:23324:22087"
+      }
+    }
   },
   "dropdown": {
     "$value": 100,
-    "$type": "number"
+    "$type": "number",
+    "$extensions": {
+      "com.figma": {
+        "variableId": "VariableID:23324:22088"
+      }
+    }
   },
   "sticky": {
     "$value": 200,
-    "$type": "number"
+    "$type": "number",
+    "$extensions": {
+      "com.figma": {
+        "variableId": "VariableID:23324:22089"
+      }
+    }
   },
   "overlay": {
     "$value": 300,
-    "$type": "number"
+    "$type": "number",
+    "$extensions": {
+      "com.figma": {
+        "variableId": "VariableID:23342:22087"
+      }
+    }
   },
   "modal": {
     "$value": 400,
-    "$type": "number"
+    "$type": "number",
+    "$extensions": {
+      "com.figma": {
+        "variableId": "VariableID:23342:22088"
+      }
+    }
   },
   "toast": {
     "$value": 500,
-    "$type": "number"
+    "$type": "number",
+    "$extensions": {
+      "com.figma": {
+        "variableId": "VariableID:23342:22089"
+      }
+    }
   },
   "tooltip": {
     "$value": 600,
-    "$type": "number"
+    "$type": "number",
+    "$extensions": {
+      "com.figma": {
+        "variableId": "VariableID:23342:22090"
+      }
+    }
   },
   "max": {
     "$value": 9999,
-    "$type": "number"
+    "$type": "number",
+    "$extensions": {
+      "com.figma": {
+        "variableId": "VariableID:23342:22092"
+      }
+    }
   }
 }

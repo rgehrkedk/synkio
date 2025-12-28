@@ -353,7 +353,7 @@ async function generateReport(
   config: any,
   options: SyncOptions
 ): Promise<string | undefined> {
-  const syncConfig = config.sync || { report: true, reportHistory: false };
+  const syncConfig = config.sync || { report: true, reportHistory: true };
   const shouldGenerateReport = options.noReport
     ? false
     : (options.report || syncConfig.report !== false);
