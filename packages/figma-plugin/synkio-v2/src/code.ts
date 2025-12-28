@@ -36,7 +36,7 @@ import {
   getStyleTypeInfos,
 } from './lib/collector';
 
-import { compareBaselines, compareHybrid } from './lib/compare';
+import { compareBaselines } from './lib/compare';
 
 // =============================================================================
 // Plugin Initialization
@@ -429,12 +429,11 @@ async function handleFetchRemoteResult(content: string) {
 
     // === END DEBUG ===
 
-    // Use hybrid comparison to handle mixed baselines:
-    // - Some entries have variableId (from previous syncs)
-    // - Some entries don't have variableId (edited in code without IDs)
-    // The hybrid comparison uses ID-based for entries with IDs (detects renames)
-    // and path-based for entries without IDs
-    const diff = compareHybrid(currentBaseline, codeBaseline);
+    // Compare baselines using ID-based matching
+    // Since export-baseline.json now has the same structure as baseline.json
+    // (with separate styles section, proper type mapping, stripped prefixes),
+    // we can use the standard compareBaselines function
+    const diff = compareBaselines(currentBaseline, codeBaseline);
 
     // === DEBUG DIFF RESULTS ===
     console.log('=== DIFF RESULTS ===');
@@ -462,6 +461,23 @@ async function handleFetchRemoteResult(content: string) {
     if (diff.deletedVariables.length > 0) {
       console.log('Deleted variables (first 10):');
       diff.deletedVariables.slice(0, 10).forEach(v => console.log(`  - ${v.path} (${v.collection}.${v.mode}) variableId=${v.variableId || 'NONE'}`));
+    }
+
+    if (diff.valueChanges.length > 0) {
+      console.log('Value changes (first 10):');
+      diff.valueChanges.slice(0, 10).forEach(v => {
+        console.log(`  ${v.path} (${v.collection}.${v.mode}): ${JSON.stringify(v.oldValue).slice(0, 50)} -> ${JSON.stringify(v.newValue).slice(0, 50)}`);
+      });
+    }
+
+    if (diff.deletedModes.length > 0) {
+      console.log('Deleted modes:');
+      diff.deletedModes.forEach(m => console.log(`  ${m.collection}: ${m.mode}`));
+    }
+
+    if (diff.deletedStyles.length > 0) {
+      console.log('Deleted styles (first 10):');
+      diff.deletedStyles.slice(0, 10).forEach(s => console.log(`  - ${s.path} (${s.styleType})`));
     }
     console.log('=== END DEBUG ===');
 
@@ -497,8 +513,8 @@ async function handleImportBaseline(data: string) {
     const styles = await collectStyles({ excludedStyleTypes });
     const currentBaseline = buildBaseline(tokens, styles);
 
-    // Use hybrid comparison to handle mixed baselines properly
-    const diff = compareHybrid(currentBaseline, codeBaseline);
+    // Compare baselines using ID-based matching
+    const diff = compareBaselines(currentBaseline, codeBaseline);
 
     sendMessage({
       type: 'import-complete',
@@ -530,8 +546,8 @@ async function handleApplyToFigma() {
     const currentStyles = await collectStyles({ excludedStyleTypes });
     const currentBaseline = buildBaseline(currentTokens, currentStyles);
 
-    // Compare to get diff using hybrid comparison
-    const diff = compareHybrid(currentBaseline, codeBaseline);
+    // Compare to get diff using ID-based matching
+    const diff = compareBaselines(currentBaseline, codeBaseline);
 
     let created = 0;
     let updated = 0;
@@ -544,7 +560,10 @@ async function handleApplyToFigma() {
 
     // Apply value changes
     for (const change of diff.valueChanges) {
-      await createOrUpdateVariable(codeBaseline.baseline, change);
+      await createOrUpdateVariable(codeBaseline.baseline, {
+        ...change,
+        value: change.newValue,
+      });
       updated++;
     }
 
@@ -559,7 +578,10 @@ async function handleApplyToFigma() {
     // Apply style value changes
     for (const styleChange of diff.styleValueChanges) {
       if (codeBaseline.styles) {
-        await createOrUpdateStyle(codeBaseline.styles, styleChange);
+        await createOrUpdateStyle(codeBaseline.styles, {
+          ...styleChange,
+          value: styleChange.newValue,
+        });
         updated++;
       }
     }

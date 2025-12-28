@@ -303,40 +303,67 @@ function detectModeRenames(
   newEntries: BaselineEntry[],
   result: ComparisonResult
 ): void {
-  // Group by collection and mode ID
-  const oldModes = new Map<string, { collection: string; mode: string }>(); // modeId -> {collection, mode}
-  const newModes = new Map<string, { collection: string; mode: string }>();
+  // Check if entries have modeId - if either side doesn't have modeId,
+  // we can't detect renames and should use name-based matching only
+  const oldHasModeId = oldEntries.some(e => e.modeId);
+  const newHasModeId = newEntries.some(e => e.modeId);
+
+  // Collect unique modes by name from both sides
+  const oldModesByName = new Map<string, { collection: string; mode: string; modeId?: string }>();
+  const newModesByName = new Map<string, { collection: string; mode: string; modeId?: string }>();
 
   for (const entry of oldEntries) {
-    if (entry.modeId) {
-      oldModes.set(entry.modeId, { collection: entry.collection, mode: entry.mode });
+    const key = `${entry.collection}:${entry.mode}`;
+    if (!oldModesByName.has(key)) {
+      oldModesByName.set(key, { collection: entry.collection, mode: entry.mode, modeId: entry.modeId });
     }
   }
 
   for (const entry of newEntries) {
-    if (entry.modeId) {
-      newModes.set(entry.modeId, { collection: entry.collection, mode: entry.mode });
+    const key = `${entry.collection}:${entry.mode}`;
+    if (!newModesByName.has(key)) {
+      newModesByName.set(key, { collection: entry.collection, mode: entry.mode, modeId: entry.modeId });
     }
   }
 
-  // Find renames
-  for (const [modeId, old] of oldModes) {
-    const newMode = newModes.get(modeId);
-    if (newMode && newMode.mode !== old.mode) {
-      result.modeRenames.push({
-        collection: newMode.collection,
-        oldMode: old.mode,
-        newMode: newMode.mode,
-      });
+  // If both sides have modeId, we can detect renames by modeId
+  if (oldHasModeId && newHasModeId) {
+    const oldModesByModeId = new Map<string, { collection: string; mode: string }>();
+    const newModesByModeId = new Map<string, { collection: string; mode: string }>();
+
+    for (const entry of oldEntries) {
+      if (entry.modeId) {
+        oldModesByModeId.set(entry.modeId, { collection: entry.collection, mode: entry.mode });
+      }
+    }
+
+    for (const entry of newEntries) {
+      if (entry.modeId) {
+        newModesByModeId.set(entry.modeId, { collection: entry.collection, mode: entry.mode });
+      }
+    }
+
+    // Find renames by modeId
+    for (const [modeId, old] of oldModesByModeId) {
+      const newMode = newModesByModeId.get(modeId);
+      if (newMode && newMode.mode !== old.mode) {
+        result.modeRenames.push({
+          collection: newMode.collection,
+          oldMode: old.mode,
+          newMode: newMode.mode,
+        });
+      }
     }
   }
 
-  // Find new modes
-  const oldModeNames = new Set([...oldModes.values()].map(m => `${m.collection}:${m.mode}`));
-  for (const [modeId, newMode] of newModes) {
-    if (!oldModes.has(modeId)) {
-      const modeKey = `${newMode.collection}:${newMode.mode}`;
-      if (!oldModeNames.has(modeKey)) {
+  // Find new modes (exist in new but not in old, by name)
+  for (const [key, newMode] of newModesByName) {
+    if (!oldModesByName.has(key)) {
+      // Check if this might be a renamed mode (if we have modeId info)
+      const isRenamedMode = result.modeRenames.some(
+        r => r.collection === newMode.collection && r.newMode === newMode.mode
+      );
+      if (!isRenamedMode) {
         result.newModes.push({
           collection: newMode.collection,
           mode: newMode.mode,
@@ -345,12 +372,14 @@ function detectModeRenames(
     }
   }
 
-  // Find deleted modes
-  const newModeNames = new Set([...newModes.values()].map(m => `${m.collection}:${m.mode}`));
-  for (const [modeId, oldMode] of oldModes) {
-    if (!newModes.has(modeId)) {
-      const modeKey = `${oldMode.collection}:${oldMode.mode}`;
-      if (!newModeNames.has(modeKey)) {
+  // Find deleted modes (exist in old but not in new, by name)
+  for (const [key, oldMode] of oldModesByName) {
+    if (!newModesByName.has(key)) {
+      // Check if this might be a renamed mode (if we have modeId info)
+      const isRenamedMode = result.modeRenames.some(
+        r => r.collection === oldMode.collection && r.oldMode === oldMode.mode
+      );
+      if (!isRenamedMode) {
         result.deletedModes.push({
           collection: oldMode.collection,
           mode: oldMode.mode,
@@ -391,9 +420,17 @@ function findMatchingEntry(
 }
 
 function valuesEqual(a: unknown, b: unknown): boolean {
-  // Handle references
-  if (isReference(a) && isReference(b)) {
-    return (a as { $ref: string }).$ref === (b as { $ref: string }).$ref;
+  // If both values are aliases/references, consider them equal
+  // Figma uses {$ref: "VariableID:123:456"} format
+  // Code uses "{colors.blue.300}" string format
+  // We can't compare these directly, but if both are aliases they reference the same variable
+  if (isAlias(a) && isAlias(b)) {
+    return true;
+  }
+
+  // If one is alias and one isn't, they're different
+  if (isAlias(a) !== isAlias(b)) {
+    return false;
   }
 
   // Handle primitives
@@ -408,6 +445,25 @@ function valuesEqual(a: unknown, b: unknown): boolean {
 
   // Deep equality for objects
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/**
+ * Check if a value is an alias/reference.
+ * - Figma format: {$ref: "VariableID:123:456"}
+ * - Code format: "{colors.blue.300}" (string wrapped in curly braces)
+ */
+function isAlias(value: unknown): boolean {
+  // Figma reference object
+  if (typeof value === 'object' && value !== null && '$ref' in value) {
+    return true;
+  }
+
+  // Code alias string (wrapped in curly braces, not JSON)
+  if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}') && !value.startsWith('{"')) {
+    return true;
+  }
+
+  return false;
 }
 
 function isReference(value: unknown): boolean {
@@ -562,299 +618,13 @@ function compareStylesByPath(
 }
 
 // =============================================================================
-// Hybrid Comparison (handles mixed baselines with and without IDs)
+// NOTE: compareHybrid and related functions have been removed.
+// Since export-baseline.json now has the same structure as baseline.json
+// (with separate styles section, proper type mapping, and stripped prefixes),
+// we can use the standard compareBaselines function for both directions:
+// - Figma -> Code (comparing Figma snapshots)
+// - Code -> Figma (comparing export-baseline with current Figma state)
 // =============================================================================
-
-/**
- * Compare baselines using a hybrid approach:
- * - For entries with variableId: use ID-based comparison (detects renames)
- * - For entries without variableId: use path-based comparison
- *
- * This handles the "code-first" scenario where some tokens were edited in code
- * and don't have variableIds, while others still have IDs from previous syncs.
- */
-export function compareHybrid(
-  oldBaseline: BaselineData,
-  newBaseline: BaselineData
-): ComparisonResult {
-  const result: ComparisonResult = {
-    valueChanges: [],
-    pathChanges: [],
-    collectionRenames: [],
-    modeRenames: [],
-    newModes: [],
-    deletedModes: [],
-    newVariables: [],
-    deletedVariables: [],
-    styleValueChanges: [],
-    stylePathChanges: [],
-    newStyles: [],
-    deletedStyles: [],
-  };
-
-  const oldEntries = oldBaseline.baseline ? Object.values(oldBaseline.baseline) : [];
-  const newEntries = newBaseline.baseline ? Object.values(newBaseline.baseline) : [];
-
-  // Separate entries into those with and without variableIds
-  const oldWithId: BaselineEntry[] = [];
-  const oldWithoutId: BaselineEntry[] = [];
-  const newWithId: BaselineEntry[] = [];
-  const newWithoutId: BaselineEntry[] = [];
-
-  for (const entry of oldEntries) {
-    if (entry.variableId) {
-      oldWithId.push(entry);
-    } else {
-      oldWithoutId.push(entry);
-    }
-  }
-
-  for (const entry of newEntries) {
-    if (entry.variableId) {
-      newWithId.push(entry);
-    } else {
-      newWithoutId.push(entry);
-    }
-  }
-
-  // Build ID-based lookup maps for entries with variableId
-  const oldByVariableId = new Map<string, BaselineEntry[]>();
-  const newByVariableId = new Map<string, BaselineEntry[]>();
-
-  for (const entry of oldWithId) {
-    const existing = oldByVariableId.get(entry.variableId!) || [];
-    existing.push(entry);
-    oldByVariableId.set(entry.variableId!, existing);
-  }
-
-  for (const entry of newWithId) {
-    const existing = newByVariableId.get(entry.variableId!) || [];
-    existing.push(entry);
-    newByVariableId.set(entry.variableId!, existing);
-  }
-
-  // Track processed entries
-  const processedNewIds = new Set<string>();
-
-  // Detect collection and mode renames first (using entries with IDs)
-  detectCollectionRenames(oldWithId, newWithId, result);
-  detectModeRenames(oldWithId, newWithId, result);
-
-  // Compare entries WITH variableId (ID-based comparison)
-  for (const [variableId, oldVarEntries] of oldByVariableId) {
-    const newVarEntries = newByVariableId.get(variableId);
-
-    if (!newVarEntries || newVarEntries.length === 0) {
-      // Variable deleted - but check if it might exist in newWithoutId by path
-      // (this handles the case where a token was edited in code and lost its ID)
-      for (const oldEntry of oldVarEntries) {
-        const pathMatch = newWithoutId.find(
-          e => e.path === oldEntry.path && e.collection === oldEntry.collection && e.mode === oldEntry.mode
-        );
-
-        if (pathMatch) {
-          // Found by path - check for value change
-          if (!valuesEqual(oldEntry.value, pathMatch.value)) {
-            result.valueChanges.push({
-              variableId,
-              path: pathMatch.path,
-              oldValue: oldEntry.value,
-              newValue: pathMatch.value,
-              type: pathMatch.type,
-              collection: pathMatch.collection,
-              mode: pathMatch.mode,
-            });
-          }
-          // Mark as processed
-          const pathKey = `${pathMatch.collection}:${pathMatch.mode}:${pathMatch.path}`;
-          processedNewIds.add(pathKey);
-        } else {
-          // Truly deleted
-          result.deletedVariables.push({
-            variableId,
-            path: oldEntry.path,
-            value: oldEntry.value,
-            type: oldEntry.type,
-            collection: oldEntry.collection,
-            mode: oldEntry.mode,
-          });
-        }
-      }
-    } else {
-      // Variable exists in both - compare by mode
-      for (const oldEntry of oldVarEntries) {
-        // Find matching mode (considering mode renames)
-        const matchingNew = findMatchingEntry(oldEntry, newVarEntries, result.modeRenames);
-
-        if (!matchingNew) {
-          // Mode was deleted for this variable - but check path-based match
-          const pathMatch = newWithoutId.find(
-            e => e.path === oldEntry.path && e.collection === oldEntry.collection && e.mode === oldEntry.mode
-          );
-
-          if (pathMatch) {
-            // Found by path - check for value change
-            if (!valuesEqual(oldEntry.value, pathMatch.value)) {
-              result.valueChanges.push({
-                variableId,
-                path: pathMatch.path,
-                oldValue: oldEntry.value,
-                newValue: pathMatch.value,
-                type: pathMatch.type,
-                collection: pathMatch.collection,
-                mode: pathMatch.mode,
-              });
-            }
-            const pathKey = `${pathMatch.collection}:${pathMatch.mode}:${pathMatch.path}`;
-            processedNewIds.add(pathKey);
-          } else {
-            result.deletedVariables.push({
-              variableId,
-              path: oldEntry.path,
-              value: oldEntry.value,
-              type: oldEntry.type,
-              collection: oldEntry.collection,
-              mode: oldEntry.mode,
-            });
-          }
-        } else {
-          const newKey = `${variableId}:${matchingNew.collection}:${matchingNew.mode}`;
-          processedNewIds.add(newKey);
-
-          // Check for path change (rename)
-          if (oldEntry.path !== matchingNew.path) {
-            result.pathChanges.push({
-              variableId,
-              oldPath: oldEntry.path,
-              newPath: matchingNew.path,
-              value: matchingNew.value,
-              type: matchingNew.type,
-              collection: matchingNew.collection,
-              mode: matchingNew.mode,
-            });
-          }
-          // Check for value change
-          else if (!valuesEqual(oldEntry.value, matchingNew.value)) {
-            result.valueChanges.push({
-              variableId,
-              path: matchingNew.path,
-              oldValue: oldEntry.value,
-              newValue: matchingNew.value,
-              type: matchingNew.type,
-              collection: matchingNew.collection,
-              mode: matchingNew.mode,
-            });
-          }
-        }
-      }
-
-      // Check for new modes for this variable
-      for (const newEntry of newVarEntries) {
-        const newKey = `${variableId}:${newEntry.collection}:${newEntry.mode}`;
-        if (!processedNewIds.has(newKey)) {
-          processedNewIds.add(newKey);
-          result.newVariables.push({
-            variableId,
-            path: newEntry.path,
-            value: newEntry.value,
-            type: newEntry.type,
-            collection: newEntry.collection,
-            mode: newEntry.mode,
-          });
-        }
-      }
-    }
-  }
-
-  // Find completely new variables (with variableId)
-  for (const [variableId, newVarEntries] of newByVariableId) {
-    if (!oldByVariableId.has(variableId)) {
-      for (const newEntry of newVarEntries) {
-        result.newVariables.push({
-          variableId,
-          path: newEntry.path,
-          value: newEntry.value,
-          type: newEntry.type,
-          collection: newEntry.collection,
-          mode: newEntry.mode,
-        });
-      }
-    }
-  }
-
-  // Compare entries WITHOUT variableId (path-based comparison)
-  // These are typically tokens edited in code that don't have Figma IDs
-  const oldByPath = new Map<string, BaselineEntry>();
-  const newByPath = new Map<string, BaselineEntry>();
-
-  for (const entry of oldWithoutId) {
-    const key = `${entry.collection}:${entry.mode}:${entry.path}`;
-    oldByPath.set(key, entry);
-  }
-
-  for (const entry of newWithoutId) {
-    const key = `${entry.collection}:${entry.mode}:${entry.path}`;
-    // Skip if already processed via ID-based match
-    if (!processedNewIds.has(key)) {
-      newByPath.set(key, entry);
-    }
-  }
-
-  // Find changes and deletions for path-only entries
-  for (const [key, oldEntry] of oldByPath) {
-    const newEntry = newByPath.get(key);
-
-    if (!newEntry) {
-      // Check if there's a matching entry with variableId
-      // (This handles the case where an entry gained an ID)
-      const hasIdMatch = newWithId.some(
-        e => e.path === oldEntry.path && e.collection === oldEntry.collection && e.mode === oldEntry.mode
-      );
-
-      if (!hasIdMatch) {
-        result.deletedVariables.push({
-          variableId: '',
-          path: oldEntry.path,
-          value: oldEntry.value,
-          type: oldEntry.type,
-          collection: oldEntry.collection,
-          mode: oldEntry.mode,
-        });
-      }
-    } else if (!valuesEqual(oldEntry.value, newEntry.value)) {
-      result.valueChanges.push({
-        variableId: '',
-        path: newEntry.path,
-        oldValue: oldEntry.value,
-        newValue: newEntry.value,
-        type: newEntry.type,
-        collection: newEntry.collection,
-        mode: newEntry.mode,
-      });
-    }
-  }
-
-  // Find new path-only entries
-  for (const [key, newEntry] of newByPath) {
-    if (!oldByPath.has(key)) {
-      // Check if this might be a renamed token (same value, different path)
-      // For now, treat as new - rename detection requires ID
-      result.newVariables.push({
-        variableId: '',
-        path: newEntry.path,
-        value: newEntry.value,
-        type: newEntry.type,
-        collection: newEntry.collection,
-        mode: newEntry.mode,
-      });
-    }
-  }
-
-  // Compare styles (always path-based for now)
-  compareStylesByPath(oldBaseline.styles, newBaseline.styles, result);
-
-  return result;
-}
 
 // =============================================================================
 // Summary Helpers

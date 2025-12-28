@@ -16,10 +16,10 @@ import ora from 'ora';
 import { loadConfig } from '../../core/config.js';
 import { discoverTokenFiles, extractModeFromFile, extractGroupFromFile } from '../../core/export/file-discoverer.js';
 import { parseTokenFile, parseMultiModeFile, ParsedToken } from '../../core/export/token-parser.js';
-import { buildExportBaseline } from '../../core/export/baseline-builder.js';
+import { buildExportBaseline, type BuildExportBaselineOptions, type StylesConfig } from '../../core/export/baseline-builder.js';
 import { readBaseline } from '../../core/baseline.js';
 import { createLogger } from '../../utils/logger.js';
-import type { BaselineEntry } from '../../types/index.js';
+import type { BaselineEntry, StyleBaselineEntry } from '../../types/index.js';
 
 export interface ExportBaselineOptions {
   output?: string;
@@ -56,6 +56,64 @@ function buildBaselineLookupMap(
   }
 
   return map;
+}
+
+/**
+ * Build a lookup map from baseline.json styles for styleId enrichment.
+ * Maps path:type -> StyleBaselineEntry
+ */
+function buildStyleLookupMap(
+  styles: Record<string, StyleBaselineEntry> | undefined
+): Map<string, StyleBaselineEntry> {
+  const map = new Map<string, StyleBaselineEntry>();
+
+  if (!styles) return map;
+
+  for (const entry of Object.values(styles)) {
+    if (entry.styleId) {
+      const key = `${entry.path}:${entry.type}`;
+      map.set(key, entry);
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Create lookup functions for baseline enrichment
+ */
+function createLookupFunctions(
+  variableLookupMap: Map<string, BaselineEntry>,
+  styleLookupMap: Map<string, StyleBaselineEntry>
+): {
+  getStyleId: (path: string, figmaType: 'paint' | 'text' | 'effect') => string | undefined;
+  getVariableMetadata: (path: string, collection: string, mode: string) => {
+    variableId?: string;
+    collectionId?: string;
+    modeId?: string;
+    scopes?: string[];
+    codeSyntax?: { WEB?: string; ANDROID?: string; iOS?: string };
+  } | undefined;
+} {
+  return {
+    getStyleId: (path: string, figmaType: 'paint' | 'text' | 'effect') => {
+      const key = `${path}:${figmaType}`;
+      const entry = styleLookupMap.get(key);
+      return entry?.styleId;
+    },
+    getVariableMetadata: (path: string, collection: string, mode: string) => {
+      const key = buildPathLookupKey(path, collection, mode);
+      const entry = variableLookupMap.get(key);
+      if (!entry) return undefined;
+      return {
+        variableId: entry.variableId,
+        collectionId: entry.collectionId,
+        modeId: entry.modeId,
+        scopes: entry.scopes,
+        codeSyntax: entry.codeSyntax,
+      };
+    },
+  };
 }
 
 /**
@@ -272,67 +330,87 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
       }
     }
 
-    // 4. Enrich tokens with variableIds from baseline.json if needed
+    // 4. Load existing baseline for enrichment
+    spinner.text = 'Loading existing baseline for enrichment...';
+    const existingBaseline = await readBaseline();
+
+    // Build lookup maps from existing baseline
+    const variableLookupMap = existingBaseline?.baseline
+      ? buildBaselineLookupMap(existingBaseline.baseline)
+      : new Map<string, BaselineEntry>();
+    const styleLookupMap = buildStyleLookupMap(existingBaseline?.styles);
+
+    // Create lookup functions
+    const lookupFunctions = createLookupFunctions(variableLookupMap, styleLookupMap);
+
+    // 5. Enrich tokens with variableIds from baseline.json if needed
     //    This enables ID-based comparison even when token files don't include variableId
     let totalEnriched = 0;
     let totalFuzzyMatched = 0;
-    if (!hasAnyVariableIds(parsedFiles)) {
-      spinner.text = 'Checking for variableIds in baseline.json...';
+    if (!hasAnyVariableIds(parsedFiles) && variableLookupMap.size > 0) {
+      spinner.text = 'Enriching tokens with variableIds from baseline.json...';
+      const allBaselineEntries = Object.values(existingBaseline?.baseline || {});
 
-      const existingBaseline = await readBaseline();
-      if (existingBaseline?.baseline) {
-        const lookupMap = buildBaselineLookupMap(existingBaseline.baseline);
-        const allBaselineEntries = Object.values(existingBaseline.baseline);
+      for (const { file, tokens, mode } of parsedFiles) {
+        const { enrichedCount, fuzzyMatchCount } = enrichTokensWithVariableIds(
+          tokens,
+          file.collection,
+          mode,
+          variableLookupMap,
+          allBaselineEntries
+        );
+        totalEnriched += enrichedCount;
+        totalFuzzyMatched += fuzzyMatchCount;
+      }
 
-        if (lookupMap.size > 0) {
-          spinner.text = 'Enriching tokens with variableIds from baseline.json...';
-
-          for (const { file, tokens, mode } of parsedFiles) {
-            const { enrichedCount, fuzzyMatchCount } = enrichTokensWithVariableIds(
-              tokens,
-              file.collection,
-              mode,
-              lookupMap,
-              allBaselineEntries
-            );
-            totalEnriched += enrichedCount;
-            totalFuzzyMatched += fuzzyMatchCount;
-          }
-
-          if (options.verbose && totalEnriched > 0) {
-            logger.info(`  Enriched ${totalEnriched} tokens with variableIds from baseline.json`);
-            if (totalFuzzyMatched > 0) {
-              logger.info(`  (${totalFuzzyMatched} matched by value - possible renames)`);
-            }
-          }
+      if (options.verbose && totalEnriched > 0) {
+        logger.info(`  Enriched ${totalEnriched} tokens with variableIds from baseline.json`);
+        if (totalFuzzyMatched > 0) {
+          logger.info(`  (${totalFuzzyMatched} matched by value - possible renames)`);
         }
       }
     }
 
-    // 5. Build baseline
+    // 6. Build baseline with styles config and lookup functions
     spinner.text = 'Building baseline...';
-    const exportData = buildExportBaseline(parsedFiles);
+
+    // Extract styles config from config
+    const stylesConfig: StylesConfig | undefined = config.tokens?.styles ? {
+      paint: config.tokens.styles.paint,
+      text: config.tokens.styles.text,
+      effect: config.tokens.styles.effect,
+    } : undefined;
+
+    const buildOptions: BuildExportBaselineOptions = {
+      stylesConfig,
+      getStyleId: lookupFunctions.getStyleId,
+      getVariableMetadata: lookupFunctions.getVariableMetadata,
+    };
+
+    const exportData = buildExportBaseline(parsedFiles, buildOptions);
 
     const tokenCount = Object.keys(exportData.baseline).length;
+    const styleCount = Object.keys(exportData.styles).length;
     const collections = new Set(
       Object.values(exportData.baseline).map(t => t.collection)
     );
 
-    // 5. Output
+    // 7. Output
     if (options.preview) {
       spinner.stop();
       console.log(JSON.stringify(exportData, null, 2));
       console.log('');
-      console.log(chalk.cyan(`Preview: ${tokenCount} tokens from ${collections.size} collection(s)`));
+      console.log(chalk.cyan(`Preview: ${tokenCount} tokens, ${styleCount} styles from ${collections.size} collection(s)`));
     } else {
       spinner.text = 'Writing baseline...';
       await mkdir(dirname(resolve(outputPath)), { recursive: true });
       await writeFile(resolve(outputPath), JSON.stringify(exportData, null, 2));
-      
+
       spinner.succeed(chalk.green('Baseline exported successfully!'));
       console.log('');
       console.log(chalk.dim('  Output:'), outputPath);
       console.log(chalk.dim('  Tokens:'), tokenCount);
+      console.log(chalk.dim('  Styles:'), styleCount);
       console.log(chalk.dim('  Collections:'), Array.from(collections).join(', '));
       if (totalEnriched > 0) {
         let enrichMsg = `${totalEnriched} tokens with variableIds from baseline.json`;
