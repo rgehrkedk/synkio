@@ -7144,19 +7144,10 @@
     "VariableID:11235:17521:theme.dark": {
       "collection": "theme",
       "mode": "dark",
-      "path": "bg.primary.base",
+      "path": "bg.primary.default",
       "value": "{colors.neutral.950}",
       "type": "color",
-      "variableId": "VariableID:11235:17521",
-      "collectionId": "VariableCollectionId:9932:32",
-      "modeId": "9932:4",
-      "scopes": [
-        "FRAME_FILL",
-        "SHAPE_FILL"
-      ],
-      "codeSyntax": {
-        "WEB": "--bg-primary-bg"
-      }
+      "variableId": "VariableID:11235:17521"
     },
     "VariableID:14505:70616:theme.dark": {
       "collection": "theme",
@@ -8724,19 +8715,10 @@
     "VariableID:11235:17521:theme.light": {
       "collection": "theme",
       "mode": "light",
-      "path": "bg.primary.base",
+      "path": "bg.primary.default",
       "value": "{colors.neutral.50}",
       "type": "color",
-      "variableId": "VariableID:11235:17521",
-      "collectionId": "VariableCollectionId:9932:32",
-      "modeId": "9932:3",
-      "scopes": [
-        "FRAME_FILL",
-        "SHAPE_FILL"
-      ],
-      "codeSyntax": {
-        "WEB": "--bg-primary-bg"
-      }
+      "variableId": "VariableID:11235:17521"
     },
     "VariableID:14505:70616:theme.light": {
       "collection": "theme",
@@ -11028,7 +11010,7 @@
     }
   },
   "metadata": {
-    "syncedAt": "2025-12-28T19:34:35.521Z",
+    "syncedAt": "2025-12-28T19:36:44.766Z",
     "source": "export"
   }
 }
