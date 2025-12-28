@@ -48,8 +48,8 @@ export function compareBaselines(
     deletedStyles: [],
   };
 
-  const oldEntries = Object.values(oldBaseline.baseline);
-  const newEntries = Object.values(newBaseline.baseline);
+  const oldEntries = oldBaseline.baseline ? Object.values(oldBaseline.baseline) : [];
+  const newEntries = newBaseline.baseline ? Object.values(newBaseline.baseline) : [];
 
   // Build ID-based lookup maps
   const oldByVariableId = new Map<string, BaselineEntry[]>();
@@ -440,12 +440,15 @@ export function compareByPath(
   const oldByPath = new Map<string, BaselineEntry>();
   const newByPath = new Map<string, BaselineEntry>();
 
-  for (const entry of Object.values(oldBaseline.baseline)) {
+  const oldEntries = oldBaseline.baseline ? Object.values(oldBaseline.baseline) : [];
+  const newEntries = newBaseline.baseline ? Object.values(newBaseline.baseline) : [];
+
+  for (const entry of oldEntries) {
     const key = `${entry.collection}:${entry.mode}:${entry.path}`;
     oldByPath.set(key, entry);
   }
 
-  for (const entry of Object.values(newBaseline.baseline)) {
+  for (const entry of newEntries) {
     const key = `${entry.collection}:${entry.mode}:${entry.path}`;
     newByPath.set(key, entry);
   }
@@ -556,6 +559,301 @@ function compareStylesByPath(
       });
     }
   }
+}
+
+// =============================================================================
+// Hybrid Comparison (handles mixed baselines with and without IDs)
+// =============================================================================
+
+/**
+ * Compare baselines using a hybrid approach:
+ * - For entries with variableId: use ID-based comparison (detects renames)
+ * - For entries without variableId: use path-based comparison
+ *
+ * This handles the "code-first" scenario where some tokens were edited in code
+ * and don't have variableIds, while others still have IDs from previous syncs.
+ */
+export function compareHybrid(
+  oldBaseline: BaselineData,
+  newBaseline: BaselineData
+): ComparisonResult {
+  const result: ComparisonResult = {
+    valueChanges: [],
+    pathChanges: [],
+    collectionRenames: [],
+    modeRenames: [],
+    newModes: [],
+    deletedModes: [],
+    newVariables: [],
+    deletedVariables: [],
+    styleValueChanges: [],
+    stylePathChanges: [],
+    newStyles: [],
+    deletedStyles: [],
+  };
+
+  const oldEntries = oldBaseline.baseline ? Object.values(oldBaseline.baseline) : [];
+  const newEntries = newBaseline.baseline ? Object.values(newBaseline.baseline) : [];
+
+  // Separate entries into those with and without variableIds
+  const oldWithId: BaselineEntry[] = [];
+  const oldWithoutId: BaselineEntry[] = [];
+  const newWithId: BaselineEntry[] = [];
+  const newWithoutId: BaselineEntry[] = [];
+
+  for (const entry of oldEntries) {
+    if (entry.variableId) {
+      oldWithId.push(entry);
+    } else {
+      oldWithoutId.push(entry);
+    }
+  }
+
+  for (const entry of newEntries) {
+    if (entry.variableId) {
+      newWithId.push(entry);
+    } else {
+      newWithoutId.push(entry);
+    }
+  }
+
+  // Build ID-based lookup maps for entries with variableId
+  const oldByVariableId = new Map<string, BaselineEntry[]>();
+  const newByVariableId = new Map<string, BaselineEntry[]>();
+
+  for (const entry of oldWithId) {
+    const existing = oldByVariableId.get(entry.variableId!) || [];
+    existing.push(entry);
+    oldByVariableId.set(entry.variableId!, existing);
+  }
+
+  for (const entry of newWithId) {
+    const existing = newByVariableId.get(entry.variableId!) || [];
+    existing.push(entry);
+    newByVariableId.set(entry.variableId!, existing);
+  }
+
+  // Track processed entries
+  const processedNewIds = new Set<string>();
+
+  // Detect collection and mode renames first (using entries with IDs)
+  detectCollectionRenames(oldWithId, newWithId, result);
+  detectModeRenames(oldWithId, newWithId, result);
+
+  // Compare entries WITH variableId (ID-based comparison)
+  for (const [variableId, oldVarEntries] of oldByVariableId) {
+    const newVarEntries = newByVariableId.get(variableId);
+
+    if (!newVarEntries || newVarEntries.length === 0) {
+      // Variable deleted - but check if it might exist in newWithoutId by path
+      // (this handles the case where a token was edited in code and lost its ID)
+      for (const oldEntry of oldVarEntries) {
+        const pathMatch = newWithoutId.find(
+          e => e.path === oldEntry.path && e.collection === oldEntry.collection && e.mode === oldEntry.mode
+        );
+
+        if (pathMatch) {
+          // Found by path - check for value change
+          if (!valuesEqual(oldEntry.value, pathMatch.value)) {
+            result.valueChanges.push({
+              variableId,
+              path: pathMatch.path,
+              oldValue: oldEntry.value,
+              newValue: pathMatch.value,
+              type: pathMatch.type,
+              collection: pathMatch.collection,
+              mode: pathMatch.mode,
+            });
+          }
+          // Mark as processed
+          const pathKey = `${pathMatch.collection}:${pathMatch.mode}:${pathMatch.path}`;
+          processedNewIds.add(pathKey);
+        } else {
+          // Truly deleted
+          result.deletedVariables.push({
+            variableId,
+            path: oldEntry.path,
+            value: oldEntry.value,
+            type: oldEntry.type,
+            collection: oldEntry.collection,
+            mode: oldEntry.mode,
+          });
+        }
+      }
+    } else {
+      // Variable exists in both - compare by mode
+      for (const oldEntry of oldVarEntries) {
+        // Find matching mode (considering mode renames)
+        const matchingNew = findMatchingEntry(oldEntry, newVarEntries, result.modeRenames);
+
+        if (!matchingNew) {
+          // Mode was deleted for this variable - but check path-based match
+          const pathMatch = newWithoutId.find(
+            e => e.path === oldEntry.path && e.collection === oldEntry.collection && e.mode === oldEntry.mode
+          );
+
+          if (pathMatch) {
+            // Found by path - check for value change
+            if (!valuesEqual(oldEntry.value, pathMatch.value)) {
+              result.valueChanges.push({
+                variableId,
+                path: pathMatch.path,
+                oldValue: oldEntry.value,
+                newValue: pathMatch.value,
+                type: pathMatch.type,
+                collection: pathMatch.collection,
+                mode: pathMatch.mode,
+              });
+            }
+            const pathKey = `${pathMatch.collection}:${pathMatch.mode}:${pathMatch.path}`;
+            processedNewIds.add(pathKey);
+          } else {
+            result.deletedVariables.push({
+              variableId,
+              path: oldEntry.path,
+              value: oldEntry.value,
+              type: oldEntry.type,
+              collection: oldEntry.collection,
+              mode: oldEntry.mode,
+            });
+          }
+        } else {
+          const newKey = `${variableId}:${matchingNew.collection}:${matchingNew.mode}`;
+          processedNewIds.add(newKey);
+
+          // Check for path change (rename)
+          if (oldEntry.path !== matchingNew.path) {
+            result.pathChanges.push({
+              variableId,
+              oldPath: oldEntry.path,
+              newPath: matchingNew.path,
+              value: matchingNew.value,
+              type: matchingNew.type,
+              collection: matchingNew.collection,
+              mode: matchingNew.mode,
+            });
+          }
+          // Check for value change
+          else if (!valuesEqual(oldEntry.value, matchingNew.value)) {
+            result.valueChanges.push({
+              variableId,
+              path: matchingNew.path,
+              oldValue: oldEntry.value,
+              newValue: matchingNew.value,
+              type: matchingNew.type,
+              collection: matchingNew.collection,
+              mode: matchingNew.mode,
+            });
+          }
+        }
+      }
+
+      // Check for new modes for this variable
+      for (const newEntry of newVarEntries) {
+        const newKey = `${variableId}:${newEntry.collection}:${newEntry.mode}`;
+        if (!processedNewIds.has(newKey)) {
+          processedNewIds.add(newKey);
+          result.newVariables.push({
+            variableId,
+            path: newEntry.path,
+            value: newEntry.value,
+            type: newEntry.type,
+            collection: newEntry.collection,
+            mode: newEntry.mode,
+          });
+        }
+      }
+    }
+  }
+
+  // Find completely new variables (with variableId)
+  for (const [variableId, newVarEntries] of newByVariableId) {
+    if (!oldByVariableId.has(variableId)) {
+      for (const newEntry of newVarEntries) {
+        result.newVariables.push({
+          variableId,
+          path: newEntry.path,
+          value: newEntry.value,
+          type: newEntry.type,
+          collection: newEntry.collection,
+          mode: newEntry.mode,
+        });
+      }
+    }
+  }
+
+  // Compare entries WITHOUT variableId (path-based comparison)
+  // These are typically tokens edited in code that don't have Figma IDs
+  const oldByPath = new Map<string, BaselineEntry>();
+  const newByPath = new Map<string, BaselineEntry>();
+
+  for (const entry of oldWithoutId) {
+    const key = `${entry.collection}:${entry.mode}:${entry.path}`;
+    oldByPath.set(key, entry);
+  }
+
+  for (const entry of newWithoutId) {
+    const key = `${entry.collection}:${entry.mode}:${entry.path}`;
+    // Skip if already processed via ID-based match
+    if (!processedNewIds.has(key)) {
+      newByPath.set(key, entry);
+    }
+  }
+
+  // Find changes and deletions for path-only entries
+  for (const [key, oldEntry] of oldByPath) {
+    const newEntry = newByPath.get(key);
+
+    if (!newEntry) {
+      // Check if there's a matching entry with variableId
+      // (This handles the case where an entry gained an ID)
+      const hasIdMatch = newWithId.some(
+        e => e.path === oldEntry.path && e.collection === oldEntry.collection && e.mode === oldEntry.mode
+      );
+
+      if (!hasIdMatch) {
+        result.deletedVariables.push({
+          variableId: '',
+          path: oldEntry.path,
+          value: oldEntry.value,
+          type: oldEntry.type,
+          collection: oldEntry.collection,
+          mode: oldEntry.mode,
+        });
+      }
+    } else if (!valuesEqual(oldEntry.value, newEntry.value)) {
+      result.valueChanges.push({
+        variableId: '',
+        path: newEntry.path,
+        oldValue: oldEntry.value,
+        newValue: newEntry.value,
+        type: newEntry.type,
+        collection: newEntry.collection,
+        mode: newEntry.mode,
+      });
+    }
+  }
+
+  // Find new path-only entries
+  for (const [key, newEntry] of newByPath) {
+    if (!oldByPath.has(key)) {
+      // Check if this might be a renamed token (same value, different path)
+      // For now, treat as new - rename detection requires ID
+      result.newVariables.push({
+        variableId: '',
+        path: newEntry.path,
+        value: newEntry.value,
+        type: newEntry.type,
+        collection: newEntry.collection,
+        mode: newEntry.mode,
+      });
+    }
+  }
+
+  // Compare styles (always path-based for now)
+  compareStylesByPath(oldBaseline.styles, newBaseline.styles, result);
+
+  return result;
 }
 
 // =============================================================================

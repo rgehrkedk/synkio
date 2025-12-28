@@ -14,7 +14,7 @@ import { dirname, resolve } from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
 import { loadConfig } from '../../core/config.js';
-import { discoverTokenFiles, extractModeFromFile } from '../../core/export/file-discoverer.js';
+import { discoverTokenFiles, extractModeFromFile, extractGroupFromFile } from '../../core/export/file-discoverer.js';
 import { parseTokenFile, parseMultiModeFile, ParsedToken } from '../../core/export/token-parser.js';
 import { buildExportBaseline } from '../../core/export/baseline-builder.js';
 import { readBaseline } from '../../core/baseline.js';
@@ -61,15 +61,26 @@ function buildBaselineLookupMap(
 /**
  * Enrich parsed tokens with variableId from baseline.json lookup.
  * This enables ID-based comparison even when token files don't include variableId.
+ *
+ * Uses a two-pass approach:
+ * 1. First, try exact path match
+ * 2. If no match, try value-based matching for tokens with the same value in the same collection/mode
+ *    This helps handle renamed tokens where the path changed but value stayed the same
  */
 function enrichTokensWithVariableIds(
   tokens: ParsedToken[],
   collection: string,
   mode: string,
-  lookupMap: Map<string, BaselineEntry>
-): { enrichedCount: number } {
+  lookupMap: Map<string, BaselineEntry>,
+  allBaselineEntries: BaselineEntry[]
+): { enrichedCount: number; fuzzyMatchCount: number } {
   let enrichedCount = 0;
+  let fuzzyMatchCount = 0;
 
+  // Track which variableIds have been used to avoid duplicates
+  const usedVariableIds = new Set<string>();
+
+  // First pass: exact path matches
   for (const token of tokens) {
     if (!token.variableId) {
       const key = buildPathLookupKey(token.path, collection, mode);
@@ -77,12 +88,60 @@ function enrichTokensWithVariableIds(
 
       if (baselineEntry?.variableId) {
         token.variableId = baselineEntry.variableId;
+        usedVariableIds.add(baselineEntry.variableId);
         enrichedCount++;
       }
     }
   }
 
-  return { enrichedCount };
+  // Second pass: value-based fuzzy matching for unmatched tokens
+  // This helps with renamed tokens where path changed but value is the same
+  for (const token of tokens) {
+    if (!token.variableId) {
+      // Find baseline entries in same collection/mode with matching value
+      const candidates = allBaselineEntries.filter(entry =>
+        entry.collection === collection &&
+        entry.mode === mode &&
+        entry.variableId &&
+        !usedVariableIds.has(entry.variableId) &&
+        valuesMatch(token.value, entry.value)
+      );
+
+      // If exactly one candidate, use it (unambiguous match)
+      if (candidates.length === 1) {
+        token.variableId = candidates[0].variableId;
+        usedVariableIds.add(candidates[0].variableId!);
+        enrichedCount++;
+        fuzzyMatchCount++;
+      }
+    }
+  }
+
+  return { enrichedCount, fuzzyMatchCount };
+}
+
+/**
+ * Check if two token values match (for fuzzy matching)
+ * Handles primitives and reference objects
+ */
+function valuesMatch(a: unknown, b: unknown): boolean {
+  // Handle null/undefined
+  if (a === null || a === undefined || b === null || b === undefined) {
+    return a === b;
+  }
+
+  // Handle primitives
+  if (typeof a !== 'object' || typeof b !== 'object') {
+    return a === b;
+  }
+
+  // Handle reference objects (e.g., { $ref: "VariableID:..." })
+  if ('$ref' in (a as object) && '$ref' in (b as object)) {
+    return (a as { $ref: string }).$ref === (b as { $ref: string }).$ref;
+  }
+
+  // For other objects, use JSON comparison
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 /**
@@ -99,6 +158,22 @@ function hasAnyVariableIds(
     }
   }
   return false;
+}
+
+/**
+ * Add group prefix to token paths when splitBy is "group".
+ *
+ * When syncing Figma → code with splitBy: "group", a token like `colors.yellow.50`
+ * gets written to file `colors.json` with path `yellow.50` (the group becomes the filename).
+ * When exporting code → Figma, we need to add the group back as a prefix.
+ *
+ * @param tokens - Parsed tokens to modify (mutates in place)
+ * @param groupPrefix - The group prefix to add (e.g., "colors")
+ */
+function addGroupPrefixToTokens(tokens: ParsedToken[], groupPrefix: string): void {
+  for (const token of tokens) {
+    token.path = `${groupPrefix}.${token.path}`;
+  }
 }
 
 /**
@@ -170,10 +245,23 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
 
         if (multiMode.size > 0) {
           for (const [mode, modeTokens] of multiMode) {
+            // Add group prefix for splitBy: "group" collections
+            const groupPrefix = extractGroupFromFile(file);
+            if (groupPrefix) {
+              addGroupPrefixToTokens(modeTokens, groupPrefix);
+            }
             parsedFiles.push({ file, tokens: modeTokens, mode });
           }
           continue;
         }
+      }
+
+      // Add group prefix for splitBy: "group" collections
+      // When splitBy: "group", the filename contains the group (e.g., "colors.json")
+      // and we need to prepend it to token paths so they match Figma's structure
+      const groupPrefix = extractGroupFromFile(file);
+      if (groupPrefix) {
+        addGroupPrefixToTokens(tokens, groupPrefix);
       }
 
       const mode = extractModeFromFile(file, 'value');
@@ -187,28 +275,35 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
     // 4. Enrich tokens with variableIds from baseline.json if needed
     //    This enables ID-based comparison even when token files don't include variableId
     let totalEnriched = 0;
+    let totalFuzzyMatched = 0;
     if (!hasAnyVariableIds(parsedFiles)) {
       spinner.text = 'Checking for variableIds in baseline.json...';
 
       const existingBaseline = await readBaseline();
       if (existingBaseline?.baseline) {
         const lookupMap = buildBaselineLookupMap(existingBaseline.baseline);
+        const allBaselineEntries = Object.values(existingBaseline.baseline);
 
         if (lookupMap.size > 0) {
           spinner.text = 'Enriching tokens with variableIds from baseline.json...';
 
           for (const { file, tokens, mode } of parsedFiles) {
-            const { enrichedCount } = enrichTokensWithVariableIds(
+            const { enrichedCount, fuzzyMatchCount } = enrichTokensWithVariableIds(
               tokens,
               file.collection,
               mode,
-              lookupMap
+              lookupMap,
+              allBaselineEntries
             );
             totalEnriched += enrichedCount;
+            totalFuzzyMatched += fuzzyMatchCount;
           }
 
           if (options.verbose && totalEnriched > 0) {
             logger.info(`  Enriched ${totalEnriched} tokens with variableIds from baseline.json`);
+            if (totalFuzzyMatched > 0) {
+              logger.info(`  (${totalFuzzyMatched} matched by value - possible renames)`);
+            }
           }
         }
       }
@@ -240,7 +335,11 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
       console.log(chalk.dim('  Tokens:'), tokenCount);
       console.log(chalk.dim('  Collections:'), Array.from(collections).join(', '));
       if (totalEnriched > 0) {
-        console.log(chalk.dim('  Enriched:'), `${totalEnriched} tokens with variableIds from baseline.json`);
+        let enrichMsg = `${totalEnriched} tokens with variableIds from baseline.json`;
+        if (totalFuzzyMatched > 0) {
+          enrichMsg += ` (${totalFuzzyMatched} matched by value)`;
+        }
+        console.log(chalk.dim('  Enriched:'), enrichMsg);
       }
       console.log('');
       console.log(chalk.cyan('  Next steps:'));

@@ -2,7 +2,7 @@
 // Synkio Figma Plugin - UI Entry Point
 // =============================================================================
 
-import { Screen, PluginState, MessageToUI, MessageToCode } from '../lib/types';
+import { Screen, PluginState, MessageToUI, MessageToCode, GitHubSettings } from '../lib/types';
 import { createRouter, Router, ScreenRenderer } from './router';
 import { injectStyles } from './components';
 import {
@@ -141,6 +141,10 @@ function handleMessage(event: MessageEvent) {
       router.updateState({ isLoading: true, loadingMessage: 'Fetching from repository...' });
       break;
 
+    case 'do-fetch-remote':
+      handleDoFetchRemote(message.github);
+      break;
+
     case 'fetch-complete':
       router.updateState({
         isLoading: false,
@@ -277,6 +281,69 @@ function countChanges(diff: PluginState['syncDiff']): number {
     diff.newVariables.length +
     diff.deletedVariables.length
   );
+}
+
+// =============================================================================
+// GitHub Fetch (UI has access to fetch API, plugin sandbox does not)
+// =============================================================================
+
+async function handleDoFetchRemote(github: GitHubSettings) {
+  router.updateState({ isLoading: true, loadingMessage: 'Fetching from repository...' });
+
+  try {
+    const { owner, repo, branch, path, token } = github;
+
+    // Build URL - use raw.githubusercontent for public repos, API for private
+    const url = token
+      ? `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`
+      : `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
+
+    const headers: Record<string, string> = {
+      'Accept': token ? 'application/vnd.github.v3+json' : 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `token ${token}`;
+    }
+
+    const response = await fetch(url, { headers });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(`File not found: ${path}`);
+      }
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+
+    let content: string;
+    const responseText = await response.text();
+
+    // Try to parse as JSON to check if it's a GitHub API response (with base64 content)
+    // or direct JSON content (from raw.githubusercontent.com)
+    try {
+      const parsed = JSON.parse(responseText);
+
+      if (parsed.content && parsed.encoding === 'base64') {
+        // GitHub API response - decode base64
+        const base64Clean = parsed.content.replace(/\n/g, '');
+        content = atob(base64Clean);
+      } else if (parsed.baseline) {
+        // Direct JSON content (the file itself, already parsed)
+        content = responseText;
+      } else {
+        // Unknown JSON format
+        throw new Error(`Unexpected response format: ${responseText.slice(0, 200)}`);
+      }
+    } catch (e) {
+      // Not JSON - use as-is (raw text content)
+      content = responseText;
+    }
+
+    // Send content back to plugin for processing
+    sendMessage({ type: 'fetch-remote-result', content });
+  } catch (error) {
+    sendMessage({ type: 'fetch-remote-error', error: String(error) });
+  }
 }
 
 // =============================================================================

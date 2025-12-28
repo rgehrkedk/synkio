@@ -207,6 +207,28 @@ function buildGitHubSection(remote: PluginState['settings']['remote'], actions: 
   });
   children.push(tokenInput);
 
+  // Token help link
+  const tokenHelpLink = el('a', {
+    href: 'https://github.com/settings/tokens/new?scopes=repo&description=Synkio%20Figma%20Plugin',
+    target: '_blank',
+    style: `
+      font-size: var(--font-size-xs);
+      color: var(--color-primary);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: calc(var(--spacing-xs) * -1);
+    `,
+  }, 'Create a token on GitHub \u2197');
+  tokenHelpLink.addEventListener('mouseenter', () => {
+    tokenHelpLink.style.textDecoration = 'underline';
+  });
+  tokenHelpLink.addEventListener('mouseleave', () => {
+    tokenHelpLink.style.textDecoration = 'none';
+  });
+  children.push(tokenHelpLink);
+
   // Connection status and buttons
   const buttonRow = createRow([
     Button({

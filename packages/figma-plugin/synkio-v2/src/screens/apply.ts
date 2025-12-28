@@ -2,7 +2,7 @@
 // Apply Screen - Code to Figma
 // =============================================================================
 
-import { PluginState, ComparisonResult, RemoteSettings, StyleValueChange, StylePathChange, NewStyle, DeletedStyle, StyleType } from '../lib/types';
+import { PluginState, ComparisonResult, StyleValueChange, StylePathChange, NewStyle, DeletedStyle } from '../lib/types';
 import { RouterActions } from '../ui/router';
 import {
   el,
@@ -13,10 +13,7 @@ import {
   DiffItem,
   Alert,
   Spinner,
-  EmptyState,
-  Input,
   Icon,
-  IconName,
 } from '../ui/components';
 import {
   createPageLayout,
@@ -24,7 +21,6 @@ import {
   createFooter,
   createColumn,
   createRow,
-  createText,
   createDivider,
 } from '../ui/router';
 
@@ -33,7 +29,7 @@ type ApplyView = 'source' | 'preview';
 let currentView: ApplyView = 'source';
 
 export function ApplyScreen(state: PluginState, actions: RouterActions): HTMLElement {
-  const { isLoading, loadingMessage, codeBaseline, codeDiff, settings } = state;
+  const { isLoading, loadingMessage, codeBaseline, codeDiff, settings, error } = state;
   const remoteSettings = settings.remote;
 
   // Header
@@ -42,6 +38,8 @@ export function ApplyScreen(state: PluginState, actions: RouterActions): HTMLEle
     showBack: true,
     onBack: () => {
       currentView = 'source';
+      // Clear error when navigating away
+      actions.updateState({ error: undefined });
       actions.navigate('home');
     },
   });
@@ -58,78 +56,77 @@ export function ApplyScreen(state: PluginState, actions: RouterActions): HTMLEle
   }
 
   // Show source selection view
-  return buildSourceView(state, actions, header);
+  return buildSourceView(state, actions, header, error);
 }
 
-function buildSourceView(state: PluginState, actions: RouterActions, header: HTMLElement): HTMLElement {
+function buildSourceView(state: PluginState, actions: RouterActions, header: HTMLElement, error?: string): HTMLElement {
   const { settings, codeBaseline } = state;
   const remoteSettings = settings.remote;
   const isGitHubConfigured = remoteSettings.github?.owner && remoteSettings.github?.repo;
 
   let contentChildren: HTMLElement[] = [];
 
-  // Source selection card
-  const sourceCard = Card({ padding: 'lg' });
+  // Show error if present
+  if (error) {
+    contentChildren.push(Alert({
+      type: 'error',
+      message: error,
+    }));
+  }
 
-  const sourceTitle = el('div', { style: 'font-weight: 500; margin-bottom: var(--spacing-md);' }, 'SOURCE');
-
-  // GitHub option
-  const githubOption = buildSourceOption({
-    selected: remoteSettings.source === 'github',
-    iconName: 'github',
-    title: 'GitHub Repository',
-    description: isGitHubConfigured
-      ? `${remoteSettings.github?.owner}/${remoteSettings.github?.repo} \u00B7 ${remoteSettings.github?.branch || 'main'}`
-      : 'Connect to fetch token updates',
-    configured: !!isGitHubConfigured,
-    lastFetch: remoteSettings.lastFetch,
-    onClick: () => {
-      if (!isGitHubConfigured) {
-        actions.navigate('settings');
-      }
-    },
-  });
-
-  // Import option
-  const importOption = buildSourceOption({
-    selected: false,
-    iconName: 'folder',
-    title: 'Import JSON File',
-    description: 'Manually select export-baseline.json',
-    configured: true,
-    onClick: () => {
-      // Trigger file input
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json';
-      input.onchange = async () => {
-        const file = input.files?.[0];
-        if (file) {
-          const text = await file.text();
-          actions.send({ type: 'import-baseline', data: text });
-        }
-      };
-      input.click();
-    },
-  });
-
-  sourceCard.appendChild(sourceTitle);
-  sourceCard.appendChild(githubOption);
-  sourceCard.appendChild(importOption);
-  contentChildren.push(sourceCard);
-
-  // Fetch button
+  // GitHub section
   if (isGitHubConfigured) {
+    // Show configured GitHub info
+    const githubCard = Card({ padding: 'md' });
+
+    const githubHeader = el('div', {
+      style: 'display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);',
+    });
+    githubHeader.appendChild(Icon('github', 'md'));
+    githubHeader.appendChild(el('span', { style: 'font-weight: 500;' }, 'GitHub Repository'));
+    githubCard.appendChild(githubHeader);
+
+    const repoInfo = el('div', {
+      style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--spacing-md);',
+    }, `${remoteSettings.github?.owner}/${remoteSettings.github?.repo} · ${remoteSettings.github?.branch || 'main'}`);
+    githubCard.appendChild(repoInfo);
+
+    const pathInfo = el('div', {
+      style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); font-family: monospace;',
+    }, remoteSettings.github?.path || '.synkio/export-baseline.json');
+    githubCard.appendChild(pathInfo);
+
+    contentChildren.push(githubCard);
+
+    // Fetch button
     contentChildren.push(Button({
       label: 'FETCH FROM GITHUB',
       variant: 'primary',
       fullWidth: true,
       onClick: () => {
         currentView = 'preview';
+        actions.updateState({ error: undefined });
         actions.send({ type: 'fetch-remote' });
       },
     }));
   } else {
+    // Show setup prompt
+    const setupCard = Card({ padding: 'md' });
+
+    const setupHeader = el('div', {
+      style: 'display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);',
+    });
+    setupHeader.appendChild(Icon('github', 'md'));
+    setupHeader.appendChild(el('span', { style: 'font-weight: 500;' }, 'GitHub Repository'));
+    setupCard.appendChild(setupHeader);
+
+    const setupDesc = el('div', {
+      style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary);',
+    }, 'Connect to automatically fetch token updates from your repository.');
+    setupCard.appendChild(setupDesc);
+
+    contentChildren.push(setupCard);
+
     contentChildren.push(Button({
       label: 'CONNECT GITHUB',
       variant: 'primary',
@@ -138,11 +135,42 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
     }));
   }
 
+  // Divider with "or" text
+  const dividerRow = el('div', {
+    style: 'display: flex; align-items: center; gap: var(--spacing-md); margin: var(--spacing-sm) 0;',
+  });
+  dividerRow.appendChild(el('div', { style: 'flex: 1; height: 1px; background: var(--color-border);' }));
+  dividerRow.appendChild(el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary);' }, 'or'));
+  dividerRow.appendChild(el('div', { style: 'flex: 1; height: 1px; background: var(--color-border);' }));
+  contentChildren.push(dividerRow);
+
+  // Import file button
+  contentChildren.push(Button({
+    label: 'IMPORT JSON FILE',
+    variant: 'secondary',
+    fullWidth: true,
+    onClick: () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (file) {
+          const text = await file.text();
+          currentView = 'preview';
+          actions.updateState({ error: undefined });
+          actions.send({ type: 'import-baseline', data: text });
+        }
+      };
+      input.click();
+    },
+  }));
+
   // Divider
   contentChildren.push(createDivider());
 
   // Last fetch info or hint
-  if (codeBaseline) {
+  if (codeBaseline && codeBaseline.baseline) {
     const lastFetchCard = Card({ padding: 'md' });
     const fetchInfo = el('div', { style: 'font-size: var(--font-size-xs); color: var(--color-text-secondary);' });
 
@@ -265,100 +293,6 @@ function buildPreviewView(state: PluginState, actions: RouterActions, header: HT
   }
 
   return createPageLayout([header, content, footer]);
-}
-
-// Component helpers
-
-interface SourceOptionProps {
-  selected: boolean;
-  iconName: IconName;
-  title: string;
-  description: string;
-  configured: boolean;
-  lastFetch?: string;
-  onClick?: () => void;
-}
-
-function buildSourceOption(props: SourceOptionProps): HTMLElement {
-  const { selected, iconName, title, description, configured, lastFetch, onClick } = props;
-
-  const option = el('div', {
-    style: `
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-md);
-      padding: var(--spacing-md);
-      border: 1px solid ${selected ? 'var(--color-primary)' : 'var(--color-border)'};
-      border-radius: var(--radius-md);
-      margin-bottom: var(--spacing-sm);
-      cursor: pointer;
-      transition: border-color 0.15s ease;
-    `,
-  });
-
-  if (onClick) {
-    option.addEventListener('click', onClick);
-    option.addEventListener('mouseenter', () => {
-      if (!selected) option.style.borderColor = 'var(--color-border-strong)';
-    });
-    option.addEventListener('mouseleave', () => {
-      if (!selected) option.style.borderColor = 'var(--color-border)';
-    });
-  }
-
-  // Radio indicator
-  const radio = el('div', {
-    style: `
-      width: 16px;
-      height: 16px;
-      border: 2px solid ${selected ? 'var(--color-primary)' : 'var(--color-border)'};
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    `,
-  });
-  if (selected) {
-    radio.appendChild(el('div', {
-      style: 'width: 8px; height: 8px; background: var(--color-primary); border-radius: 50%;',
-    }));
-  }
-
-  // Icon
-  const iconWrapper = el('div', {
-    style: `
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--color-bg-secondary);
-      border-radius: var(--radius-md);
-      color: var(--color-text-secondary);
-      flex-shrink: 0;
-    `,
-  });
-  iconWrapper.appendChild(Icon(iconName, 'md'));
-
-  // Content
-  const content = el('div', { style: 'flex: 1; min-width: 0;' });
-  content.appendChild(el('div', { style: 'font-weight: 500; font-size: var(--font-size-sm);' }, title));
-  content.appendChild(el('div', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); margin-top: 2px;' }, description));
-
-  option.appendChild(radio);
-  option.appendChild(iconWrapper);
-  option.appendChild(content);
-
-  // Status badge
-  if (!configured) {
-    const badge = el('span', {
-      style: 'font-size: var(--font-size-xs); padding: 2px 6px; background: var(--color-bg-tertiary); border-radius: 4px; color: var(--color-text-secondary);',
-    }, 'Setup');
-    option.appendChild(badge);
-  }
-
-  return option;
 }
 
 // Diff helpers (same as sync.ts)

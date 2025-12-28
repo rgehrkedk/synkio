@@ -25,6 +25,7 @@ import {
   saveClientStorage,
   loadClientStorage,
   clearAllStorage,
+  saveForCLI,
   KEYS,
 } from './lib/storage';
 
@@ -35,7 +36,7 @@ import {
   getStyleTypeInfos,
 } from './lib/collector';
 
-import { compareBaselines, compareByPath, hasChanges } from './lib/compare';
+import { compareBaselines, compareHybrid } from './lib/compare';
 
 // =============================================================================
 // Plugin Initialization
@@ -116,6 +117,14 @@ figma.ui.onmessage = async (message: MessageToCode) => {
         await handleClearAllData();
         break;
 
+      case 'fetch-remote-result':
+        await handleFetchRemoteResult(message.content);
+        break;
+
+      case 'fetch-remote-error':
+        sendMessage({ type: 'fetch-error', error: message.error });
+        break;
+
       case 'close':
         figma.closePlugin();
         break;
@@ -151,12 +160,14 @@ async function handleReady() {
   const settings = await loadClientStorage<PluginSettings>('settings');
 
   // Get current collections and styles
-  const collections = getCollectionInfos().map(c => ({
+  const collectionInfos = await getCollectionInfos();
+  const collections = collectionInfos.map(c => ({
     ...c,
     excluded: excludedCollections.includes(c.name),
   }));
 
-  const styleTypes = getStyleTypeInfos().map(s => ({
+  const styleTypeInfos = await getStyleTypeInfos();
+  const styleTypes = styleTypeInfos.map(s => ({
     ...s,
     excluded: excludedStyleTypes.includes(s.type),
   }));
@@ -167,8 +178,8 @@ async function handleReady() {
   // Calculate current diff if we have a baseline
   let syncDiff;
   if (syncBaseline) {
-    const currentTokens = collectVariables({ excludedCollections });
-    const currentStyles = collectStyles({ excludedStyleTypes });
+    const currentTokens = await collectVariables({ excludedCollections });
+    const currentStyles = await collectStyles({ excludedStyleTypes });
     const currentBaseline = buildBaseline(currentTokens, currentStyles);
     syncDiff = compareBaselines(syncBaseline, currentBaseline);
   }
@@ -230,8 +241,8 @@ async function handleSync() {
     const excludedStyleTypes = loadSimple<StyleType[]>(KEYS.EXCLUDED_STYLE_TYPES) || [];
 
     // Collect current state
-    const tokens = collectVariables({ excludedCollections });
-    const styles = collectStyles({ excludedStyleTypes });
+    const tokens = await collectVariables({ excludedCollections });
+    const styles = await collectStyles({ excludedStyleTypes });
 
     // Build baseline
     const newBaseline = buildBaseline(tokens, styles);
@@ -245,8 +256,16 @@ async function handleSync() {
       diff = compareBaselines(oldBaseline, newBaseline);
     }
 
-    // Save new baseline
+    // Save new baseline (internal format)
     saveChunked(KEYS.SYNC_BASELINE, newBaseline);
+
+    // Also save in CLI-readable format
+    saveForCLI({
+      version: '3.0.0',
+      timestamp: newBaseline.metadata.syncedAt,
+      tokens: tokens,
+      styles: styles,
+    });
 
     // Update history
     const changeCount = diff ? countChanges(diff) : Object.keys(newBaseline.baseline).length;
@@ -278,9 +297,10 @@ async function handleSync() {
   }
 }
 
-function handleGetCollections() {
+async function handleGetCollections() {
   const excludedCollections = loadSimple<string[]>(KEYS.EXCLUDED_COLLECTIONS) || [];
-  const collections = getCollectionInfos().map(c => ({
+  const collectionInfos = await getCollectionInfos();
+  const collections = collectionInfos.map(c => ({
     ...c,
     excluded: excludedCollections.includes(c.name),
   }));
@@ -291,14 +311,15 @@ function handleGetCollections() {
   });
 }
 
-function handleSaveExcludedCollections(collections: string[]) {
+async function handleSaveExcludedCollections(collections: string[]) {
   saveSimple(KEYS.EXCLUDED_COLLECTIONS, collections);
-  handleGetCollections();
+  await handleGetCollections();
 }
 
-function handleGetStyleTypes() {
+async function handleGetStyleTypes() {
   const excludedStyleTypes = loadSimple<StyleType[]>(KEYS.EXCLUDED_STYLE_TYPES) || [];
-  const styleTypes = getStyleTypeInfos().map(s => ({
+  const styleTypeInfos = await getStyleTypeInfos();
+  const styleTypes = styleTypeInfos.map(s => ({
     ...s,
     excluded: excludedStyleTypes.includes(s.type),
   }));
@@ -309,14 +330,14 @@ function handleGetStyleTypes() {
   });
 }
 
-function handleSaveExcludedStyleTypes(styleTypes: StyleType[]) {
+async function handleSaveExcludedStyleTypes(styleTypes: StyleType[]) {
   saveSimple(KEYS.EXCLUDED_STYLE_TYPES, styleTypes);
-  handleGetStyleTypes();
+  await handleGetStyleTypes();
 }
 
 async function handleFetchRemote() {
-  sendMessage({ type: 'fetch-started' });
-
+  // Network requests must be made from the UI (iframe) because the plugin sandbox
+  // doesn't have access to fetch. We send the request info to the UI.
   try {
     const settings = await loadClientStorage<PluginSettings>('settings');
     if (!settings?.remote.github) {
@@ -329,37 +350,22 @@ async function handleFetchRemote() {
       throw new Error('Repository not configured');
     }
 
-    // Fetch from GitHub
-    const url = token
-      ? `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch || 'main'}`
-      : `https://raw.githubusercontent.com/${owner}/${repo}/${branch || 'main'}/${path}`;
+    // Send fetch request to UI (which has access to fetch API)
+    sendMessage({
+      type: 'do-fetch-remote',
+      github: { owner, repo, branch: branch || 'main', path: path || '.synkio/export-baseline.json', token },
+    });
+  } catch (error) {
+    sendMessage({
+      type: 'fetch-error',
+      error: String(error),
+    });
+  }
+}
 
-    const headers: Record<string, string> = {
-      'Accept': token ? 'application/vnd.github.v3+json' : 'application/json',
-    };
-
-    if (token) {
-      headers['Authorization'] = `token ${token}`;
-    }
-
-    const response = await fetch(url, { headers });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error(`File not found: ${path}`);
-      }
-      throw new Error(`GitHub API error: ${response.status}`);
-    }
-
-    let content: string;
-    if (token) {
-      // GitHub API returns base64 encoded content
-      const data = await response.json();
-      content = atob(data.content);
-    } else {
-      content = await response.text();
-    }
-
+// Called by UI after it fetches the baseline
+async function handleFetchRemoteResult(content: string) {
+  try {
     // Parse and validate
     const codeBaseline = JSON.parse(content) as BaselineData;
 
@@ -371,19 +377,93 @@ async function handleFetchRemote() {
     saveChunked(KEYS.CODE_BASELINE, codeBaseline);
 
     // Update settings with last fetch time
-    settings.remote.lastFetch = new Date().toISOString();
-    await saveClientStorage('settings', settings);
+    const settings = await loadClientStorage<PluginSettings>('settings');
+    if (settings) {
+      settings.remote.lastFetch = new Date().toISOString();
+      await saveClientStorage('settings', settings);
+    }
 
     // Compare with current Figma state
     const excludedCollections = loadSimple<string[]>(KEYS.EXCLUDED_COLLECTIONS) || [];
     const excludedStyleTypes = loadSimple<StyleType[]>(KEYS.EXCLUDED_STYLE_TYPES) || [];
 
-    const tokens = collectVariables({ excludedCollections });
-    const styles = collectStyles({ excludedStyleTypes });
+    const tokens = await collectVariables({ excludedCollections });
+    const styles = await collectStyles({ excludedStyleTypes });
     const currentBaseline = buildBaseline(tokens, styles);
 
-    // Use path-based comparison for code baseline (may not have IDs)
-    const diff = compareByPath(currentBaseline, codeBaseline);
+    // === DEBUG LOGGING ===
+    const codeEntries = Object.values(codeBaseline.baseline);
+    const figmaEntries = Object.values(currentBaseline.baseline);
+
+    console.log('=== COMPARISON DEBUG ===');
+    console.log('Code baseline entries:', codeEntries.length);
+    console.log('Figma baseline entries:', figmaEntries.length);
+
+    // Count entries with/without variableId
+    const codeWithId = codeEntries.filter(e => e.variableId).length;
+    const codeWithoutId = codeEntries.filter(e => !e.variableId).length;
+    const figmaWithId = figmaEntries.filter(e => e.variableId).length;
+    const figmaWithoutId = figmaEntries.filter(e => !e.variableId).length;
+
+    console.log('Code - with variableId:', codeWithId, ', without:', codeWithoutId);
+    console.log('Figma - with variableId:', figmaWithId, ', without:', figmaWithoutId);
+
+    // Sample entries
+    console.log('Sample code entries (first 3):');
+    codeEntries.slice(0, 3).forEach((e, i) => {
+      console.log(`  [${i}] path=${e.path}, collection=${e.collection}, mode=${e.mode}, variableId=${e.variableId || 'NONE'}`);
+    });
+
+    console.log('Sample figma entries (first 3):');
+    figmaEntries.slice(0, 3).forEach((e, i) => {
+      console.log(`  [${i}] path=${e.path}, collection=${e.collection}, mode=${e.mode}, variableId=${e.variableId || 'NONE'}`);
+    });
+
+    // Look for bg.primary specifically
+    const codeBgPrimary = codeEntries.filter(e => e.path.startsWith('bg.primary.'));
+    const figmaBgPrimary = figmaEntries.filter(e => e.path.startsWith('bg.primary.'));
+    console.log('bg.primary.* in code:', codeBgPrimary.length);
+    codeBgPrimary.forEach(e => console.log(`  code: ${e.path} (${e.mode}) variableId=${e.variableId || 'NONE'}`));
+    console.log('bg.primary.* in figma:', figmaBgPrimary.length);
+    figmaBgPrimary.forEach(e => console.log(`  figma: ${e.path} (${e.mode}) variableId=${e.variableId || 'NONE'}`));
+
+    // === END DEBUG ===
+
+    // Use hybrid comparison to handle mixed baselines:
+    // - Some entries have variableId (from previous syncs)
+    // - Some entries don't have variableId (edited in code without IDs)
+    // The hybrid comparison uses ID-based for entries with IDs (detects renames)
+    // and path-based for entries without IDs
+    const diff = compareHybrid(currentBaseline, codeBaseline);
+
+    // === DEBUG DIFF RESULTS ===
+    console.log('=== DIFF RESULTS ===');
+    console.log('valueChanges:', diff.valueChanges.length);
+    console.log('pathChanges:', diff.pathChanges.length);
+    console.log('newVariables:', diff.newVariables.length);
+    console.log('deletedVariables:', diff.deletedVariables.length);
+    console.log('newModes:', diff.newModes.length);
+    console.log('deletedModes:', diff.deletedModes.length);
+    console.log('styleValueChanges:', diff.styleValueChanges.length);
+    console.log('stylePathChanges:', diff.stylePathChanges.length);
+    console.log('newStyles:', diff.newStyles.length);
+    console.log('deletedStyles:', diff.deletedStyles.length);
+
+    if (diff.pathChanges.length > 0) {
+      console.log('Path changes (renames):');
+      diff.pathChanges.slice(0, 10).forEach(c => console.log(`  ${c.oldPath} -> ${c.newPath} (${c.mode})`));
+    }
+
+    if (diff.newVariables.length > 0) {
+      console.log('New variables (first 10):');
+      diff.newVariables.slice(0, 10).forEach(v => console.log(`  + ${v.path} (${v.collection}.${v.mode}) variableId=${v.variableId || 'NONE'}`));
+    }
+
+    if (diff.deletedVariables.length > 0) {
+      console.log('Deleted variables (first 10):');
+      diff.deletedVariables.slice(0, 10).forEach(v => console.log(`  - ${v.path} (${v.collection}.${v.mode}) variableId=${v.variableId || 'NONE'}`));
+    }
+    console.log('=== END DEBUG ===');
 
     sendMessage({
       type: 'fetch-complete',
@@ -413,12 +493,12 @@ async function handleImportBaseline(data: string) {
     const excludedCollections = loadSimple<string[]>(KEYS.EXCLUDED_COLLECTIONS) || [];
     const excludedStyleTypes = loadSimple<StyleType[]>(KEYS.EXCLUDED_STYLE_TYPES) || [];
 
-    const tokens = collectVariables({ excludedCollections });
-    const styles = collectStyles({ excludedStyleTypes });
+    const tokens = await collectVariables({ excludedCollections });
+    const styles = await collectStyles({ excludedStyleTypes });
     const currentBaseline = buildBaseline(tokens, styles);
 
-    // Use path-based comparison for imported baseline (may not have IDs)
-    const diff = compareByPath(currentBaseline, codeBaseline);
+    // Use hybrid comparison to handle mixed baselines properly
+    const diff = compareHybrid(currentBaseline, codeBaseline);
 
     sendMessage({
       type: 'import-complete',
@@ -446,12 +526,12 @@ async function handleApplyToFigma() {
     const excludedCollections = loadSimple<string[]>(KEYS.EXCLUDED_COLLECTIONS) || [];
     const excludedStyleTypes = loadSimple<StyleType[]>(KEYS.EXCLUDED_STYLE_TYPES) || [];
 
-    const currentTokens = collectVariables({ excludedCollections });
-    const currentStyles = collectStyles({ excludedStyleTypes });
+    const currentTokens = await collectVariables({ excludedCollections });
+    const currentStyles = await collectStyles({ excludedStyleTypes });
     const currentBaseline = buildBaseline(currentTokens, currentStyles);
 
-    // Compare to get diff
-    const diff = compareByPath(currentBaseline, codeBaseline);
+    // Compare to get diff using hybrid comparison
+    const diff = compareHybrid(currentBaseline, codeBaseline);
 
     let created = 0;
     let updated = 0;
@@ -508,10 +588,18 @@ async function handleApplyToFigma() {
     saveSimple(KEYS.HISTORY, updatedHistory);
 
     // Update sync baseline after apply
-    const newTokens = collectVariables({ excludedCollections });
-    const newStyles = collectStyles({ excludedStyleTypes });
+    const newTokens = await collectVariables({ excludedCollections });
+    const newStyles = await collectStyles({ excludedStyleTypes });
     const newSyncBaseline = buildBaseline(newTokens, newStyles);
     saveChunked(KEYS.SYNC_BASELINE, newSyncBaseline);
+
+    // Also save in CLI-readable format
+    saveForCLI({
+      version: '3.0.0',
+      timestamp: newSyncBaseline.metadata.syncedAt,
+      tokens: newTokens,
+      styles: newStyles,
+    });
 
     sendMessage({
       type: 'apply-complete',

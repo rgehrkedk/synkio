@@ -384,7 +384,9 @@ export type MessageToCode =
   | { type: 'test-connection' }
   | { type: 'clear-all-data' }
   | { type: 'navigate'; screen: Screen }
-  | { type: 'close' };
+  | { type: 'close' }
+  | { type: 'fetch-remote-result'; content: string }
+  | { type: 'fetch-remote-error'; error: string };
 
 export type MessageToUI =
   | { type: 'initialized'; state: Partial<PluginState> }
@@ -397,6 +399,7 @@ export type MessageToUI =
   | { type: 'fetch-started' }
   | { type: 'fetch-complete'; baseline: BaselineData; diff?: ComparisonResult }
   | { type: 'fetch-error'; error: string }
+  | { type: 'do-fetch-remote'; github: GitHubSettings }
   | { type: 'import-complete'; baseline: BaselineData; diff?: ComparisonResult }
   | { type: 'import-error'; error: string }
   | { type: 'apply-started' }
