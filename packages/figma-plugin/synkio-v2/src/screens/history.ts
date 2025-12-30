@@ -102,9 +102,25 @@ function buildHistoryItem(event: SyncEvent): HTMLElement {
     class: 'text-sm font-medium',
   }, `@${event.user}`);
 
+  // Action label based on action type
+  let actionText = 'synced';
+  if (event.direction === 'to-code') {
+    if (event.action === 'pr-created') {
+      actionText = `created PR #${event.prNumber}`;
+    } else if (event.action === 'pr-merged') {
+      actionText = `merged PR #${event.prNumber}`;
+    } else if (event.action === 'cli-save') {
+      actionText = 'saved for CLI';
+    } else {
+      actionText = 'synced';
+    }
+  } else {
+    actionText = 'applied';
+  }
+
   const actionLabel = el('span', {
     class: 'text-sm text-secondary',
-  }, event.direction === 'to-code' ? 'synced' : 'applied');
+  }, actionText);
 
   const changeCount = el('span', {
     class: 'text-sm font-medium',

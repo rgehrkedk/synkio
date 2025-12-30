@@ -8,6 +8,8 @@ import {
   ComparisonResult,
   StyleType,
   GitHubSettings,
+  SyncEvent,
+  SyncStatus,
 } from '../lib/types';
 
 import {
@@ -15,6 +17,8 @@ import {
   loadSimple,
   KEYS,
   loadClientStorage,
+  saveSimple,
+  saveChunked,
 } from '../lib/storage';
 
 import {
@@ -189,4 +193,172 @@ function generatePRBody(diff: ComparisonResult | null, baselinePath: string): st
   }
 
   return body;
+}
+
+/**
+ * Check if the last PR has been merged by fetching PR status from GitHub API
+ */
+export async function handleCheckPRStatus(send: SendMessage): Promise<void> {
+  try {
+    const settings = await loadClientStorage<PluginSettings>('settings');
+    const github = settings?.remote?.github;
+
+    if (!github?.owner || !github?.repo || !github.token) {
+      return; // No GitHub configured
+    }
+
+    const syncStatus = loadSimple<any>(KEYS.SYNC_STATUS);
+    if (!syncStatus?.lastAction || syncStatus.lastAction.type !== 'pr-created') {
+      return; // No pending PR
+    }
+
+    // Fetch PR status from GitHub API
+    send({
+      type: 'do-check-pr-status',
+      github,
+      prNumber: syncStatus.lastAction.prNumber,
+    });
+  } catch (error) {
+    console.error('Error checking PR status:', error);
+  }
+}
+
+/**
+ * Handle PR status check result - update history if merged
+ */
+export async function handlePRMerged(
+  prNumber: number,
+  prUrl: string,
+  send: SendMessage
+): Promise<void> {
+  try {
+    const syncStatus = loadSimple<any>(KEYS.SYNC_STATUS);
+
+    // Create history event for merge
+    const event: SyncEvent = {
+      id: `pr-merged-${Date.now()}`,
+      timestamp: Date.now(),
+      user: figma.currentUser?.name || 'Unknown',
+      direction: 'to-code',
+      changeCount: syncStatus?.lastSync?.changeCount || 0,
+      action: 'pr-merged',
+      prUrl,
+      prNumber,
+    };
+
+    // Add to history
+    const history = loadSimple<SyncEvent[]>(KEYS.HISTORY) || [];
+    history.unshift(event);
+    if (history.length > 10) {
+      history.length = 10;
+    }
+    saveSimple(KEYS.HISTORY, history);
+
+    // Clear lastAction since PR is now merged
+    if (syncStatus?.lastAction?.type === 'pr-created' && syncStatus.lastAction.prNumber === prNumber) {
+      delete syncStatus.lastAction;
+      saveSimple(KEYS.SYNC_STATUS, syncStatus);
+    }
+
+    // Send updates
+    send({ type: 'history-update', history });
+    send({
+      type: 'state-update',
+      state: {
+        syncStatus,
+        history,
+      },
+    });
+    send({ type: 'pr-merged', prNumber });
+  } catch (error) {
+    console.error('Error recording PR merge:', error);
+  }
+}
+
+/**
+ * Handle successful PR creation - record in history and update sync status
+ */
+export async function handlePRCreated(
+  prUrl: string,
+  prNumber: number,
+  send: SendMessage
+): Promise<void> {
+  try {
+    // Get current baseline to count changes
+    const syncBaseline = loadChunked<BaselineData>(KEYS.SYNC_BASELINE);
+    if (!syncBaseline) {
+      return; // No baseline yet, nothing to record
+    }
+
+    // Collect current state to calculate change count
+    const excludedCollections = loadSimple<string[]>(KEYS.EXCLUDED_COLLECTIONS) || [];
+    const excludedStyleTypes = loadSimple<StyleType[]>(KEYS.EXCLUDED_STYLE_TYPES) || [];
+    const tokens = await collectVariables({ excludedCollections });
+    const styles = await collectStyles({ excludedStyleTypes });
+    const currentBaseline = buildBaseline(tokens, styles);
+
+    const diff = compareBaselines(syncBaseline, currentBaseline);
+    const changeCount = hasAnyChanges(diff)
+      ? diff.newVariables.length +
+        diff.valueChanges.length +
+        diff.pathChanges.length +
+        diff.deletedVariables.length +
+        diff.newStyles.length +
+        diff.styleValueChanges.length +
+        diff.deletedStyles.length
+      : 0;
+
+    // Update baseline - the PR now captures these changes
+    saveChunked(KEYS.SYNC_BASELINE, currentBaseline);
+
+    // Create history event
+    const event: SyncEvent = {
+      id: `pr-${Date.now()}`,
+      timestamp: Date.now(),
+      user: figma.currentUser?.name || 'Unknown',
+      direction: 'to-code',
+      changeCount,
+      action: 'pr-created',
+      prUrl,
+      prNumber,
+    };
+
+    // Add to history
+    const history = loadSimple<SyncEvent[]>(KEYS.HISTORY) || [];
+    history.unshift(event);
+    if (history.length > 10) {
+      history.length = 10; // Keep last 10
+    }
+    saveSimple(KEYS.HISTORY, history);
+
+    // Update sync status with last action
+    // After PR creation, Figma is in-sync with the PR (pending review/merge in GitHub)
+    const syncStatus: SyncStatus = {
+      state: 'in-sync',
+      lastSync: {
+        timestamp: event.timestamp,
+        user: event.user,
+        changeCount: event.changeCount,
+      },
+      pendingChanges: 0, // No pending changes - they're now in the PR
+      lastAction: {
+        type: 'pr-created',
+        timestamp: event.timestamp,
+        prUrl,
+        prNumber,
+      },
+    };
+
+    // Send updates
+    send({ type: 'history-update', history });
+    send({
+      type: 'state-update',
+      state: {
+        syncStatus,
+        history,
+      },
+    });
+  } catch (error) {
+    console.error('Error recording PR creation:', error);
+  }
 }

@@ -62,7 +62,7 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
   const card = Card({ padding: 'lg' });
   card.classList.add('text-center');
 
-  // Status indicator
+  // Status indicator with action-specific messaging
   const statusMap: Record<string, { type: 'success' | 'warning' | 'error' | 'neutral'; label: string }> = {
     'in-sync': { type: 'success', label: 'In Sync' },
     'pending-changes': { type: 'warning', label: `${syncStatus.pendingChanges || 0} changes pending` },
@@ -70,7 +70,15 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
     'not-setup': { type: 'neutral', label: 'Not Set Up' },
   };
 
-  const status = statusMap[syncStatus.state] || statusMap['not-setup'];
+  let status = statusMap[syncStatus.state] || statusMap['not-setup'];
+
+  // Override label based on last action
+  if (syncStatus.lastAction?.type === 'pr-created') {
+    status = { type: 'warning', label: `PR #${syncStatus.lastAction.prNumber} pending review` };
+  } else if (syncStatus.state === 'pending-changes' && syncStatus.lastAction?.type === 'cli-save') {
+    const pendingCount = syncStatus.pendingChanges || 0;
+    status = { type: 'warning', label: `${pendingCount} change${pendingCount === 1 ? '' : 's'} saved for CLI` };
+  }
 
   // Title
   const title = el('div', { class: 'text-xs text-tertiary uppercase tracking-wide mb-md' }, 'SYNC STATUS');
@@ -129,6 +137,7 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
 
 function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement {
   const pendingCount = state.syncStatus.pendingChanges || 0;
+  const lastAction = state.syncStatus.lastAction;
 
   const card = Card({ padding: 'md' });
 
@@ -137,9 +146,19 @@ function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement 
 
   let statusText: string;
   let statusClass = 'text-sm';
-  if (pendingCount > 0) {
-    statusText = `${pendingCount} change${pendingCount === 1 ? '' : 's'} pending`;
+
+  // Show action-specific status
+  if (lastAction?.type === 'pr-created') {
+    statusText = `PR #${lastAction.prNumber} pending review`;
     statusClass += ' text-warning';
+  } else if (pendingCount > 0) {
+    if (lastAction?.type === 'cli-save') {
+      statusText = `${pendingCount} change${pendingCount === 1 ? '' : 's'} saved for CLI`;
+      statusClass += ' text-warning';
+    } else {
+      statusText = `${pendingCount} change${pendingCount === 1 ? '' : 's'} pending`;
+      statusClass += ' text-warning';
+    }
   } else if (state.syncStatus.state === 'not-setup') {
     statusText = 'Set up sync';
     statusClass += ' text-secondary';

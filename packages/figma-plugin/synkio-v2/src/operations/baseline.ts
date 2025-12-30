@@ -21,14 +21,14 @@ export function buildBaseline(tokens: TokenEntry[], styles: StyleEntry[]): Basel
       : `${token.path}:${token.collection}.${token.mode}`;
 
     baseline[key] = {
-      path: token.path,
-      value: token.value,
-      type: token.type,
-      collection: token.collection,
-      mode: token.mode,
       variableId: token.variableId,
       collectionId: token.collectionId,
       modeId: token.modeId,
+      collection: token.collection,
+      mode: token.mode,
+      path: token.path,
+      value: token.value,
+      type: token.type,
       description: token.description,
       scopes: token.scopes,
       codeSyntax: token.codeSyntax,
@@ -39,8 +39,8 @@ export function buildBaseline(tokens: TokenEntry[], styles: StyleEntry[]): Basel
   const stylesBaseline: Record<string, StyleBaselineEntry> = {};
 
   for (const style of styles) {
-    // Key format: styleId
-    const key = style.styleId;
+    // Key format: {styleId}:{type}
+    const key = `${style.styleId}:${style.type}`;
 
     stylesBaseline[key] = {
       styleId: style.styleId,

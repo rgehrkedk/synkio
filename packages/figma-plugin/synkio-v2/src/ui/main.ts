@@ -310,6 +310,10 @@ function handleSyncComplete(baseline: PluginState['syncBaseline'], diff?: Plugin
         changeCount,
       },
       pendingChanges: 0, // After sync, no pending changes
+      lastAction: {
+        type: 'cli-save',
+        timestamp: Date.now(),
+      },
     },
     history: newHistory,
     isFirstTime: false,

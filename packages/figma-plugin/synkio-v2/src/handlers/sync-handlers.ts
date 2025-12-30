@@ -181,6 +181,7 @@ export async function handleSync(send: SendMessage): Promise<void> {
       direction: 'to-code',
       changeCount,
       changes: diff ? getChangedPaths(diff) : undefined,
+      action: 'cli-save',
     };
 
     const updatedHistory = [newEvent, ...history].slice(0, 10);

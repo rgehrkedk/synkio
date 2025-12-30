@@ -280,6 +280,7 @@ export interface StyleTypeInfo {
 // =============================================================================
 
 export type SyncDirection = 'to-code' | 'from-code';
+export type SyncActionType = 'cli-save' | 'pr-created' | 'pr-merged' | 'applied-from-code';
 
 export interface SyncEvent {
   id: string;
@@ -288,6 +289,9 @@ export interface SyncEvent {
   direction: SyncDirection;
   changeCount: number;
   changes?: string[]; // Token paths that changed
+  action?: SyncActionType; // Type of sync action performed
+  prUrl?: string; // PR URL if action was pr-created
+  prNumber?: number; // PR number if action was pr-created
 }
 
 // =============================================================================
@@ -332,6 +336,12 @@ export interface SyncStatus {
     changeCount: number;
   };
   pendingChanges?: number;
+  lastAction?: {
+    type: SyncActionType;
+    timestamp: number;
+    prUrl?: string;
+    prNumber?: number;
+  };
 }
 
 export interface PluginState {

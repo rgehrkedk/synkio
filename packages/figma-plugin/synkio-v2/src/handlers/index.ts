@@ -22,7 +22,7 @@ import {
 import { handleImportBaseline, handleApplyToFigma } from './apply-handlers';
 import { handleGetSettings, handleSaveSettings, handleGetHistory } from './settings-handlers';
 import { handleClearAllData } from './data-handlers';
-import { handleCreatePR } from './pr-handlers';
+import { handleCreatePR, handlePRCreated } from './pr-handlers';
 
 // Re-export types
 export type { SendMessage } from './types';
@@ -117,6 +117,7 @@ export async function handleMessage(
         break;
 
       case 'pr-created-result':
+        await handlePRCreated(message.prUrl, message.prNumber, send);
         send({ type: 'pr-created', prUrl: message.prUrl, prNumber: message.prNumber });
         break;
 
