@@ -101,7 +101,7 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
 
     const pathInfo = el('div', {
       class: 'text-xs text-tertiary font-mono',
-    }, remoteSettings.github?.path || '.synkio/export-baseline.json');
+    }, remoteSettings.github?.path || 'synkio/export-baseline.json');
     githubCard.appendChild(pathInfo);
 
     contentChildren.push(githubCard);

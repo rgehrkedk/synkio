@@ -204,7 +204,7 @@ function buildSetupStep(state: PluginState, actions: RouterActions): HTMLElement
                   owner: owner.trim(),
                   repo: repo.trim(),
                   branch: 'main',
-                  path: '.synkio/export-baseline.json',
+                  path: 'synkio/export-baseline.json',
                 },
               },
             });

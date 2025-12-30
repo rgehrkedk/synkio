@@ -252,10 +252,10 @@ function buildGitHubTab(
   // Path input (for fetching export-baseline.json)
   formCard.appendChild(Input({
     label: 'Fetch Path (Code → Figma)',
-    placeholder: '.synkio/export-baseline.json',
-    value: githubForm.path || remote.github?.path || '.synkio/export-baseline.json',
+    placeholder: 'synkio/export-baseline.json',
+    value: githubForm.path || remote.github?.path || 'synkio/export-baseline.json',
     onChange: (value) => {
-      githubForm.path = value.trim() || '.synkio/export-baseline.json';
+      githubForm.path = value.trim() || 'synkio/export-baseline.json';
     },
   }));
 
@@ -350,7 +350,7 @@ function saveGitHubSettings(actions: RouterActions) {
         owner: githubForm.owner || '',
         repo: githubForm.repo || '',
         branch: githubForm.branch || 'main',
-        path: githubForm.path || '.synkio/export-baseline.json',
+        path: githubForm.path || 'synkio/export-baseline.json',
         prPath: githubForm.prPath || 'synkio/baseline.json',
         token: githubForm.token,
       },

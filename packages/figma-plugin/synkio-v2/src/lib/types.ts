@@ -299,7 +299,7 @@ export interface GitHubSettings {
   repo: string;
   branch: string;
   path: string;              // Path for fetching export-baseline.json (Code → Figma)
-  prPath?: string;           // Path for PR baseline.json (Figma → Code). Defaults to .synkio/baseline.json
+  prPath?: string;           // Path for PR baseline.json (Figma → Code). Defaults to synkio/baseline.json
   token?: string;
 }
 

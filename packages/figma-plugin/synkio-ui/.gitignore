@@ -1,4 +1,0 @@
-node_modules/
-*.js
-!build.js
-ui.html

@@ -49,7 +49,7 @@ export async function handleFetchRemote(send: SendMessage): Promise<void> {
     // Send fetch request to UI (which has access to fetch API)
     send({
       type: 'do-fetch-remote',
-      github: { owner, repo, branch: branch || 'main', path: path || '.synkio/export-baseline.json', token },
+      github: { owner, repo, branch: branch || 'main', path: path || 'synkio/export-baseline.json', token },
     });
   } catch (error) {
     send({
