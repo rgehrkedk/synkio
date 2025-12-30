@@ -60,7 +60,7 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
 
     // Note: We allow PRs even with no changes to establish baseline in repo
 
-    // 4. Generate export-baseline.json
+    // 4. Generate baseline data
     const exportBaseline: BaselineData = {
       ...currentBaseline,
       metadata: {
@@ -68,24 +68,30 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
       },
     };
 
-    // 5. Create baseline.json for Figma → Code workflow
+    // 5. Determine baseline path from GitHub settings (or use default)
+    // Default is .synkio/baseline.json, but user can configure custom path
+    const baselinePath = github.path || '.synkio/baseline.json';
+
+    // 6. Build files to commit
     const files: Record<string, string> = {
-      '.synkio/baseline.json': JSON.stringify(exportBaseline, null, 2),
+      [baselinePath]: JSON.stringify(exportBaseline, null, 2),
     };
 
+    // Add SYNC_REPORT.md in same directory as baseline (only if changes)
     if (diff && hasAnyChanges(diff)) {
+      const reportPath = baselinePath.replace(/[^/]+$/, 'SYNC_REPORT.md');
       const report = generateSyncReport(diff, {
         author: figma.currentUser?.name || 'Unknown',
         figmaFileUrl: `https://figma.com/file/${figma.fileKey}`,
         timestamp: new Date().toISOString(),
       });
-      files['.synkio/SYNC_REPORT.md'] = report;
+      files[reportPath] = report;
     }
 
-    // 6. Generate PR body
-    const prBody = generatePRBody(diff);
+    // 7. Generate PR body
+    const prBody = generatePRBody(diff, baselinePath);
 
-    // 7. Send to UI to make network requests
+    // 8. Send to UI to make network requests
     send({
       type: 'do-create-pr',
       github,
@@ -120,8 +126,11 @@ function hasAnyChanges(diff: ComparisonResult): boolean {
 /**
  * Generate PR body/description
  */
-function generatePRBody(diff: ComparisonResult | null): string {
+function generatePRBody(diff: ComparisonResult | null, baselinePath: string): string {
   let body = `## Design Token Sync from Figma\n\n`;
+
+  // Derive report path (same directory as baseline)
+  const reportPath = baselinePath.replace(/[^/]+$/, 'SYNC_REPORT.md');
 
   if (!diff || !hasAnyChanges(diff)) {
     body += `This PR establishes the baseline for design tokens from Figma.\n\n`;
@@ -156,20 +165,27 @@ function generatePRBody(diff: ComparisonResult | null): string {
 
     if (hasBreaking) {
       body += `### ⚠️ Breaking Changes\n\n`;
-      body += `This PR contains breaking changes. Review [SYNC_REPORT.md](.synkio/SYNC_REPORT.md) carefully.\n\n`;
+      body += `This PR contains breaking changes. Review [SYNC_REPORT.md](${reportPath}) carefully.\n\n`;
     }
   }
 
   body += `### How to Apply\n\n`;
   body += `After merging this PR, run:\n\n`;
   body += `\`\`\`bash\n`;
-  body += `synkio build\n`;
+
+  // If using custom path, show explicit --from flag
+  if (baselinePath !== '.synkio/baseline.json') {
+    body += `synkio build --from ${baselinePath}\n`;
+  } else {
+    body += `synkio build\n`;
+  }
+
   body += `\`\`\`\n\n`;
-  body += `This will read \`.synkio/baseline.json\` and update your token files according to \`synkio.config.json\`.\n\n`;
+  body += `This will read \`${baselinePath}\` and update your token files according to \`synkio.config.json\`.\n\n`;
 
   if (diff && hasAnyChanges(diff)) {
     body += `---\n\n`;
-    body += `See [SYNC_REPORT.md](.synkio/SYNC_REPORT.md) for detailed changes.\n`;
+    body += `See [SYNC_REPORT.md](${reportPath}) for detailed changes.\n`;
   }
 
   return body;
