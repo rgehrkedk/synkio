@@ -2,7 +2,7 @@ import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { BaselineData } from '../types/index.js';
 
-const SYNKIO_DIR = '.synkio';
+const SYNKIO_DIR = 'synkio';
 const BASELINE_PATH = resolve(process.cwd(), SYNKIO_DIR, 'baseline.json');
 const PREV_BASELINE_PATH = resolve(process.cwd(), SYNKIO_DIR, 'baseline.prev.json');
 
@@ -20,7 +20,7 @@ export async function readBaseline(): Promise<BaselineData | undefined> {
 }
 
 export async function writeBaseline(data: BaselineData) {
-  // Ensure .synkio directory exists
+  // Ensure synkio directory exists
   await mkdir(resolve(process.cwd(), SYNKIO_DIR), { recursive: true });
 
   // Before writing a new baseline, move the current one to .prev

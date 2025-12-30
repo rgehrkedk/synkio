@@ -64,7 +64,7 @@ export async function buildCommand(options: BuildOptions = {}) {
     logger.debug('Config loaded', config);
 
     // 2. Determine baseline path
-    const defaultBaselinePath = resolve(process.cwd(), '.synkio', 'baseline.json');
+    const defaultBaselinePath = resolve(process.cwd(), 'synkio', 'baseline.json');
     const baselinePath = options.from
       ? resolve(process.cwd(), options.from)
       : defaultBaselinePath;
@@ -130,7 +130,7 @@ export async function buildCommand(options: BuildOptions = {}) {
           }
 
           // Check if SYNC_REPORT.md exists and reference it
-          const syncReportPath = resolve(process.cwd(), '.synkio', 'SYNC_REPORT.md');
+          const syncReportPath = resolve(process.cwd(), 'synkio', 'SYNC_REPORT.md');
           try {
             await access(syncReportPath);
             console.log(chalk.dim('\n  Review synkio/SYNC_REPORT.md for details.'));

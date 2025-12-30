@@ -132,7 +132,7 @@ async function processStyles(
 async function backupExistingFiles(filesByDir: Map<string, Map<string, string>>): Promise<string | null> {
   const logger = createLogger();
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const backupDir = resolve(process.cwd(), '.synkio', 'backups', timestamp);
+  const backupDir = resolve(process.cwd(), 'synkio', 'backups', timestamp);
 
   let filesBackedUp = 0;
 
@@ -374,7 +374,7 @@ async function generateReport(
     exportedAt: newBaseline.metadata.syncedAt,
   });
 
-  const synkioDir = resolve(process.cwd(), '.synkio');
+  const synkioDir = resolve(process.cwd(), 'synkio');
   await mkdir(synkioDir, { recursive: true });
 
   let reportPath: string;
