@@ -4,7 +4,7 @@
 
 import { Screen, PluginState, MessageToUI, MessageToCode, GitHubSettings } from '../lib/types';
 import { createRouter, Router, ScreenRenderer, ScreenCleanup } from './router';
-import { injectStyles } from './components';
+import { injectStyles } from './styles/index';
 import {
   HomeScreen,
   SyncScreen,
@@ -68,11 +68,8 @@ const screens: Record<Screen, ScreenRenderer> = {
 let router: Router;
 
 function init() {
-  // Inject component styles
+  // Inject base and component styles
   injectStyles();
-
-  // Inject additional app styles
-  injectAppStyles();
 
   // Get the app container
   const app = document.getElementById('app');
@@ -377,68 +374,6 @@ async function handleDoFetchRemote(github: GitHubSettings) {
   } catch (error) {
     sendMessage({ type: 'fetch-remote-error', error: String(error) });
   }
-}
-
-// =============================================================================
-// App Styles
-// =============================================================================
-
-function injectAppStyles() {
-  const style = document.createElement('style');
-  style.textContent = `
-    /* Page transitions */
-    .page {
-      animation: fadeIn 0.15s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(4px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--color-border);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--color-border-strong);
-    }
-
-    /* Selection */
-    ::selection {
-      background: color-mix(in srgb, var(--color-primary) 30%, transparent);
-    }
-
-    /* Focus styles */
-    :focus-visible {
-      outline: 2px solid var(--color-primary);
-      outline-offset: 2px;
-    }
-
-    button:focus-visible,
-    input:focus-visible {
-      outline: 2px solid var(--color-primary);
-      outline-offset: 1px;
-    }
-  `;
-  document.head.appendChild(style);
 }
 
 // =============================================================================

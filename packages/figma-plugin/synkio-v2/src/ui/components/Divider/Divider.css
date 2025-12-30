@@ -1,0 +1,24 @@
+.divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--spacing-md) 0;
+}
+.divider--dashed { border-top-style: dashed; }
+.divider-with-text {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: var(--spacing-sm) 0;
+}
+.divider-with-text__line {
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+.divider-with-text__line--dashed {
+  background: repeating-linear-gradient(90deg, var(--color-border) 0, var(--color-border) 4px, transparent 4px, transparent 8px);
+}
+.divider-with-text__text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}

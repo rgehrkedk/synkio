@@ -18,35 +18,72 @@ const htmlTemplate = `<!DOCTYPE html>
     }
 
     :root {
-      --color-bg: #ffffff;
-      --color-bg-secondary: #f5f5f5;
-      --color-bg-tertiary: #e8e8e8;
-      --color-border: #e0e0e0;
-      --color-border-strong: #c0c0c0;
-      --color-text: #1a1a1a;
-      --color-text-secondary: #666666;
-      --color-text-tertiary: #999999;
-      --color-primary: #0d99ff;
-      --color-primary-hover: #0b85e0;
-      --color-success: #14ae5c;
-      --color-warning: #f59e0b;
-      --color-error: #ef4444;
-      --color-added: #14ae5c;
-      --color-modified: #f59e0b;
-      --color-deleted: #ef4444;
-      --color-renamed: #8b5cf6;
+      /* Map to Figma's native tokens - auto-updates with theme */
+      --color-bg: var(--figma-color-bg);
+      --color-bg-secondary: var(--figma-color-bg-secondary);
+      --color-bg-tertiary: var(--figma-color-bg-tertiary);
+      --color-bg-hover: var(--figma-color-bg-hover);
+      --color-bg-pressed: var(--figma-color-bg-pressed);
+      --color-bg-inverse: var(--figma-color-bg-inverse);
+
+      --color-border: var(--figma-color-border);
+      --color-border-strong: var(--figma-color-border-strong);
+      --color-border-selected: var(--figma-color-border-selected);
+
+      --color-text: var(--figma-color-text);
+      --color-text-secondary: var(--figma-color-text-secondary);
+      --color-text-tertiary: var(--figma-color-text-tertiary);
+      --color-text-disabled: var(--figma-color-text-disabled);
+      --color-text-onbrand: var(--figma-color-text-onbrand);
+      --color-text-brand: var(--figma-color-text-brand);
+
+      --color-icon: var(--figma-color-icon);
+      --color-icon-secondary: var(--figma-color-icon-secondary);
+      --color-icon-tertiary: var(--figma-color-icon-tertiary);
+
+      --color-primary: var(--figma-color-bg-brand);
+      --color-primary-hover: var(--figma-color-bg-brand-hover);
+      --color-primary-pressed: var(--figma-color-bg-brand-pressed);
+      --color-primary-tertiary: var(--figma-color-bg-brand-tertiary);
+
+      --color-success: var(--figma-color-bg-success);
+      --color-success-tertiary: var(--figma-color-bg-success-tertiary);
+      --color-warning: var(--figma-color-bg-warning);
+      --color-warning-tertiary: var(--figma-color-bg-warning-tertiary);
+      --color-error: var(--figma-color-bg-danger);
+      --color-error-tertiary: var(--figma-color-bg-danger-tertiary);
+
+      --color-added: var(--figma-color-text-success);
+      --color-added-bg: var(--figma-color-bg-success-tertiary);
+      --color-modified: var(--figma-color-text-warning);
+      --color-modified-bg: var(--figma-color-bg-warning-tertiary);
+      --color-deleted: var(--figma-color-text-danger);
+      --color-deleted-bg: var(--figma-color-bg-danger-tertiary);
+      --color-renamed: var(--figma-color-text-component);
+      --color-renamed-bg: var(--figma-color-bg-component-tertiary);
+
       --radius-sm: 4px;
       --radius-md: 6px;
       --radius-lg: 8px;
+      --radius-xl: 16px;
+      --radius-full: 9999px;
+
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
       --shadow-md: 0 2px 4px rgba(0,0,0,0.1);
+
       --font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', Menlo, monospace;
       --font-size-xs: 11px;
       --font-size-sm: 12px;
       --font-size-md: 13px;
       --font-size-lg: 14px;
       --font-size-xl: 16px;
       --font-size-2xl: 20px;
+
+      --font-weight-normal: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+
       --spacing-xs: 4px;
       --spacing-sm: 8px;
       --spacing-md: 12px;
@@ -90,6 +127,7 @@ async function build() {
     minify: !isWatch,
     sourcemap: isWatch ? 'inline' : false,
     logLevel: 'info',
+    loader: { '.css': 'text' },
   });
 
   // Build the UI code
@@ -102,6 +140,7 @@ async function build() {
     minify: !isWatch,
     sourcemap: isWatch ? 'inline' : false,
     logLevel: 'info',
+    loader: { '.css': 'text' },
     write: false,
   });
 

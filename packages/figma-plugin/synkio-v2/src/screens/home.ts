@@ -10,15 +10,14 @@ import {
   Card,
   Button,
   StatusIndicator,
-  Icon,
-  IconCircle,
-} from '../ui/components';
+  IconButton,
+} from '../ui/components/index';
+import { Icon } from '../ui/icons';
 import {
-  createPageLayout,
-  createContentArea,
-  createColumn,
-  createRow,
-} from '../ui/router';
+  PageLayout,
+  ContentArea,
+  Row,
+} from '../ui/layout/index';
 
 export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElement {
   const { syncStatus, history } = state;
@@ -33,19 +32,12 @@ export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElem
   // Build activity section
   const activitySection = buildActivitySection(history, actions);
 
-  // Settings button for header
-  const settingsBtn = el('button', {
-    style: 'background: none; border: none; padding: 6px; cursor: pointer; border-radius: var(--radius-sm); color: var(--color-text-secondary); display: flex; align-items: center; justify-content: center;',
-  });
-  settingsBtn.appendChild(Icon('settings', 'md'));
-  settingsBtn.addEventListener('click', () => actions.navigate('settings'));
-  settingsBtn.addEventListener('mouseenter', () => {
-    settingsBtn.style.background = 'var(--color-bg-secondary)';
-    settingsBtn.style.color = 'var(--color-text)';
-  });
-  settingsBtn.addEventListener('mouseleave', () => {
-    settingsBtn.style.background = 'none';
-    settingsBtn.style.color = 'var(--color-text-secondary)';
+  // Settings button for header using IconButton
+  const settingsBtn = IconButton({
+    icon: 'settings',
+    variant: 'ghost',
+    onClick: () => actions.navigate('settings'),
+    ariaLabel: 'Settings',
   });
 
   const header = Header({
@@ -53,22 +45,22 @@ export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElem
     rightAction: settingsBtn,
   });
 
-  const content = createContentArea([
+  const content = ContentArea([
     statusCard,
-    createRow([syncCard, applyCard], 'var(--spacing-md)'),
+    Row([syncCard, applyCard], 'var(--spacing-md)'),
     activitySection,
   ]);
 
   // Make workflow cards equal width
-  syncCard.style.flex = '1';
-  applyCard.style.flex = '1';
+  syncCard.classList.add('flex-1');
+  applyCard.classList.add('flex-1');
 
-  return createPageLayout([header, content]);
+  return PageLayout([header, content]);
 }
 
 function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEvent[]): HTMLElement {
   const card = Card({ padding: 'lg' });
-  card.style.cssText = 'text-align: center;';
+  card.classList.add('text-center');
 
   // Status indicator
   const statusMap: Record<string, { type: 'success' | 'warning' | 'error' | 'neutral'; label: string }> = {
@@ -81,25 +73,25 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
   const status = statusMap[syncStatus.state] || statusMap['not-setup'];
 
   // Title
-  const title = el('div', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--spacing-md);' }, 'SYNC STATUS');
+  const title = el('div', { class: 'text-xs text-tertiary uppercase tracking-wide mb-md' }, 'SYNC STATUS');
 
   // Visual representation
-  const visual = el('div', { style: 'display: flex; align-items: center; justify-content: center; gap: var(--spacing-xl); margin: var(--spacing-lg) 0;' });
+  const visual = el('div', { class: 'status-visual' });
 
-  const figmaBox = el('div', { style: 'display: flex; flex-direction: column; align-items: center; gap: var(--spacing-xs);' });
-  const figmaIconBox = el('div', { style: 'width: 48px; height: 48px; border: 2px solid var(--color-border); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary);' });
+  const figmaBox = el('div', { class: 'status-box' });
+  const figmaIconBox = el('div', { class: 'status-icon-box' });
   figmaIconBox.appendChild(Icon('figma', 'lg'));
   figmaBox.appendChild(figmaIconBox);
-  figmaBox.appendChild(el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-secondary);' }, 'Figma'));
+  figmaBox.appendChild(el('span', { class: 'text-xs text-secondary' }, 'Figma'));
 
-  const arrow = el('div', { style: 'color: var(--color-text-tertiary);' });
+  const arrow = el('div', { class: 'text-tertiary' });
   arrow.appendChild(Icon('arrow-left-right', 'lg'));
 
-  const codeBox = el('div', { style: 'display: flex; flex-direction: column; align-items: center; gap: var(--spacing-xs);' });
-  const codeIconBox = el('div', { style: 'width: 48px; height: 48px; border: 2px solid var(--color-border); border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary);' });
+  const codeBox = el('div', { class: 'status-box' });
+  const codeIconBox = el('div', { class: 'status-icon-box' });
   codeIconBox.appendChild(Icon('code', 'lg'));
   codeBox.appendChild(codeIconBox);
-  codeBox.appendChild(el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-secondary);' }, 'Code'));
+  codeBox.appendChild(el('span', { class: 'text-xs text-secondary' }, 'Code'));
 
   visual.appendChild(figmaBox);
   visual.appendChild(arrow);
@@ -107,7 +99,7 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
 
   // Status indicator
   const statusIndicator = StatusIndicator(status);
-  const statusWrapper = el('div', { style: 'display: flex; justify-content: center; margin-bottom: var(--spacing-sm);' });
+  const statusWrapper = el('div', { class: 'flex justify-center mb-sm' });
   statusWrapper.appendChild(statusIndicator);
 
   // Last sync info
@@ -123,7 +115,7 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
     lastSyncText = `Last synced ${timeAgo} by @${lastEvent.user}`;
   }
 
-  const lastSync = el('div', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary);' }, lastSyncText);
+  const lastSync = el('div', { class: 'text-xs text-tertiary' }, lastSyncText);
 
   card.appendChild(title);
   card.appendChild(visual);
@@ -140,19 +132,23 @@ function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement 
 
   const card = Card({ padding: 'md', clickable: true, onClick: () => actions.navigate('sync') });
 
-  const title = el('div', { style: 'font-weight: 500; margin-bottom: var(--spacing-xs);' }, 'FIGMA \u2192 CODE');
-  const divider = el('div', { style: 'width: 40px; height: 2px; background: var(--color-primary); margin-bottom: var(--spacing-sm);' });
+  const title = el('div', { class: 'workflow-card-title' }, 'FIGMA \u2192 CODE');
+  const divider = el('div', { class: 'workflow-card-divider workflow-card-divider--primary' });
 
   let statusText: string;
+  let statusClass = 'text-sm';
   if (pendingCount > 0) {
     statusText = `${pendingCount} change${pendingCount === 1 ? '' : 's'} pending`;
+    statusClass += ' text-warning';
   } else if (state.syncStatus.state === 'not-setup') {
     statusText = 'Set up sync';
+    statusClass += ' text-secondary';
   } else {
     statusText = 'Everything synced';
+    statusClass += ' text-secondary';
   }
 
-  const status = el('div', { style: `font-size: var(--font-size-sm); color: ${pendingCount > 0 ? 'var(--color-warning)' : 'var(--color-text-secondary)'};` }, statusText);
+  const statusEl = el('div', { class: statusClass }, statusText);
 
   const button = Button({
     label: pendingCount > 0 ? 'Review & Sync' : 'View Status',
@@ -160,11 +156,11 @@ function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement 
     size: 'sm',
     fullWidth: true,
   });
-  button.style.marginTop = 'var(--spacing-md)';
+  button.classList.add('mt-md');
 
   card.appendChild(title);
   card.appendChild(divider);
-  card.appendChild(status);
+  card.appendChild(statusEl);
   card.appendChild(button);
 
   return card;
@@ -176,19 +172,23 @@ function buildApplyCard(state: PluginState, actions: RouterActions): HTMLElement
 
   const card = Card({ padding: 'md', clickable: true, onClick: () => actions.navigate('apply') });
 
-  const title = el('div', { style: 'font-weight: 500; margin-bottom: var(--spacing-xs);' }, 'CODE \u2192 FIGMA');
-  const divider = el('div', { style: 'width: 40px; height: 2px; background: var(--color-renamed); margin-bottom: var(--spacing-sm);' });
+  const title = el('div', { class: 'workflow-card-title' }, 'CODE \u2192 FIGMA');
+  const divider = el('div', { class: 'workflow-card-divider workflow-card-divider--secondary' });
 
   let statusText: string;
+  let statusClass = 'text-sm';
   if (codeChanges > 0) {
     statusText = `${codeChanges} update${codeChanges === 1 ? '' : 's'} available`;
+    statusClass += ' text-brand';
   } else if (!hasCodeBaseline) {
     statusText = 'Connect to repository';
+    statusClass += ' text-secondary';
   } else {
     statusText = 'No updates available';
+    statusClass += ' text-secondary';
   }
 
-  const status = el('div', { style: `font-size: var(--font-size-sm); color: ${codeChanges > 0 ? 'var(--color-primary)' : 'var(--color-text-secondary)'};` }, statusText);
+  const statusEl = el('div', { class: statusClass }, statusText);
 
   const button = Button({
     label: codeChanges > 0 ? 'Review & Apply' : hasCodeBaseline ? 'Check for Updates' : 'Connect',
@@ -196,11 +196,11 @@ function buildApplyCard(state: PluginState, actions: RouterActions): HTMLElement
     size: 'sm',
     fullWidth: true,
   });
-  button.style.marginTop = 'var(--spacing-md)';
+  button.classList.add('mt-md');
 
   card.appendChild(title);
   card.appendChild(divider);
-  card.appendChild(status);
+  card.appendChild(statusEl);
   card.appendChild(button);
 
   return card;
@@ -209,8 +209,8 @@ function buildApplyCard(state: PluginState, actions: RouterActions): HTMLElement
 function buildActivitySection(history: SyncEvent[], actions: RouterActions): HTMLElement {
   const section = el('div');
 
-  const headerRow = el('div', { style: 'display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-sm);' });
-  headerRow.appendChild(el('span', { style: 'font-size: var(--font-size-sm); font-weight: 500;' }, 'RECENT ACTIVITY'));
+  const headerRow = el('div', { class: 'flex items-center justify-between mb-sm' });
+  headerRow.appendChild(el('span', { class: 'text-sm font-medium' }, 'RECENT ACTIVITY'));
 
   if (history.length > 0) {
     const viewAllBtn = Button({
@@ -225,10 +225,10 @@ function buildActivitySection(history: SyncEvent[], actions: RouterActions): HTM
   section.appendChild(headerRow);
 
   if (history.length === 0) {
-    const emptyText = el('div', { style: 'font-size: var(--font-size-sm); color: var(--color-text-tertiary); padding: var(--spacing-md) 0;' }, 'No activity yet');
+    const emptyText = el('div', { class: 'text-sm text-tertiary py-md' }, 'No activity yet');
     section.appendChild(emptyText);
   } else {
-    const list = el('div', { style: 'display: flex; flex-direction: column; gap: var(--spacing-xs);' });
+    const list = el('div', { class: 'flex flex-col gap-xs' });
 
     // Show last 3 events
     for (const event of history.slice(0, 3)) {
@@ -247,13 +247,13 @@ function buildActivityItem(event: SyncEvent): HTMLElement {
   const timeAgo = getTimeAgo(date);
   const directionLabel = event.direction === 'to-code' ? 'synced' : 'applied';
 
-  const item = el('div', { style: 'display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm); background: var(--color-bg-secondary); border-radius: var(--radius-md);' });
+  const item = el('div', { class: 'activity-item' });
 
-  const iconWrapper = el('span', { style: 'color: var(--color-text-tertiary); display: flex; align-items: center;' });
+  const iconWrapper = el('span', { class: 'text-tertiary inline-flex items-center' });
   iconWrapper.appendChild(Icon(event.direction === 'to-code' ? 'upload' : 'download', 'sm'));
-  const textEl = el('span', { style: 'font-size: var(--font-size-xs); flex: 1;' });
+  const textEl = el('span', { class: 'text-xs flex-1' });
   textEl.innerHTML = `<strong>@${event.user}</strong> ${directionLabel} ${event.changeCount} token${event.changeCount === 1 ? '' : 's'}`;
-  const time = el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary);' }, timeAgo);
+  const time = el('span', { class: 'text-xs text-tertiary' }, timeAgo);
 
   item.appendChild(iconWrapper);
   item.appendChild(textEl);

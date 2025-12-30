@@ -14,7 +14,7 @@ import {
   NewStyle,
   DeletedStyle,
 } from './types';
-import { el, DiffItem } from '../ui/components';
+import { el, DiffItem } from '../ui/components/index';
 
 // =============================================================================
 // Types

@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { Screen, PluginState } from '../lib/types';
-import { clear } from './components';
+import { clear } from './components/index';
 
 export type ScreenRenderer = (state: PluginState, actions: RouterActions) => HTMLElement;
 export type ScreenCleanup = () => void;
@@ -66,99 +66,4 @@ export function createRouter(
     updateState: actions.updateState,
     getState: () => state,
   };
-}
-
-// =============================================================================
-// Layout Helpers
-// =============================================================================
-
-export function createPageLayout(children: HTMLElement[]): HTMLElement {
-  const page = document.createElement('div');
-  page.className = 'page';
-  page.style.cssText = `
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  `;
-
-  for (const child of children) {
-    page.appendChild(child);
-  }
-
-  return page;
-}
-
-export function createContentArea(children: HTMLElement[]): HTMLElement {
-  const content = document.createElement('div');
-  content.className = 'content';
-  content.style.cssText = `
-    flex: 1;
-    padding: var(--spacing-lg);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-    overflow-y: auto;
-  `;
-
-  for (const child of children) {
-    content.appendChild(child);
-  }
-
-  return content;
-}
-
-export function createFooter(children: HTMLElement[]): HTMLElement {
-  const footer = document.createElement('div');
-  footer.className = 'footer';
-  footer.style.cssText = `
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-top: 1px solid var(--color-border);
-    background: var(--color-bg);
-  `;
-
-  for (const child of children) {
-    footer.appendChild(child);
-  }
-
-  return footer;
-}
-
-export function createRow(children: HTMLElement[], gap: string = 'var(--spacing-md)'): HTMLElement {
-  const row = document.createElement('div');
-  row.style.cssText = `
-    display: flex;
-    align-items: center;
-    gap: ${gap};
-  `;
-
-  for (const child of children) {
-    row.appendChild(child);
-  }
-
-  return row;
-}
-
-export function createColumn(children: HTMLElement[], gap: string = 'var(--spacing-md)'): HTMLElement {
-  const col = document.createElement('div');
-  col.style.cssText = `
-    display: flex;
-    flex-direction: column;
-    gap: ${gap};
-  `;
-
-  for (const child of children) {
-    col.appendChild(child);
-  }
-
-  return col;
-}
-
-export function createDivider(): HTMLElement {
-  const divider = document.createElement('hr');
-  divider.style.cssText = `
-    border: none;
-    border-top: 1px dashed var(--color-border);
-    margin: var(--spacing-md) 0;
-  `;
-  return divider;
 }

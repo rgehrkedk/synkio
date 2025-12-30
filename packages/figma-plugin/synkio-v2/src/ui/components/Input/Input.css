@@ -1,0 +1,27 @@
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+}
+.input-group__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+.input-group__input {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: border-color 0.15s ease;
+}
+.input-group__input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.input-group__input::placeholder {
+  color: var(--color-text-tertiary);
+}

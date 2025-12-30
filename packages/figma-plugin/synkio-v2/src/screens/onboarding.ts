@@ -2,7 +2,7 @@
 // Onboarding Screen - First-time setup
 // =============================================================================
 
-import { PluginState, CollectionInfo } from '../lib/types';
+import { PluginState } from '../lib/types';
 import { RouterActions } from '../ui/router';
 import {
   el,
@@ -11,14 +11,15 @@ import {
   Checkbox,
   Input,
   Spinner,
-  Icon,
-} from '../ui/components';
+  CommandBox,
+} from '../ui/components/index';
+import { Icon } from '../ui/icons';
 import {
-  createPageLayout,
-  createContentArea,
-  createColumn,
-  createFooter,
-} from '../ui/router';
+  PageLayout,
+  ContentArea,
+  Footer,
+  Column,
+} from '../ui/layout/index';
 
 type OnboardingStep = 'welcome' | 'scanning' | 'setup' | 'complete';
 
@@ -26,7 +27,7 @@ let currentStep: OnboardingStep = 'welcome';
 let githubRepo = '';
 
 export function OnboardingScreen(state: PluginState, actions: RouterActions): HTMLElement {
-  const { isLoading, collections } = state;
+  const { collections } = state;
 
   // If we have collections and we're past scanning, show setup
   if (collections.length > 0 && currentStep === 'scanning') {
@@ -48,26 +49,17 @@ export function OnboardingScreen(state: PluginState, actions: RouterActions): HT
 }
 
 function buildWelcomeStep(actions: RouterActions): HTMLElement {
-  const content = createContentArea([]);
+  const content = ContentArea([]);
 
-  // Logo and title
-  const hero = el('div', {
-    style: 'text-align: center; padding: var(--spacing-2xl) 0;',
-  });
+  // Logo and title - using .hero class
+  const hero = el('div', { class: 'hero' });
 
-  const logoWrapper = el('div', {
-    style: 'display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: var(--color-primary); border-radius: 16px; margin-bottom: var(--spacing-md); color: white;',
-  });
+  const logoWrapper = el('div', { class: 'hero__logo' });
   logoWrapper.appendChild(Icon('sync', 'xl'));
   hero.appendChild(logoWrapper);
 
-  hero.appendChild(el('div', {
-    style: 'font-size: var(--font-size-2xl); font-weight: 600; margin-bottom: var(--spacing-xs);',
-  }, 'Welcome to Synkio'));
-
-  hero.appendChild(el('div', {
-    style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary);',
-  }, 'Sync Figma variables with your codebase'));
+  hero.appendChild(el('div', { class: 'hero__title' }, 'Welcome to Synkio'));
+  hero.appendChild(el('div', { class: 'hero__subtitle' }, 'Sync Figma variables with your codebase'));
 
   content.appendChild(hero);
 
@@ -75,27 +67,23 @@ function buildWelcomeStep(actions: RouterActions): HTMLElement {
   const workflowCard = Card({ padding: 'lg' });
 
   // Sync to Code
-  const syncSection = el('div', { style: 'margin-bottom: var(--spacing-lg);' });
+  const syncSection = el('div', { class: 'mb-lg' });
+  syncSection.appendChild(el('div', { class: 'font-semibold mb-xs' }, '1. SYNC TO CODE'));
   syncSection.appendChild(el('div', {
-    style: 'font-weight: 600; margin-bottom: var(--spacing-xs);',
-  }, '1. SYNC TO CODE'));
-  syncSection.appendChild(el('div', {
-    style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--spacing-sm);',
+    class: 'text-sm text-secondary mb-sm',
   }, 'Create variables in Figma, then sync them to your code as design tokens.'));
   syncSection.appendChild(el('div', {
-    style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); font-family: "SF Mono", monospace;',
+    class: 'text-xs text-tertiary font-mono',
   }, 'Figma \u2192 Plugin \u2192 CLI \u2192 Token files'));
 
   // Apply from Code
   const applySection = el('div');
+  applySection.appendChild(el('div', { class: 'font-semibold mb-xs' }, '2. APPLY FROM CODE'));
   applySection.appendChild(el('div', {
-    style: 'font-weight: 600; margin-bottom: var(--spacing-xs);',
-  }, '2. APPLY FROM CODE'));
-  applySection.appendChild(el('div', {
-    style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--spacing-sm);',
+    class: 'text-sm text-secondary mb-sm',
   }, 'Import tokens from code and create or update Figma variables.'));
   applySection.appendChild(el('div', {
-    style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); font-family: "SF Mono", monospace;',
+    class: 'text-xs text-tertiary font-mono',
   }, 'Token files \u2192 CLI \u2192 Plugin \u2192 Figma'));
 
   workflowCard.appendChild(syncSection);
@@ -103,8 +91,8 @@ function buildWelcomeStep(actions: RouterActions): HTMLElement {
   content.appendChild(workflowCard);
 
   // Footer with Get Started button
-  const footer = createFooter([
-    createColumn([
+  const footer = Footer([
+    Column([
       Button({
         label: 'GET STARTED',
         variant: 'primary',
@@ -117,45 +105,39 @@ function buildWelcomeStep(actions: RouterActions): HTMLElement {
         },
       }),
       el('div', {
-        style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); text-align: center;',
+        class: 'text-xs text-tertiary text-center',
       }, 'Scan your file for collections'),
     ], 'var(--spacing-sm)'),
   ]);
 
   // Link to docs
   const docsLink = el('div', {
-    style: 'text-align: center; padding: var(--spacing-md) 0; font-size: var(--font-size-xs); color: var(--color-text-tertiary);',
+    class: 'text-center py-md text-xs text-tertiary',
   }, 'Learn more at github.com/synkio/synkio');
   content.appendChild(docsLink);
 
-  return createPageLayout([content, footer]);
+  return PageLayout([content, footer]);
 }
 
 function buildScanningStep(): HTMLElement {
-  const content = createContentArea([
+  const content = ContentArea([
     Spinner('Scanning your file for collections...'),
   ]);
 
-  return createPageLayout([content]);
+  return PageLayout([content]);
 }
 
 function buildSetupStep(state: PluginState, actions: RouterActions): HTMLElement {
   const { collections, styleTypes } = state;
 
-  const content = createContentArea([]);
+  const content = ContentArea([]);
 
   // Success message
-  const successBanner = el('div', {
-    style: 'text-align: center; padding: var(--spacing-lg) 0;',
-  });
-  const checkWrapper = el('div', {
-    style: 'display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: color-mix(in srgb, var(--color-success) 15%, transparent); border-radius: 50%; margin-bottom: var(--spacing-sm); color: var(--color-success);',
-  });
+  const successBanner = el('div', { class: 'text-center py-lg' });
+  const checkWrapper = el('div', { class: 'success-icon-wrapper' });
   checkWrapper.appendChild(Icon('check', 'lg'));
   successBanner.appendChild(checkWrapper);
-  successBanner.appendChild(el('div', {
-    style: 'font-size: var(--font-size-lg); font-weight: 500;',
-  }, 'File scanned!'));
+  successBanner.appendChild(el('div', { class: 'text-lg font-medium' }, 'File scanned!'));
   content.appendChild(successBanner);
 
   // Collections found
@@ -165,7 +147,7 @@ function buildSetupStep(state: PluginState, actions: RouterActions): HTMLElement
   const totalStyles = styleTypes.reduce((sum, s) => sum + s.count, 0);
 
   collectionsCard.appendChild(el('div', {
-    style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--spacing-md);',
+    class: 'text-sm text-secondary mb-md',
   }, `Found ${collections.length} collection${collections.length === 1 ? '' : 's'} with ${totalVars} variables${totalStyles > 0 ? ` and ${totalStyles} styles` : ''}`));
 
   for (const collection of collections) {
@@ -186,11 +168,9 @@ function buildSetupStep(state: PluginState, actions: RouterActions): HTMLElement
 
   // Optional GitHub connection
   const githubCard = Card({ padding: 'md' });
+  githubCard.appendChild(el('div', { class: 'font-medium mb-xs' }, 'OPTIONAL: Connect to GitHub'));
   githubCard.appendChild(el('div', {
-    style: 'font-weight: 500; margin-bottom: var(--spacing-xs);',
-  }, 'OPTIONAL: Connect to GitHub'));
-  githubCard.appendChild(el('div', {
-    style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); margin-bottom: var(--spacing-md);',
+    class: 'text-xs text-tertiary mb-md',
   }, 'Skip this step if you\'ll import files manually'));
 
   const repoInput = Input({
@@ -205,8 +185,8 @@ function buildSetupStep(state: PluginState, actions: RouterActions): HTMLElement
   content.appendChild(githubCard);
 
   // Footer
-  const footer = createFooter([
-    createColumn([
+  const footer = Footer([
+    Column([
       Button({
         label: 'CREATE INITIAL SYNC',
         variant: 'primary',
@@ -237,15 +217,13 @@ function buildSetupStep(state: PluginState, actions: RouterActions): HTMLElement
         },
       }),
       el('div', {
-        style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); text-align: center;',
+        class: 'text-xs text-tertiary text-center',
       }, 'Saves baseline so CLI can fetch tokens'),
     ], 'var(--spacing-sm)'),
   ]);
 
   // Skip option
-  const skipLink = el('div', {
-    style: 'text-align: center; margin-top: var(--spacing-sm);',
-  });
+  const skipLink = el('div', { class: 'text-center mt-sm' });
   const skipBtn = Button({
     label: 'Skip and configure later',
     variant: 'ghost',
@@ -258,91 +236,37 @@ function buildSetupStep(state: PluginState, actions: RouterActions): HTMLElement
   skipLink.appendChild(skipBtn);
   footer.appendChild(skipLink);
 
-  return createPageLayout([content, footer]);
+  return PageLayout([content, footer]);
 }
 
 function buildCompleteStep(actions: RouterActions): HTMLElement {
-  const content = createContentArea([]);
+  const content = ContentArea([]);
 
   // Success message
-  const successSection = el('div', {
-    style: 'text-align: center; padding: var(--spacing-2xl) 0;',
-  });
+  const successSection = el('div', { class: 'hero' });
 
-  const successIconWrapper = el('div', {
-    style: 'display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: color-mix(in srgb, var(--color-success) 15%, transparent); border-radius: 50%; margin-bottom: var(--spacing-md); color: var(--color-success);',
-  });
+  const successIconWrapper = el('div', { class: 'success-icon-wrapper success-icon-wrapper--lg' });
   successIconWrapper.appendChild(Icon('check', 'xl'));
   successSection.appendChild(successIconWrapper);
 
-  successSection.appendChild(el('div', {
-    style: 'font-size: var(--font-size-xl); font-weight: 600; margin-bottom: var(--spacing-xs);',
-  }, 'Synced!'));
-
-  successSection.appendChild(el('div', {
-    style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary);',
-  }, 'Your variables are saved and ready for the CLI'));
+  successSection.appendChild(el('div', { class: 'text-xl font-semibold mb-xs' }, 'Synced!'));
+  successSection.appendChild(el('div', { class: 'text-sm text-secondary' }, 'Your variables are saved and ready for the CLI'));
 
   content.appendChild(successSection);
 
   // Next steps
   const nextStepsCard = Card({ padding: 'lg' });
 
-  nextStepsCard.appendChild(el('div', {
-    style: 'font-weight: 500; margin-bottom: var(--spacing-md);',
-  }, 'NEXT STEP'));
+  nextStepsCard.appendChild(el('div', { class: 'font-medium mb-md' }, 'NEXT STEP'));
+  nextStepsCard.appendChild(el('div', { class: 'text-sm text-secondary mb-md' }, 'Run this command in your project:'));
 
-  nextStepsCard.appendChild(el('div', {
-    style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--spacing-md);',
-  }, 'Run this command in your project:'));
-
-  // Command box
-  const commandBox = el('div', {
-    style: `
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--spacing-md);
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      font-family: "SF Mono", Menlo, monospace;
-      font-size: var(--font-size-sm);
-    `,
-  });
-
-  commandBox.appendChild(el('span', {}, 'npx synkio sync'));
-
-  const copyBtn = el('button', {
-    style: 'background: none; border: none; padding: 6px; cursor: pointer; border-radius: var(--radius-sm); color: var(--color-text-secondary); display: flex; align-items: center; justify-content: center;',
-  });
-  copyBtn.appendChild(Icon('copy', 'sm'));
-  copyBtn.addEventListener('click', () => {
-    navigator.clipboard?.writeText('npx synkio sync');
-    // Visual feedback
-    copyBtn.innerHTML = '';
-    copyBtn.appendChild(Icon('check', 'sm'));
-    copyBtn.style.color = 'var(--color-success)';
-    setTimeout(() => {
-      copyBtn.innerHTML = '';
-      copyBtn.appendChild(Icon('copy', 'sm'));
-      copyBtn.style.color = 'var(--color-text-secondary)';
-    }, 1500);
-  });
-  copyBtn.addEventListener('mouseenter', () => {
-    copyBtn.style.background = 'var(--color-bg-tertiary)';
-  });
-  copyBtn.addEventListener('mouseleave', () => {
-    copyBtn.style.background = 'none';
-  });
-  commandBox.appendChild(copyBtn);
-
-  nextStepsCard.appendChild(commandBox);
+  // Use CommandBox component
+  nextStepsCard.appendChild(CommandBox({ command: 'npx synkio sync' }));
 
   content.appendChild(nextStepsCard);
 
   // Footer
-  const footer = createFooter([
+  const footer = Footer([
     Button({
       label: 'DONE',
       variant: 'primary',
@@ -355,7 +279,7 @@ function buildCompleteStep(actions: RouterActions): HTMLElement {
     }),
   ]);
 
-  return createPageLayout([content, footer]);
+  return PageLayout([content, footer]);
 }
 
 // Export function to reset onboarding state

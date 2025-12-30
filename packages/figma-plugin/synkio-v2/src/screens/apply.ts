@@ -12,16 +12,16 @@ import {
   Section,
   Alert,
   Spinner,
-  Icon,
-} from '../ui/components';
+  Divider,
+} from '../ui/components/index';
+import { Icon } from '../ui/icons';
 import {
-  createPageLayout,
-  createContentArea,
-  createFooter,
-  createColumn,
-  createRow,
-  createDivider,
-} from '../ui/router';
+  PageLayout as createPageLayout,
+  ContentArea as createContentArea,
+  Footer as createFooter,
+  Column as createColumn,
+  Row as createRow,
+} from '../ui/layout/index';
 import {
   groupByCollection,
   groupStylesByType,
@@ -89,20 +89,18 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
     // Show configured GitHub info
     const githubCard = Card({ padding: 'md' });
 
-    const githubHeader = el('div', {
-      style: 'display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);',
-    });
+    const githubHeader = el('div', { class: 'github-header' });
     githubHeader.appendChild(Icon('github', 'md'));
-    githubHeader.appendChild(el('span', { style: 'font-weight: 500;' }, 'GitHub Repository'));
+    githubHeader.appendChild(el('span', { class: 'font-medium' }, 'GitHub Repository'));
     githubCard.appendChild(githubHeader);
 
     const repoInfo = el('div', {
-      style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--spacing-md);',
+      class: 'text-sm text-secondary mb-md',
     }, `${remoteSettings.github?.owner}/${remoteSettings.github?.repo} · ${remoteSettings.github?.branch || 'main'}`);
     githubCard.appendChild(repoInfo);
 
     const pathInfo = el('div', {
-      style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); font-family: monospace;',
+      class: 'text-xs text-tertiary font-mono',
     }, remoteSettings.github?.path || '.synkio/export-baseline.json');
     githubCard.appendChild(pathInfo);
 
@@ -123,15 +121,13 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
     // Show setup prompt
     const setupCard = Card({ padding: 'md' });
 
-    const setupHeader = el('div', {
-      style: 'display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);',
-    });
+    const setupHeader = el('div', { class: 'github-header' });
     setupHeader.appendChild(Icon('github', 'md'));
-    setupHeader.appendChild(el('span', { style: 'font-weight: 500;' }, 'GitHub Repository'));
+    setupHeader.appendChild(el('span', { class: 'font-medium' }, 'GitHub Repository'));
     setupCard.appendChild(setupHeader);
 
     const setupDesc = el('div', {
-      style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary);',
+      class: 'text-sm text-secondary',
     }, 'Connect to automatically fetch token updates from your repository.');
     setupCard.appendChild(setupDesc);
 
@@ -146,16 +142,12 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
   }
 
   // Divider with "or" text
-  const dividerRow = el('div', {
-    style: 'display: flex; align-items: center; gap: var(--spacing-md); margin: var(--spacing-sm) 0;',
-  });
-  dividerRow.appendChild(el('div', { style: 'flex: 1; height: 1px; background: var(--color-border);' }));
-  dividerRow.appendChild(el('span', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary);' }, 'or'));
-  dividerRow.appendChild(el('div', { style: 'flex: 1; height: 1px; background: var(--color-border);' }));
-  contentChildren.push(dividerRow);
+  contentChildren.push(Divider({ text: 'or' }));
 
-  // Import file button
-  contentChildren.push(Button({
+  // Import file section
+  const importSection = el('div', { class: 'flex flex-col gap-xs' });
+
+  importSection.appendChild(Button({
     label: 'IMPORT JSON FILE',
     variant: 'secondary',
     fullWidth: true,
@@ -176,13 +168,19 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
     },
   }));
 
+  importSection.appendChild(el('div', { class: 'text-xs text-tertiary text-center' },
+    'Upload export-baseline.json from synkio export-baseline'
+  ));
+
+  contentChildren.push(importSection);
+
   // Divider
-  contentChildren.push(createDivider());
+  contentChildren.push(Divider({}));
 
   // Last fetch info or hint
   if (codeBaseline && codeBaseline.baseline) {
     const lastFetchCard = Card({ padding: 'md' });
-    const fetchInfo = el('div', { style: 'font-size: var(--font-size-xs); color: var(--color-text-secondary);' });
+    const fetchInfo = el('div', { class: 'text-xs text-secondary' });
 
     if (remoteSettings.lastFetch) {
       const date = new Date(remoteSettings.lastFetch);
@@ -194,13 +192,13 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
     lastFetchCard.appendChild(fetchInfo);
 
     const tokenCount = Object.keys(codeBaseline.baseline).length;
-    const countInfo = el('div', { style: 'font-size: var(--font-size-sm); font-weight: 500; margin-top: var(--spacing-xs);' }, `${tokenCount} tokens in code baseline`);
+    const countInfo = el('div', { class: 'text-sm font-medium mt-xs' }, `${tokenCount} tokens in code baseline`);
     lastFetchCard.appendChild(countInfo);
 
     contentChildren.push(lastFetchCard);
   } else {
     contentChildren.push(
-      el('div', { style: 'text-align: center; padding: var(--spacing-lg); color: var(--color-text-tertiary); font-size: var(--font-size-sm);' },
+      el('div', { class: 'text-center p-lg text-tertiary text-sm' },
         'Fetch or import a baseline to compare with Figma'
       )
     );
@@ -222,11 +220,9 @@ function buildPreviewView(state: PluginState, actions: RouterActions, header: HT
   const changeCount = countChanges(codeDiff);
 
   // Summary bar
-  const summaryBar = el('div', {
-    style: 'display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-sm) var(--spacing-md); background: var(--color-bg-secondary); border-radius: var(--radius-md);'
-  });
-  summaryBar.appendChild(el('span', { style: 'font-size: var(--font-size-sm);' }, 'PREVIEW'));
-  summaryBar.appendChild(el('span', { style: 'font-weight: 600; color: var(--color-primary);' }, `${changeCount} change${changeCount === 1 ? '' : 's'} to apply`));
+  const summaryBar = el('div', { class: 'summary-bar' });
+  summaryBar.appendChild(el('span', { class: 'text-sm' }, 'PREVIEW'));
+  summaryBar.appendChild(el('span', { class: 'font-semibold text-brand' }, `${changeCount} change${changeCount === 1 ? '' : 's'} to apply`));
   contentChildren.push(summaryBar);
 
   // Info alert
@@ -287,7 +283,7 @@ function buildPreviewView(state: PluginState, actions: RouterActions, header: HT
           onClick: () => actions.send({ type: 'apply-to-figma' }),
         }),
       ], 'var(--spacing-sm)'),
-      el('div', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); text-align: center;' },
+      el('div', { class: 'text-xs text-tertiary text-center' },
         'Creates/updates variables in this file'
       ),
     ], 'var(--spacing-sm)'),

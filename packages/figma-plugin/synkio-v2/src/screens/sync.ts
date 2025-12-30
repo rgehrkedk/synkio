@@ -12,13 +12,14 @@ import {
   Alert,
   Spinner,
   EmptyState,
-} from '../ui/components';
+} from '../ui/components/index';
+import { Icon } from '../ui/icons';
 import {
-  createPageLayout,
-  createContentArea,
-  createFooter,
-  createColumn,
-} from '../ui/router';
+  PageLayout as createPageLayout,
+  ContentArea as createContentArea,
+  Footer as createFooter,
+  Column as createColumn,
+} from '../ui/layout/index';
 import {
   groupByCollection,
   groupStylesByType,
@@ -74,11 +75,9 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
   // Summary bar
   if (hasChanges && syncDiff) {
     const changeCount = countChanges(syncDiff);
-    const summaryBar = el('div', {
-      style: 'display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-sm) var(--spacing-md); background: var(--color-bg-secondary); border-radius: var(--radius-md);'
-    });
-    summaryBar.appendChild(el('span', { style: 'font-size: var(--font-size-sm);' }, `Changes since last sync`));
-    summaryBar.appendChild(el('span', { style: 'font-weight: 600; color: var(--color-warning);' }, `${changeCount} change${changeCount === 1 ? '' : 's'}`));
+    const summaryBar = el('div', { class: 'summary-bar' });
+    summaryBar.appendChild(el('span', { class: 'text-sm' }, `Changes since last sync`));
+    summaryBar.appendChild(el('span', { class: 'font-semibold text-warning' }, `${changeCount} change${changeCount === 1 ? '' : 's'}`));
     contentChildren.push(summaryBar);
   }
 
@@ -155,7 +154,7 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
         fullWidth: true,
         onClick: () => actions.send({ type: 'sync' }),
       }),
-      el('div', { style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); text-align: center;' },
+      el('div', { class: 'text-xs text-tertiary text-center' },
         hasChanges ? 'Saves baseline for CLI to fetch' : 'Force refresh the baseline'
       ),
     ], 'var(--spacing-sm)'),

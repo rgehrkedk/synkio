@@ -1,0 +1,28 @@
+.command-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.command-box__text {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+.command-box__copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-icon-secondary);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.command-box__copy:hover { background: var(--color-bg-tertiary); }
+.command-box__copy--success { color: var(--color-added); }

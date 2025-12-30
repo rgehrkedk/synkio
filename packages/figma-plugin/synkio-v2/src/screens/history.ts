@@ -9,13 +9,12 @@ import {
   Header,
   Card,
   EmptyState,
-  Icon,
-} from '../ui/components';
+  Badge,
+} from '../ui/components/index';
 import {
-  createPageLayout,
-  createContentArea,
-  createColumn,
-} from '../ui/router';
+  PageLayout as createPageLayout,
+  ContentArea as createContentArea,
+} from '../ui/layout/index';
 
 export function HistoryScreen(state: PluginState, actions: RouterActions): HTMLElement {
   const { history } = state;
@@ -46,13 +45,13 @@ export function HistoryScreen(state: PluginState, actions: RouterActions): HTMLE
 
       // Date header
       const dateHeader = el('div', {
-        style: 'font-size: var(--font-size-xs); color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--spacing-sm);',
+        class: 'date-header',
       }, dateLabel);
       dateSection.appendChild(dateHeader);
 
       // Events list
       const eventsList = el('div', {
-        style: 'display: flex; flex-direction: column; gap: var(--spacing-sm);',
+        class: 'flex flex-col gap-sm',
       });
 
       for (const event of events) {
@@ -73,33 +72,22 @@ function buildHistoryItem(event: SyncEvent): HTMLElement {
 
   // Header row
   const headerRow = el('div', {
-    style: 'display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-xs);',
+    class: 'flex items-center justify-between mb-xs',
   });
 
   // Time and direction
   const time = new Date(event.timestamp);
   const timeStr = time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 
-  const directionBadge = el('span', {
-    style: `
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: var(--font-size-xs);
-      font-weight: 500;
-      ${event.direction === 'to-code'
-        ? 'background: color-mix(in srgb, var(--color-primary) 15%, transparent); color: var(--color-primary);'
-        : 'background: color-mix(in srgb, var(--color-renamed) 15%, transparent); color: var(--color-renamed);'
-      }
-    `,
+  // Use Badge component for direction
+  const directionBadge = Badge({
+    variant: event.direction === 'to-code' ? 'sync' : 'apply',
+    icon: event.direction === 'to-code' ? 'upload' : 'download',
+    label: event.direction === 'to-code' ? 'SYNC' : 'APPLY',
   });
-  directionBadge.appendChild(Icon(event.direction === 'to-code' ? 'upload' : 'download', 'xs'));
-  directionBadge.appendChild(el('span', {}, event.direction === 'to-code' ? 'SYNC' : 'APPLY'));
 
   const timeLabel = el('span', {
-    style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary);',
+    class: 'text-sm text-secondary',
   }, timeStr);
 
   headerRow.appendChild(directionBadge);
@@ -107,19 +95,19 @@ function buildHistoryItem(event: SyncEvent): HTMLElement {
 
   // User and changes
   const detailRow = el('div', {
-    style: 'display: flex; align-items: center; gap: var(--spacing-sm);',
+    class: 'flex items-center gap-sm',
   });
 
   const userLabel = el('span', {
-    style: 'font-size: var(--font-size-sm); font-weight: 500;',
+    class: 'text-sm font-medium',
   }, `@${event.user}`);
 
   const actionLabel = el('span', {
-    style: 'font-size: var(--font-size-sm); color: var(--color-text-secondary);',
+    class: 'text-sm text-secondary',
   }, event.direction === 'to-code' ? 'synced' : 'applied');
 
   const changeCount = el('span', {
-    style: 'font-size: var(--font-size-sm); font-weight: 500;',
+    class: 'text-sm font-medium',
   }, `${event.changeCount} token${event.changeCount === 1 ? '' : 's'}`);
 
   detailRow.appendChild(userLabel);
@@ -132,11 +120,11 @@ function buildHistoryItem(event: SyncEvent): HTMLElement {
   // Show changed paths if available
   if (event.changes && event.changes.length > 0) {
     const changesSection = el('div', {
-      style: 'margin-top: var(--spacing-sm); padding-top: var(--spacing-sm); border-top: 1px solid var(--color-border);',
+      class: 'mt-sm pt-sm border-t',
     });
 
     const pathsList = el('div', {
-      style: 'display: flex; flex-direction: column; gap: 2px; font-family: "SF Mono", Menlo, monospace; font-size: var(--font-size-xs); color: var(--color-text-secondary);',
+      class: 'flex flex-col gap-xs font-mono text-xs text-secondary',
     });
 
     const pathsToShow = event.changes.slice(0, 5);
@@ -146,7 +134,7 @@ function buildHistoryItem(event: SyncEvent): HTMLElement {
 
     if (event.changes.length > 5) {
       pathsList.appendChild(el('div', {
-        style: 'color: var(--color-text-tertiary);',
+        class: 'text-tertiary',
       }, `...and ${event.changes.length - 5} more`));
     }
 
