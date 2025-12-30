@@ -7,7 +7,6 @@ node_modules/
 
 # Synkio generated files
 # tokens/ and synkio/ are committed for this example app
-baseline.json
 
 # OS
 .DS_Store
