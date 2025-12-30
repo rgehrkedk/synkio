@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 
 import { initCommand } from './commands/init.js';
 import { syncCommand, watchCommand } from './commands/sync.js';
+import { buildCommand } from './commands/build.js';
 import { rollbackCommand } from './commands/rollback.js';
 import { validateCommand } from './commands/validate.js';
 import { tokensCommand } from './commands/tokens.js';
@@ -85,6 +86,24 @@ function showHelp(command?: string) {
             console.log('  --timeout=<s>       Figma API timeout in seconds (default: 120)');
             console.log('  --open              Open docs folder after sync (if docs enabled)');
             console.log('  --config=<file>     Path to config file (default: synkio.config.json)');
+            break;
+        case 'build':
+            console.log('Usage: synkio build [options]\n');
+            console.log('Build token files from a baseline (default or custom path).\n');
+            console.log('Used in the GitHub PR workflow to apply export-baseline.json from PRs.\n');
+            console.log('Options:');
+            console.log('  --from=<path>       Custom baseline path (default: .synkio/baseline.json)');
+            console.log('  --preview           Show what would change without applying');
+            console.log('  --config=<file>     Path to config file (default: synkio.config.json)');
+            console.log('  --verbose           Show detailed output');
+            console.log('  --open              Open docs folder after build (if docs enabled)\n');
+            console.log('Breaking Change Behavior:');
+            console.log('  - Shows warnings for deletions/renames');
+            console.log('  - Does NOT block (assumes PR already reviewed)\n');
+            console.log('Examples:');
+            console.log('  synkio build                                    # Build from .synkio/baseline.json');
+            console.log('  synkio build --from .synkio/export-baseline.json # Build from PR baseline');
+            console.log('  synkio build --preview                          # Preview changes without applying');
             break;
         case 'rollback':
             console.log('Usage: synkio rollback [options]\n');
@@ -174,6 +193,7 @@ function showHelp(command?: string) {
             console.log('Commands:');
             console.log('  init            Initialize a new project');
             console.log('  sync            Sync tokens from Figma');
+            console.log('  build           Build token files from baseline');
             console.log('  import          Import tokens from Figma native JSON export');
             console.log('  export-baseline Export token files to baseline format');
             console.log('  serve           Start HTTP server for Figma plugin');
@@ -261,6 +281,17 @@ switch (command) {
             open: syncOptions.open as boolean,
         });
     }
+    break;
+  }
+  case 'build': {
+    const buildOptions = parseArgs(args);
+    buildCommand({
+        from: buildOptions.from as string,
+        config: buildOptions.config as string,
+        preview: buildOptions.preview as boolean,
+        verbose: buildOptions.verbose as boolean,
+        open: buildOptions.open as boolean,
+    });
     break;
   }
   case 'rollback': {

@@ -129,8 +129,9 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
 
 function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement {
   const pendingCount = state.syncStatus.pendingChanges || 0;
+  const hasGitHubConfig = !!(state.settings?.remote?.github?.owner && state.settings?.remote?.github?.repo);
 
-  const card = Card({ padding: 'md', clickable: true, onClick: () => actions.navigate('sync') });
+  const card = Card({ padding: 'md' });
 
   const title = el('div', { class: 'workflow-card-title' }, 'FIGMA \u2192 CODE');
   const divider = el('div', { class: 'workflow-card-divider workflow-card-divider--primary' });
@@ -150,18 +151,40 @@ function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement 
 
   const statusEl = el('div', { class: statusClass }, statusText);
 
-  const button = Button({
+  // Button container
+  const buttonContainer = el('div', { class: 'flex flex-col gap-xs mt-md' });
+
+  // Main sync button
+  const syncButton = Button({
     label: pendingCount > 0 ? 'Review & Sync' : 'View Status',
     variant: pendingCount > 0 ? 'primary' : 'secondary',
     size: 'sm',
     fullWidth: true,
+    onClick: () => actions.navigate('sync'),
   });
-  button.classList.add('mt-md');
+
+  buttonContainer.appendChild(syncButton);
+
+  // Create PR button (only show if GitHub is configured and there are pending changes)
+  if (hasGitHubConfig && pendingCount > 0) {
+    const prButton = Button({
+      label: 'Create PR',
+      variant: 'secondary',
+      size: 'sm',
+      fullWidth: true,
+      onClick: () => {
+        if (confirm(`Create a pull request with ${pendingCount} change${pendingCount === 1 ? '' : 's'}?\n\nThis will create a branch, commit the changes, and open a PR in your repository.`)) {
+          actions.send({ type: 'create-pr' });
+        }
+      },
+    });
+    buttonContainer.appendChild(prButton);
+  }
 
   card.appendChild(title);
   card.appendChild(divider);
   card.appendChild(statusEl);
-  card.appendChild(button);
+  card.appendChild(buttonContainer);
 
   return card;
 }

@@ -37,6 +37,7 @@ Synkio is a developer-friendly CLI that bridges the gap between Figma design var
 Most token sync tools require expensive Figma Enterprise licenses to access variables via the REST API. Synkio takes a smarter approach:
 
 - **No Enterprise Needed** — Works with Free, Professional, and Organization plans
+- **GitHub PR Workflow** — Designers create PRs directly from Figma that teams can review before applying
 - **Breaking Change Protection** — Intelligent diffing based on permanent Variable IDs prevents accidental production breaks
 - **Developer Experience** — A simple CLI workflow that lives in your terminal, not a 3rd party dashboard
 - **Standard Output** — Generates W3C DTCG-compliant tokens ready for Style Dictionary or direct use
@@ -74,6 +75,34 @@ Synkio uses a "Hybrid Sync" method:
 2. **The CLI** — Fetches this data via the standard Figma API, compares it with your local tokens, and generates output files
 
 This gives you the accuracy of an internal plugin with the automation speed of a CLI.
+
+### Workflows
+
+Synkio supports two workflows:
+
+**Direct Sync** (traditional):
+```bash
+# Designer runs plugin in Figma
+# Developer syncs to codebase
+npx synkio sync
+```
+
+**GitHub PR Workflow** (team-friendly):
+```bash
+# 1. Designer creates PR from Figma plugin
+# 2. Team reviews SYNC_REPORT.md in PR
+# 3. Merge PR
+# 4. Developer applies changes
+npx synkio build --from .synkio/export-baseline.json
+```
+
+The PR workflow enables:
+- Designer autonomy (create PRs without developer help)
+- Team review before applying changes
+- Breaking change visibility in human-readable format
+- Complete audit trail in git history
+
+See the [User Guide - GitHub PR Workflow](packages/cli/USER_GUIDE.md#github-pr-workflow) for detailed setup and best practices.
 
 ---
 
@@ -138,7 +167,9 @@ Your tokens are now in your project!
 | `synkio sync --force` | Overwrite local files, ignoring safety warnings |
 | `synkio sync --regenerate` | Regenerate files from existing baseline |
 | `synkio import` | Import from Figma's native JSON export (no plugin) |
-| `synkio export-baseline` | Export tokens for Figma import (code → Figma) |
+| `synkio build` | Build token files from baseline (for PR workflow) |
+| `synkio build --from <path>` | Build from custom baseline path |
+| `synkio export` | Export tokens for Figma import (code → Figma) |
 | `synkio docs` | Generate documentation site |
 | `synkio docs --open` | Generate and open docs in browser |
 | `synkio rollback` | Revert to previous sync |

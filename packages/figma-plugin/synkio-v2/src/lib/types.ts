@@ -377,7 +377,10 @@ export type MessageToCode =
   | { type: 'navigate'; screen: Screen }
   | { type: 'close' }
   | { type: 'fetch-remote-result'; content: string }
-  | { type: 'fetch-remote-error'; error: string };
+  | { type: 'fetch-remote-error'; error: string }
+  | { type: 'create-pr' }
+  | { type: 'pr-created-result'; prUrl: string; prNumber: number }
+  | { type: 'pr-created-error'; error: string };
 
 export type MessageToUI =
   | { type: 'initialized'; state: Partial<PluginState> }
@@ -399,4 +402,7 @@ export type MessageToUI =
   | { type: 'history-update'; history: SyncEvent[] }
   | { type: 'settings-update'; settings: PluginSettings }
   | { type: 'connection-test-result'; success: boolean; error?: string }
-  | { type: 'data-cleared' };
+  | { type: 'data-cleared' }
+  | { type: 'do-create-pr'; github: GitHubSettings; files: Record<string, string>; prTitle: string; prBody: string }
+  | { type: 'pr-created'; prUrl: string; prNumber: number }
+  | { type: 'pr-error'; error: string };

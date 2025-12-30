@@ -10,11 +10,18 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [init](#init)
   - [sync](#sync)
   - [import](#import)
-  - [export-baseline](#export-baseline)
+  - [build](#build)
+  - [export](#export)
   - [rollback](#rollback)
   - [validate](#validate)
   - [tokens](#tokens)
   - [docs](#docs)
+- [GitHub PR Workflow](#github-pr-workflow)
+  - [Overview](#overview)
+  - [Setup](#setup)
+  - [Workflow Steps](#workflow-steps)
+  - [Comparison Table](#comparison-sync-vs-pr-workflow)
+  - [Best Practices](#best-practices)
 - [Configuration](#configuration)
   - [Basic Config](#basic-config)
   - [Tokens Options](#tokens-options)
@@ -271,7 +278,82 @@ npx synkio sync --regenerate
 
 ---
 
-### export-baseline
+### build
+
+Build token files from a baseline file.
+
+This command splits a baseline file into token files according to your configuration. It's primarily used in the GitHub PR workflow to apply changes after merging a PR created by the Figma plugin.
+
+```bash
+# Build from default baseline
+npx synkio build
+
+# Build from export-baseline (after PR merge)
+npx synkio build --from .synkio/export-baseline.json
+```
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--from=<path>` | Custom baseline path (default: `.synkio/baseline.json`) |
+| `--preview` | Show changes without applying |
+| `--verbose` | Show detailed output |
+| `--config=<file>` | Path to config file |
+
+**Examples:**
+
+```bash
+# Build from default baseline
+npx synkio build
+
+# Build from export-baseline (after PR merge)
+npx synkio build --from .synkio/export-baseline.json
+
+# Preview changes without applying
+npx synkio build --from .synkio/export-baseline.json --preview
+
+# Show detailed output
+npx synkio build --verbose
+```
+
+**How it works:**
+
+1. Reads baseline from specified path
+2. Compares with current baseline (if exists)
+3. Shows diff summary (new, changed, renamed, deleted tokens)
+4. Splits baseline into token files per your config
+5. Updates `.synkio/baseline.json`
+6. Runs `build.script` if configured
+
+**Breaking Change Behavior:**
+
+Unlike `synkio sync`, the `build` command does NOT block on breaking changes. It shows warnings but assumes changes were already reviewed in a PR:
+
+```
+Reading baseline from .synkio/export-baseline.json...
+
+Changes from current baseline:
+  ✨ 5 new tokens
+  🔄 12 value changes
+  📝 2 renames
+  ❌ 3 deleted tokens
+
+⚠️ Breaking changes detected:
+  - colors.primary (deleted)
+  - spacing.large (deleted)
+
+Review SYNC_REPORT.md for details.
+
+✓ Built 24 token files
+✓ Updated .synkio/baseline.json
+✓ Ran build.script: npm run build:tokens
+```
+
+See [GitHub PR Workflow](#github-pr-workflow) for typical usage.
+
+---
+
+### export
 
 Export token files to baseline format for Figma import — enables code-first and roundtrip workflows.
 
@@ -281,7 +363,7 @@ This command reads your existing token files and converts them to the baseline f
 - **Roundtrip** — Modify tokens in code, sync back to Figma with ID preservation
 
 ```bash
-npx synkio export-baseline
+npx synkio export
 ```
 
 **Options:**
@@ -296,16 +378,16 @@ npx synkio export-baseline
 
 ```bash
 # Export to default location
-npx synkio export-baseline
+npx synkio export
 
 # Custom output path
-npx synkio export-baseline --output ./for-figma.json
+npx synkio export --output ./for-figma.json
 
 # Preview without writing
-npx synkio export-baseline --preview
+npx synkio export --preview
 
 # Show detailed parsing information
-npx synkio export-baseline --verbose
+npx synkio export --verbose
 ```
 
 **How it works:**
@@ -322,7 +404,7 @@ npx synkio export-baseline --verbose
 # Edit tokens/theme.light.json, tokens/theme.dark.json, etc.
 
 # 2. Export to baseline format
-npx synkio export-baseline
+npx synkio export
 
 # 3. Import into Figma
 # Open Synkio plugin > Import > Select export-baseline.json
@@ -330,6 +412,8 @@ npx synkio export-baseline
 ```
 
 The exported baseline preserves Figma variable IDs (if present in your token files), enabling intelligent diffing and preventing breaking changes when syncing back to Figma.
+
+**Note:** The legacy command `synkio export-baseline` is deprecated but still supported. Use `synkio export` instead.
 
 ---
 
@@ -432,6 +516,179 @@ Then enable GitHub Pages in your repository settings (Source: GitHub Actions).
 - Docker: See hosting guide for Dockerfile
 
 See the full [Hosting Guide](../../docs/HOSTING.md) for detailed setup instructions.
+
+---
+
+## GitHub PR Workflow
+
+### Overview
+
+The GitHub PR workflow enables designers to propose token changes that developers can review before applying. This provides a more collaborative approach compared to the direct sync workflow.
+
+**Key Benefits:**
+- Designers can create PRs directly from Figma without developer help
+- Team reviews changes before applying to codebase
+- Breaking changes are visible in human-readable format
+- Complete audit trail in git history
+- No config duplication (plugin only needs GitHub repo info)
+
+### Setup
+
+1. **Configure GitHub in Figma plugin:**
+   - Repository: `owner/repo`
+   - Branch: `main` (or your default branch)
+   - Token: GitHub personal access token (for private repos)
+
+2. **Ensure `synkio.config.json` exists in your repository**
+
+### Workflow Steps
+
+#### 1. Designer: Create PR from Figma
+
+1. Make changes to variables/styles in Figma
+2. Open Synkio plugin
+3. Click "Create PR"
+4. Plugin creates PR with:
+   - `.synkio/export-baseline.json` - Token data in baseline format
+   - `.synkio/SYNC_REPORT.md` - Human-readable change summary
+
+**SYNC_REPORT.md includes:**
+- Summary counts (new, changed, renamed, deleted tokens)
+- Breaking changes section (deletions, renames)
+- New tokens list
+- Value changes list
+- Mode changes
+- Style changes
+
+#### 2. Team: Review PR
+
+Review the `SYNC_REPORT.md` to see:
+- New tokens
+- Changed values
+- Deleted tokens (breaking)
+- Renamed tokens (breaking)
+- Mode changes
+- Style changes
+
+Approve or request changes.
+
+#### 3. Developer: Apply Changes
+
+After merging the PR:
+
+```bash
+# Apply the baseline to your token files
+npx synkio build --from .synkio/export-baseline.json
+```
+
+This will:
+- Split the baseline into token files per your config
+- Update `.synkio/baseline.json`
+- Run `build.script` if configured (e.g., Style Dictionary)
+- Show warnings for breaking changes (but not block)
+
+**Example output:**
+
+```
+Reading baseline from .synkio/export-baseline.json...
+
+Changes from current baseline:
+  ✨ 5 new tokens
+  🔄 12 value changes
+  📝 2 renames
+  ❌ 3 deleted tokens
+
+⚠️ Breaking changes detected:
+  - colors.primary (deleted)
+  - spacing.large (deleted)
+
+Review SYNC_REPORT.md for details.
+
+✓ Built 24 token files
+✓ Updated .synkio/baseline.json
+✓ Ran build.script: npm run build:tokens
+```
+
+### Comparison: Sync vs PR Workflow
+
+| Aspect | synkio sync | GitHub PR Workflow |
+|--------|-------------|-------------------|
+| **Source** | Figma API (direct) | Pre-reviewed PR |
+| **Review** | At CLI execution | In PR before merge |
+| **Breaking** | Blocks (use --force) | Warns (already reviewed) |
+| **Audit Trail** | Baseline in `.synkio/` | PR + SYNC_REPORT.md in git history |
+| **Designer Autonomy** | Requires developer to run sync | Designer creates PR independently |
+| **Best for** | Solo dev, quick sync | Team workflow, compliance, auditing |
+
+### Best Practices
+
+#### 1. Review Breaking Changes Carefully
+
+- Check `SYNC_REPORT.md` for deletions and renames
+- Search codebase for deleted token references before merging
+- Update code to use new token names if needed
+- Consider creating separate PRs for breaking vs non-breaking changes
+
+#### 2. Use Meaningful PR Titles
+
+The plugin uses the default title:
+```
+chore: Sync design tokens from Figma
+```
+
+Customize if needed to provide more context (e.g., "feat: Add dark mode tokens").
+
+#### 3. Decide on SYNC_REPORT.md Persistence
+
+**Option A: Commit to git** (recommended)
+- Provides permanent record of changes
+- Useful for understanding history
+- Keep in repository for audit trail
+
+**Option B: Add to .gitignore**
+- Remove after PR merge
+- Regenerated on each PR
+- Keeps repository cleaner
+
+#### 4. Automate with GitHub Actions (Optional)
+
+Automatically apply changes when PR is merged:
+
+```yaml
+# .github/workflows/synkio-build.yml
+name: Apply Design Tokens
+on:
+  push:
+    branches: [main]
+    paths: ['.synkio/export-baseline.json']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm ci
+      - run: npx synkio build --from .synkio/export-baseline.json
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: Build design tokens"
+          file_pattern: "tokens/**/*.json .synkio/baseline.json"
+```
+
+#### 5. Handle Merge Conflicts
+
+If two PRs modify `export-baseline.json`:
+- Last merge wins (baseline is source of truth)
+- Re-run plugin to create new PR with latest state
+- Consider using branch protection rules to prevent conflicts
+
+#### 6. Test Locally Before Merging
+
+```bash
+# Preview what will change after PR merge
+npx synkio build --from .synkio/export-baseline.json --preview
+```
 
 ---
 
@@ -873,11 +1130,11 @@ Output:
 
 ### Roundtrip Verification (Code → Figma → Code)
 
-The `--preview` flag includes intelligent roundtrip verification when you've exported tokens to Figma using `export-baseline`:
+The `--preview` flag includes intelligent roundtrip verification when you've exported tokens to Figma using `export`:
 
 ```bash
 # 1. Export handcrafted tokens to Figma
-npx synkio export-baseline
+npx synkio export
 
 # 2. Import in Figma plugin
 

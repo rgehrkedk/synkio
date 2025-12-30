@@ -243,6 +243,25 @@ function handleMessage(event: MessageEvent) {
       alert('All plugin data has been cleared. Please close and reopen the plugin.');
       sendMessage({ type: 'close' });
       break;
+
+    case 'do-create-pr':
+      handleCreatePR(message.github, message.files, message.prTitle, message.prBody);
+      break;
+
+    case 'pr-created':
+      router.updateState({
+        isLoading: false,
+      });
+      alert(`Pull request created successfully!\n\nPR #${message.prNumber}\n${message.prUrl}\n\nClick OK to open in browser.`);
+      window.open(message.prUrl, '_blank');
+      break;
+
+    case 'pr-error':
+      router.updateState({
+        isLoading: false,
+        error: message.error,
+      });
+      break;
   }
 }
 
@@ -374,6 +393,228 @@ async function handleDoFetchRemote(github: GitHubSettings) {
   } catch (error) {
     sendMessage({ type: 'fetch-remote-error', error: String(error) });
   }
+}
+
+// =============================================================================
+// GitHub PR Creation (UI has access to fetch API, plugin sandbox does not)
+// =============================================================================
+
+async function handleCreatePR(
+  github: GitHubSettings,
+  files: Record<string, string>,
+  prTitle: string,
+  prBody: string
+) {
+  router.updateState({ isLoading: true, loadingMessage: 'Creating pull request...' });
+
+  try {
+    const { owner, repo, branch, token } = github;
+    const baseBranch = branch || 'main';
+
+    // 1. Get base branch SHA
+    const baseSha = await getBaseBranchSha(owner, repo, baseBranch, token);
+
+    // 2. Create new branch
+    const prBranch = `synkio/sync-${Date.now()}`;
+    await createBranch(owner, repo, prBranch, baseSha, token);
+
+    // 3. Commit files using Git Tree API (atomic multi-file commit)
+    await commitFiles(owner, repo, prBranch, files, 'chore: Sync design tokens from Figma', token);
+
+    // 4. Create PR
+    const pr = await createPullRequest(
+      owner,
+      repo,
+      {
+        title: prTitle,
+        body: prBody,
+        head: prBranch,
+        base: baseBranch,
+      },
+      token
+    );
+
+    // 5. Send success back to plugin
+    sendMessage({
+      type: 'pr-created-result',
+      prUrl: pr.html_url,
+      prNumber: pr.number,
+    });
+  } catch (error) {
+    sendMessage({
+      type: 'pr-created-error',
+      error: String(error),
+    });
+  }
+}
+
+async function getBaseBranchSha(
+  owner: string,
+  repo: string,
+  branch: string,
+  token?: string
+): Promise<string> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/vnd.github.v3+json',
+  };
+  if (token) {
+    headers['Authorization'] = `token ${token}`;
+  }
+
+  const url = `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${branch}`;
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get base branch: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.object.sha;
+}
+
+async function createBranch(
+  owner: string,
+  repo: string,
+  branch: string,
+  sha: string,
+  token?: string
+): Promise<void> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `token ${token}`;
+  }
+
+  const url = `https://api.github.com/repos/${owner}/${repo}/git/refs`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      ref: `refs/heads/${branch}`,
+      sha,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create branch: ${response.statusText}`);
+  }
+}
+
+async function commitFiles(
+  owner: string,
+  repo: string,
+  branch: string,
+  files: Record<string, string>,
+  message: string,
+  token?: string
+): Promise<void> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `token ${token}`;
+  }
+
+  // 1. Get current commit SHA
+  const refUrl = `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${branch}`;
+  const refResponse = await fetch(refUrl, { headers });
+  const refData = await refResponse.json();
+  const currentCommitSha = refData.object.sha;
+
+  // 2. Get current commit tree
+  const commitUrl = `https://api.github.com/repos/${owner}/${repo}/git/commits/${currentCommitSha}`;
+  const commitResponse = await fetch(commitUrl, { headers });
+  const commitData = await commitResponse.json();
+  const baseTreeSha = commitData.tree.sha;
+
+  // 3. Create blobs for each file
+  const tree = [];
+  for (const [path, content] of Object.entries(files)) {
+    const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs`;
+    const blobResponse = await fetch(blobUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        content,
+        encoding: 'utf-8',
+      }),
+    });
+    const blobData = await blobResponse.json();
+
+    tree.push({
+      path,
+      mode: '100644',
+      type: 'blob',
+      sha: blobData.sha,
+    });
+  }
+
+  // 4. Create tree
+  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees`;
+  const treeResponse = await fetch(treeUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      base_tree: baseTreeSha,
+      tree,
+    }),
+  });
+  const treeData = await treeResponse.json();
+
+  // 5. Create commit
+  const newCommitUrl = `https://api.github.com/repos/${owner}/${repo}/git/commits`;
+  const newCommitResponse = await fetch(newCommitUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      message,
+      tree: treeData.sha,
+      parents: [currentCommitSha],
+    }),
+  });
+  const newCommitData = await newCommitResponse.json();
+
+  // 6. Update branch ref
+  const updateRefUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`;
+  await fetch(updateRefUrl, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify({
+      sha: newCommitData.sha,
+    }),
+  });
+}
+
+async function createPullRequest(
+  owner: string,
+  repo: string,
+  pr: { title: string; body: string; head: string; base: string },
+  token?: string
+): Promise<{ html_url: string; number: number }> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `token ${token}`;
+  }
+
+  const url = `https://api.github.com/repos/${owner}/${repo}/pulls`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(pr),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Failed to create PR: ${errorData.message || response.statusText}`);
+  }
+
+  return response.json();
 }
 
 // =============================================================================
