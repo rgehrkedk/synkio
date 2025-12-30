@@ -440,7 +440,7 @@
   --bg-alpha-secondary-default: [object Object];
   --bg-alpha-secondary-subtle: [object Object];
   --bg-alpha-secondary-faint: [object Object];
-  --bg-primary-base: [object Object];
+  --bg-primary-default: [object Object];
   --bg-primary-hover: [object Object];
   --bg-primary-active: [object Object];
   --bg-secondary-default: [object Object];
@@ -537,7 +537,7 @@
   --bg-alpha-secondary-default: [object Object];
   --bg-alpha-secondary-subtle: [object Object];
   --bg-alpha-secondary-faint: [object Object];
-  --bg-primary-base: [object Object];
+  --bg-primary-default: [object Object];
   --bg-primary-hover: [object Object];
   --bg-primary-active: [object Object];
   --bg-secondary-default: [object Object];

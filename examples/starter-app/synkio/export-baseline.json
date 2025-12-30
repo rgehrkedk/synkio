@@ -7147,7 +7147,16 @@
       "path": "bg.primary.default",
       "value": "{colors.neutral.950}",
       "type": "color",
-      "variableId": "VariableID:11235:17521"
+      "variableId": "VariableID:11235:17521",
+      "collectionId": "VariableCollectionId:9932:32",
+      "modeId": "9932:4",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "--bg-primary-bg"
+      }
     },
     "VariableID:14505:70616:theme.dark": {
       "collection": "theme",
@@ -8718,7 +8727,16 @@
       "path": "bg.primary.default",
       "value": "{colors.neutral.50}",
       "type": "color",
-      "variableId": "VariableID:11235:17521"
+      "variableId": "VariableID:11235:17521",
+      "collectionId": "VariableCollectionId:9932:32",
+      "modeId": "9932:3",
+      "scopes": [
+        "FRAME_FILL",
+        "SHAPE_FILL"
+      ],
+      "codeSyntax": {
+        "WEB": "--bg-primary-bg"
+      }
     },
     "VariableID:14505:70616:theme.light": {
       "collection": "theme",
@@ -11010,7 +11028,7 @@
     }
   },
   "metadata": {
-    "syncedAt": "2025-12-30T19:46:29.495Z",
+    "syncedAt": "2025-12-30T19:50:03.409Z",
     "source": "export"
   }
 }
