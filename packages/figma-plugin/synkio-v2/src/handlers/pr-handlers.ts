@@ -68,9 +68,9 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
       },
     };
 
-    // 5. Generate SYNC_REPORT.md (only if there are changes)
+    // 5. Create baseline.json for Figma → Code workflow
     const files: Record<string, string> = {
-      '.synkio/export-baseline.json': JSON.stringify(exportBaseline, null, 2),
+      '.synkio/baseline.json': JSON.stringify(exportBaseline, null, 2),
     };
 
     if (diff && hasAnyChanges(diff)) {
@@ -163,9 +163,9 @@ function generatePRBody(diff: ComparisonResult | null): string {
   body += `### How to Apply\n\n`;
   body += `After merging this PR, run:\n\n`;
   body += `\`\`\`bash\n`;
-  body += `synkio build --from .synkio/export-baseline.json\n`;
+  body += `synkio build\n`;
   body += `\`\`\`\n\n`;
-  body += `This will update your token files according to \`synkio.config.json\`.\n\n`;
+  body += `This will read \`.synkio/baseline.json\` and update your token files according to \`synkio.config.json\`.\n\n`;
 
   if (diff && hasAnyChanges(diff)) {
     body += `---\n\n`;
