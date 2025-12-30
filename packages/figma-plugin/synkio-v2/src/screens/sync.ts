@@ -149,26 +149,28 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
   // Footer with sync button and optional PR button
   const hasGitHubConfig = !!(state.settings?.remote?.github?.owner && state.settings?.remote?.github?.repo);
   const footerButtons: HTMLElement[] = [];
+  const footerHelperTexts: string[] = [];
 
-  // Sync button (always present)
+  // Save for CLI button (always present)
   footerButtons.push(
     Button({
-      label: hasChanges ? 'SYNC TO CODE' : 'SYNC ANYWAY',
+      label: 'Save for CLI',
       variant: hasChanges ? 'primary' : 'secondary',
       fullWidth: true,
       onClick: () => actions.send({ type: 'sync' }),
     })
   );
+  footerHelperTexts.push('Saves to plugin for \'synkio sync\' command');
 
   // Create PR button (only when GitHub is configured)
   if (hasGitHubConfig) {
-    const changeCount = syncDiff ? countChanges(syncDiff) : 0;
     footerButtons.push(
       Button({
         label: 'Create PR',
         variant: 'secondary',
         fullWidth: true,
         onClick: () => {
+          const changeCount = syncDiff ? countChanges(syncDiff) : 0;
           const message = changeCount > 0
             ? `Create a pull request with ${changeCount} change${changeCount === 1 ? '' : 's'}?\n\nThis will create a branch, commit the changes, and open a PR in your repository.`
             : 'Create a pull request to establish the baseline in your repository?\n\nThis will create a branch, commit the current state, and open a PR.';
@@ -179,14 +181,16 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
         },
       })
     );
+    footerHelperTexts.push('Creates pull request with baseline file');
   }
+
+  // Build helper text
+  const helperText = footerHelperTexts.join(' · ');
 
   const footer = createFooter([
     createColumn([
       createRow(footerButtons, 'var(--spacing-sm)'),
-      el('div', { class: 'text-xs text-tertiary text-center' },
-        hasChanges ? 'Saves baseline for CLI to fetch' : 'Force refresh the baseline'
-      ),
+      el('div', { class: 'text-xs text-tertiary text-center' }, helperText),
     ], 'var(--spacing-sm)'),
   ]);
 
