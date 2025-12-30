@@ -1,6 +1,6 @@
 # Design Token Sync Report
 
-**Generated:** 2025-12-30T19:34:48.144Z
+**Generated:** 2025-12-30T19:56:44.079Z
 **Author:** Rasmus Gehrke
 **Figma File:** [View in Figma](https://figma.com/file/undefined)
 
