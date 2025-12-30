@@ -1,6 +1,6 @@
 # Design Token Sync Report
 
-**Generated:** 2025-12-30T20:20:56.057Z
+**Generated:** 2025-12-30T20:27:00.522Z
 **Author:** Rasmus Gehrke
 **Figma File:** [View in Figma](https://figma.com/file/undefined)
 
@@ -22,8 +22,8 @@ The following changes may break existing code:
 
 ### Renamed Tokens
 
-- `bg.primary.base` → `bg.primary.default`
-- `bg.primary.base` → `bg.primary.default`
+- `bg.primary.default` → `bg.primary.base`
+- `bg.primary.default` → `bg.primary.base`
 
 ---
 
