@@ -249,13 +249,23 @@ function buildGitHubTab(
     },
   }));
 
-  // Path input
+  // Path input (for fetching export-baseline.json)
   formCard.appendChild(Input({
-    label: 'Path',
+    label: 'Fetch Path (Code → Figma)',
     placeholder: '.synkio/export-baseline.json',
     value: githubForm.path || remote.github?.path || '.synkio/export-baseline.json',
     onChange: (value) => {
       githubForm.path = value.trim() || '.synkio/export-baseline.json';
+    },
+  }));
+
+  // PR Path input (for creating PRs with baseline.json)
+  formCard.appendChild(Input({
+    label: 'PR Path (Figma → Code)',
+    placeholder: '.synkio/baseline.json',
+    value: githubForm.prPath || remote.github?.prPath || '.synkio/baseline.json',
+    onChange: (value) => {
+      githubForm.prPath = value.trim() || '.synkio/baseline.json';
     },
   }));
 
@@ -341,6 +351,7 @@ function saveGitHubSettings(actions: RouterActions) {
         repo: githubForm.repo || '',
         branch: githubForm.branch || 'main',
         path: githubForm.path || '.synkio/export-baseline.json',
+        prPath: githubForm.prPath || '.synkio/baseline.json',
         token: githubForm.token,
       },
     },

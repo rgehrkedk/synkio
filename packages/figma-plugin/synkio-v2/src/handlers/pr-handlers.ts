@@ -69,8 +69,8 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
     };
 
     // 5. Determine baseline path from GitHub settings (or use default)
-    // Default is .synkio/baseline.json, but user can configure custom path
-    const baselinePath = github.path || '.synkio/baseline.json';
+    // Use prPath for PR workflow, defaults to .synkio/baseline.json
+    const baselinePath = github.prPath || '.synkio/baseline.json';
 
     // 6. Build files to commit
     const files: Record<string, string> = {
