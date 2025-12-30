@@ -129,7 +129,6 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
 
 function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement {
   const pendingCount = state.syncStatus.pendingChanges || 0;
-  const hasGitHubConfig = !!(state.settings?.remote?.github?.owner && state.settings?.remote?.github?.repo);
 
   const card = Card({ padding: 'md' });
 
@@ -164,22 +163,6 @@ function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement 
   });
 
   buttonContainer.appendChild(syncButton);
-
-  // Create PR button (only show if GitHub is configured and there are pending changes)
-  if (hasGitHubConfig && pendingCount > 0) {
-    const prButton = Button({
-      label: 'Create PR',
-      variant: 'secondary',
-      size: 'sm',
-      fullWidth: true,
-      onClick: () => {
-        if (confirm(`Create a pull request with ${pendingCount} change${pendingCount === 1 ? '' : 's'}?\n\nThis will create a branch, commit the changes, and open a PR in your repository.`)) {
-          actions.send({ type: 'create-pr' });
-        }
-      },
-    });
-    buttonContainer.appendChild(prButton);
-  }
 
   card.appendChild(title);
   card.appendChild(divider);

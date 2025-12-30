@@ -19,6 +19,7 @@ import {
   ContentArea as createContentArea,
   Footer as createFooter,
   Column as createColumn,
+  Row as createRow,
 } from '../ui/layout/index';
 import {
   groupByCollection,
@@ -145,15 +146,44 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
 
   const content = createContentArea(contentChildren);
 
-  // Footer with sync button
+  // Footer with sync button and optional PR button
+  const hasGitHubConfig = !!(state.settings?.remote?.github?.owner && state.settings?.remote?.github?.repo);
+  const footerButtons: HTMLElement[] = [];
+
+  // Sync button (always present)
+  footerButtons.push(
+    Button({
+      label: hasChanges ? 'SYNC TO CODE' : 'SYNC ANYWAY',
+      variant: hasChanges ? 'primary' : 'secondary',
+      fullWidth: true,
+      onClick: () => actions.send({ type: 'sync' }),
+    })
+  );
+
+  // Create PR button (only when GitHub is configured)
+  if (hasGitHubConfig) {
+    const changeCount = syncDiff ? countChanges(syncDiff) : 0;
+    footerButtons.push(
+      Button({
+        label: 'Create PR',
+        variant: 'secondary',
+        fullWidth: true,
+        onClick: () => {
+          const message = changeCount > 0
+            ? `Create a pull request with ${changeCount} change${changeCount === 1 ? '' : 's'}?\n\nThis will create a branch, commit the changes, and open a PR in your repository.`
+            : 'Create a pull request to establish the baseline in your repository?\n\nThis will create a branch, commit the current state, and open a PR.';
+
+          if (confirm(message)) {
+            actions.send({ type: 'create-pr' });
+          }
+        },
+      })
+    );
+  }
+
   const footer = createFooter([
     createColumn([
-      Button({
-        label: hasChanges ? 'SYNC TO CODE' : 'SYNC ANYWAY',
-        variant: hasChanges ? 'primary' : 'secondary',
-        fullWidth: true,
-        onClick: () => actions.send({ type: 'sync' }),
-      }),
+      createRow(footerButtons, 'var(--spacing-sm)'),
       el('div', { class: 'text-xs text-tertiary text-center' },
         hasChanges ? 'Saves baseline for CLI to fetch' : 'Force refresh the baseline'
       ),
