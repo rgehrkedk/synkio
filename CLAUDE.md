@@ -109,7 +109,7 @@ The main sync process ([pipeline.ts:282-528](packages/cli/src/core/sync/pipeline
 
 ### Baseline System
 
-- **Location**: `.synkio/baseline.json`
+- **Location**: `synkio/baseline.json`
 - **Purpose**: Stores normalized token data for comparison
 - **Format**: `{ baseline: {...}, styles: {...}, metadata: {...} }`
 - **Implementation**: [baseline.ts](packages/cli/src/core/baseline.ts)
@@ -205,7 +205,7 @@ The `docs` command ([core/docs/](packages/cli/src/core/docs/)) generates a stati
 - CSS custom properties reference
 - Copy-to-clipboard functionality
 
-Output: `.synkio/docs/` (configurable via `docsPages.dir`)
+Output: `synkio/docs/` (configurable via `docsPages.dir`)
 
 ## Common Tasks
 

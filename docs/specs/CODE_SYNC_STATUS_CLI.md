@@ -6,9 +6,9 @@ The CLI writes a `sync-status.json` file after each successful sync. This file a
 
 ## File Location
 
-**Default:** `.synkio/sync-status.json`
+**Default:** `synkio/sync-status.json`
 
-This file is written alongside the existing `.synkio/baseline.json` file.
+This file is written alongside the existing `synkio/baseline.json` file.
 
 ## File Format
 
@@ -215,14 +215,14 @@ Add to `.gitignore` if you want local-only status:
 
 ```gitignore
 # Uncommitted - local status only
-.synkio/sync-status.json
+synkio/sync-status.json
 ```
 
 Or keep it tracked (default):
 
 ```gitignore
 # .synkio files are tracked
-!.synkio/
+!synkio/
 ```
 
 ### CI/CD Integration
@@ -236,7 +236,7 @@ In CI pipelines, sync-status.json provides a record of what was synced:
 
 - name: Commit sync status
   run: |
-    git add .synkio/sync-status.json tokens/
+    git add synkio/sync-status.json tokens/
     git commit -m "chore: sync design tokens"
 ```
 
@@ -354,9 +354,9 @@ Update the sync completion message to mention status:
 
 ```
 ✔ Synced 150 tokens across 3 collections
-✔ Wrote sync status to .synkio/sync-status.json
+✔ Wrote sync status to synkio/sync-status.json
 
-Run `git add .synkio/ tokens/` to commit changes.
+Run `git add synkio/ tokens/` to commit changes.
 ```
 
 ## Implementation Checklist

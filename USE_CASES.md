@@ -453,7 +453,7 @@ TRENDS (last 30 days)
   Oct 1                    Nov 1
 
 ─────────────────────────────────────────────────────
-Full report: .synkio/reports/health-2025-11-15.html
+Full report: synkio/reports/health-2025-11-15.html
 
 Run 'npx synkio health --open' to view in browser.
 ```
@@ -534,7 +534,7 @@ EXPORT PREVIEW
 ─────────────────
 Proceed with export? (y/n): y
 
-✓ Export saved to .synkio/export-baseline.json
+✓ Export saved to synkio/export-baseline.json
 
 Next steps:
   1. Open Figma file
@@ -579,7 +579,7 @@ $ npx synkio sync --preview
 No changes detected. Figma and code are in sync.
 
 Last synced: 2 minutes ago
-Baseline: .synkio/baseline.json (updated)
+Baseline: synkio/baseline.json (updated)
 ```
 
 ---
@@ -744,7 +744,7 @@ Based on these use cases, here are the new commands Synkio would add:
   // New: Health Tracking
   "health": {
     "track": true,
-    "reportDir": ".synkio/reports",
+    "reportDir": "synkio/reports",
     "thresholds": {
       "tokenAdoption": 80,
       "componentUsage": 70

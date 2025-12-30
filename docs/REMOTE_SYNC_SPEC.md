@@ -23,7 +23,7 @@ This feature enables designers to fetch baseline updates directly from a remote 
 │                                                                          │
 │   1. Developer modifies tokens in code                                   │
 │   2. Runs: synkio export-baseline                                        │
-│   3. Commits .synkio/export-baseline.json to repo                        │
+│   3. Commits synkio/export-baseline.json to repo                        │
 │   4. Pushes to GitHub (or deploys to CDN)                                │
 │                                                                          │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -63,7 +63,7 @@ interface PluginSettings {
       owner: string;        // e.g., "company"
       repo: string;         // e.g., "design-system"
       branch: string;       // e.g., "main"
-      path: string;         // e.g., ".synkio/export-baseline.json"
+      path: string;         // e.g., "synkio/export-baseline.json"
       token?: string;       // Optional: for private repos (stored securely)
     };
 
@@ -148,7 +148,7 @@ async function getSettings(): Promise<PluginSettings> {
         owner: githubOwner ?? '',
         repo: githubRepo ?? '',
         branch: githubBranch ?? 'main',
-        path: githubPath ?? '.synkio/export-baseline.json',
+        path: githubPath ?? 'synkio/export-baseline.json',
         token: githubToken,
       },
       localhost: {
@@ -556,7 +556,7 @@ function parseGitHubUrl(input: string): GitHubInfo | null {
       owner: repoMatch[1],
       repo: repoMatch[2],
       branch: 'main',
-      path: '.synkio/export-baseline.json',
+      path: 'synkio/export-baseline.json',
     };
   }
 
@@ -567,7 +567,7 @@ function parseGitHubUrl(input: string): GitHubInfo | null {
       owner: shortMatch[1],
       repo: shortMatch[2],
       branch: 'main',
-      path: '.synkio/export-baseline.json',
+      path: 'synkio/export-baseline.json',
     };
   }
 
@@ -656,7 +656,7 @@ interface ServeOptions {
 }
 
 const DEFAULT_PORT = 3847;
-const BASELINE_PATH = '.synkio/export-baseline.json';
+const BASELINE_PATH = 'synkio/export-baseline.json';
 
 export async function serveCommand(options: ServeOptions = {}): Promise<void> {
   const port = options.port ?? DEFAULT_PORT;
@@ -833,7 +833,7 @@ case 'serve':
 │  │                                                      │   │
 │  │  File Path                                           │   │
 │  │  ┌────────────────────────────────────────────────┐  │   │
-│  │  │ .synkio/export-baseline.json                   │  │   │
+│  │  │ synkio/export-baseline.json                   │  │   │
 │  │  └────────────────────────────────────────────────┘  │   │
 │  │                                                      │   │
 │  │  ▶ Private Repository (optional)                     │   │

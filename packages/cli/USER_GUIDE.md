@@ -289,13 +289,13 @@ This command splits a baseline file into token files according to your configura
 npx synkio build
 
 # Build from export-baseline (after PR merge)
-npx synkio build --from .synkio/export-baseline.json
+npx synkio build --from synkio/export-baseline.json
 ```
 
 **Options:**
 | Flag | Description |
 |------|-------------|
-| `--from=<path>` | Custom baseline path (default: `.synkio/baseline.json`) |
+| `--from=<path>` | Custom baseline path (default: `synkio/baseline.json`) |
 | `--preview` | Show changes without applying |
 | `--verbose` | Show detailed output |
 | `--config=<file>` | Path to config file |
@@ -307,10 +307,10 @@ npx synkio build --from .synkio/export-baseline.json
 npx synkio build
 
 # Build from export-baseline (after PR merge)
-npx synkio build --from .synkio/export-baseline.json
+npx synkio build --from synkio/export-baseline.json
 
 # Preview changes without applying
-npx synkio build --from .synkio/export-baseline.json --preview
+npx synkio build --from synkio/export-baseline.json --preview
 
 # Show detailed output
 npx synkio build --verbose
@@ -322,7 +322,7 @@ npx synkio build --verbose
 2. Compares with current baseline (if exists)
 3. Shows diff summary (new, changed, renamed, deleted tokens)
 4. Splits baseline into token files per your config
-5. Updates `.synkio/baseline.json`
+5. Updates `synkio/baseline.json`
 6. Runs `build.script` if configured
 
 **Breaking Change Behavior:**
@@ -330,7 +330,7 @@ npx synkio build --verbose
 Unlike `synkio sync`, the `build` command does NOT block on breaking changes. It shows warnings but assumes changes were already reviewed in a PR:
 
 ```
-Reading baseline from .synkio/export-baseline.json...
+Reading baseline from synkio/export-baseline.json...
 
 Changes from current baseline:
   ✨ 5 new tokens
@@ -345,7 +345,7 @@ Changes from current baseline:
 Review SYNC_REPORT.md for details.
 
 ✓ Built 24 token files
-✓ Updated .synkio/baseline.json
+✓ Updated synkio/baseline.json
 ✓ Ran build.script: npm run build:tokens
 ```
 
@@ -369,7 +369,7 @@ npx synkio export
 **Options:**
 | Flag | Description |
 |------|-------------|
-| `--output=<path>` | Output file path (default: `.synkio/export-baseline.json`) |
+| `--output=<path>` | Output file path (default: `synkio/export-baseline.json`) |
 | `--config=<file>` | Path to config file |
 | `--preview` | Print output to console without writing file |
 | `--verbose` | Show detailed processing information |
@@ -473,7 +473,7 @@ npx synkio docs
 **Options:**
 | Flag | Description |
 |------|-------------|
-| `--output=<dir>` | Output directory (default: `.synkio/docs`) |
+| `--output=<dir>` | Output directory (default: `synkio/docs`) |
 | `--open` | Open in browser after generating |
 
 **Examples:**
@@ -512,7 +512,7 @@ Then enable GitHub Pages in your repository settings (Source: GitHub Actions).
 
 **Other options:**
 - Netlify: Connect repo, set build command to `npm ci && npx synkio docs`
-- Vercel: Connect repo, set output directory to `.synkio/docs`
+- Vercel: Connect repo, set output directory to `synkio/docs`
 - Docker: See hosting guide for Dockerfile
 
 See the full [Hosting Guide](../../docs/HOSTING.md) for detailed setup instructions.
@@ -549,8 +549,8 @@ The GitHub PR workflow enables designers to propose token changes that developer
 2. Open Synkio plugin
 3. Click "Create PR"
 4. Plugin creates PR with:
-   - `.synkio/export-baseline.json` - Token data in baseline format
-   - `.synkio/SYNC_REPORT.md` - Human-readable change summary
+   - `synkio/export-baseline.json` - Token data in baseline format
+   - `synkio/SYNC_REPORT.md` - Human-readable change summary
 
 **SYNC_REPORT.md includes:**
 - Summary counts (new, changed, renamed, deleted tokens)
@@ -578,19 +578,19 @@ After merging the PR:
 
 ```bash
 # Apply the baseline to your token files
-npx synkio build --from .synkio/export-baseline.json
+npx synkio build --from synkio/export-baseline.json
 ```
 
 This will:
 - Split the baseline into token files per your config
-- Update `.synkio/baseline.json`
+- Update `synkio/baseline.json`
 - Run `build.script` if configured (e.g., Style Dictionary)
 - Show warnings for breaking changes (but not block)
 
 **Example output:**
 
 ```
-Reading baseline from .synkio/export-baseline.json...
+Reading baseline from synkio/export-baseline.json...
 
 Changes from current baseline:
   ✨ 5 new tokens
@@ -605,7 +605,7 @@ Changes from current baseline:
 Review SYNC_REPORT.md for details.
 
 ✓ Built 24 token files
-✓ Updated .synkio/baseline.json
+✓ Updated synkio/baseline.json
 ✓ Ran build.script: npm run build:tokens
 ```
 
@@ -616,7 +616,7 @@ Review SYNC_REPORT.md for details.
 | **Source** | Figma API (direct) | Pre-reviewed PR |
 | **Review** | At CLI execution | In PR before merge |
 | **Breaking** | Blocks (use --force) | Warns (already reviewed) |
-| **Audit Trail** | Baseline in `.synkio/` | PR + SYNC_REPORT.md in git history |
+| **Audit Trail** | Baseline in `synkio/` | PR + SYNC_REPORT.md in git history |
 | **Designer Autonomy** | Requires developer to run sync | Designer creates PR independently |
 | **Best for** | Solo dev, quick sync | Team workflow, compliance, auditing |
 
@@ -660,7 +660,7 @@ name: Apply Design Tokens
 on:
   push:
     branches: [main]
-    paths: ['.synkio/export-baseline.json']
+    paths: ['synkio/export-baseline.json']
 
 jobs:
   build:
@@ -669,11 +669,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx synkio build --from .synkio/export-baseline.json
+      - run: npx synkio build --from synkio/export-baseline.json
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: Build design tokens"
-          file_pattern: "tokens/**/*.json .synkio/baseline.json"
+          file_pattern: "tokens/**/*.json synkio/baseline.json"
 ```
 
 #### 5. Handle Merge Conflicts
@@ -687,7 +687,7 @@ If two PRs modify `export-baseline.json`:
 
 ```bash
 # Preview what will change after PR merge
-npx synkio build --from .synkio/export-baseline.json --preview
+npx synkio build --from synkio/export-baseline.json --preview
 ```
 
 ---
@@ -837,7 +837,7 @@ Generate a static documentation site:
 {
   "docsPages": {
     "enabled": true,
-    "dir": ".synkio/docs",
+    "dir": "synkio/docs",
     "title": "Design Tokens"
   }
 }
@@ -846,7 +846,7 @@ Generate a static documentation site:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `enabled` | `false` | Generate documentation site |
-| `dir` | `.synkio/docs` | Documentation output directory |
+| `dir` | `synkio/docs` | Documentation output directory |
 | `title` | `Design Tokens` | Site title |
 
 ### Sync Options
@@ -863,7 +863,7 @@ Generate a static documentation site:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `report` | `true` | Generate markdown report on sync |
-| `reportHistory` | `true` | Keep timestamped report history in `.synkio/reports/` |
+| `reportHistory` | `true` | Keep timestamped report history in `synkio/reports/` |
 
 ### Collection Options
 
@@ -1169,10 +1169,10 @@ Create timestamped backups before overwriting files:
 npx synkio sync --backup
 ```
 
-Backups are stored in `.synkio/backups/{timestamp}/` with full directory structure preserved:
+Backups are stored in `synkio/backups/{timestamp}/` with full directory structure preserved:
 
 ```
-.synkio/backups/
+synkio/backups/
   └── 2025-12-22T10-29-55/
       └── tokens/
           ├── primitives/primitives.json

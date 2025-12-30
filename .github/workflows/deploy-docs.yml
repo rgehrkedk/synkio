@@ -9,7 +9,7 @@
 # 3. That's it! Push changes to trigger deployment.
 #
 # CUSTOMIZATION:
-# - Change DOCS_DIR to your docs output directory (default: .synkio/docs)
+# - Change DOCS_DIR to your docs output directory (default: synkio/docs)
 # - Modify the trigger paths to match your token file locations
 # - Add FIGMA_TOKEN secret if you want to sync during deployment
 
@@ -25,7 +25,7 @@ on:
       # Trigger when tokens or docs config changes
       - '**/tokens/**'
       - '**/baseline.json'
-      - '**/.synkio/baseline.json'
+      - '**/synkio/baseline.json'
       - '**/tokensrc.json'
       - '**/tokensrc-*.json'
       # Also trigger when this workflow changes
@@ -53,7 +53,7 @@ concurrency:
 
 env:
   # Change this to match your docs output directory
-  DOCS_DIR: '.synkio/docs'
+  DOCS_DIR: 'synkio/docs'
   # Change this to your tokensrc.json path if different
   CONFIG_FILE: 'tokensrc.json'
 

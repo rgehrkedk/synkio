@@ -191,7 +191,7 @@ Complete configuration showing all available options:
   },
   "docsPages": {
     "enabled": true,
-    "dir": ".synkio/docs",
+    "dir": "synkio/docs",
     "title": "Design Tokens",
     "platforms": [
       {
@@ -1069,7 +1069,7 @@ Generate a static documentation site for your design tokens.
 {
   "docsPages": {
     "enabled": true,
-    "dir": ".synkio/docs",
+    "dir": "synkio/docs",
     "title": "Design Tokens",
     "platforms": [
       {
@@ -1089,7 +1089,7 @@ Generate a static documentation site for your design tokens.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `enabled` | boolean | `false` | Enable documentation site generation |
-| `dir` | string | `".synkio/docs"` | Output directory for documentation files |
+| `dir` | string | `"synkio/docs"` | Output directory for documentation files |
 | `title` | string | `"Design Tokens"` | Site title shown in the header |
 | `platforms` | array | `[]` | Custom platform definitions for variable name display (optional) |
 
@@ -1192,7 +1192,7 @@ Configure sync behavior and reporting.
 
 ### Sync Report
 
-When `report: true`, a sync report is generated at `.synkio/sync-report.md` containing:
+When `report: true`, a sync report is generated at `synkio/sync-report.md` containing:
 
 - **Added tokens** - New tokens from Figma
 - **Modified tokens** - Changed values or properties
@@ -1204,7 +1204,7 @@ When `report: true`, a sync report is generated at `.synkio/sync-report.md` cont
 When `reportHistory: true`, each sync creates a timestamped report:
 
 ```
-.synkio/
+synkio/
 ├── sync-report.md              # Latest report
 ├── sync-report.2024-01-15.md   # Historical
 └── sync-report.2024-01-10.md   # Historical

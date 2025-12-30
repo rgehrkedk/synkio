@@ -77,7 +77,7 @@ describe('ConfigSchema - new structure validation', () => {
       },
       docsPages: {
         enabled: true,
-        dir: '.synkio/docs',
+        dir: 'synkio/docs',
         title: 'Design Tokens',
       },
     };

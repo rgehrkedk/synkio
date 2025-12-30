@@ -125,7 +125,7 @@ async function processStyles(
 
 /**
  * Backup existing token files before overwriting
- * Creates a timestamped backup directory in .synkio/backups/
+ * Creates a timestamped backup directory in synkio/backups/
  *
  * @returns The backup directory path, or null if no files existed to backup
  */

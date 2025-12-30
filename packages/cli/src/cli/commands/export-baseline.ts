@@ -28,7 +28,7 @@ export interface ExportBaselineOptions {
   verbose?: boolean;
 }
 
-const DEFAULT_OUTPUT = '.synkio/export-baseline.json';
+const DEFAULT_OUTPUT = 'synkio/export-baseline.json';
 
 /**
  * Build a lookup key for matching tokens by path, collection, and mode.
@@ -425,7 +425,7 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
       console.log(chalk.dim('    so the Figma plugin can fetch it.'));
       console.log('');
       console.log(chalk.cyan('  Next steps:'));
-      console.log(chalk.dim('    1. git add .synkio/export-baseline.json'));
+      console.log(chalk.dim('    1. git add synkio/export-baseline.json'));
       console.log(chalk.dim('    2. git commit -m "Update export baseline"'));
       console.log(chalk.dim('    3. git push'));
       console.log(chalk.dim('    4. In Figma: Synkio plugin → "Apply from Code" → "Fetch from GitHub"'));

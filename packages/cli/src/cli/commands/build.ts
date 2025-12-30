@@ -33,7 +33,7 @@ import { openFolder } from '../utils.js';
  * Options for the build command
  */
 export interface BuildOptions {
-  from?: string;        // Custom baseline path (default: .synkio/baseline.json)
+  from?: string;        // Custom baseline path (default: synkio/baseline.json)
   config?: string;      // Config file path
   verbose?: boolean;    // Show detailed output
   preview?: boolean;    // Show what would change without applying
@@ -44,7 +44,7 @@ export interface BuildOptions {
  * Build command - build token files from baseline
  *
  * Workflow:
- * 1. Load baseline from --from path or default .synkio/baseline.json
+ * 1. Load baseline from --from path or default synkio/baseline.json
  * 2. Compare with current baseline (if exists)
  * 3. Show diff and warn on breaking changes (don't block)
  * 4. Regenerate token files using config
@@ -133,7 +133,7 @@ export async function buildCommand(options: BuildOptions = {}) {
           const syncReportPath = resolve(process.cwd(), '.synkio', 'SYNC_REPORT.md');
           try {
             await access(syncReportPath);
-            console.log(chalk.dim('\n  Review .synkio/SYNC_REPORT.md for details.'));
+            console.log(chalk.dim('\n  Review synkio/SYNC_REPORT.md for details.'));
           } catch {
             // SYNC_REPORT.md doesn't exist, that's ok
           }
@@ -202,7 +202,7 @@ export async function buildCommand(options: BuildOptions = {}) {
     if (currentBaseline && hasBaselineChanges) {
       spinner.succeed(chalk.green(`Built ${regenerateResult.filesWritten} token files from ${sourceName}.${extras}`));
       if (options.from && options.from !== defaultBaselinePath) {
-        console.log(chalk.dim(`  Updated .synkio/baseline.json`));
+        console.log(chalk.dim(`  Updated synkio/baseline.json`));
       }
     } else if (currentBaseline) {
       spinner.succeed(chalk.green(`No changes. Rebuilt ${regenerateResult.filesWritten} token files from ${sourceName}.${extras}`));
@@ -212,7 +212,7 @@ export async function buildCommand(options: BuildOptions = {}) {
 
     // 11. Open docs folder if --open flag was passed and docs were generated
     if (options.open && config.docsPages?.enabled) {
-      const docsDir = resolve(process.cwd(), config.docsPages.dir || '.synkio/docs');
+      const docsDir = resolve(process.cwd(), config.docsPages.dir || 'synkio/docs');
       try {
         await openFolder(docsDir);
         console.log(chalk.dim(`  Opened ${docsDir.replace(process.cwd() + '/', '')}`));

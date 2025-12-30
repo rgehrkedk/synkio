@@ -74,7 +74,7 @@ figma.root.setSharedPluginData(NAMESPACE, 'exportedAt', new Date().toISOString()
 
 ### CLI: New sync-status.json File
 
-Location: `.synkio/sync-status.json`
+Location: `synkio/sync-status.json`
 
 ```json
 {
@@ -319,7 +319,7 @@ Add a new section for status file configuration:
 │                                     │
 │  Status file path                   │
 │  ┌─────────────────────────────────┐│
-│  │ .synkio/sync-status.json       ││
+│  │ synkio/sync-status.json       ││
 │  └─────────────────────────────────┘│
 │                                     │
 │  This file is created by the CLI    │
@@ -394,7 +394,7 @@ Add a new section for status file configuration:
 The default path for sync-status.json is:
 
 ```
-.synkio/sync-status.json
+synkio/sync-status.json
 ```
 
 This can be customized in Settings if needed.
@@ -405,10 +405,10 @@ The plugin will fetch from:
 
 ```
 # Public repos
-https://raw.githubusercontent.com/{owner}/{repo}/{branch}/.synkio/sync-status.json
+https://raw.githubusercontent.com/{owner}/{repo}/{branch}/synkio/sync-status.json
 
 # Private repos (with token)
-https://api.github.com/repos/{owner}/{repo}/contents/.synkio/sync-status.json?ref={branch}
+https://api.github.com/repos/{owner}/{repo}/contents/synkio/sync-status.json?ref={branch}
 ```
 
 ## Edge Cases

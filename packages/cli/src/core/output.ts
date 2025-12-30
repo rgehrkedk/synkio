@@ -121,7 +121,7 @@ export async function generateDocsFromBaseline(
     return EMPTY_RESULT;
   }
 
-  const outputDir = resolve(process.cwd(), docsConfig.dir || '.synkio/docs');
+  const outputDir = resolve(process.cwd(), docsConfig.dir || 'synkio/docs');
 
   const result = await generateDocs(baseline, {
     outputDir,

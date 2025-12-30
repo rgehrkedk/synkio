@@ -23,7 +23,7 @@ Plugin stores in sharedPluginData (with IDs)
       ↓
 CLI fetches via API
       ↓
-Writes .synkio/baseline.json + token files (with IDs in $extensions)
+Writes synkio/baseline.json + token files (with IDs in $extensions)
 ```
 
 ### Flow 2: Code → Figma (new export)
@@ -33,7 +33,7 @@ Token files on disk
       ↓
 CLI reads and merges
       ↓
-Writes .synkio/export-baseline.json
+Writes synkio/export-baseline.json
       ↓
 User pastes/uploads into plugin
       ↓
@@ -176,7 +176,7 @@ The plugin must handle two alias formats:
 synkio export-baseline [options]
 
 Options:
-  --output, -o <path>   Output file path (default: .synkio/export-baseline.json)
+  --output, -o <path>   Output file path (default: synkio/export-baseline.json)
   --config, -c <path>   Config file path (default: synkio.config.json)
   --preview             Print output to console without writing file
   --verbose             Show detailed processing information
@@ -211,7 +211,7 @@ Tokens found:
   • primitives: 24 tokens (1 mode)
   • theme: 18 tokens (2 modes)
 
-Written to .synkio/export-baseline.json
+Written to synkio/export-baseline.json
 Total: 42 tokens from 2 collections
 ```
 
@@ -617,7 +617,7 @@ export interface ExportBaselineOptions {
   verbose?: boolean;
 }
 
-const DEFAULT_OUTPUT = '.synkio/export-baseline.json';
+const DEFAULT_OUTPUT = 'synkio/export-baseline.json';
 
 export async function exportBaseline(options: ExportBaselineOptions = {}): Promise<void> {
   const outputPath = options.output || DEFAULT_OUTPUT;
@@ -744,7 +744,7 @@ function showHelp() {
     export-baseline    Export token files to baseline format for Figma import
 
   export-baseline options:
-    --output, -o <path>   Output file (default: .synkio/export-baseline.json)
+    --output, -o <path>   Output file (default: synkio/export-baseline.json)
     --config, -c <path>   Config file (default: synkio.config.json)
     --preview             Print to console without writing file
     --verbose             Show detailed processing info

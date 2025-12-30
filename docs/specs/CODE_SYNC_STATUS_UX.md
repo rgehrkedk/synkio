@@ -200,7 +200,7 @@ Position: After "GitHub Connection", before "Advanced"
 │                                                     │
 │  Status file path                                   │
 │  ┌──────────────────────────────────────────────┐  │
-│  │ .synkio/sync-status.json                     │  │
+│  │ synkio/sync-status.json                     │  │
 │  └──────────────────────────────────────────────┘  │
 │                                                     │
 │  ℹ️ This file is written by the CLI after each     │
@@ -226,7 +226,7 @@ Position: After "GitHub Connection", before "Advanced"
 ├──────────────────────────────────────────────────────┤
 │                                                      │
 │  ┌────────────────────────────────────────────────┐  │
-│  │ .synkio/sync-status.json                       │  │ ← Input field
+│  │ synkio/sync-status.json                       │  │ ← Input field
 │  └────────────────────────────────────────────────┘  │
 │                                                      │
 │  Path relative to repository root                    │ ← Helper text
@@ -234,7 +234,7 @@ Position: After "GitHub Connection", before "Advanced"
 └──────────────────────────────────────────────────────┘
 ```
 
-**Default value:** `.synkio/sync-status.json`
+**Default value:** `synkio/sync-status.json`
 
 **Validation:**
 - Must end with `.json`

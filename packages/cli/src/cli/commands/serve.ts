@@ -17,7 +17,7 @@ export interface ServeOptions {
 }
 
 const DEFAULT_PORT = 3847;
-const DEFAULT_BASELINE_PATH = '.synkio/export-baseline.json';
+const DEFAULT_BASELINE_PATH = 'synkio/export-baseline.json';
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
 const PRIVILEGED_PORT = 1024;

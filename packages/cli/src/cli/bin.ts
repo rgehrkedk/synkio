@@ -92,7 +92,7 @@ function showHelp(command?: string) {
             console.log('Build token files from a baseline (default or custom path).\n');
             console.log('Used in the GitHub PR workflow to apply export-baseline.json from PRs.\n');
             console.log('Options:');
-            console.log('  --from=<path>       Custom baseline path (default: .synkio/baseline.json)');
+            console.log('  --from=<path>       Custom baseline path (default: synkio/baseline.json)');
             console.log('  --preview           Show what would change without applying');
             console.log('  --config=<file>     Path to config file (default: synkio.config.json)');
             console.log('  --verbose           Show detailed output');
@@ -101,8 +101,8 @@ function showHelp(command?: string) {
             console.log('  - Shows warnings for deletions/renames');
             console.log('  - Does NOT block (assumes PR already reviewed)\n');
             console.log('Examples:');
-            console.log('  synkio build                                    # Build from .synkio/baseline.json');
-            console.log('  synkio build --from .synkio/export-baseline.json # Build from PR baseline');
+            console.log('  synkio build                                    # Build from synkio/baseline.json');
+            console.log('  synkio build --from synkio/export-baseline.json # Build from PR baseline');
             console.log('  synkio build --preview                          # Preview changes without applying');
             break;
         case 'rollback':
@@ -123,7 +123,7 @@ function showHelp(command?: string) {
         case 'tokens':
             console.log('Usage: synkio tokens\n');
             console.log('Display the current token baseline.\n');
-            console.log('Shows the contents of .synkio/baseline.json for debugging.');
+            console.log('Shows the contents of synkio/baseline.json for debugging.');
             break;
         case 'docs':
             console.log('Usage: synkio docs [options]\n');
@@ -135,7 +135,7 @@ function showHelp(command?: string) {
             console.log('  - CSS custom properties (tokens.css)');
             console.log('  - Utility classes (utilities.css)\n');
             console.log('Options:');
-            console.log('  --output=<dir>   Output directory (default: .synkio/docs)');
+            console.log('  --output=<dir>   Output directory (default: synkio/docs)');
             console.log('  --title=<name>   Documentation title');
             console.log('  --open           Open in browser after generating');
             break;
@@ -163,7 +163,7 @@ function showHelp(command?: string) {
             console.log('Enables code-first workflows by converting local token files to a');
             console.log('baseline that can be imported and applied to Figma via the plugin.\n');
             console.log('Options:');
-            console.log('  --output=<path>     Output file path (default: .synkio/export-baseline.json)');
+            console.log('  --output=<path>     Output file path (default: synkio/export-baseline.json)');
             console.log('  --config=<path>     Config file path (default: synkio.config.json)');
             console.log('  --preview           Print output to console without writing file');
             console.log('  --verbose           Show detailed processing information\n');
@@ -180,8 +180,8 @@ function showHelp(command?: string) {
             console.log('Options:');
             console.log('  --port=<number>     Port to listen on (default: 3847)\n');
             console.log('Endpoints:');
-            console.log('  GET /               Serves .synkio/export-baseline.json');
-            console.log('  GET /baseline       Serves .synkio/export-baseline.json');
+            console.log('  GET /               Serves synkio/export-baseline.json');
+            console.log('  GET /baseline       Serves synkio/export-baseline.json');
             console.log('  GET /health         Health check endpoint\n');
             console.log('Examples:');
             console.log('  synkio serve');

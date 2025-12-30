@@ -6,7 +6,7 @@ node_modules/
 .env.local
 
 # Synkio generated files
-# tokens/ and .synkio/ are committed for this example app
+# tokens/ and synkio/ are committed for this example app
 baseline.json
 
 # OS

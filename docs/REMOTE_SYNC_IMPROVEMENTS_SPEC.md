@@ -928,7 +928,7 @@ export function sanitizePath(input: unknown): string {
 
   // Only allow safe path characters
   if (!/^[a-zA-Z0-9._\/-]+$/.test(cleaned)) {
-    return '.synkio/export-baseline.json'; // Return default
+    return 'synkio/export-baseline.json'; // Return default
   }
 
   return cleaned;

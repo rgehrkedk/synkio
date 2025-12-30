@@ -95,7 +95,7 @@ export interface RemoteSettings {
   customUrl?: string;
   autoCheck: boolean;
   lastFetch?: string;
-  statusPath?: string;  // NEW - defaults to '.synkio/sync-status.json'
+  statusPath?: string;  // NEW - defaults to 'synkio/sync-status.json'
 }
 ```
 
@@ -235,7 +235,7 @@ async function handleCheckCodeSync() {
 
     // Fetch sync-status.json from GitHub
     const { owner, repo, branch, token } = settings.remote.github;
-    const statusPath = settings.remote.statusPath || '.synkio/sync-status.json';
+    const statusPath = settings.remote.statusPath || 'synkio/sync-status.json';
 
     const url = token
       ? `https://api.github.com/repos/${owner}/${repo}/contents/${statusPath}?ref=${branch || 'main'}`
@@ -594,12 +594,12 @@ function buildCodeSyncSection(remote: RemoteSettings, actions: RouterActions): H
   // Status path input
   const pathInput = Input({
     label: 'Status file path',
-    placeholder: '.synkio/sync-status.json',
-    value: remote.statusPath || '.synkio/sync-status.json',
+    placeholder: 'synkio/sync-status.json',
+    value: remote.statusPath || 'synkio/sync-status.json',
     onChange: (value) => {
       actions.send({
         type: 'save-settings',
-        settings: { statusPath: value.trim() || '.synkio/sync-status.json' },
+        settings: { statusPath: value.trim() || 'synkio/sync-status.json' },
       });
     },
   });

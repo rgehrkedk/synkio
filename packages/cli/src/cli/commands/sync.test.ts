@@ -93,7 +93,7 @@ describe('Sync command - new config structure', () => {
       tokens: { dir: 'tokens' },
       docsPages: {
         enabled: true,
-        dir: '.synkio/documentation',
+        dir: 'synkio/documentation',
         title: 'My Design System'
       }
     };
@@ -102,7 +102,7 @@ describe('Sync command - new config structure', () => {
     const loaded = loadConfig();
 
     expect(loaded.docsPages?.enabled).toBe(true);
-    expect(loaded.docsPages?.dir).toBe('.synkio/documentation');
+    expect(loaded.docsPages?.dir).toBe('synkio/documentation');
     expect(loaded.docsPages?.title).toBe('My Design System');
   });
 

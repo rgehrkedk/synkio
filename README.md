@@ -93,7 +93,7 @@ npx synkio sync
 # 2. Team reviews SYNC_REPORT.md in PR
 # 3. Merge PR
 # 4. Developer applies changes
-npx synkio build --from .synkio/export-baseline.json
+npx synkio build --from synkio/export-baseline.json
 ```
 
 The PR workflow enables:
@@ -291,7 +291,7 @@ The generated site includes:
 - CSS custom properties reference
 - Copy-to-clipboard functionality
 
-Output directory: `.synkio/docs/` (configurable)
+Output directory: `synkio/docs/` (configurable)
 
 See the [Hosting Guide](docs/HOSTING.md) for deployment options (GitHub Pages, Netlify, Vercel).
 

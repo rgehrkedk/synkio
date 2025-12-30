@@ -41,7 +41,7 @@ This creates:
 
 The `.env` file is automatically added to your `.gitignore` to keep your token secure.
 
-**Important:** The CLI loads `.env` from your current working directory (where you run the command). Do not place it in subdirectories like `.synkio/`.
+**Important:** The CLI loads `.env` from your current working directory (where you run the command). Do not place it in subdirectories like `synkio/`.
 
 ### 3. Install Style Dictionary (Optional)
 

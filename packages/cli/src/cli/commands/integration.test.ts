@@ -89,7 +89,7 @@ describe('Init + Sync Integration', () => {
         },
         docsPages: {
           enabled: true,
-          dir: '.synkio/docs',
+          dir: 'synkio/docs',
           title: 'Design Tokens',
         }
       };
@@ -300,7 +300,7 @@ describe('Init + Sync Integration', () => {
         },
         docsPages: {
           enabled: true,
-          dir: '.synkio/docs',
+          dir: 'synkio/docs',
           title: 'Design Tokens',
         }
       };
@@ -317,7 +317,7 @@ describe('Init + Sync Integration', () => {
       expect(loadedConfig.tokens.dir).toBe('design-tokens');
       expect(loadedConfig.build?.script).toBe('npm run build:tokens');
       expect(loadedConfig.docsPages?.enabled).toBe(true);
-      expect(loadedConfig.docsPages?.dir).toBe('.synkio/docs');
+      expect(loadedConfig.docsPages?.dir).toBe('synkio/docs');
     });
   });
 });

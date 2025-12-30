@@ -258,7 +258,7 @@ function enrichVariableFromBaseline(
 ## Backup Location
 
 ```
-.synkio/backup/synkio-v2-backup-YYYYMMDD-HHMMSS/
+synkio/backup/synkio-v2-backup-YYYYMMDD-HHMMSS/
 ```
 
 ## Success Criteria

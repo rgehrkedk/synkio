@@ -35,7 +35,7 @@ export async function docsCommand(options: DocsOptions = {}) {
 
     // 3. Determine output directory (use CLI option > config.docsPages.dir > default)
     // Use new config structure: docsPages instead of docs
-    const outputDir = resolve(process.cwd(), options.output || config.docsPages?.dir || '.synkio/docs');
+    const outputDir = resolve(process.cwd(), options.output || config.docsPages?.dir || 'synkio/docs');
 
     // 4. Generate documentation
     spinner.text = 'Building documentation...';

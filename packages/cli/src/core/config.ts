@@ -104,7 +104,7 @@ const DocsPlatformSchema = z.object({
 // Documentation/Dashboard configuration (renamed from docs to docsPages)
 const DocsPagesConfigSchema = z.object({
   enabled: z.boolean().optional().default(false),      // Generate documentation site
-  dir: z.string().optional().default('.synkio/docs'),   // Output directory
+  dir: z.string().optional().default('synkio/docs'),   // Output directory
   title: z.string().optional().default('Design Tokens'), // Documentation title
   platforms: z.array(DocsPlatformSchema).optional(),   // Custom platform definitions for variable names
 }).optional();

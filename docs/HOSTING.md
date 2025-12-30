@@ -8,7 +8,7 @@ Synkio generates static HTML documentation that can be hosted anywhere. This gui
 # Generate docs
 npx synkio docs
 
-# Output is in .synkio/docs/ by default
+# Output is in synkio/docs/ by default
 ```
 
 ---
@@ -38,7 +38,7 @@ on:
     paths:
       - '**/tokens/**'
       - '**/baseline.json'
-      - '**/.synkio/baseline.json'
+      - '**/synkio/baseline.json'
       - 'tokensrc.json'
   workflow_dispatch:
 
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .synkio/docs
+          path: synkio/docs
 
   deploy:
     environment:
@@ -102,7 +102,7 @@ If you prefer using the `gh-pages` branch:
 npm install gh-pages --save-dev
 
 # Add deploy script to package.json
-npm pkg set scripts.deploy:docs="synkio docs && gh-pages -d .synkio/docs"
+npm pkg set scripts.deploy:docs="synkio docs && gh-pages -d synkio/docs"
 
 # Deploy
 npm run deploy:docs
@@ -123,7 +123,7 @@ npm run deploy:docs
 ```toml
 [build]
   command = "npm run build && npx synkio docs"
-  publish = ".synkio/docs"
+  publish = "synkio/docs"
 
 [build.environment]
   NODE_VERSION = "20"
@@ -145,8 +145,8 @@ Netlify will auto-deploy when any file changes. To deploy only on token changes,
 ```toml
 [build]
   command = "npm ci && npx synkio docs"
-  publish = ".synkio/docs"
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- tokens/ .synkio/baseline.json"
+  publish = "synkio/docs"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- tokens/ synkio/baseline.json"
 ```
 
 ---
@@ -158,7 +158,7 @@ Netlify will auto-deploy when any file changes. To deploy only on token changes,
 ```json
 {
   "buildCommand": "npm ci && npx synkio docs",
-  "outputDirectory": ".synkio/docs",
+  "outputDirectory": "synkio/docs",
   "installCommand": "npm ci"
 }
 ```
@@ -178,7 +178,7 @@ Or connect your GitHub repo for automatic deployments.
 2. Connect your repository
 3. Configure build settings:
    - **Build command**: `npm ci && npx synkio docs`
-   - **Build output directory**: `.synkio/docs`
+   - **Build output directory**: `synkio/docs`
 
 ---
 
@@ -197,7 +197,7 @@ COPY . .
 RUN npx synkio docs
 
 FROM nginx:alpine
-COPY --from=builder /app/.synkio/docs /usr/share/nginx/html
+COPY --from=builder /app/synkio/docs /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
@@ -232,13 +232,13 @@ For simple local hosting or intranet:
 npx synkio docs
 
 # Serve with any static server
-npx serve .synkio/docs
+npx serve synkio/docs
 
 # Or with Python
-python -m http.server 8000 -d .synkio/docs
+python -m http.server 8000 -d synkio/docs
 
 # Or with PHP
-php -S localhost:8000 -t .synkio/docs
+php -S localhost:8000 -t synkio/docs
 ```
 
 ---
@@ -248,12 +248,12 @@ php -S localhost:8000 -t .synkio/docs
 ### GitHub Pages
 1. Go to **Settings** > **Pages**
 2. Add your custom domain
-3. Create a `CNAME` file in `.synkio/docs/` with your domain
+3. Create a `CNAME` file in `synkio/docs/` with your domain
 
 Add to your workflow:
 ```yaml
 - name: Add CNAME
-  run: echo "tokens.example.com" > .synkio/docs/CNAME
+  run: echo "tokens.example.com" > synkio/docs/CNAME
 ```
 
 ### Netlify/Vercel
@@ -283,7 +283,7 @@ Deploy docs to a subdirectory of your main site:
 npx synkio docs --output=public/design-tokens
 
 # Or in your build process
-cp -r .synkio/docs ./public/design-tokens
+cp -r synkio/docs ./public/design-tokens
 ```
 
 ---
@@ -298,7 +298,7 @@ on:
   push:
     paths:
       - 'tokens/**'
-      - '.synkio/baseline.json'
+      - 'synkio/baseline.json'
       - 'tokensrc.json'
 ```
 
@@ -308,7 +308,7 @@ on:
 - name: Add build info
   run: |
     echo "{\"commit\":\"$GITHUB_SHA\",\"date\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" \
-      > .synkio/docs/build-info.json
+      > synkio/docs/build-info.json
 ```
 
 ### Notify on Deploy
@@ -328,11 +328,11 @@ on:
 
 ### Build fails: "No baseline found"
 
-Make sure you have a `.synkio/baseline.json` file committed:
+Make sure you have a `synkio/baseline.json` file committed:
 
 ```bash
 npx synkio sync
-git add .synkio/baseline.json
+git add synkio/baseline.json
 git commit -m "Add baseline"
 ```
 
