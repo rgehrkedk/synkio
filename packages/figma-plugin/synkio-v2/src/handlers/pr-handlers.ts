@@ -58,10 +58,7 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
       ? compareBaselines(syncBaseline, currentBaseline)
       : null;
 
-    if (!diff || !hasAnyChanges(diff)) {
-      send({ type: 'pr-error', error: 'No changes to create PR for. Make changes in Figma first.' });
-      return;
-    }
+    // Note: We allow PRs even with no changes to establish baseline in repo
 
     // 4. Generate export-baseline.json
     const exportBaseline: BaselineData = {
@@ -71,12 +68,19 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
       },
     };
 
-    // 5. Generate SYNC_REPORT.md
-    const report = generateSyncReport(diff, {
-      author: figma.currentUser?.name || 'Unknown',
-      figmaFileUrl: `https://figma.com/file/${figma.fileKey}`,
-      timestamp: new Date().toISOString(),
-    });
+    // 5. Generate SYNC_REPORT.md (only if there are changes)
+    const files: Record<string, string> = {
+      '.synkio/export-baseline.json': JSON.stringify(exportBaseline, null, 2),
+    };
+
+    if (diff && hasAnyChanges(diff)) {
+      const report = generateSyncReport(diff, {
+        author: figma.currentUser?.name || 'Unknown',
+        figmaFileUrl: `https://figma.com/file/${figma.fileKey}`,
+        timestamp: new Date().toISOString(),
+      });
+      files['.synkio/SYNC_REPORT.md'] = report;
+    }
 
     // 6. Generate PR body
     const prBody = generatePRBody(diff);
@@ -85,10 +89,7 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
     send({
       type: 'do-create-pr',
       github,
-      files: {
-        '.synkio/export-baseline.json': JSON.stringify(exportBaseline, null, 2),
-        '.synkio/SYNC_REPORT.md': report,
-      },
+      files,
       prTitle: 'chore: Sync design tokens from Figma',
       prBody,
     });
@@ -119,38 +120,44 @@ function hasAnyChanges(diff: ComparisonResult): boolean {
 /**
  * Generate PR body/description
  */
-function generatePRBody(diff: ComparisonResult): string {
-  const totalChanges =
-    diff.newVariables.length +
-    diff.valueChanges.length +
-    diff.pathChanges.length +
-    diff.deletedVariables.length;
-
-  const hasBreaking =
-    diff.deletedVariables.length > 0 ||
-    diff.pathChanges.length > 0 ||
-    diff.deletedModes.length > 0 ||
-    diff.deletedStyles.length > 0;
-
+function generatePRBody(diff: ComparisonResult | null): string {
   let body = `## Design Token Sync from Figma\n\n`;
-  body += `This PR updates design tokens with **${totalChanges} changes** from Figma.\n\n`;
 
-  body += `### Summary\n\n`;
-  body += `- ✨ ${diff.newVariables.length} new tokens\n`;
-  body += `- 🔄 ${diff.valueChanges.length} value updates\n`;
-  body += `- 📝 ${diff.pathChanges.length} renames\n`;
-  body += `- ❌ ${diff.deletedVariables.length} deletions\n\n`;
+  if (!diff || !hasAnyChanges(diff)) {
+    body += `This PR establishes the baseline for design tokens from Figma.\n\n`;
+    body += `No changes detected - this creates the initial baseline in the repository.\n\n`;
+  } else {
+    const totalChanges =
+      diff.newVariables.length +
+      diff.valueChanges.length +
+      diff.pathChanges.length +
+      diff.deletedVariables.length;
 
-  if (diff.newStyles.length > 0 || diff.styleValueChanges.length > 0 || diff.deletedStyles.length > 0) {
-    body += `### Style Changes\n\n`;
-    body += `- ✨ ${diff.newStyles.length} new styles\n`;
-    body += `- 🔄 ${diff.styleValueChanges.length} style updates\n`;
-    body += `- ❌ ${diff.deletedStyles.length} deleted styles\n\n`;
-  }
+    const hasBreaking =
+      diff.deletedVariables.length > 0 ||
+      diff.pathChanges.length > 0 ||
+      diff.deletedModes.length > 0 ||
+      diff.deletedStyles.length > 0;
 
-  if (hasBreaking) {
-    body += `### ⚠️ Breaking Changes\n\n`;
-    body += `This PR contains breaking changes. Review [SYNC_REPORT.md](.synkio/SYNC_REPORT.md) carefully.\n\n`;
+    body += `This PR updates design tokens with **${totalChanges} changes** from Figma.\n\n`;
+
+    body += `### Summary\n\n`;
+    body += `- ✨ ${diff.newVariables.length} new tokens\n`;
+    body += `- 🔄 ${diff.valueChanges.length} value updates\n`;
+    body += `- 📝 ${diff.pathChanges.length} renames\n`;
+    body += `- ❌ ${diff.deletedVariables.length} deletions\n\n`;
+
+    if (diff.newStyles.length > 0 || diff.styleValueChanges.length > 0 || diff.deletedStyles.length > 0) {
+      body += `### Style Changes\n\n`;
+      body += `- ✨ ${diff.newStyles.length} new styles\n`;
+      body += `- 🔄 ${diff.styleValueChanges.length} style updates\n`;
+      body += `- ❌ ${diff.deletedStyles.length} deleted styles\n\n`;
+    }
+
+    if (hasBreaking) {
+      body += `### ⚠️ Breaking Changes\n\n`;
+      body += `This PR contains breaking changes. Review [SYNC_REPORT.md](.synkio/SYNC_REPORT.md) carefully.\n\n`;
+    }
   }
 
   body += `### How to Apply\n\n`;
@@ -160,8 +167,10 @@ function generatePRBody(diff: ComparisonResult): string {
   body += `\`\`\`\n\n`;
   body += `This will update your token files according to \`synkio.config.json\`.\n\n`;
 
-  body += `---\n\n`;
-  body += `See [SYNC_REPORT.md](.synkio/SYNC_REPORT.md) for detailed changes.\n`;
+  if (diff && hasAnyChanges(diff)) {
+    body += `---\n\n`;
+    body += `See [SYNC_REPORT.md](.synkio/SYNC_REPORT.md) for detailed changes.\n`;
+  }
 
   return body;
 }
