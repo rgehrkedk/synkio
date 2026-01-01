@@ -1,47 +1,22 @@
 {
   "xs": {
     "$value": 320,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:21383:57901"
-      }
-    }
+    "$type": "number"
   },
   "sm": {
     "$value": 576,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:21383:57904"
-      }
-    }
+    "$type": "number"
   },
   "md": {
     "$value": 768,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:21383:57905"
-      }
-    }
+    "$type": "number"
   },
   "lg": {
     "$value": 992,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:21383:57906"
-      }
-    }
+    "$type": "number"
   },
   "xl": {
     "$value": 1200,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:21383:57907"
-      }
-    }
+    "$type": "number"
   }
 }

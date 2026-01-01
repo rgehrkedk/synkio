@@ -1,74 +1,34 @@
 {
   "base": {
     "$value": 0,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:23324:22087"
-      }
-    }
+    "$type": "number"
   },
   "dropdown": {
     "$value": 100,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:23324:22088"
-      }
-    }
+    "$type": "number"
   },
   "sticky": {
     "$value": 200,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:23324:22089"
-      }
-    }
+    "$type": "number"
   },
   "overlay": {
     "$value": 300,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:23342:22087"
-      }
-    }
+    "$type": "number"
   },
   "modal": {
     "$value": 400,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:23342:22088"
-      }
-    }
+    "$type": "number"
   },
   "toast": {
     "$value": 500,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:23342:22089"
-      }
-    }
+    "$type": "number"
   },
   "tooltip": {
     "$value": 600,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:23342:22090"
-      }
-    }
+    "$type": "number"
   },
   "max": {
     "$value": 9999,
-    "$type": "number",
-    "$extensions": {
-      "com.figma": {
-        "variableId": "VariableID:23342:22092"
-      }
-    }
+    "$type": "number"
   }
 }

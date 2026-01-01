@@ -2,214 +2,99 @@
   "fontWeight": {
     "light": {
       "$value": 200,
-      "$type": "number",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16081"
-        }
-      }
+      "$type": "number"
     },
     "regular": {
       "$value": 400,
-      "$type": "number",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16083"
-        }
-      }
+      "$type": "number"
     },
     "semibold": {
       "$value": 600,
-      "$type": "number",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16179"
-        }
-      }
+      "$type": "number"
     },
     "bold": {
       "$value": 800,
-      "$type": "number",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16180"
-        }
-      }
+      "$type": "number"
     }
   },
   "letterSpacing": {
     "tightest": {
       "$value": "-1.5px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16191"
-        }
-      }
+      "$type": "dimension"
     },
     "tighter": {
       "$value": "-0.5px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16192"
-        }
-      }
+      "$type": "dimension"
     },
     "tight": {
       "$value": "-0.25px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13845:171"
-        }
-      }
+      "$type": "dimension"
     },
     "normal": {
       "$value": "0px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16193"
-        }
-      }
+      "$type": "dimension"
     },
     "wide": {
       "$value": "0.25px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16195"
-        }
-      }
+      "$type": "dimension"
     },
     "wider": {
       "$value": "0.5px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16199"
-        }
-      }
+      "$type": "dimension"
     },
     "widest": {
       "$value": "1px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16200"
-        }
-      }
+      "$type": "dimension"
     }
   },
   "fontSize": {
     "display": {
       "$value": "74px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13831:33348"
-        }
-      }
+      "$type": "dimension"
     },
     "headline1": {
       "$value": "48px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16183"
-        }
-      }
+      "$type": "dimension"
     },
     "headline2": {
       "$value": "32px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16184"
-        }
-      }
+      "$type": "dimension"
     },
     "headline3": {
       "$value": "24px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16185"
-        }
-      }
+      "$type": "dimension"
     },
     "headline4": {
       "$value": "20px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16186"
-        }
-      }
+      "$type": "dimension"
     },
     "headline5": {
       "$value": "18px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13831:24165"
-        }
-      }
+      "$type": "dimension"
     },
     "body1": {
       "$value": "16px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16187"
-        }
-      }
+      "$type": "dimension"
     },
     "body2": {
       "$value": "14px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16188"
-        }
-      }
+      "$type": "dimension"
     },
     "body3": {
       "$value": "12px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16189"
-        }
-      }
+      "$type": "dimension"
     },
     "caption": {
       "$value": "10px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:13607:16190"
-        }
-      }
+      "$type": "dimension"
     },
     "overline1": {
       "$value": "12px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:25624:12482"
-        }
-      }
+      "$type": "dimension"
     },
     "overline2": {
       "$value": "10px",
-      "$type": "dimension",
-      "$extensions": {
-        "com.figma": {
-          "variableId": "VariableID:25624:12483"
-        }
-      }
+      "$type": "dimension"
     }
   },
   "font": {

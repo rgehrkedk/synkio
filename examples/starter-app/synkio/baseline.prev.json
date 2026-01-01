@@ -6057,7 +6057,7 @@
       "modeId": "9932:3",
       "collection": "theme",
       "mode": "light",
-      "path": "bg.primary.default",
+      "path": "bg.primary.base",
       "value": {
         "$ref": "VariableID:8407:177359"
       },
@@ -6076,7 +6076,7 @@
       "modeId": "9932:4",
       "collection": "theme",
       "mode": "dark",
-      "path": "bg.primary.default",
+      "path": "bg.primary.base",
       "value": {
         "$ref": "VariableID:9927:99213"
       },
@@ -11623,7 +11623,7 @@
     }
   },
   "metadata": {
-    "syncedAt": "2026-01-01T08:07:11.099Z",
-    "figmaBaselineHash": "eee3add3"
+    "syncedAt": "2026-01-01T09:10:42.948Z",
+    "figmaBaselineHash": "0f2e79f3"
   }
 }
