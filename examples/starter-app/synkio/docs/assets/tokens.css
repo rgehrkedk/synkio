@@ -84,8 +84,8 @@
   --colors-brand-alternate-400: #f8b644;
   --colors-brand-gradients-start-default: #bd1f2e;
   --colors-brand-gradients-start-subtle: rgba(189, 31, 46, 0.50);
-  --colors-brand-alternate-500: #ca8307;
   --colors-brand-gradients-end-default: #882059;
+  --colors-brand-alternate-500: #ca8307;
   --colors-brand-gradients-end-subtle: rgba(136, 32, 89, 0.50);
   --colors-brand-secondary-500: #19282f;
   --typography-family: Inter;
@@ -224,8 +224,8 @@
   --colors-brand-alternate-400: #f09b0f;
   --colors-brand-gradients-start-default: #6161ff;
   --colors-brand-gradients-start-subtle: rgba(97, 97, 255, 0.50);
-  --colors-brand-alternate-500: #a86d0a;
   --colors-brand-gradients-end-default: #6161ff;
+  --colors-brand-alternate-500: #a86d0a;
   --colors-brand-gradients-end-subtle: rgba(97, 97, 255, 0.50);
   --colors-brand-secondary-500: #0000d1;
   --typography-family: Hanken Grotesk;
@@ -364,8 +364,8 @@
   --colors-brand-alternate-400: #65188a;
   --colors-brand-gradients-start-default: #404c9c;
   --colors-brand-gradients-start-subtle: rgba(64, 76, 156, 0.50);
-  --colors-brand-alternate-500: #36005f;
   --colors-brand-gradients-end-default: #0f1e80;
+  --colors-brand-alternate-500: #36005f;
   --colors-brand-gradients-end-subtle: rgba(15, 30, 128, 0.50);
   --colors-brand-secondary-500: #2291a0;
   --typography-family: Roboto;
@@ -440,7 +440,7 @@
   --bg-alpha-secondary-default: [object Object];
   --bg-alpha-secondary-subtle: [object Object];
   --bg-alpha-secondary-faint: [object Object];
-  --bg-primary-default: [object Object];
+  --bg-primary-base: [object Object];
   --bg-primary-hover: [object Object];
   --bg-primary-active: [object Object];
   --bg-secondary-default: [object Object];
@@ -537,7 +537,7 @@
   --bg-alpha-secondary-default: [object Object];
   --bg-alpha-secondary-subtle: [object Object];
   --bg-alpha-secondary-faint: [object Object];
-  --bg-primary-default: [object Object];
+  --bg-primary-base: [object Object];
   --bg-primary-hover: [object Object];
   --bg-primary-active: [object Object];
   --bg-secondary-default: [object Object];
@@ -694,8 +694,8 @@
   --font-fontsize-headline2: 32px;
   --font-fontsize-headline3: 24px;
   --font-fontsize-headline4: 20px;
-  --spacing-0: 0;
   --font-fontsize-headline5: 18px;
+  --spacing-0: 0;
   --spacing-px: 1px;
   --spacing-0,5: 2px;
   --spacing-1: 4px;
@@ -703,8 +703,8 @@
   --spacing-2: 8px;
   --spacing-2,5: 10px;
   --font-fontsize-body1: 16px;
-  --spacing-3: 12px;
   --font-fontsize-body2: 14px;
+  --spacing-3: 12px;
   --spacing-3,5: 14px;
   --spacing-4: 16px;
   --font-fontsize-body3: 12px;

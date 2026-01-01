@@ -215,7 +215,7 @@
       }
     },
     "primary": {
-      "default": {
+      "base": {
         "$value": "{colors.neutral.950}",
         "$type": "color",
         "$extensions": {
