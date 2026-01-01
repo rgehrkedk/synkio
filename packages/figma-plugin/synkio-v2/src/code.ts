@@ -11,8 +11,8 @@ import { debug } from './lib/debug';
 // =============================================================================
 
 figma.showUI(__html__, {
-  width: 360,
-  height: 560,
+  width: 480,
+  height: 600,
   themeColors: true,
 });
 

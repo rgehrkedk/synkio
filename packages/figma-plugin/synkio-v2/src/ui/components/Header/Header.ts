@@ -6,14 +6,15 @@ import css from './Header.css';
 registerCSS('header', css);
 
 export interface HeaderProps {
-  title: string;
+  title?: string;
+  showLogo?: boolean;
   showBack?: boolean;
   onBack?: () => void;
   rightAction?: HTMLElement;
 }
 
 export function Header(props: HeaderProps): HTMLElement {
-  const { title, showBack = false, onBack, rightAction } = props;
+  const { title, showLogo = true, showBack = false, onBack, rightAction } = props;
 
   const header = el('header', { class: 'header' });
 
@@ -26,7 +27,21 @@ export function Header(props: HeaderProps): HTMLElement {
     }
     left.appendChild(backBtn);
   }
-  left.appendChild(el('span', { class: 'header__title' }, title));
+
+  if (showLogo) {
+    const logo = el('div', { class: 'header__logo' });
+    logo.appendChild(Icon('sync', 'sm'));
+    logo.appendChild(el('span', { class: 'header__logo-text' }, 'SYNKIO'));
+    left.appendChild(logo);
+
+    if (title) {
+      left.appendChild(el('span', { class: 'header__separator' }, '/'));
+      left.appendChild(el('span', { class: 'header__title header__title--secondary' }, title));
+    }
+  } else if (title) {
+    left.appendChild(el('span', { class: 'header__title' }, title));
+  }
+
   header.appendChild(left);
 
   if (rightAction) {

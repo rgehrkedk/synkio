@@ -56,3 +56,22 @@ export type { DividerProps } from './Divider/Divider';
 
 export { SegmentedControl } from './SegmentedControl/SegmentedControl';
 export type { SegmentedControlProps, SegmentedControlOption } from './SegmentedControl/SegmentedControl';
+
+export { FeatureCard } from './FeatureCard/FeatureCard';
+export type { FeatureCardProps, FeatureCardItem } from './FeatureCard/FeatureCard';
+
+export { WorkflowItem } from './WorkflowItem/WorkflowItem';
+export type { WorkflowItemProps } from './WorkflowItem/WorkflowItem';
+
+// Onboarding components
+export { HeroHeader } from './HeroHeader/HeroHeader';
+export type { HeroHeaderProps } from './HeroHeader/HeroHeader';
+
+export { Stepper } from './Stepper/Stepper';
+export type { StepperProps } from './Stepper/Stepper';
+
+export { TwoColumnLayout } from './TwoColumnLayout/TwoColumnLayout';
+export type { TwoColumnLayoutProps } from './TwoColumnLayout/TwoColumnLayout';
+
+export { WelcomeFeature, WelcomeLinks } from './WelcomeFeature/WelcomeFeature';
+export type { WelcomeFeatureProps, WelcomeLinksProps } from './WelcomeFeature/WelcomeFeature';

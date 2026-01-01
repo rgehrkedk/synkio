@@ -48,6 +48,7 @@ export interface BaselineData {
   styles?: Record<string, StyleBaselineEntry>;  // Optional for backwards compatibility
   metadata: {
     syncedAt: string;
+    figmaBaselineHash?: string;  // Hash for tracking code sync status
   };
 }
 

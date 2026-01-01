@@ -6,7 +6,7 @@ import { MessageToCode } from '../lib/types';
 import { SendMessage } from './types';
 
 // Import all handlers
-import { handleReady, handleInit, handleSync } from './sync-handlers';
+import { handleReady, handleInit, handleSync, handleCompleteOnboarding } from './sync-handlers';
 import {
   handleGetCollections,
   handleSaveExcludedCollections,
@@ -18,6 +18,9 @@ import {
   handleFetchRemoteResult,
   handleFetchRemoteError,
   handleTestConnection,
+  handleCheckCodeSync,
+  handleCodeSyncResult,
+  handleCodeSyncError,
 } from './remote-handlers';
 import { handleImportBaseline, handleApplyToFigma } from './apply-handlers';
 import { handleGetSettings, handleSaveSettings, handleGetHistory } from './settings-handlers';
@@ -125,8 +128,24 @@ export async function handleMessage(
         send({ type: 'pr-error', error: message.error });
         break;
 
+      case 'check-code-sync':
+        await handleCheckCodeSync(send);
+        break;
+
+      case 'code-sync-result':
+        await handleCodeSyncResult(message.content, send);
+        break;
+
+      case 'code-sync-error':
+        handleCodeSyncError(message.error, send);
+        break;
+
       case 'close':
         figma.closePlugin();
+        break;
+
+      case 'complete-onboarding':
+        handleCompleteOnboarding();
         break;
 
       // Navigate messages are handled by UI, not plugin code

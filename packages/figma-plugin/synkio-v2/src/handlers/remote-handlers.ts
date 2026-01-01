@@ -6,6 +6,7 @@ import {
   BaselineData,
   PluginSettings,
   StyleType,
+  CodeSyncState,
 } from '../lib/types';
 
 import {
@@ -15,6 +16,7 @@ import {
   KEYS,
   loadClientStorage,
   saveClientStorage,
+  getFigmaBaselineHash,
 } from '../lib/storage';
 
 import {
@@ -28,7 +30,7 @@ import { buildBaseline } from '../operations';
 import { SendMessage } from './types';
 
 // =============================================================================
-// handleFetchRemote - Initiate fetch from GitHub
+// handleFetchRemote - Initiate fetch from GitHub or URL
 // =============================================================================
 
 export async function handleFetchRemote(send: SendMessage): Promise<void> {
@@ -36,11 +38,32 @@ export async function handleFetchRemote(send: SendMessage): Promise<void> {
   // doesn't have access to fetch. We send the request info to the UI.
   try {
     const settings = await loadClientStorage<PluginSettings>('settings');
-    if (!settings?.remote.github) {
+    const remote = settings?.remote;
+
+    if (!remote?.enabled || remote.source === 'none') {
+      throw new Error('Remote source not configured. Please configure in Settings.');
+    }
+
+    // Handle URL source
+    if (remote.source === 'url') {
+      const exportUrl = remote.url?.exportUrl;
+      if (!exportUrl) {
+        throw new Error('Export URL not configured. Please configure in Settings.');
+      }
+
+      send({
+        type: 'do-fetch-remote-url',
+        url: exportUrl,
+      });
+      return;
+    }
+
+    // Handle GitHub source
+    if (!remote.github) {
       throw new Error('GitHub not configured. Please configure in Settings.');
     }
 
-    const { owner, repo, branch, path, token } = settings.remote.github;
+    const { owner, repo, branch, path, token } = remote.github;
 
     if (!owner || !repo) {
       throw new Error('Repository not configured');
@@ -255,6 +278,181 @@ export async function handleTestConnection(send: SendMessage): Promise<void> {
       type: 'connection-test-result',
       success: false,
       error: String(error),
+    });
+  }
+}
+
+// =============================================================================
+// handleCheckCodeSync - Check if code has pulled the latest baseline
+// =============================================================================
+
+export async function handleCheckCodeSync(send: SendMessage): Promise<void> {
+  try {
+    const settings = await loadClientStorage<PluginSettings>('settings');
+    const remote = settings?.remote;
+
+    // Check if any remote is configured
+    if (!remote?.enabled || remote.source === 'none') {
+      send({
+        type: 'code-sync-update',
+        codeSyncState: { status: 'not-connected' },
+      });
+      return;
+    }
+
+    // Handle custom URL source
+    if (remote.source === 'url') {
+      const baselineUrl = remote.url?.baselineUrl || remote.customUrl; // Support deprecated customUrl
+      if (!baselineUrl) {
+        send({
+          type: 'code-sync-update',
+          codeSyncState: { status: 'not-connected' },
+        });
+        return;
+      }
+      send({
+        type: 'do-check-code-sync-url',
+        url: baselineUrl,
+      });
+      return;
+    }
+
+    // Handle GitHub source
+    const github = remote.github;
+    if (!github?.owner || !github?.repo) {
+      send({
+        type: 'code-sync-update',
+        codeSyncState: { status: 'not-connected' },
+      });
+      return;
+    }
+
+    // Get the baseline path (prPath for baseline.json, defaults to synkio/baseline.json)
+    const baselinePath = github.prPath || 'synkio/baseline.json';
+
+    // Send request to UI to fetch the baseline.json from GitHub
+    send({
+      type: 'do-check-code-sync',
+      github: {
+        owner: github.owner,
+        repo: github.repo,
+        branch: github.branch || 'main',
+        path: baselinePath,
+        token: github.token,
+      },
+      baselinePath,
+    });
+  } catch (error) {
+    send({
+      type: 'code-sync-update',
+      codeSyncState: {
+        status: 'not-connected',
+        error: String(error),
+      },
+    });
+  }
+}
+
+// =============================================================================
+// handleCodeSyncResult - Process the fetched baseline.json content
+// =============================================================================
+
+export async function handleCodeSyncResult(
+  content: string,
+  send: SendMessage
+): Promise<void> {
+  try {
+    // Parse the baseline.json from GitHub
+    const codeBaseline = JSON.parse(content) as BaselineData;
+
+    // Get the hash from the code baseline
+    const codeBaselineHash = codeBaseline.metadata?.figmaBaselineHash;
+
+    // Get the stored Figma baseline hash
+    const figmaBaselineHash = getFigmaBaselineHash();
+
+    // Debug logging for hash comparison
+    if (isDebugEnabled()) {
+      debug('=== CODE SYNC CHECK ===');
+      debug('Hash from GitHub baseline.json:', codeBaselineHash || 'NOT FOUND');
+      debug('Hash stored in Figma plugin:', figmaBaselineHash || 'NOT FOUND');
+      debug('Hashes match:', codeBaselineHash === figmaBaselineHash);
+    }
+
+    // Always log this for troubleshooting
+    console.log('[Synkio] Code sync check - GitHub hash:', codeBaselineHash, 'Plugin hash:', figmaBaselineHash);
+
+    // Determine status
+    let codeSyncState: CodeSyncState;
+
+    if (!figmaBaselineHash) {
+      // No hash stored in plugin - first sync or old plugin version
+      codeSyncState = {
+        status: 'not-connected',
+        lastChecked: new Date().toISOString(),
+      };
+    } else if (!codeBaselineHash) {
+      // Code baseline doesn't have hash - old CLI version or manual baseline
+      codeSyncState = {
+        status: 'pending-pull',
+        lastChecked: new Date().toISOString(),
+        codeBaselineHash: undefined,
+      };
+    } else if (codeBaselineHash === figmaBaselineHash) {
+      // Hashes match - code is up to date
+      codeSyncState = {
+        status: 'synced',
+        lastChecked: new Date().toISOString(),
+        codeBaselineHash,
+      };
+    } else {
+      // Hashes don't match - code needs to pull
+      codeSyncState = {
+        status: 'pending-pull',
+        lastChecked: new Date().toISOString(),
+        codeBaselineHash,
+      };
+    }
+
+    send({
+      type: 'code-sync-update',
+      codeSyncState,
+    });
+  } catch (error) {
+    send({
+      type: 'code-sync-update',
+      codeSyncState: {
+        status: 'not-connected',
+        lastChecked: new Date().toISOString(),
+        error: String(error),
+      },
+    });
+  }
+}
+
+// =============================================================================
+// handleCodeSyncError - Handle fetch error from UI
+// =============================================================================
+
+export function handleCodeSyncError(error: string, send: SendMessage): void {
+  // Check if it's a 404 - baseline.json doesn't exist yet in the repository
+  if (error.includes('404') || error.includes('Not Found') || error.includes('not found')) {
+    send({
+      type: 'code-sync-update',
+      codeSyncState: {
+        status: 'pending-pull',
+        lastChecked: new Date().toISOString(),
+        error: 'baseline.json not found - commit and push after running synkio pull',
+      },
+    });
+  } else {
+    send({
+      type: 'code-sync-update',
+      codeSyncState: {
+        status: 'not-connected',
+        lastChecked: new Date().toISOString(),
+        error,
+      },
     });
   }
 }

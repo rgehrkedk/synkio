@@ -34,7 +34,7 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
 
   // Header
   const header = Header({
-    title: 'SYNC TO CODE',
+    title: 'Sync',
     showBack: true,
     onBack: () => actions.navigate('home'),
   });
@@ -47,21 +47,53 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
 
   // No baseline yet - first time
   if (!syncBaseline) {
+    const hasGitHubConfig = !!(state.settings?.remote?.github?.owner && state.settings?.remote?.github?.repo);
+
     const content = createContentArea([
       EmptyState({
         icon: 'rocket',
         title: 'Ready to sync',
-        description: 'Click the button below to create your first sync. This will save your Figma variables so the CLI can fetch them.',
+        description: hasGitHubConfig
+          ? 'Create a pull request to sync your Figma variables to code, or save for CLI to fetch later.'
+          : 'Save your Figma variables so the CLI can fetch them with \'synkio pull\'.',
       }),
     ]);
 
-    const footer = createFooter([
+    const footerButtons: HTMLElement[] = [];
+
+    // Create PR button first when GitHub is configured (primary action)
+    if (hasGitHubConfig) {
+      footerButtons.push(
+        Button({
+          label: 'Create PR',
+          variant: 'primary',
+          fullWidth: true,
+          onClick: () => {
+            if (confirm('Create a pull request to establish the baseline in your repository?\n\nThis will create a branch, commit the current state, and open a PR.')) {
+              actions.send({ type: 'create-pr' });
+            }
+          },
+        })
+      );
+    }
+
+    // Save for CLI button
+    footerButtons.push(
       Button({
-        label: 'Create Initial Sync',
-        variant: 'primary',
+        label: hasGitHubConfig ? 'Save for CLI' : 'Save for CLI',
+        variant: hasGitHubConfig ? 'secondary' : 'primary',
         fullWidth: true,
         onClick: () => actions.send({ type: 'sync' }),
-      }),
+      })
+    );
+
+    const footer = createFooter([
+      createColumn([
+        hasGitHubConfig ? createRow(footerButtons, 'var(--spacing-sm)') : footerButtons[0],
+        el('div', { class: 'text-xs text-tertiary text-center' },
+          hasGitHubConfig ? 'PR syncs directly · CLI requires \'synkio pull\'' : 'Run \'synkio pull\' to fetch tokens'
+        ),
+      ], 'var(--spacing-sm)'),
     ]);
 
     return createPageLayout([header, content, footer]);
@@ -160,7 +192,7 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
       onClick: () => actions.send({ type: 'sync' }),
     })
   );
-  footerHelperTexts.push('Saves to plugin for \'synkio sync\' command');
+  footerHelperTexts.push('Saves to plugin for \'synkio pull\' command');
 
   // Create PR button (only when GitHub is configured)
   if (hasGitHubConfig) {

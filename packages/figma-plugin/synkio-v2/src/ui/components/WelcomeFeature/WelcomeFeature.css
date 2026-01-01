@@ -1,0 +1,172 @@
+/* =============================================================================
+   Welcome Feature Card - Bi-directional sync highlight
+   ============================================================================= */
+
+.welcome-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+/* Animated sync icon container */
+.welcome-feature__icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-primary);
+}
+
+/* Rotating arrows animation */
+.welcome-feature__icon svg {
+  animation: welcome-sync-rotate 4s ease-in-out infinite;
+}
+
+@keyframes welcome-sync-rotate {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  75% { transform: rotate(-15deg); }
+}
+
+/* Flow visualization: Figma <-> Code */
+.welcome-feature__flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  width: 100%;
+}
+
+.welcome-feature__endpoint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xxs);
+}
+
+.welcome-feature__endpoint-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.welcome-feature__endpoint-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Bi-directional arrows between endpoints */
+.welcome-feature__arrows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-primary);
+}
+
+.welcome-feature__arrow {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.welcome-feature__arrow--right {
+  animation: arrow-slide-right 2s ease-in-out infinite;
+}
+
+.welcome-feature__arrow--left {
+  animation: arrow-slide-left 2s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+@keyframes arrow-slide-right {
+  0%, 100% { transform: translateX(0); opacity: 0.4; }
+  50% { transform: translateX(3px); opacity: 1; }
+}
+
+@keyframes arrow-slide-left {
+  0%, 100% { transform: translateX(0); opacity: 0.4; }
+  50% { transform: translateX(-3px); opacity: 1; }
+}
+
+/* Title and description */
+.welcome-feature__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xxs);
+}
+
+.welcome-feature__description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  max-width: 200px;
+}
+
+/* =============================================================================
+   Welcome Footer Links - External links section
+   ============================================================================= */
+
+.welcome-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+}
+
+.welcome-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.welcome-link:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-tertiary);
+}
+
+.welcome-link__icon {
+  opacity: 0.7;
+}
+
+.welcome-link:hover .welcome-link__icon {
+  opacity: 1;
+}
+
+/* Separator dot */
+.welcome-links__separator {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+}

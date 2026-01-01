@@ -32,9 +32,30 @@
   background: var(--color-bg-secondary);
   color: var(--color-text);
 }
+.header__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+.header__logo-text {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--color-text);
+}
+.header__separator {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  margin: 0 var(--spacing-xs);
+}
 .header__title {
   font-size: var(--font-size-lg);
   font-weight: 600;
+}
+.header__title--secondary {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--color-text-secondary);
 }
 .header__right {
   display: flex;

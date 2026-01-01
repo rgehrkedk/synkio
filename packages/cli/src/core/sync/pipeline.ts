@@ -425,7 +425,7 @@ export async function executeSyncPipeline(
     const localBaseline = await readBaseline();
 
     if (!localBaseline) {
-      throw new Error('No baseline found. Run synkio sync first to fetch tokens from Figma.');
+      throw new Error('No baseline found. Run synkio pull first to fetch tokens from Figma.');
     }
 
     const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
@@ -600,8 +600,8 @@ export async function executeSyncPipeline(
           }
           console.log(chalk.dim('\n  Note: Formatting changes (field order, hex case) are expected.'));
           console.log(chalk.dim('  Token values and structure remain the same.'));
-          console.log(chalk.cyan('\n  Run with --backup to create a safety backup before syncing:\n'));
-          console.log(chalk.dim('    synkio sync --backup\n'));
+          console.log(chalk.cyan('\n  Run with --backup to create a safety backup before building:\n'));
+          console.log(chalk.dim('    synkio build --backup\n'));
         }
       } else {
         // No existing files - show what will be created

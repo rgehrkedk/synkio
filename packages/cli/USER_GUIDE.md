@@ -8,9 +8,10 @@ Complete reference for Synkio CLI commands, configuration, and features.
 - [Getting Started](#getting-started)
 - [Commands](#commands)
   - [init](#init)
-  - [sync](#sync)
-  - [import](#import)
+  - [pull](#pull)
   - [build](#build)
+  - [diff](#diff)
+  - [import](#import)
   - [export](#export)
   - [rollback](#rollback)
   - [validate](#validate)
@@ -20,7 +21,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [Overview](#overview)
   - [Setup](#setup)
   - [Workflow Steps](#workflow-steps)
-  - [Comparison Table](#comparison-sync-vs-pr-workflow)
+  - [Comparison Table](#comparison-pull-vs-pr-workflow)
   - [Best Practices](#best-practices)
 - [Configuration](#configuration)
   - [Basic Config](#basic-config)
@@ -28,7 +29,6 @@ Complete reference for Synkio CLI commands, configuration, and features.
   - [Build Options](#build-options)
   - [CSS Options](#css-options)
   - [Docs Options](#docs-options)
-  - [Sync Options](#sync-options)
   - [Collection Options](#collection-options)
   - [Styles Options](#styles-options)
   - [Import Options](#import-options)
@@ -39,7 +39,7 @@ Complete reference for Synkio CLI commands, configuration, and features.
 - [Features](#features)
   - [Breaking Change Protection](#breaking-change-protection)
   - [Watch Mode](#watch-mode)
-  - [Selective Sync](#selective-sync)
+  - [Selective Pull](#selective-pull)
   - [Rollback Preview](#rollback-preview)
 - [Using Style Dictionary](#using-style-dictionary)
 - [Hosting Documentation](#hosting-your-documentation)
@@ -51,8 +51,9 @@ Complete reference for Synkio CLI commands, configuration, and features.
 
 1. **Configure** — Provide Synkio with your Figma file URL and output directory
 2. **Plugin** — Run the Synkio Figma plugin to export variables
-3. **Sync** — CLI fetches token data and generates JSON files
-4. **Repeat** — Re-run sync whenever tokens change
+3. **Pull** — CLI fetches token data and updates baseline.json
+4. **Build** — CLI generates token files from baseline
+5. **Repeat** — Re-run pull + build whenever tokens change
 
 ---
 
@@ -83,10 +84,14 @@ This creates:
 2. Run **Plugins > Synkio**
 3. Click "Sync" to export variables
 
-### 4. Sync
+### 4. Pull and Build
 
 ```bash
-npx synkio sync
+# Fetch tokens from Figma
+npx synkio pull
+
+# Generate token files
+npx synkio build
 ```
 
 Your tokens are now in your project!
@@ -121,55 +126,50 @@ npx synkio init
 
 ---
 
-### sync
+### pull
 
-Fetch tokens from Figma and save to your project.
+Fetch tokens from Figma and update baseline.json.
+
+The `pull` command fetches token data from Figma and updates your local baseline. It does NOT write token files — run `synkio build` after pulling to generate output files.
 
 ```bash
-npx synkio sync
+npx synkio pull
 ```
 
 **Options:**
 | Flag | Description |
 |------|-------------|
-| `--preview` | Show changes without applying (includes roundtrip verification) |
-| `--backup` | Create timestamped backup before overwriting files |
-| `--force` | Bypass breaking change protection |
-| `--report` | Generate markdown report |
-| `--no-report` | Skip report generation |
-| `--watch` | Poll Figma for changes |
+| `--preview` | Show changes without updating baseline |
+| `--collection=<name>` | Pull specific collection(s), comma-separated |
+| `--watch` | Poll Figma for changes continuously |
 | `--interval=<s>` | Watch interval in seconds (default: 30) |
-| `--collection=<name>` | Sync specific collection(s), comma-separated |
-| `--regenerate` | Regenerate files from existing baseline (no Figma fetch) |
-| `--build` | Force run build without prompting |
-| `--no-build` | Skip build entirely |
-| `--open` | Open docs folder after sync (if docs enabled) |
 | `--timeout=<s>` | Figma API timeout in seconds (default: 120) |
 | `--config=<file>` | Path to config file |
+
+**Exit codes:**
+| Code | Meaning |
+|------|---------|
+| `0` | Success (no breaking changes) |
+| `1` | Breaking changes detected |
+| `2` | Error (config, network, etc.) |
 
 **Examples:**
 
 ```bash
-# Preview changes (dry run with roundtrip verification)
-npx synkio sync --preview
+# Fetch from Figma, update baseline
+npx synkio pull
 
-# Sync with backup for safety
-npx synkio sync --backup
-
-# Force sync past breaking changes
-npx synkio sync --force
+# Preview changes without updating
+npx synkio pull --preview
 
 # Watch mode with 60s interval
-npx synkio sync --watch --interval=60
+npx synkio pull --watch --interval=60
 
-# Sync only theme collection
-npx synkio sync --collection=theme
+# Pull only theme collection
+npx synkio pull --collection=theme
 
-# Sync multiple collections
-npx synkio sync --collection=theme,base
-
-# Regenerate files after config change (no Figma fetch)
-npx synkio sync --regenerate
+# Pull multiple collections
+npx synkio pull --collection=theme,base
 ```
 
 ---
@@ -272,84 +272,103 @@ git pull
 # Developer imports the new tokens
 npx synkio import
 
-# Generate output files (auto-runs if config has css/docs enabled)
-npx synkio sync --regenerate
+# Generate output files
+npx synkio build
 ```
 
 ---
 
 ### build
 
-Build token files from a baseline file.
+Generate token files from baseline.json.
 
-This command splits a baseline file into token files according to your configuration. It's primarily used in the GitHub PR workflow to apply changes after merging a PR created by the Figma plugin.
+The `build` command generates token files from your baseline. It works entirely offline — no Figma API calls required.
 
 ```bash
-# Build from default baseline
 npx synkio build
-
-# Build from export-baseline (after PR merge)
-npx synkio build --from synkio/export-baseline.json
 ```
 
 **Options:**
 | Flag | Description |
 |------|-------------|
-| `--from=<path>` | Custom baseline path (default: `synkio/baseline.json`) |
-| `--preview` | Show changes without applying |
-| `--verbose` | Show detailed output |
+| `--force` | Bypass breaking change confirmation |
+| `--rebuild` | Regenerate all files (skip comparison) |
+| `--backup` | Create timestamped backup before overwriting files |
+| `--report` | Generate markdown diff report |
+| `--no-report` | Skip report generation |
+| `--open` | Open docs folder after build (if docs enabled) |
 | `--config=<file>` | Path to config file |
 
 **Examples:**
 
 ```bash
-# Build from default baseline
+# Build token files from baseline
 npx synkio build
 
-# Build from export-baseline (after PR merge)
-npx synkio build --from synkio/export-baseline.json
+# Regenerate all files (after config change)
+npx synkio build --rebuild
 
-# Preview changes without applying
-npx synkio build --from synkio/export-baseline.json --preview
+# Build with backup for safety
+npx synkio build --backup
 
-# Show detailed output
-npx synkio build --verbose
+# Force build past breaking changes
+npx synkio build --force
 ```
 
 **How it works:**
 
-1. Reads baseline from specified path
-2. Compares with current baseline (if exists)
-3. Shows diff summary (new, changed, renamed, deleted tokens)
-4. Splits baseline into token files per your config
-5. Updates `synkio/baseline.json`
-6. Runs `build.script` if configured
+1. Reads `synkio/baseline.json`
+2. Splits tokens according to config strategy
+3. Processes styles if configured
+4. Writes token files to output directory
+5. Generates CSS if enabled
+6. Generates docs if enabled
+7. Runs `build.script` if configured
 
-**Breaking Change Behavior:**
+**Breaking Change Warning:**
 
-Unlike `synkio sync`, the `build` command does NOT block on breaking changes. It shows warnings but assumes changes were already reviewed in a PR:
-
-```
-Reading baseline from synkio/export-baseline.json...
-
-Changes from current baseline:
-  ✨ 5 new tokens
-  🔄 12 value changes
-  📝 2 renames
-  ❌ 3 deleted tokens
-
-⚠️ Breaking changes detected:
-  - colors.primary (deleted)
-  - spacing.large (deleted)
-
-Review SYNC_REPORT.md for details.
-
-✓ Built 24 token files
-✓ Updated synkio/baseline.json
-✓ Ran build.script: npm run build:tokens
-```
+When baseline contains breaking changes (deletions/renames) compared to existing files, build will show a warning. Use `--force` to proceed.
 
 See [GitHub PR Workflow](#github-pr-workflow) for typical usage.
+
+---
+
+### diff
+
+Compare baseline.json with current token files on disk.
+
+This is a read-only command that shows what would change if you ran `synkio build`. Useful for CI/CD to detect drift between baseline and files.
+
+```bash
+npx synkio diff
+```
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--config=<file>` | Path to config file |
+
+**Exit codes:**
+| Code | Meaning |
+|------|---------|
+| `0` | No differences (baseline and files are in sync) |
+| `1` | Differences detected |
+| `2` | Error (config, missing files, etc.) |
+
+**Examples:**
+
+```bash
+# Compare baseline with token files
+npx synkio diff
+```
+
+**Use in CI:**
+
+```yaml
+# .github/workflows/check-tokens.yml
+- run: npx synkio diff
+  # Fails if token files don't match baseline
+```
 
 ---
 
@@ -419,7 +438,7 @@ The exported baseline preserves Figma variable IDs (if present in your token fil
 
 ### rollback
 
-Revert to the previous sync state.
+Revert to the previous token state.
 
 ```bash
 npx synkio rollback
@@ -577,47 +596,36 @@ Approve or request changes.
 After merging the PR:
 
 ```bash
-# Apply the baseline to your token files
-npx synkio build --from synkio/export-baseline.json
+# Build token files from the baseline
+npx synkio build
 ```
 
 This will:
-- Split the baseline into token files per your config
-- Update `synkio/baseline.json`
+- Read `synkio/baseline.json` (updated by the PR)
+- Split tokens into files per your config
 - Run `build.script` if configured (e.g., Style Dictionary)
-- Show warnings for breaking changes (but not block)
+- Show warnings for breaking changes
 
 **Example output:**
 
 ```
-Reading baseline from synkio/export-baseline.json...
+Building tokens from baseline...
 
-Changes from current baseline:
-  ✨ 5 new tokens
-  🔄 12 value changes
-  📝 2 renames
-  ❌ 3 deleted tokens
+Built 24 token files from baseline.
+  + 2 style files, ran build script
 
-⚠️ Breaking changes detected:
-  - colors.primary (deleted)
-  - spacing.large (deleted)
-
-Review SYNC_REPORT.md for details.
-
-✓ Built 24 token files
-✓ Updated synkio/baseline.json
-✓ Ran build.script: npm run build:tokens
+  Report: synkio/reports/build-2025-01-15T10-30-00.md
 ```
 
-### Comparison: Sync vs PR Workflow
+### Comparison: Pull vs PR Workflow
 
-| Aspect | synkio sync | GitHub PR Workflow |
-|--------|-------------|-------------------|
+| Aspect | synkio pull + build | GitHub PR Workflow |
+|--------|---------------------|-------------------|
 | **Source** | Figma API (direct) | Pre-reviewed PR |
 | **Review** | At CLI execution | In PR before merge |
-| **Breaking** | Blocks (use --force) | Warns (already reviewed) |
+| **Breaking** | pull reports, build warns | Visible in PR |
 | **Audit Trail** | Baseline in `synkio/` | PR + SYNC_REPORT.md in git history |
-| **Designer Autonomy** | Requires developer to run sync | Designer creates PR independently |
+| **Designer Autonomy** | Requires developer to run pull | Designer creates PR independently |
 | **Best for** | Solo dev, quick sync | Team workflow, compliance, auditing |
 
 ### Best Practices
@@ -660,7 +668,7 @@ name: Apply Design Tokens
 on:
   push:
     branches: [main]
-    paths: ['synkio/export-baseline.json']
+    paths: ['synkio/baseline.json']
 
 jobs:
   build:
@@ -669,11 +677,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
       - run: npm ci
-      - run: npx synkio build --from synkio/export-baseline.json
+      - run: npx synkio build
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: Build design tokens"
-          file_pattern: "tokens/**/*.json synkio/baseline.json"
+          file_pattern: "tokens/**/*.json"
 ```
 
 #### 5. Handle Merge Conflicts
@@ -686,8 +694,8 @@ If two PRs modify `export-baseline.json`:
 #### 6. Test Locally Before Merging
 
 ```bash
-# Preview what will change after PR merge
-npx synkio build --from synkio/export-baseline.json --preview
+# Check if token files match baseline
+npx synkio diff
 ```
 
 ---
@@ -760,7 +768,7 @@ Configuration is stored in `synkio.config.json` in your project root.
 
 ### Build Options
 
-Configure custom build scripts that run after sync:
+Configure custom build scripts that run after `synkio build`:
 
 ```json
 {
@@ -777,11 +785,11 @@ Configure custom build scripts that run after sync:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `autoRun` | `false` | Run build without prompting |
-| `script` | - | Custom build command to run after sync |
+| `autoRun` | `false` | Run build script without prompting |
+| `script` | - | Custom build command to run after build |
 | `css` | - | Built-in CSS output options |
 
-The `build.script` option lets you integrate any build tool (Style Dictionary, Token Transformer, etc.) into your sync workflow.
+The `build.script` option lets you integrate any build tool (Style Dictionary, Token Transformer, etc.) into your build workflow.
 
 ### CSS Options
 
@@ -849,22 +857,6 @@ Generate a static documentation site:
 | `dir` | `synkio/docs` | Documentation output directory |
 | `title` | `Design Tokens` | Site title |
 
-### Sync Options
-
-```json
-{
-  "sync": {
-    "report": true,
-    "reportHistory": true
-  }
-}
-```
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `report` | `true` | Generate markdown report on sync |
-| `reportHistory` | `true` | Keep timestamped report history in `synkio/reports/` |
-
 ### Collection Options
 
 Configure per-collection output behavior. Collection-level settings override the parent-level `tokens.splitBy` and `tokens.includeMode` defaults:
@@ -907,7 +899,7 @@ Configure per-collection output behavior. Collection-level settings override the
 - `"group"` — One file per top-level group: `globals.colors.json`, `globals.spacing.json`
 - `"none"` — Single file for entire collection: `theme.json`
 
-After changing collection config, run `npx synkio sync --regenerate` to regenerate files without fetching from Figma.
+After changing collection config, run `npx synkio build --rebuild` to regenerate all files without fetching from Figma.
 
 ### Styles Options
 
@@ -1128,45 +1120,12 @@ Output:
 
 ## Features
 
-### Roundtrip Verification (Code → Figma → Code)
-
-The `--preview` flag includes intelligent roundtrip verification when you've exported tokens to Figma using `export`:
-
-```bash
-# 1. Export handcrafted tokens to Figma
-npx synkio export
-
-# 2. Import in Figma plugin
-
-# 3. Preview what sync will change
-npx synkio sync --preview
-```
-
-**Preview output:**
-
-```
-Verifying roundtrip (comparing current files with sync output):
-
-⚠ 3 file(s) will be modified:
-  - tokens/primitives/primitives.json
-  - tokens/semantic/semantic.dark.json
-  - tokens/semantic/semantic.light.json
-
-Note: Formatting changes (field order, hex case) are expected.
-Token values and structure remain the same.
-
-Run with --backup to create a safety backup before syncing:
-  synkio sync --backup
-```
-
-This verifies that your tokens survive the roundtrip without data loss.
-
 ### Backup Protection
 
 Create timestamped backups before overwriting files:
 
 ```bash
-npx synkio sync --backup
+npx synkio build --backup
 ```
 
 Backups are stored in `synkio/backups/{timestamp}/` with full directory structure preserved:
@@ -1191,28 +1150,26 @@ Synkio detects changes that could break your code:
 - **New modes** — New mode added to collection
 - **Mode renames** — Mode renamed (e.g., `Mode 1` -> `light`)
 
-When detected, sync is blocked:
+When detected during pull, changes are reported but baseline is still updated (exit code 1):
 
 ```
-BREAKING CHANGES DETECTED
+Breaking changes detected:
 
   Path changes: 1
     colors.primary -> colors.brand.primary
 
-  These changes may break your code.
-
-  Run 'synkio sync --force' to apply anyway.
-  Run 'synkio sync --preview' to see full details.
+  Run 'synkio build' to apply to token files.
 ```
+
+During build, you can use `--force` to proceed despite warnings.
 
 ### Watch Mode
 
 Continuously poll Figma for changes:
 
 ```bash
-npx synkio sync --watch
-npx synkio sync --watch --interval=60  # 60 second interval
-npx synkio sync --watch --force        # Auto-apply breaking changes
+npx synkio pull --watch
+npx synkio pull --watch --interval=60  # 60 second interval
 ```
 
 Output:
@@ -1225,16 +1182,17 @@ Watching for changes (every 30s)
   [10:30:30] Checking Figma... No changes
   [10:31:00] Checking Figma... Changes detected!
 
-  Sync complete. Wrote 5 token files.
+  Baseline updated.
+  Run 'synkio build' to generate token files.
 ```
 
-### Selective Sync
+### Selective Pull
 
-Sync specific collections only:
+Pull specific collections only:
 
 ```bash
-npx synkio sync --collection=theme
-npx synkio sync --collection=theme,base,icons
+npx synkio pull --collection=theme
+npx synkio pull --collection=theme,base,icons
 ```
 
 Useful for large design systems where you only need certain collections.
@@ -1312,7 +1270,7 @@ export default {
 }
 ```
 
-4. Configure Synkio to run the build after sync:
+4. Configure Synkio to run the build after generating tokens:
 
 ```json
 {
@@ -1322,8 +1280,8 @@ export default {
 }
 ```
 
-Now when you run `synkio sync`, it will:
-1. Fetch tokens from Figma
+Now when you run `synkio build`, it will:
+1. Read baseline.json
 2. Write DTCG JSON files to `tokens/`
 3. Run your Style Dictionary build
 4. Output CSS/SCSS/etc. to `dist/`

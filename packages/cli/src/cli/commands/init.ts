@@ -77,6 +77,7 @@ export async function ensureGitignore(): Promise<boolean> {
 export interface InitOptions {
     figmaUrl?: string;
     baseUrl?: string;
+    github?: boolean;  // GitHub workflow mode - skip FIGMA_TOKEN requirement
 }
 
 /**
@@ -140,31 +141,26 @@ export function generateConfig(fileId: string, baseUrl?: string): GeneratedConfi
     return config;
 }
 
-/**
- * Check if package.json exists in the current directory
- */
-async function hasPackageJson(): Promise<boolean> {
-    return await fileExists(resolve(process.cwd(), 'package.json'));
-}
-
 export async function initCommand(options: InitOptions = {}) {
+    const isGitHubWorkflow = options.github === true;
+
     console.log(chalk.bold('\nInitializing Synkio...\n'));
 
-    // Check for package.json
-    if (!await hasPackageJson()) {
-        console.log(chalk.yellow('  No package.json found in current directory.'));
-        console.log(chalk.dim('  Run this command from your project root.\n'));
+    if (isGitHubWorkflow) {
+        console.log(chalk.cyan('  GitHub workflow mode'));
+        console.log(chalk.dim('  (No Figma token required - using plugin → GitHub → build)\n'));
     }
 
-    // Check for FIGMA_TOKEN in environment
+    // Check for FIGMA_TOKEN in environment (only matters for CLI workflow)
     const figmaToken = process.env.FIGMA_TOKEN;
-    if (figmaToken) {
-        console.log(chalk.green('  ✓ FIGMA_TOKEN found in environment'));
-    } else {
-        console.log(chalk.yellow('  ✗ FIGMA_TOKEN not found'));
+    if (!isGitHubWorkflow) {
+        if (figmaToken) {
+            console.log(chalk.green('  ✓ FIGMA_TOKEN found in environment'));
+        } else {
+            console.log(chalk.yellow('  ✗ FIGMA_TOKEN not found'));
+        }
+        console.log('');
     }
-
-    console.log('');
 
     // Get Figma URL - the only required user input
     const figmaUrl = options.figmaUrl || await prompt('? Figma file URL:');
@@ -181,8 +177,8 @@ export async function initCommand(options: InitOptions = {}) {
     }
     console.log(chalk.green(`  ✓ File ID: ${fileId}`));
 
-    // Validate Figma connection if token is available
-    if (figmaToken) {
+    // Validate Figma connection if token is available (only for CLI workflow)
+    if (!isGitHubWorkflow && figmaToken) {
         const spinner = ora('Validating Figma connection...').start();
         try {
             const figmaClient = new FigmaClient({
@@ -211,26 +207,38 @@ export async function initCommand(options: InitOptions = {}) {
     console.log('Created:');
     console.log(chalk.green(`  ✓ ${CONFIG_FILE}`));
 
-    // Create .env.example (not .env)
-    await ensureEnvExample();
-    console.log(chalk.green('  ✓ .env.example'));
+    // Create .env.example only if no FIGMA_TOKEN found (skip if user already has .env set up)
+    if (!isGitHubWorkflow && !figmaToken) {
+        await ensureEnvExample();
+        console.log(chalk.green('  ✓ .env.example'));
 
-    // Ensure .env is in .gitignore
-    if (await ensureGitignore()) {
-        console.log(chalk.green('  ✓ Added .env to .gitignore'));
+        // Ensure .env is in .gitignore
+        if (await ensureGitignore()) {
+            console.log(chalk.green('  ✓ Added .env to .gitignore'));
+        }
     }
 
-    // Show next steps
+    // Show next steps - different based on workflow
     console.log(chalk.bold('\nNext steps:'));
 
-    if (figmaToken) {
+    if (isGitHubWorkflow) {
+        // GitHub workflow - no token needed
+        console.log('  1. Open the Synkio plugin in Figma');
+        console.log('  2. Click "Create PR" to push tokens to GitHub');
+        console.log('  3. Merge the PR on GitHub');
+        console.log(`  4. Run: ${chalk.cyan('npx synkio build')}`);
+        console.log('');
+        console.log(chalk.dim('  Tip: You can also use "synkio pull" if you add FIGMA_TOKEN later.'));
+    } else if (figmaToken) {
         console.log('  1. Run the Synkio plugin in Figma');
-        console.log(`  2. Run: ${chalk.cyan('npx synkio sync')}`);
+        console.log(`  2. Run: ${chalk.cyan('npx synkio pull')}`);
+        console.log(`  3. Run: ${chalk.cyan('npx synkio build')}`);
     } else {
         console.log(`  1. Copy ${chalk.cyan('.env.example')} to ${chalk.cyan('.env')} and add your FIGMA_TOKEN`);
         console.log(chalk.gray('     (Get token from your team lead or secrets manager)'));
         console.log('  2. Run the Synkio plugin in Figma');
-        console.log(`  3. Run: ${chalk.cyan('npx synkio sync')}`);
+        console.log(`  3. Run: ${chalk.cyan('npx synkio pull')}`);
+        console.log(`  4. Run: ${chalk.cyan('npx synkio build')}`);
     }
 
     // Show configuration guidance

@@ -141,6 +141,7 @@ export interface BaselineData {
   styles?: Record<string, StyleBaselineEntry>;
   metadata: {
     syncedAt: string;
+    figmaBaselineHash?: string; // Hash for sync status tracking
   };
 }
 
@@ -307,11 +308,17 @@ export interface GitHubSettings {
   token?: string;
 }
 
+export interface UrlSettings {
+  exportUrl?: string;   // URL to export-baseline.json (Code → Figma)
+  baselineUrl?: string; // URL to baseline.json (Figma → Code sync check)
+}
+
 export interface RemoteSettings {
   enabled: boolean;
   source: 'github' | 'url' | 'none';
   github?: GitHubSettings;
-  customUrl?: string;
+  url?: UrlSettings;
+  customUrl?: string;   // @deprecated - use url.baselineUrl instead
   autoCheck: boolean;
   lastFetch?: string;
 }
@@ -342,6 +349,25 @@ export interface SyncStatus {
     prUrl?: string;
     prNumber?: number;
   };
+  figmaBaselineHash?: string; // Hash of the current saved baseline
+}
+
+// =============================================================================
+// Code Sync Status - Tracks whether code has the latest baseline
+// =============================================================================
+
+export type CodeSyncStatus =
+  | 'synced'        // baseline.json hash matches Figma hash
+  | 'pr-pending'    // PR created with this hash, awaiting merge
+  | 'pending-pull'  // Figma saved but CLI hasn't pulled yet
+  | 'not-connected' // No GitHub configured
+  | 'checking';     // Currently fetching status
+
+export interface CodeSyncState {
+  status: CodeSyncStatus;
+  lastChecked?: string;           // ISO timestamp
+  codeBaselineHash?: string;      // Hash from baseline.json on GitHub
+  error?: string;
 }
 
 export interface PluginState {
@@ -352,6 +378,7 @@ export interface PluginState {
 
   // Data
   syncStatus: SyncStatus;
+  codeSyncState: CodeSyncState; // Tracks if code has pulled the latest baseline
   collections: CollectionInfo[];
   styleTypes: StyleTypeInfo[];
   syncBaseline?: BaselineData;
@@ -386,12 +413,17 @@ export type MessageToCode =
   | { type: 'test-connection' }
   | { type: 'clear-all-data' }
   | { type: 'navigate'; screen: Screen }
+  | { type: 'complete-onboarding' }
   | { type: 'close' }
   | { type: 'fetch-remote-result'; content: string }
   | { type: 'fetch-remote-error'; error: string }
   | { type: 'create-pr' }
   | { type: 'pr-created-result'; prUrl: string; prNumber: number }
-  | { type: 'pr-created-error'; error: string };
+  | { type: 'pr-created-error'; error: string }
+  // Code sync status
+  | { type: 'check-code-sync' }
+  | { type: 'code-sync-result'; content: string }
+  | { type: 'code-sync-error'; error: string };
 
 export type MessageToUI =
   | { type: 'initialized'; state: Partial<PluginState> }
@@ -405,6 +437,7 @@ export type MessageToUI =
   | { type: 'fetch-complete'; baseline: BaselineData; diff?: ComparisonResult }
   | { type: 'fetch-error'; error: string }
   | { type: 'do-fetch-remote'; github: GitHubSettings }
+  | { type: 'do-fetch-remote-url'; url: string }
   | { type: 'import-complete'; baseline: BaselineData; diff?: ComparisonResult }
   | { type: 'import-error'; error: string }
   | { type: 'apply-started' }
@@ -416,4 +449,8 @@ export type MessageToUI =
   | { type: 'data-cleared' }
   | { type: 'do-create-pr'; github: GitHubSettings; files: Record<string, string>; prTitle: string; prBody: string }
   | { type: 'pr-created'; prUrl: string; prNumber: number }
-  | { type: 'pr-error'; error: string };
+  | { type: 'pr-error'; error: string }
+  // Code sync status
+  | { type: 'do-check-code-sync'; github: GitHubSettings; baselinePath: string }
+  | { type: 'do-check-code-sync-url'; url: string }
+  | { type: 'code-sync-update'; codeSyncState: CodeSyncState };

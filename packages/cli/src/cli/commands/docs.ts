@@ -29,7 +29,7 @@ export async function docsCommand(options: DocsOptions = {}) {
     const baseline = await readBaseline();
 
     if (!baseline) {
-      spinner.fail(chalk.red('No token data found. Run "synkio sync" first.'));
+      spinner.fail(chalk.red('No token data found. Run "synkio pull" first.'));
       process.exit(1);
     }
 

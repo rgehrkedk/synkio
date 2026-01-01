@@ -6,7 +6,7 @@ export async function tokensCommand() {
     const baseline = await readBaseline();
 
     if (!baseline) {
-      console.log(chalk.yellow('No local token baseline found. Run "synkio sync" first.'));
+      console.log(chalk.yellow('No local token baseline found. Run "synkio pull" first.'));
       return;
     }
 

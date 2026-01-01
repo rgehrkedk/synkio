@@ -17,7 +17,7 @@ synkio/
 ├── packages/
 │   ├── cli/                    # Main npm package (synkio)
 │   │   ├── src/
-│   │   │   ├── cli/           # Command implementations (init, sync, import, docs, etc.)
+│   │   │   ├── cli/           # Command implementations (init, pull, build, diff, import, docs, etc.)
 │   │   │   ├── core/          # Core business logic
 │   │   │   │   ├── sync/      # Sync pipeline orchestration
 │   │   │   │   ├── compare/   # Baseline comparison and diffing
@@ -81,10 +81,10 @@ When developing the CLI locally, `npx synkio` will fetch from npm instead of usi
 # After building, link the CLI globally
 cd packages/cli
 npm link
-synkio sync  # Now uses local build
+synkio pull  # Now uses local build
 
 # Or run the built CLI directly
-node packages/cli/dist/cli/bin.js sync
+node packages/cli/dist/cli/bin.js pull
 ```
 
 ### Running Tests
@@ -95,17 +95,34 @@ node packages/cli/dist/cli/bin.js sync
 
 ## Core Architecture
 
-### Sync Pipeline Flow
+### Pull/Build Command Flow
 
-The main sync process ([pipeline.ts:282-528](packages/cli/src/core/sync/pipeline.ts#L282-L528)) orchestrates:
+The CLI uses a two-phase approach:
+
+#### Pull Command ([pull.ts](packages/cli/src/cli/commands/pull.ts))
+Fetches from Figma and updates baseline.json only:
 
 1. **Fetch** - [figma.ts](packages/cli/src/core/figma.ts) fetches data via Figma API
 2. **Normalize** - [tokens.ts](packages/cli/src/core/tokens.ts) transforms plugin data to internal format
 3. **Compare** - [core/compare/](packages/cli/src/core/compare/) detects changes via ID-based diffing
-4. **Split** - [tokens/split-strategies.ts](packages/cli/src/core/tokens/split-strategies.ts) applies collection-specific splitting (mode/group/none)
-5. **Merge Styles** - [sync/style-merger.ts](packages/cli/src/core/sync/style-merger.ts) integrates Figma styles with variables
-6. **Write** - [sync/file-writer.ts](packages/cli/src/core/sync/file-writer.ts) writes token files
-7. **Build** - [sync/build-runner.ts](packages/cli/src/core/sync/build-runner.ts) runs CSS generation or custom build scripts
+4. **Write Baseline** - Updates `synkio/baseline.json`
+
+#### Build Command ([build.ts](packages/cli/src/cli/commands/build.ts))
+Generates token files from baseline.json (offline, no Figma API):
+
+1. **Read Baseline** - [baseline.ts](packages/cli/src/core/baseline.ts) reads baseline.json
+2. **Split** - [tokens/split-strategies.ts](packages/cli/src/core/tokens/split-strategies.ts) applies collection-specific splitting (mode/group/none)
+3. **Merge Styles** - [sync/style-merger.ts](packages/cli/src/core/sync/style-merger.ts) integrates Figma styles with variables
+4. **Write** - [sync/file-writer.ts](packages/cli/src/core/sync/file-writer.ts) writes token files
+5. **Build** - [sync/build-runner.ts](packages/cli/src/core/sync/build-runner.ts) runs CSS generation or custom build scripts
+
+#### Diff Command ([diff.ts](packages/cli/src/cli/commands/diff.ts))
+Compares baseline.json with token files on disk (read-only, for CI):
+
+1. **Read Baseline** - Loads baseline.json
+2. **Discover Files** - [export/file-discoverer.ts](packages/cli/src/core/export/file-discoverer.ts) finds token files
+3. **Parse Tokens** - [export/token-parser.ts](packages/cli/src/core/export/token-parser.ts) reads token files
+4. **Compare** - Reports differences between baseline and files
 
 ### Baseline System
 
@@ -114,7 +131,7 @@ The main sync process ([pipeline.ts:282-528](packages/cli/src/core/sync/pipeline
 - **Format**: `{ baseline: {...}, styles: {...}, metadata: {...} }`
 - **Implementation**: [baseline.ts](packages/cli/src/core/baseline.ts)
 
-The baseline enables intelligent diffing by preserving Figma variable IDs across syncs.
+The baseline enables intelligent diffing by preserving Figma variable IDs across pulls.
 
 ### Breaking Change Detection
 
@@ -126,7 +143,7 @@ The comparison system ([core/compare/](packages/cli/src/core/compare/)) detects:
 - **New modes** - New mode added to collection
 - **Mode renames** - Mode name changed (detected via mode ID)
 
-Syncs are blocked unless `--force` is used. See [breaking-changes.ts](packages/cli/src/core/sync/breaking-changes.ts).
+Breaking changes are reported during pull (exit code 1) and can be bypassed with `--force` during build. See [breaking-changes.ts](packages/cli/src/core/sync/breaking-changes.ts).
 
 ### Token Splitting Strategies
 
@@ -183,11 +200,11 @@ Figma can return modes that don't exist. The CLI filters these via [utils/figma.
 
 ### Collection Discovery
 
-On first sync, the CLI discovers collections from token data and updates `synkio.config.json` automatically. See [utils/collection-discovery.ts](packages/cli/src/core/utils/collection-discovery.ts).
+On first pull, the CLI discovers collections from token data and updates `synkio.config.json` automatically. See [utils/collection-discovery.ts](packages/cli/src/core/utils/collection-discovery.ts).
 
-### Regenerate Mode
+### Rebuild Mode
 
-`synkio sync --regenerate` rebuilds output files from existing baseline without fetching from Figma. Useful after changing config (e.g., switching `splitBy` strategy).
+`synkio build --rebuild` regenerates all output files from existing baseline. Useful after changing config (e.g., switching `splitBy` strategy).
 
 ### Style Merging
 
@@ -237,7 +254,7 @@ All comparison logic lives in [src/core/compare/](packages/cli/src/core/compare/
 The CLI uses a debug logger ([utils/logger.ts](packages/cli/src/utils/logger.ts)). Enable with:
 
 ```bash
-DEBUG=synkio synkio sync
+DEBUG=synkio synkio pull
 ```
 
 ## Environment Variables
@@ -252,7 +269,7 @@ Tokens are loaded from `.env` via `dotenv/config` in [bin.ts:2](packages/cli/src
 - Legacy `tokensrc.json` is deprecated but still supported
 - Config updates happen automatically for collection discovery and renames
 - Per-collection config overrides parent `tokens.splitBy` and `tokens.includeMode`
-- Use `--regenerate` after config changes to rebuild files
+- Use `synkio build --rebuild` after config changes to regenerate files
 
 ## Output Formats
 

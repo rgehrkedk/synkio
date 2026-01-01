@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "figma": {
+    "fileId": "IDaXDDvcIU1nDvuIP0IG47",
+    "accessToken": "${FIGMA_TOKEN}"
+  },
+  "tokens": {
+    "dir": "tokens",
+
+    "collections": {
+      "brand": {
+        "splitBy": "mode",
+        "dir": "tokens/brands"
+
+      },
+      "globals": {
+        "splitBy": "group",
+        "dir": "tokens/primitives"
+      },
+      "theme": {
+        "splitBy": "mode",
+        "dir": "tokens/themes"
+      }
+    },
+    "styles": {
+      "paint": {
+        "mergeInto": {
+          "collection": "brand",
+          "group": "color"
+        }
+      },
+      "text": {
+        "mergeInto": {
+          "collection": "globals",
+          "group": "font"
+        }
+      },
+      "effect": {
+        "dir": "tokens/primitives",
+        "file": "effects"
+      }
+    }
+  },
+  "docsPages": {
+    "enabled": true,
+    "dir": "synkio/docs",
+    "title": "Design Tokens"
+  }
+}

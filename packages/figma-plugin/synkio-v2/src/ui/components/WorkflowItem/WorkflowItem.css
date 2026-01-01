@@ -1,0 +1,55 @@
+.workflow-item {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+}
+
+.workflow-item__header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.workflow-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+}
+
+.workflow-item__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.workflow-item__steps {
+  margin: 0;
+  padding: 0 0 0 var(--spacing-lg);
+  list-style: decimal;
+}
+
+.workflow-item__step {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-xs);
+}
+
+.workflow-item__step:last-child {
+  margin-bottom: 0;
+}
+
+.workflow-item__commands {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+/* When steps and commands are both present */
+.workflow-item__steps + .workflow-item__commands {
+  margin-top: var(--spacing-md);
+}

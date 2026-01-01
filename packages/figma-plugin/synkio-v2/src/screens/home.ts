@@ -2,7 +2,7 @@
 // Home Screen - Status Overview
 // =============================================================================
 
-import { PluginState, SyncEvent } from '../lib/types';
+import { PluginState, SyncEvent, CodeSyncState } from '../lib/types';
 import { RouterActions } from '../ui/router';
 import {
   el,
@@ -20,10 +20,10 @@ import {
 } from '../ui/layout/index';
 
 export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElement {
-  const { syncStatus, history } = state;
+  const { syncStatus, codeSyncState, history } = state;
 
   // Build status section
-  const statusCard = buildStatusCard(syncStatus, history);
+  const statusCard = buildStatusCard(syncStatus, codeSyncState, history, actions);
 
   // Build workflow cards
   const syncCard = buildSyncCard(state, actions);
@@ -41,14 +41,17 @@ export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElem
   });
 
   const header = Header({
-    title: 'Synkio',
     rightAction: settingsBtn,
   });
+
+  // Version footer
+  const versionFooter = el('div', { class: 'text-center text-xs text-tertiary pt-md' }, 'Synkio v2.0.0');
 
   const content = ContentArea([
     statusCard,
     Row([syncCard, applyCard], 'var(--spacing-md)'),
     activitySection,
+    versionFooter,
   ]);
 
   // Make workflow cards equal width
@@ -58,7 +61,12 @@ export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElem
   return PageLayout([header, content]);
 }
 
-function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEvent[]): HTMLElement {
+function buildStatusCard(
+  syncStatus: PluginState['syncStatus'],
+  codeSyncState: CodeSyncState | undefined,
+  history: SyncEvent[],
+  actions: RouterActions
+): HTMLElement {
   const card = Card({ padding: 'lg' });
   card.classList.add('text-center');
 
@@ -67,7 +75,7 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
     'in-sync': { type: 'success', label: 'In Sync' },
     'pending-changes': { type: 'warning', label: `${syncStatus.pendingChanges || 0} changes pending` },
     'out-of-sync': { type: 'error', label: 'Out of Sync' },
-    'not-setup': { type: 'neutral', label: 'Not Set Up' },
+    'not-setup': { type: 'neutral', label: 'Waiting for First Sync' },
   };
 
   let status = statusMap[syncStatus.state] || statusMap['not-setup'];
@@ -132,6 +140,12 @@ function buildStatusCard(syncStatus: PluginState['syncStatus'], history: SyncEve
     card.appendChild(lastSync);
   }
 
+  // Add code sync status indicator (only if we have a baseline and GitHub configured)
+  if (syncStatus.state !== 'not-setup' && codeSyncState) {
+    const codeSyncIndicator = buildCodeSyncIndicator(codeSyncState, syncStatus, actions);
+    card.appendChild(codeSyncIndicator);
+  }
+
   return card;
 }
 
@@ -160,7 +174,7 @@ function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement 
       statusClass += ' text-warning';
     }
   } else if (state.syncStatus.state === 'not-setup') {
-    statusText = 'Set up sync';
+    statusText = 'Ready to sync your first tokens';
     statusClass += ' text-secondary';
   } else {
     statusText = 'Everything synced';
@@ -172,10 +186,11 @@ function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement 
   // Button container
   const buttonContainer = el('div', { class: 'flex flex-col gap-xs mt-md' });
 
-  // Main sync button
+  // Main sync button - different label for first-time setup
+  const isFirstSync = state.syncStatus.state === 'not-setup';
   const syncButton = Button({
-    label: pendingCount > 0 ? 'Review & Sync' : 'View Status',
-    variant: pendingCount > 0 ? 'primary' : 'secondary',
+    label: isFirstSync ? 'Start Sync' : pendingCount > 0 ? 'Review & Sync' : 'View Status',
+    variant: isFirstSync || pendingCount > 0 ? 'primary' : 'secondary',
     size: 'sm',
     fullWidth: true,
     onClick: () => actions.navigate('sync'),
@@ -206,7 +221,7 @@ function buildApplyCard(state: PluginState, actions: RouterActions): HTMLElement
     statusText = `${codeChanges} update${codeChanges === 1 ? '' : 's'} available`;
     statusClass += ' text-brand';
   } else if (!hasCodeBaseline) {
-    statusText = 'Connect to repository';
+    statusText = 'Pull tokens from code';
     statusClass += ' text-secondary';
   } else {
     statusText = 'No updates available';
@@ -285,6 +300,102 @@ function buildActivityItem(event: SyncEvent): HTMLElement {
   item.appendChild(time);
 
   return item;
+}
+
+// =============================================================================
+// Code Sync Status Indicator
+// =============================================================================
+
+function buildCodeSyncIndicator(
+  codeSyncState: CodeSyncState,
+  syncStatus: PluginState['syncStatus'],
+  actions: RouterActions
+): HTMLElement {
+  const container = el('div', { class: 'mt-md pt-md', style: 'border-top: 1px solid var(--color-border);' });
+
+  // Map code sync status to display
+  // Note: These check against the remote repository, not local files
+  const statusConfig: Record<string, { icon: string; label: string; color: string; class: string }> = {
+    'synced': {
+      icon: 'check',
+      label: 'Code is synced',
+      color: 'var(--color-success)',
+      class: 'text-success',
+    },
+    'pr-pending': {
+      icon: 'github',
+      label: 'PR pending merge',
+      color: 'var(--color-brand)',
+      class: 'text-brand',
+    },
+    'pending-pull': {
+      icon: 'clock',
+      label: 'Waiting for code',
+      color: 'var(--color-warning)',
+      class: 'text-warning',
+    },
+    'checking': {
+      icon: 'refresh',
+      label: 'Checking...',
+      color: 'var(--color-secondary)',
+      class: 'text-secondary',
+    },
+    'not-connected': {
+      icon: 'link',
+      label: 'Remote not configured',
+      color: 'var(--color-tertiary)',
+      class: 'text-tertiary',
+    },
+  };
+
+  // Determine the status to display
+  let displayStatus = codeSyncState.status;
+
+  // If PR is pending and it's a pr-created action, show pr-pending
+  if (syncStatus.lastAction?.type === 'pr-created' && codeSyncState.status === 'pending-pull') {
+    displayStatus = 'pr-pending';
+  }
+
+  const config = statusConfig[displayStatus] || statusConfig['not-connected'];
+
+  // Build the indicator row
+  const row = el('div', { class: 'flex items-center justify-center gap-xs' });
+
+  // Icon
+  const iconWrapper = el('span', { style: `color: ${config.color};` });
+  iconWrapper.appendChild(Icon(config.icon as 'check' | 'github' | 'clock' | 'refresh' | 'link', 'sm'));
+  row.appendChild(iconWrapper);
+
+  // Label
+  row.appendChild(el('span', { class: `text-xs ${config.class}` }, config.label));
+
+  // Refresh button (only if connected and not currently checking)
+  if (displayStatus !== 'not-connected' && displayStatus !== 'checking') {
+    const refreshBtn = el('button', {
+      class: 'text-tertiary hover:text-secondary ml-xs',
+      style: 'background: none; border: none; cursor: pointer; padding: 2px;',
+      title: 'Refresh status',
+    });
+    refreshBtn.appendChild(Icon('refresh', 'xs'));
+    refreshBtn.addEventListener('click', () => {
+      actions.send({ type: 'check-code-sync' });
+    });
+    row.appendChild(refreshBtn);
+  }
+
+  container.appendChild(row);
+
+  // Show error message if there's one (helps explain why status is pending)
+  if (codeSyncState.error && displayStatus === 'pending-pull') {
+    container.appendChild(el('div', { class: 'text-xs text-tertiary mt-xs', style: 'max-width: 200px; text-align: center; margin: 0 auto;' }, codeSyncState.error));
+  } else if (codeSyncState.lastChecked) {
+    // Show last checked time if available
+    const lastChecked = new Date(codeSyncState.lastChecked);
+    const timeAgo = getTimeAgo(lastChecked);
+    container.appendChild(el('div', { class: 'text-xs text-tertiary mt-xs' }, `Checked ${timeAgo}`));
+  }
+
+  return container;
 }
 
 // Helpers

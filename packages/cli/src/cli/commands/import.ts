@@ -97,7 +97,7 @@ export async function importCommand(options: ImportOptions): Promise<void> {
     } else {
       spinner.succeed(chalk.green(
         `Imported ${parseResult.tokenCount} tokens from ${filesToImport.length} file(s).\n` +
-        chalk.dim('  Run synkio sync --regenerate to generate output files.')
+        chalk.dim('  Run synkio build to generate output files.')
       ));
     }
 

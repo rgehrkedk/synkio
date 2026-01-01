@@ -44,7 +44,7 @@ export function ApplyScreen(state: PluginState, actions: RouterActions): HTMLEle
 
   // Header
   const header = Header({
-    title: 'APPLY FROM CODE',
+    title: 'Apply',
     showBack: true,
     onBack: () => {
       currentView = 'source';
@@ -72,7 +72,9 @@ export function ApplyScreen(state: PluginState, actions: RouterActions): HTMLEle
 function buildSourceView(state: PluginState, actions: RouterActions, header: HTMLElement, error?: string): HTMLElement {
   const { settings, codeBaseline } = state;
   const remoteSettings = settings.remote;
-  const isGitHubConfigured = remoteSettings.github?.owner && remoteSettings.github?.repo;
+  const isGitHubConfigured = remoteSettings.source === 'github' && remoteSettings.github?.owner && remoteSettings.github?.repo;
+  const isUrlConfigured = remoteSettings.source === 'url' && remoteSettings.url?.exportUrl;
+  const isRemoteConfigured = isGitHubConfigured || isUrlConfigured;
 
   let contentChildren: HTMLElement[] = [];
 
@@ -84,7 +86,7 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
     }));
   }
 
-  // GitHub section
+  // Remote source section
   if (isGitHubConfigured) {
     // Show configured GitHub info
     const githubCard = Card({ padding: 'md' });
@@ -117,24 +119,49 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
         actions.send({ type: 'fetch-remote' });
       },
     }));
+  } else if (isUrlConfigured) {
+    // Show configured URL info
+    const urlCard = Card({ padding: 'md' });
+
+    const urlHeader = el('div', { class: 'flex items-center gap-sm mb-sm' });
+    urlHeader.appendChild(el('span', { class: 'font-medium' }, 'Remote URL'));
+    urlCard.appendChild(urlHeader);
+
+    const urlInfo = el('div', {
+      class: 'text-xs text-tertiary font-mono break-all',
+    }, remoteSettings.url?.exportUrl || '');
+    urlCard.appendChild(urlInfo);
+
+    contentChildren.push(urlCard);
+
+    // Fetch button
+    contentChildren.push(Button({
+      label: 'FETCH FROM URL',
+      variant: 'primary',
+      fullWidth: true,
+      onClick: () => {
+        currentView = 'preview';
+        actions.updateState({ error: undefined });
+        actions.send({ type: 'fetch-remote' });
+      },
+    }));
   } else {
     // Show setup prompt
     const setupCard = Card({ padding: 'md' });
 
-    const setupHeader = el('div', { class: 'github-header' });
-    setupHeader.appendChild(Icon('github', 'md'));
-    setupHeader.appendChild(el('span', { class: 'font-medium' }, 'GitHub Repository'));
+    const setupHeader = el('div', { class: 'flex items-center gap-sm mb-sm' });
+    setupHeader.appendChild(el('span', { class: 'font-medium' }, 'Remote Source'));
     setupCard.appendChild(setupHeader);
 
     const setupDesc = el('div', {
       class: 'text-sm text-secondary',
-    }, 'Connect to automatically fetch token updates from your repository.');
+    }, 'Configure GitHub or a custom URL to fetch token updates from your repository.');
     setupCard.appendChild(setupDesc);
 
     contentChildren.push(setupCard);
 
     contentChildren.push(Button({
-      label: 'CONNECT GITHUB',
+      label: 'CONFIGURE SOURCE',
       variant: 'primary',
       fullWidth: true,
       onClick: () => actions.navigate('settings'),

@@ -21,7 +21,7 @@ export function HistoryScreen(state: PluginState, actions: RouterActions): HTMLE
 
   // Header
   const header = Header({
-    title: 'HISTORY',
+    title: 'History',
     showBack: true,
     onBack: () => actions.navigate('home'),
   });

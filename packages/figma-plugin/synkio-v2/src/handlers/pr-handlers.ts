@@ -19,6 +19,8 @@ import {
   loadClientStorage,
   saveSimple,
   saveChunked,
+  generateBaselineHash,
+  saveFigmaBaselineHash,
 } from '../lib/storage';
 
 import {
@@ -64,19 +66,29 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
 
     // Note: We allow PRs even with no changes to establish baseline in repo
 
-    // 4. Generate baseline data
+    // 4. Generate baseline hash for tracking
+    const figmaBaselineHash = generateBaselineHash(
+      tokens.map((t) => ({ variableId: t.variableId, path: t.path, value: t.value })),
+      styles.map((s) => ({ styleId: s.styleId, path: s.path, value: s.value }))
+    );
+
+    // Save hash for code sync tracking
+    saveFigmaBaselineHash(figmaBaselineHash);
+
+    // 5. Generate baseline data with hash
     const exportBaseline: BaselineData = {
       ...currentBaseline,
       metadata: {
         syncedAt: new Date().toISOString(),
+        figmaBaselineHash,
       },
     };
 
-    // 5. Determine baseline path from GitHub settings (or use default)
+    // 6. Determine baseline path from GitHub settings (or use default)
     // Use prPath for PR workflow, defaults to synkio/baseline.json (no dot - git-tracked)
     const baselinePath = github.prPath || 'synkio/baseline.json';
 
-    // 6. Build files to commit
+    // 7. Build files to commit
     const files: Record<string, string> = {
       [baselinePath]: JSON.stringify(exportBaseline, null, 2),
     };
@@ -92,10 +104,10 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
       files[reportPath] = report;
     }
 
-    // 7. Generate PR body
+    // 8. Generate PR body
     const prBody = generatePRBody(diff, baselinePath);
 
-    // 8. Send to UI to make network requests
+    // 9. Send to UI to make network requests
     send({
       type: 'do-create-pr',
       github,
@@ -356,6 +368,15 @@ export async function handlePRCreated(
       state: {
         syncStatus,
         history,
+      },
+    });
+
+    // Update code sync status - PR created, waiting for merge and pull
+    send({
+      type: 'code-sync-update',
+      codeSyncState: {
+        status: 'pending-pull',
+        lastChecked: new Date().toISOString(),
       },
     });
   } catch (error) {

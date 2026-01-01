@@ -6,8 +6,14 @@
  */
 
 // Commands
-export { syncCommand, watchCommand } from './cli/commands/sync.js';
-export type { SyncOptions } from './cli/commands/sync.js';
+export { pullCommand, pullWatchCommand } from './cli/commands/pull.js';
+export type { PullOptions, PullResult } from './cli/commands/pull.js';
+
+export { buildCommand } from './cli/commands/build.js';
+export type { BuildOptions, BuildResult } from './cli/commands/build.js';
+
+export { diffCommand } from './cli/commands/diff.js';
+export type { DiffOptions } from './cli/commands/diff.js';
 
 export { initCommand } from './cli/commands/init.js';
 export type { InitOptions } from './cli/commands/init.js';

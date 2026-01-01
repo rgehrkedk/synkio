@@ -1,0 +1,82 @@
+/* =============================================================================
+   Hero Header - Premium Welcome Component
+   ============================================================================= */
+
+.hero-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) var(--spacing-lg) var(--spacing-lg);
+  text-align: center;
+  background: var(--color-bg);
+}
+
+/* Logo container with subtle glow effect */
+.hero-header__logo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-xl);
+  background: var(--color-primary);
+  color: var(--color-text-onbrand);
+  margin-bottom: var(--spacing-lg);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 4px 12px rgba(99, 102, 241, 0.25),
+    0 0 24px rgba(99, 102, 241, 0.15);
+}
+
+/* Subtle animated pulse on logo */
+.hero-header__logo::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: var(--radius-xl);
+  background: var(--color-primary);
+  opacity: 0.15;
+  animation: hero-pulse 3s ease-in-out infinite;
+}
+
+@keyframes hero-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.15; }
+  50% { transform: scale(1.08); opacity: 0.08; }
+}
+
+/* Brand name - refined typography */
+.hero-header__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Tagline - elegant secondary text */
+.hero-header__subtitle {
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+/* Compact variant for inner pages */
+.hero-header--compact {
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
+}
+
+.hero-header--compact .hero-header__logo {
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--spacing-md);
+}
+
+.hero-header--compact .hero-header__title {
+  font-size: 18px;
+  letter-spacing: 1.5px;
+}

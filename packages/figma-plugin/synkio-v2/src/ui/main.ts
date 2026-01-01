@@ -5,6 +5,7 @@
 import { Screen, PluginState, MessageToUI, MessageToCode, GitHubSettings } from '../lib/types';
 import { createRouter, Router, ScreenRenderer, ScreenCleanup } from './router';
 import { injectStyles } from './styles/index';
+import { countChanges } from '../lib/compare';
 import {
   HomeScreen,
   SyncScreen,
@@ -29,6 +30,10 @@ const initialState: PluginState = {
 
   syncStatus: {
     state: 'not-setup',
+  },
+
+  codeSyncState: {
+    status: 'not-connected',
   },
 
   collections: [],
@@ -174,6 +179,10 @@ function handleMessage(event: MessageEvent) {
       handleDoFetchRemote(message.github);
       break;
 
+    case 'do-fetch-remote-url':
+      handleDoFetchRemoteUrl(message.url);
+      break;
+
     case 'fetch-complete':
       router.updateState({
         isLoading: false,
@@ -262,6 +271,18 @@ function handleMessage(event: MessageEvent) {
         error: message.error,
       });
       break;
+
+    case 'do-check-code-sync':
+      handleDoCheckCodeSync(message.github, message.baselinePath);
+      break;
+
+    case 'do-check-code-sync-url':
+      handleDoCheckCodeSyncUrl(message.url);
+      break;
+
+    case 'code-sync-update':
+      router.updateState({ codeSyncState: message.codeSyncState });
+      break;
   }
 }
 
@@ -279,12 +300,24 @@ function handleInitialized(state: Partial<PluginState>) {
     isLoading: false,
     loadingMessage: undefined,
   });
+
+  // If remote source is configured and we have a baseline, trigger code sync check
+  const remote = state.settings?.remote;
+  const hasRemoteSource = remote?.enabled && (
+    (remote.source === 'github' && remote.github?.owner && remote.github?.repo) ||
+    (remote.source === 'url' && remote.url?.baselineUrl)
+  );
+  const hasBaseline = state.syncStatus?.state !== 'not-setup';
+  if (hasRemoteSource && hasBaseline && !state.isFirstTime) {
+    // Trigger code sync check
+    sendMessage({ type: 'check-code-sync' });
+  }
 }
 
 function handleSyncComplete(baseline: PluginState['syncBaseline'], diff?: PluginState['syncDiff']) {
   const currentState = router.getState();
 
-  // Count changes to update pending count
+  // Count changes for history record
   const changeCount = diff ? countChanges(diff) : 0;
 
   // Add to history
@@ -298,18 +331,19 @@ function handleSyncComplete(baseline: PluginState['syncBaseline'], diff?: Plugin
 
   const newHistory = [newEvent, ...currentState.history].slice(0, 10);
 
+  // After sync completes, Figma state IS the baseline - no pending changes
   router.updateState({
     isLoading: false,
     syncBaseline: baseline,
-    syncDiff: diff,
+    syncDiff: undefined, // Clear diff - we just synced, no pending changes
     syncStatus: {
-      state: changeCount > 0 ? 'pending-changes' : 'in-sync',
+      state: 'in-sync', // After sync, always in-sync
       lastSync: {
         timestamp: Date.now(),
         user: 'you',
         changeCount,
       },
-      pendingChanges: 0, // After sync, no pending changes
+      pendingChanges: 0,
       lastAction: {
         type: 'cli-save',
         timestamp: Date.now(),
@@ -326,15 +360,6 @@ function handleSyncComplete(baseline: PluginState['syncBaseline'], diff?: Plugin
   }
 }
 
-function countChanges(diff: PluginState['syncDiff']): number {
-  if (!diff) return 0;
-  return (
-    diff.valueChanges.length +
-    diff.pathChanges.length +
-    diff.newVariables.length +
-    diff.deletedVariables.length
-  );
-}
 
 // =============================================================================
 // GitHub Fetch (UI has access to fetch API, plugin sandbox does not)
@@ -396,6 +421,151 @@ async function handleDoFetchRemote(github: GitHubSettings) {
     sendMessage({ type: 'fetch-remote-result', content });
   } catch (error) {
     sendMessage({ type: 'fetch-remote-error', error: String(error) });
+  }
+}
+
+// =============================================================================
+// URL Fetch (for custom URL source)
+// =============================================================================
+
+async function handleDoFetchRemoteUrl(url: string) {
+  router.updateState({ isLoading: true, loadingMessage: 'Fetching from URL...' });
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('File not found at URL');
+      }
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const content = await response.text();
+
+    // Validate it's valid JSON with baseline structure
+    try {
+      const parsed = JSON.parse(content);
+      if (!parsed.baseline) {
+        throw new Error('Invalid export-baseline.json format: missing baseline field');
+      }
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        throw new Error('Invalid JSON response');
+      }
+      throw e;
+    }
+
+    // Send content back to plugin for processing
+    sendMessage({ type: 'fetch-remote-result', content });
+  } catch (error) {
+    sendMessage({ type: 'fetch-remote-error', error: String(error) });
+  }
+}
+
+// =============================================================================
+// Code Sync Status Check (UI has access to fetch API, plugin sandbox does not)
+// =============================================================================
+
+async function handleDoCheckCodeSync(github: GitHubSettings, baselinePath: string) {
+  // Update state to show checking
+  router.updateState({
+    codeSyncState: { status: 'checking' },
+  });
+
+  try {
+    const { owner, repo, branch, token } = github;
+    const targetBranch = branch || 'main';
+
+    // Build URL - use raw.githubusercontent for public repos, API for private
+    const url = token
+      ? `https://api.github.com/repos/${owner}/${repo}/contents/${baselinePath}?ref=${targetBranch}`
+      : `https://raw.githubusercontent.com/${owner}/${repo}/${targetBranch}/${baselinePath}`;
+
+    const headers: Record<string, string> = {
+      'Accept': token ? 'application/vnd.github.v3+json' : 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `token ${token}`;
+    }
+
+    const response = await fetch(url, { headers });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        sendMessage({ type: 'code-sync-error', error: 'File not found (404)' });
+        return;
+      }
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+
+    let content: string;
+    const responseText = await response.text();
+
+    // Try to parse as JSON to check if it's a GitHub API response (with base64 content)
+    try {
+      const parsed = JSON.parse(responseText);
+
+      if (parsed.content && parsed.encoding === 'base64') {
+        // GitHub API response - decode base64
+        const base64Clean = parsed.content.replace(/\n/g, '');
+        content = atob(base64Clean);
+      } else if (parsed.baseline || parsed.metadata) {
+        // Direct JSON content (the file itself, already parsed)
+        content = responseText;
+      } else {
+        throw new Error(`Unexpected response format`);
+      }
+    } catch {
+      // Not JSON - use as-is
+      content = responseText;
+    }
+
+    // Send content back to plugin for processing
+    sendMessage({ type: 'code-sync-result', content });
+  } catch (error) {
+    sendMessage({ type: 'code-sync-error', error: String(error) });
+  }
+}
+
+// =============================================================================
+// Code Sync Status Check via Custom URL
+// =============================================================================
+
+async function handleDoCheckCodeSyncUrl(url: string) {
+  // Update state to show checking
+  router.updateState({
+    codeSyncState: { status: 'checking' },
+  });
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        sendMessage({ type: 'code-sync-error', error: 'baseline.json not found at URL' });
+        return;
+      }
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const content = await response.text();
+
+    // Validate it's valid JSON with baseline structure
+    try {
+      const parsed = JSON.parse(content);
+      if (!parsed.baseline && !parsed.metadata) {
+        throw new Error('Invalid baseline.json format');
+      }
+    } catch {
+      throw new Error('Invalid JSON response');
+    }
+
+    // Send content back to plugin for processing
+    sendMessage({ type: 'code-sync-result', content });
+  } catch (error) {
+    sendMessage({ type: 'code-sync-error', error: String(error) });
   }
 }
 

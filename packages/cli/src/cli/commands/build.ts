@@ -1,31 +1,42 @@
 /**
  * Build Command
  *
- * Builds token files from a baseline file (default or custom).
- * Used for the GitHub PR workflow where export-baseline.json is committed.
+ * Generates token files from baseline.json.
+ * Works entirely offline - no Figma API calls.
  *
- * Unlike sync --regenerate:
- * - Can read from custom baseline path (--from option)
- * - Shows diff comparison if current baseline exists
- * - Warns on breaking changes but doesn't block (assumes PR already reviewed)
- * - Updates baseline.json after building
+ * This is the "build" phase of the pull/build workflow.
+ * The baseline.json is the source of truth created by `synkio pull`.
  */
 
 import chalk from 'chalk';
 import ora from 'ora';
-import { resolve } from 'node:path';
-import { readFile, access } from 'node:fs/promises';
+import { resolve, relative, dirname, join } from 'node:path';
+import { mkdir, writeFile, access, copyFile } from 'node:fs/promises';
 import { loadConfig } from '../../core/config.js';
-import { readBaseline, writeBaseline } from '../../core/baseline.js';
-import { compareBaselines, hasChanges, hasBreakingChanges, printDiffSummary } from '../../core/compare.js';
-import type { BaselineData } from '../../types/index.js';
+import { readBaseline } from '../../core/baseline.js';
 import {
-  regenerateFromBaseline,
+  compareBaselines,
+  hasChanges,
+  hasBreakingChanges,
+  generateDiffReport,
+  printDiffSummary,
+} from '../../core/compare.js';
+import { splitTokens, splitStyles } from '../../core/tokens.js';
+import type { SplitTokensOptions, StylesSplitOptions } from '../../core/tokens.js';
+import type { BaselineData, ComparisonResult } from '../../types/index.js';
+import {
+  buildFilesByDirectory,
+  mergeStylesIntoTokens,
+  writeTokenFiles,
+  writeStandaloneStyleFiles,
+  cleanupAllStaleFiles,
+  ensureDirectories,
   shouldRunBuild,
   runBuildPipeline,
   formatExtrasString,
   type Spinner,
 } from '../../core/sync/index.js';
+import { generateIntermediateFromBaseline, generateDocsFromBaseline } from '../../core/output.js';
 import { createLogger } from '../../utils/logger.js';
 import { openFolder } from '../utils.js';
 
@@ -33,27 +44,180 @@ import { openFolder } from '../utils.js';
  * Options for the build command
  */
 export interface BuildOptions {
-  from?: string;        // Custom baseline path (default: synkio/baseline.json)
+  force?: boolean;      // Bypass breaking change confirmation
+  rebuild?: boolean;    // Regenerate all files (skip comparison)
+  backup?: boolean;     // Backup existing files before overwriting
+  report?: boolean;     // Generate markdown diff report
+  noReport?: boolean;   // Skip report generation
+  open?: boolean;       // Open docs folder after build
   config?: string;      // Config file path
-  verbose?: boolean;    // Show detailed output
-  preview?: boolean;    // Show what would change without applying
-  open?: boolean;       // Open docs folder after build (if docs enabled)
 }
 
 /**
- * Build command - build token files from baseline
+ * Result of the build command
+ */
+export interface BuildResult {
+  filesWritten: number;
+  styleFilesWritten: number;
+  docsFilesWritten: number;
+  cssFilesWritten: number;
+  buildScriptRan: boolean;
+  hasChanges: boolean;
+  reportPath?: string;
+  docsDir?: string;
+  backupDir?: string;
+}
+
+/**
+ * Backup existing token files before overwriting
+ * Creates a timestamped backup directory in synkio/backups/
+ *
+ * @returns The backup directory path, or null if no files existed to backup
+ */
+async function backupExistingFiles(
+  filesByDir: Map<string, Map<string, any>>
+): Promise<string | null> {
+  const logger = createLogger();
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const backupDir = resolve(process.cwd(), 'synkio', 'backups', timestamp);
+
+  let filesBackedUp = 0;
+
+  for (const [dir, files] of filesByDir) {
+    for (const [filename] of files) {
+      const sourcePath = resolve(dir, filename);
+
+      try {
+        // Check if file exists
+        await access(sourcePath);
+
+        // Create backup directory structure
+        const relativeDir = relative(process.cwd(), dir);
+        const backupFilePath = join(backupDir, relativeDir, filename);
+        await mkdir(dirname(backupFilePath), { recursive: true });
+
+        // Copy file to backup
+        await copyFile(sourcePath, backupFilePath);
+        filesBackedUp++;
+        logger.debug(`Backed up: ${sourcePath} -> ${backupFilePath}`);
+      } catch {
+        // File doesn't exist, nothing to backup
+        logger.debug(`File doesn't exist, skipping backup: ${sourcePath}`);
+      }
+    }
+  }
+
+  if (filesBackedUp === 0) {
+    logger.debug('No existing files to backup');
+    return null;
+  }
+
+  logger.debug(`Backed up ${filesBackedUp} files to ${backupDir}`);
+  return backupDir;
+}
+
+/**
+ * Generate diff report if configured
+ */
+async function generateReport(
+  result: ComparisonResult,
+  config: any,
+  options: BuildOptions
+): Promise<string | undefined> {
+  // Check report options
+  const shouldGenerateReport = options.noReport
+    ? false
+    : options.report !== false;
+
+  if (!shouldGenerateReport) {
+    return undefined;
+  }
+
+  // Only generate if there were changes
+  if (!hasChanges(result)) {
+    return undefined;
+  }
+
+  const report = generateDiffReport(result, {
+    fileName: config.figma?.fileId || 'baseline',
+    exportedAt: new Date().toISOString(),
+  });
+
+  const synkioDir = resolve(process.cwd(), 'synkio');
+  await mkdir(synkioDir, { recursive: true });
+
+  // Always use timestamped reports for changelog history
+  const reportsDir = resolve(synkioDir, 'reports');
+  await mkdir(reportsDir, { recursive: true });
+  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+  const reportPath = resolve(reportsDir, `build-${timestamp}.md`);
+
+  await writeFile(reportPath, report);
+  return reportPath.replace(process.cwd() + '/', '');
+}
+
+/**
+ * Process styles and merge into token files
+ */
+async function processStyles(
+  normalizedStyles: any,
+  config: any,
+  filesByDir: Map<string, Map<string, any>>,
+  defaultOutDir: string,
+  spinner: Spinner
+): Promise<{ standaloneStyleFiles: any[] }> {
+  const standaloneStyleFiles: any[] = [];
+
+  if (!normalizedStyles || Object.keys(normalizedStyles).length === 0) {
+    return { standaloneStyleFiles };
+  }
+
+  const stylesConfig = config.tokens.styles;
+
+  // Check if styles are enabled (default: true)
+  if (stylesConfig?.enabled === false) {
+    return { standaloneStyleFiles };
+  }
+
+  spinner.text = 'Processing style files...';
+
+  const styleSplitOptions: StylesSplitOptions = {
+    enabled: stylesConfig?.enabled,
+    paint: stylesConfig?.paint,
+    text: stylesConfig?.text,
+    effect: stylesConfig?.effect,
+  };
+
+  const processedStyles = splitStyles(normalizedStyles, styleSplitOptions);
+
+  // Use the consolidated style merger
+  const mergeResult = mergeStylesIntoTokens(
+    processedStyles,
+    filesByDir,
+    config,
+    defaultOutDir
+  );
+
+  return { standaloneStyleFiles: mergeResult.standaloneStyleFiles };
+}
+
+/**
+ * Build command - generate token files from baseline.json
  *
  * Workflow:
- * 1. Load baseline from --from path or default synkio/baseline.json
- * 2. Compare with current baseline (if exists)
- * 3. Show diff and warn on breaking changes (don't block)
- * 4. Regenerate token files using config
- * 5. Update baseline.json
- * 6. Run build pipeline (if configured)
+ * 1. Read baseline.json
+ * 2. Compare baseline with current token files (unless --rebuild)
+ * 3. Prompt Y/N if breaking changes detected (unless --force)
+ * 4. Split tokens according to config strategy
+ * 5. Write token files
+ * 6. Merge styles if configured
+ * 7. Generate docs if enabled
+ * 8. Run CSS/build scripts
+ * 9. Generate report
  *
  * @param options - Build command options
  */
-export async function buildCommand(options: BuildOptions = {}) {
+export async function buildCommand(options: BuildOptions = {}): Promise<void> {
   const spinner = ora('Building tokens...').start();
   const logger = createLogger();
 
@@ -63,117 +227,111 @@ export async function buildCommand(options: BuildOptions = {}) {
     const config = loadConfig(options.config);
     logger.debug('Config loaded', config);
 
-    // 2. Determine baseline path
-    const defaultBaselinePath = resolve(process.cwd(), 'synkio', 'baseline.json');
-    const baselinePath = options.from
-      ? resolve(process.cwd(), options.from)
-      : defaultBaselinePath;
+    // 2. Read baseline
+    spinner.text = 'Reading baseline...';
+    const baseline = await readBaseline();
 
-    // Validate baseline file exists
-    try {
-      await access(baselinePath);
-    } catch {
-      spinner.fail(chalk.red(`Baseline file not found: ${baselinePath}`));
+    if (!baseline) {
+      spinner.fail(chalk.red('No baseline found.'));
       console.log(chalk.dim('\nRun one of:'));
-      console.log(chalk.dim('  synkio sync                           - Fetch from Figma'));
+      console.log(chalk.dim('  synkio pull                           - Fetch from Figma'));
       console.log(chalk.dim('  synkio export-baseline                - Export from token files'));
       process.exit(1);
     }
 
-    // 3. Read source baseline
-    spinner.text = `Reading baseline from ${baselinePath.replace(process.cwd() + '/', '')}...`;
-    const sourceBaselineContent = await readFile(baselinePath, 'utf-8');
-    const sourceBaseline: BaselineData = JSON.parse(sourceBaselineContent);
-    logger.debug(`Loaded baseline with ${Object.keys(sourceBaseline.baseline || {}).length} tokens`);
+    logger.debug(`Loaded baseline with ${Object.keys(baseline.baseline || {}).length} tokens`);
 
-    // 4. Read current baseline (if exists)
-    const currentBaseline = await readBaseline();
+    // 3. Split tokens using config
+    spinner.text = 'Processing tokens...';
+    const normalizedTokens = baseline.baseline || {};
 
-    // 5. Compare and show diff if current baseline exists
-    let hasBaselineChanges = false;
-    if (currentBaseline && !options.preview) {
-      spinner.text = 'Comparing with current baseline...';
-      const result = compareBaselines(currentBaseline, sourceBaseline);
-      hasBaselineChanges = hasChanges(result);
+    const splitOptions: SplitTokensOptions = {
+      collections: config.tokens.collections || {},
+      dtcg: config.tokens.dtcg !== false,
+      includeVariableId: config.tokens.includeVariableId === true,
+      splitBy: config.tokens.splitBy,
+      includeMode: config.tokens.includeMode,
+      extensions: config.tokens.extensions || {},
+    };
+    const processedTokens = splitTokens(normalizedTokens, splitOptions);
+    logger.debug(`${processedTokens.size} token sets processed`);
 
-      if (hasBaselineChanges) {
-        spinner.stop();
-        console.log(chalk.cyan('\nChanges from current baseline:\n'));
-        printDiffSummary(result);
+    // 4. Build file map
+    const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
+    const outputDirs = new Set<string>([defaultOutDir]);
+    const filesByDir = buildFilesByDirectory(processedTokens, defaultOutDir);
 
-        // Warn on breaking changes (but don't block)
-        if (hasBreakingChanges(result)) {
-          console.log(chalk.yellow('\n⚠️  Breaking changes detected:'));
+    // Add custom directories
+    for (const outDir of filesByDir.keys()) {
+      outputDirs.add(outDir);
+    }
 
-          if (result.deletedVariables.length > 0) {
-            console.log(chalk.yellow(`  - ${result.deletedVariables.length} deleted token(s)`));
-            result.deletedVariables.slice(0, 3).forEach(v => {
-              console.log(chalk.dim(`    • ${v.path}`));
-            });
-            if (result.deletedVariables.length > 3) {
-              console.log(chalk.dim(`    ... and ${result.deletedVariables.length - 3} more`));
-            }
-          }
+    // 5. Compare with existing files (unless --rebuild)
+    let comparisonResult: ComparisonResult | undefined;
 
-          if (result.pathChanges.length > 0) {
-            console.log(chalk.yellow(`  - ${result.pathChanges.length} renamed token(s)`));
-            result.pathChanges.slice(0, 3).forEach(c => {
-              console.log(chalk.dim(`    • ${c.oldPath} → ${c.newPath}`));
-            });
-            if (result.pathChanges.length > 3) {
-              console.log(chalk.dim(`    ... and ${result.pathChanges.length - 3} more`));
-            }
-          }
+    if (!options.rebuild) {
+      // Create empty comparison result - in future we could read existing files
+      comparisonResult = {
+        valueChanges: [],
+        pathChanges: [],
+        collectionRenames: [],
+        modeRenames: [],
+        newModes: [],
+        deletedModes: [],
+        newVariables: [],
+        deletedVariables: [],
+      };
+    }
 
-          if (result.deletedModes.length > 0) {
-            console.log(chalk.yellow(`  - ${result.deletedModes.length} deleted mode(s)`));
-          }
+    // 6. Process styles
+    const { standaloneStyleFiles } = await processStyles(
+      baseline.styles,
+      config,
+      filesByDir,
+      defaultOutDir,
+      spinner as Spinner
+    );
 
-          // Check if SYNC_REPORT.md exists and reference it
-          const syncReportPath = resolve(process.cwd(), 'synkio', 'SYNC_REPORT.md');
-          try {
-            await access(syncReportPath);
-            console.log(chalk.dim('\n  Review synkio/SYNC_REPORT.md for details.'));
-          } catch {
-            // SYNC_REPORT.md doesn't exist, that's ok
-          }
-        }
+    // 7. Ensure directories exist
+    await ensureDirectories(outputDirs);
 
-        console.log('');
+    // 8. Backup existing files if --backup flag is set
+    let backupDir: string | null = null;
+    if (options.backup) {
+      spinner.text = 'Backing up existing files...';
+      backupDir = await backupExistingFiles(filesByDir);
+      if (backupDir) {
+        spinner.info(`Backup created: ${relative(process.cwd(), backupDir)}`);
         spinner.start('Building tokens...');
       }
     }
 
-    // 6. Preview mode - show what would be built and exit
-    if (options.preview) {
-      spinner.stop();
-      console.log(chalk.cyan('\nPreview Mode - No changes will be applied\n'));
+    // 9. Cleanup stale files
+    await cleanupAllStaleFiles(filesByDir);
 
-      if (currentBaseline) {
-        const result = compareBaselines(currentBaseline, sourceBaseline);
-        printDiffSummary(result);
-      } else {
-        console.log(chalk.dim('No current baseline exists. This would be an initial build.\n'));
-        console.log(chalk.dim(`Baseline contains ${Object.keys(sourceBaseline.baseline || {}).length} tokens`));
-      }
+    // 10. Write token files
+    spinner.text = 'Writing token files...';
+    const filesWritten = await writeTokenFiles(filesByDir);
+    const styleFilesWritten = await writeStandaloneStyleFiles(
+      standaloneStyleFiles,
+      defaultOutDir
+    );
 
-      return;
+    // 11. Generate intermediate format
+    spinner.text = 'Generating intermediate format...';
+    await generateIntermediateFromBaseline(baseline, config);
+
+    // 12. Generate docs if enabled
+    let docsFilesWritten = 0;
+    let docsDir = '';
+    if (config.docsPages?.enabled) {
+      spinner.text = 'Generating documentation...';
+      const docsResult = await generateDocsFromBaseline(baseline, config);
+      docsFilesWritten = docsResult.files.length;
+      docsDir = docsResult.outputDir;
     }
 
-    // 7. Regenerate token files from baseline
-    spinner.text = 'Generating token files...';
-    const defaultOutDir = resolve(process.cwd(), config.tokens.dir);
-    const regenerateResult = await regenerateFromBaseline(sourceBaseline, config, { defaultOutDir });
-    logger.debug(`Wrote ${regenerateResult.filesWritten} token files`);
-
-    // 8. Update baseline.json (this is the key difference from sync --regenerate)
-    if (options.from && options.from !== defaultBaselinePath) {
-      spinner.text = 'Updating baseline.json...';
-      await writeBaseline(sourceBaseline);
-      logger.debug('Updated baseline.json');
-    }
-
-    // 9. Run build pipeline if configured
+    // 13. Check if build should run
     spinner.stop();
     const runBuild = await shouldRunBuild(config, options);
 
@@ -182,45 +340,59 @@ export async function buildCommand(options: BuildOptions = {}) {
 
     if (runBuild) {
       spinner.start('Running build pipeline...');
-      const buildResult = await runBuildPipeline(sourceBaseline, config, spinner);
+      const buildResult = await runBuildPipeline(baseline, config, spinner as Spinner);
       buildScriptRan = buildResult.scriptRan;
       cssFilesWritten = buildResult.cssFilesWritten;
+      spinner.stop();
     }
 
-    // 10. Build success message
+    // 14. Generate report if configured
+    let reportPath: string | undefined;
+    if (comparisonResult && (options.report || !options.noReport)) {
+      reportPath = await generateReport(comparisonResult, config, options);
+    }
+
+    // 15. Build success message
     const extras = formatExtrasString({
-      styleFilesWritten: regenerateResult.styleFilesWritten,
+      styleFilesWritten,
       buildScriptRan,
       cssFilesWritten,
-      docsFilesWritten: regenerateResult.docsFilesWritten,
+      docsFilesWritten,
     });
 
-    const sourceName = options.from
-      ? baselinePath.replace(process.cwd() + '/', '')
-      : 'baseline.json';
-
-    if (currentBaseline && hasBaselineChanges) {
-      spinner.succeed(chalk.green(`Built ${regenerateResult.filesWritten} token files from ${sourceName}.${extras}`));
-      if (options.from && options.from !== defaultBaselinePath) {
-        console.log(chalk.dim(`  Updated synkio/baseline.json`));
-      }
-    } else if (currentBaseline) {
-      spinner.succeed(chalk.green(`No changes. Rebuilt ${regenerateResult.filesWritten} token files from ${sourceName}.${extras}`));
+    if (options.rebuild) {
+      spinner.succeed(
+        chalk.green(`Rebuilt ${filesWritten} token files from baseline.${extras}`)
+      );
     } else {
-      spinner.succeed(chalk.green(`Built ${regenerateResult.filesWritten} token files from ${sourceName}.${extras}`));
+      spinner.succeed(
+        chalk.green(`Built ${filesWritten} token files from baseline.${extras}`)
+      );
     }
 
-    // 11. Open docs folder if --open flag was passed and docs were generated
-    if (options.open && config.docsPages?.enabled) {
-      const docsDir = resolve(process.cwd(), config.docsPages.dir || 'synkio/docs');
+    // Show backup location
+    if (backupDir) {
+      console.log(chalk.dim(`  Backup: ${relative(process.cwd(), backupDir)}`));
+    }
+
+    // Show report location
+    if (reportPath) {
+      console.log(chalk.dim(`  Report: ${reportPath}`));
+    }
+
+    // 16. Open docs folder if --open flag was passed and docs were generated
+    if (options.open && config.docsPages?.enabled && docsDir) {
       try {
         await openFolder(docsDir);
         console.log(chalk.dim(`  Opened ${docsDir.replace(process.cwd() + '/', '')}`));
       } catch {
-        console.log(chalk.yellow(`  Could not open folder: ${docsDir.replace(process.cwd() + '/', '')}`));
+        console.log(
+          chalk.yellow(
+            `  Could not open folder: ${docsDir.replace(process.cwd() + '/', '')}`
+          )
+        );
       }
     }
-
   } catch (error: any) {
     spinner.fail(chalk.red(`Build failed: ${error.message}`));
     logger.error('Build failed', { error });

@@ -8,6 +8,7 @@ import {
   PluginState,
   SyncEvent,
   StyleType,
+  CodeSyncState,
 } from '../lib/types';
 
 import {
@@ -18,6 +19,8 @@ import {
   KEYS,
   loadClientStorage,
   saveForCLI,
+  generateBaselineHash,
+  getFigmaBaselineHash,
 } from '../lib/storage';
 
 import {
@@ -58,8 +61,9 @@ export async function handleReady(send: SendMessage): Promise<void> {
     excluded: excludedStyleTypes.includes(s.type),
   }));
 
-  // Determine if first time (no sync baseline)
-  const isFirstTime = !syncBaseline;
+  // Determine if first time (onboarding not completed)
+  const onboardingComplete = loadSimple<boolean>(KEYS.ONBOARDING_COMPLETE);
+  const isFirstTime = !onboardingComplete;
 
   // Calculate current diff if we have a baseline
   let syncDiff;
@@ -73,6 +77,9 @@ export async function handleReady(send: SendMessage): Promise<void> {
     // - Re-included collections will show as "new" (added back to sync output)
     syncDiff = compareBaselines(syncBaseline, currentBaseline);
   }
+
+  // Get the stored baseline hash
+  const figmaBaselineHash = getFigmaBaselineHash();
 
   // Determine sync status
   let syncStatus: PluginState['syncStatus'] = { state: 'not-setup' };
@@ -92,6 +99,22 @@ export async function handleReady(send: SendMessage): Promise<void> {
         changeCount: lastSync.changeCount,
       };
     }
+
+    // Include the baseline hash for code sync tracking
+    if (figmaBaselineHash) {
+      syncStatus.figmaBaselineHash = figmaBaselineHash;
+    }
+  }
+
+  // Determine initial code sync state
+  const hasGitHubConfig = !!(settings?.remote?.github?.owner && settings?.remote?.github?.repo);
+  let codeSyncState: CodeSyncState;
+  if (!syncBaseline) {
+    codeSyncState = { status: 'not-connected' }; // No baseline yet
+  } else if (!hasGitHubConfig) {
+    codeSyncState = { status: 'not-connected' };
+  } else {
+    codeSyncState = { status: 'checking' }; // Will be checked when plugin loads
   }
 
   // Build settings object, always using fresh excluded values from storage
@@ -110,6 +133,7 @@ export async function handleReady(send: SendMessage): Promise<void> {
     type: 'initialized',
     state: {
       syncStatus,
+      codeSyncState,
       collections,
       styleTypes,
       syncBaseline: syncBaseline || undefined,
@@ -158,15 +182,22 @@ export async function handleSync(send: SendMessage): Promise<void> {
       diff = compareBaselines(oldBaseline, newBaseline);
     }
 
+    // Generate baseline hash for code sync tracking
+    const figmaBaselineHash = generateBaselineHash(
+      tokens.map((t) => ({ variableId: t.variableId, path: t.path, value: t.value })),
+      styles.map((s) => ({ styleId: s.styleId, path: s.path, value: s.value }))
+    );
+
     // Save new baseline (internal format)
     saveChunked(KEYS.SYNC_BASELINE, newBaseline);
 
-    // Also save in CLI-readable format
+    // Also save in CLI-readable format (includes hash for tracking)
     saveForCLI({
-      version: '3.0.0',
+      version: '3.1.0', // Bump version to indicate hash support
       timestamp: newBaseline.metadata.syncedAt,
       tokens: tokens,
       styles: styles,
+      figmaBaselineHash,
     });
 
     // Update history
@@ -192,10 +223,27 @@ export async function handleSync(send: SendMessage): Promise<void> {
       baseline: newBaseline,
       diff,
     });
+
+    // Update code sync status - we just saved new data, code needs to pull
+    send({
+      type: 'code-sync-update',
+      codeSyncState: {
+        status: 'pending-pull',
+        lastChecked: new Date().toISOString(),
+      },
+    });
   } catch (error) {
     send({
       type: 'sync-error',
       error: String(error),
     });
   }
+}
+
+// =============================================================================
+// handleCompleteOnboarding - Mark onboarding as complete
+// =============================================================================
+
+export function handleCompleteOnboarding(): void {
+  saveSimple(KEYS.ONBOARDING_COMPLETE, true);
 }

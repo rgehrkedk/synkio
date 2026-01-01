@@ -170,6 +170,7 @@ export class FigmaClient {
 
   /**
    * Extract chunked plugin data (data may be split across multiple keys)
+   * Also extracts figmaBaselineHash if present for code sync tracking
    */
   private extractChunkedData(pluginData: Record<string, string>, namespace: string): any {
     // New synkio format uses chunk_X keys
@@ -181,7 +182,15 @@ export class FigmaClient {
         for (let i = 0; i < count; i++) {
           fullData += pluginData[`chunk_${i}`] || '';
         }
-        return JSON.parse(fullData);
+        const parsed = JSON.parse(fullData);
+
+        // If the parsed data doesn't include figmaBaselineHash but it's in pluginData,
+        // add it to the parsed result for downstream use
+        if (!parsed.figmaBaselineHash && pluginData.figmaBaselineHash) {
+          parsed.figmaBaselineHash = pluginData.figmaBaselineHash;
+        }
+
+        return parsed;
       }
     }
 

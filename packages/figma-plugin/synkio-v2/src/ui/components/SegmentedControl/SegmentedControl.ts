@@ -12,6 +12,7 @@ registerCSS('SegmentedControl', css);
 export interface SegmentedControlOption<T extends string = string> {
   value: T;
   label: string;
+  icon?: HTMLElement | SVGElement; // Optional icon element
 }
 
 export interface SegmentedControlProps<T extends string = string> {
@@ -34,7 +35,15 @@ export function SegmentedControl<T extends string = string>(
       role: 'tab',
       'aria-selected': isActive ? 'true' : 'false',
       type: 'button',
-    }, option.label);
+    });
+
+    // Add icon if provided
+    if (option.icon) {
+      button.appendChild(option.icon);
+    }
+
+    // Add label
+    button.appendChild(document.createTextNode(option.label));
 
     button.addEventListener('click', () => {
       if (option.value !== value) {

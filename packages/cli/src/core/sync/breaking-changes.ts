@@ -213,6 +213,6 @@ export function displayBreakingChanges(
   }
 
   console.log(chalk.yellow('\n  These changes may break your code.\n'));
-  console.log(`  Run ${chalk.cyan('synkio sync --force')} to apply anyway.`);
-  console.log(`  Run ${chalk.cyan('synkio sync --preview')} to see full details.\n`);
+  console.log(`  Run ${chalk.cyan('synkio build --force')} to apply anyway.`);
+  console.log(`  Run ${chalk.cyan('synkio diff')} to see full details.\n`);
 }

@@ -14,6 +14,7 @@ export const KEYS = {
   EXCLUDED_COLLECTIONS: 'excludedCollections',
   EXCLUDED_STYLE_TYPES: 'excludedStyleTypes',
   SETTINGS: 'settings',
+  ONBOARDING_COMPLETE: 'onboardingComplete',
 } as const;
 
 // =============================================================================
@@ -116,6 +117,7 @@ export interface CLISyncData {
   timestamp: string;
   tokens: unknown[];
   styles?: unknown[];
+  figmaBaselineHash?: string;
 }
 
 export function saveForCLI(data: CLISyncData): void {
@@ -142,6 +144,11 @@ export function saveForCLI(data: CLISyncData): void {
   figma.root.setSharedPluginData(NAMESPACE, 'timestamp', data.timestamp);
   figma.root.setSharedPluginData(NAMESPACE, 'tokenCount', String(data.tokens.length));
   figma.root.setSharedPluginData(NAMESPACE, 'styleCount', String(data.styles?.length || 0));
+
+  // Save baseline hash for tracking code sync status
+  if (data.figmaBaselineHash) {
+    figma.root.setSharedPluginData(NAMESPACE, 'figmaBaselineHash', data.figmaBaselineHash);
+  }
 }
 
 export function clearCLIStorage(): void {
@@ -157,6 +164,7 @@ export function clearCLIStorage(): void {
   figma.root.setSharedPluginData(NAMESPACE, 'timestamp', '');
   figma.root.setSharedPluginData(NAMESPACE, 'tokenCount', '');
   figma.root.setSharedPluginData(NAMESPACE, 'styleCount', '');
+  figma.root.setSharedPluginData(NAMESPACE, 'figmaBaselineHash', '');
 }
 
 // =============================================================================
@@ -179,6 +187,75 @@ export async function clearAllStorage(): Promise<void> {
 
   // Clear client storage (persistent settings)
   await figma.clientStorage.deleteAsync('settings');
+}
+
+// =============================================================================
+// Baseline Hash Functions
+// =============================================================================
+
+/**
+ * DJB2 hash algorithm - simple and fast, good for fingerprinting
+ */
+function djb2Hash(str: string): string {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) ^ str.charCodeAt(i);
+  }
+  // Convert to unsigned 32-bit and then to hex
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Sort object keys recursively for deterministic JSON stringification
+ */
+function sortObjectKeys(obj: unknown): unknown {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(sortObjectKeys);
+  }
+  const sorted: Record<string, unknown> = {};
+  for (const key of Object.keys(obj).sort()) {
+    sorted[key] = sortObjectKeys((obj as Record<string, unknown>)[key]);
+  }
+  return sorted;
+}
+
+/**
+ * Generate a deterministic hash from token and style content
+ * Excludes timestamps to ensure consistent hashing
+ */
+export function generateBaselineHash(
+  tokens: Array<{ variableId: string; path: string; value: unknown }>,
+  styles: Array<{ styleId: string; path: string; value: unknown }>
+): string {
+  // Create a normalized structure for hashing
+  const content = {
+    tokens: tokens
+      .map((t) => ({ id: t.variableId, path: t.path, value: sortObjectKeys(t.value) }))
+      .sort((a, b) => a.id.localeCompare(b.id)),
+    styles: styles
+      .map((s) => ({ id: s.styleId, path: s.path, value: sortObjectKeys(s.value) }))
+      .sort((a, b) => a.id.localeCompare(b.id)),
+  };
+
+  return djb2Hash(JSON.stringify(content));
+}
+
+/**
+ * Get the stored Figma baseline hash
+ */
+export function getFigmaBaselineHash(): string | null {
+  const hash = figma.root.getSharedPluginData(NAMESPACE, 'figmaBaselineHash');
+  return hash || null;
+}
+
+/**
+ * Save the Figma baseline hash
+ */
+export function saveFigmaBaselineHash(hash: string): void {
+  figma.root.setSharedPluginData(NAMESPACE, 'figmaBaselineHash', hash);
 }
 
 // =============================================================================

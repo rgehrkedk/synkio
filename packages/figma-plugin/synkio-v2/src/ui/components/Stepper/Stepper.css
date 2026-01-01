@@ -1,0 +1,123 @@
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.stepper__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex: 1;
+  max-width: 120px;
+  position: relative;
+}
+
+.stepper__dot-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.stepper__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  flex-shrink: 0;
+  z-index: 1;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.stepper__dot--completed {
+  background: var(--color-primary);
+}
+
+.stepper__dot--current {
+  background: var(--color-primary);
+  transform: scale(1.25);
+}
+
+.stepper__line {
+  position: absolute;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  background: var(--color-border);
+  transition: background 0.15s ease;
+}
+
+.stepper__line--completed {
+  background: var(--color-primary);
+}
+
+.stepper__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.stepper__label--current {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.stepper__label--completed {
+  color: var(--color-text-secondary);
+}
+
+/* Progress bar variant for narrow widths */
+.stepper--bar {
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-lg);
+}
+
+.stepper--bar .stepper__bar-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.stepper--bar .stepper__bar-track {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.stepper--bar .stepper__bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+.stepper--bar .stepper__bar-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.stepper--bar .stepper__current-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Hide labels on narrow - use container query if supported */
+@container (max-width: 380px) {
+  .stepper__label {
+    display: none;
+  }
+}
