@@ -357,8 +357,14 @@ function buildActivityItem(event: SyncEvent): HTMLElement {
 
   const iconWrapper = el('span', { class: 'text-tertiary inline-flex items-center' });
   iconWrapper.appendChild(Icon(event.direction === 'to-code' ? 'upload' : 'download', 'sm'));
+
+  // Build text element safely (avoid XSS via innerHTML)
   const textEl = el('span', { class: 'text-xs flex-1' });
-  textEl.innerHTML = `<strong>@${event.user}</strong> ${directionLabel} ${event.changeCount} token${event.changeCount === 1 ? '' : 's'}`;
+  const userStrong = el('strong');
+  userStrong.textContent = `@${event.user}`;
+  textEl.appendChild(userStrong);
+  textEl.appendChild(document.createTextNode(` ${directionLabel} ${event.changeCount} token${event.changeCount === 1 ? '' : 's'}`));
+
   const time = el('span', { class: 'text-xs text-tertiary' }, timeAgo);
 
   item.appendChild(iconWrapper);
@@ -439,6 +445,7 @@ function buildCodeSyncIndicator(
       class: 'text-tertiary hover:text-secondary ml-xs',
       style: 'background: none; border: none; cursor: pointer; padding: 2px;',
       title: 'Refresh status',
+      'aria-label': 'Refresh sync status',
     });
     refreshBtn.appendChild(Icon('refresh', 'xs'));
     refreshBtn.addEventListener('click', () => {

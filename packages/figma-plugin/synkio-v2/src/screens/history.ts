@@ -23,7 +23,7 @@ export function HistoryScreen(state: PluginState, actions: RouterActions): HTMLE
   const header = Header({
     title: 'History',
     showBack: true,
-    onBack: () => actions.navigate('home'),
+    onBack: () => actions.navigate('main'),
   });
 
   let contentChildren: HTMLElement[] = [];

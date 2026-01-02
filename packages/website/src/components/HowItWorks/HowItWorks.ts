@@ -21,21 +21,21 @@ const steps: StepData[] = [
   {
     number: 1,
     icon: 'figma',
-    title: 'Sync in Figma',
-    description: "Run the Synkio plugin and click 'Sync'. Variables are stored in the file.",
+    title: 'Sync',
+    description: 'Run the plugin in Figma. Variables get stored in the file.',
   },
   {
     number: 2,
     icon: 'download',
-    title: 'Pull via CLI',
-    description: 'Fetch your variables without needing the Enterprise API.',
+    title: 'Pull',
+    description: 'Fetch to your project.',
     code: 'synkio pull',
   },
   {
     number: 3,
     icon: 'code',
-    title: 'Build tokens',
-    description: 'Generate DTCG JSON, CSS custom properties, and more.',
+    title: 'Build',
+    description: 'Generate tokens and CSS.',
     code: 'synkio build',
   },
 ];
@@ -53,12 +53,12 @@ export function HowItWorks(): HTMLElement {
 
   const title = document.createElement('h2');
   title.className = getStyle('title');
-  title.textContent = 'How it works';
+  title.textContent = 'Three commands';
   header.appendChild(title);
 
   const subtitle = document.createElement('p');
   subtitle.className = getStyle('subtitle');
-  subtitle.textContent = 'Three simple steps to sync your design tokens.';
+  subtitle.textContent = 'That\'s the whole workflow.';
   header.appendChild(subtitle);
 
   container.appendChild(header);

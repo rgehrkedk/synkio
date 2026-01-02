@@ -2,7 +2,7 @@
 // Setup Tab - Remote source configuration (GitHub/URL)
 // =============================================================================
 
-import { PluginState, GitHubSettings, UrlSettings } from '../../lib/types';
+import { PluginState, GitHubSettings, UrlSettings, SetupFormState, PathTestResult } from '../../lib/types';
 import { RouterActions } from '../../ui/router';
 import {
   el,
@@ -16,27 +16,69 @@ import { Icon } from '../../ui/icons';
 import { ContentArea, Footer } from '../../ui/layout/index';
 import { TabContent } from './SyncTab';
 import { setMainTab } from '../main';
+import { testPath } from '../../ui/api';
 
 // =============================================================================
-// Local State
+// Default Form State
 // =============================================================================
 
-type EditingSource = 'github' | 'url' | null;
+const defaultFormState: SetupFormState = {
+  editingSource: null,
+  githubForm: {},
+  urlForm: {},
+  connectionStatus: { tested: false },
+};
 
-let editingSource: EditingSource = null;
-let githubForm: Partial<GitHubSettings> = {};
-let urlForm: Partial<UrlSettings> = {};
-let connectionStatus: { tested: boolean; success?: boolean; error?: string } = { tested: false };
-
-export function resetSetupTab() {
-  editingSource = null;
-  githubForm = {};
-  urlForm = {};
-  connectionStatus = { tested: false };
+/**
+ * Get the current form state from plugin state, with defaults.
+ */
+function getFormState(state: PluginState): SetupFormState {
+  return state.setupFormState || defaultFormState;
 }
 
-export function updateSetupConnectionStatus(success: boolean, error?: string) {
-  connectionStatus = { tested: true, success, error };
+/**
+ * Update the setup form state.
+ */
+function updateFormState(actions: RouterActions, state: PluginState, updates: Partial<SetupFormState>) {
+  const currentFormState = getFormState(state);
+  actions.updateState({
+    setupFormState: { ...currentFormState, ...updates },
+  });
+}
+
+/**
+ * Get the default form state (for resetting).
+ */
+export function getDefaultSetupFormState(): SetupFormState {
+  return { ...defaultFormState };
+}
+
+/**
+ * Reset the setup tab form state (for external use when navigating away).
+ * Note: This is a no-op now since state is managed via PluginState.setupFormState.
+ * Kept for backwards compatibility - callers should transition to using
+ * actions.updateState({ setupFormState: getDefaultSetupFormState() }) if needed.
+ */
+export function resetSetupTab() {
+  // State is now managed via PluginState.setupFormState
+  // No module-level state to reset anymore
+}
+
+/**
+ * Update connection status (called from ui/main.ts when connection-test-result is received).
+ */
+export function updateSetupConnectionStatus(
+  router: { getState: () => PluginState; updateState: (state: Partial<PluginState>) => void },
+  success: boolean,
+  error?: string
+) {
+  const currentFormState = getFormState(router.getState());
+  router.updateState({
+    setupFormState: {
+      ...currentFormState,
+      connectionStatus: { tested: true, success, error },
+    },
+  });
 }
 
 // =============================================================================
@@ -48,12 +90,21 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
   const isOnboarding = isFirstTime && onboardingStep === 3;
   const remote = settings.remote;
 
-  // Initialize form with current settings
+  // Get current form state from plugin state
+  const formState = getFormState(state);
+  const { editingSource, githubForm, urlForm, connectionStatus } = formState;
+
+  // Initialize form with current settings if empty
   if (Object.keys(githubForm).length === 0 && remote.github) {
-    githubForm = { ...remote.github };
+    // Use a microtask to avoid mutating during render
+    queueMicrotask(() => {
+      updateFormState(actions, state, { githubForm: { ...remote.github } });
+    });
   }
   if (Object.keys(urlForm).length === 0 && remote.url) {
-    urlForm = { ...remote.url };
+    queueMicrotask(() => {
+      updateFormState(actions, state, { urlForm: { ...remote.url } });
+    });
   }
 
   const contentChildren: HTMLElement[] = [];
@@ -88,20 +139,16 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
       ? `${remote.github.owner}/${remote.github.repo} · ${remote.github.branch || 'main'}`
       : undefined,
     onSelect: () => {
-      editingSource = 'github';
-      actions.updateState({});
+      updateFormState(actions, state, { editingSource: 'github' });
     },
     onEdit: () => {
-      editingSource = 'github';
-      actions.updateState({});
+      updateFormState(actions, state, { editingSource: 'github' });
     },
     onCancel: () => {
-      editingSource = null;
-      actions.updateState({});
+      updateFormState(actions, state, { editingSource: null });
     },
     onDisconnect: () => {
-      editingSource = null;
-      githubForm = {};
+      updateFormState(actions, state, { editingSource: null, githubForm: {} });
       actions.send({
         type: 'save-settings',
         settings: { enabled: false, source: 'none' },
@@ -109,6 +156,8 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
     },
     remote,
     actions,
+    state,
+    formState,
   }));
 
   // URL Card
@@ -127,20 +176,16 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
       ? truncateUrl(remote.url.exportUrl)
       : undefined,
     onSelect: () => {
-      editingSource = 'url';
-      actions.updateState({});
+      updateFormState(actions, state, { editingSource: 'url' });
     },
     onEdit: () => {
-      editingSource = 'url';
-      actions.updateState({});
+      updateFormState(actions, state, { editingSource: 'url' });
     },
     onCancel: () => {
-      editingSource = null;
-      actions.updateState({});
+      updateFormState(actions, state, { editingSource: null });
     },
     onDisconnect: () => {
-      editingSource = null;
-      urlForm = {};
+      updateFormState(actions, state, { editingSource: null, urlForm: {} });
       actions.send({
         type: 'save-settings',
         settings: { enabled: false, source: 'none' },
@@ -148,6 +193,8 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
     },
     remote,
     actions,
+    state,
+    formState,
   }));
 
   // Auto-check option (only show if a source is configured)
@@ -217,10 +264,12 @@ interface SourceCardProps {
   onDisconnect: () => void;
   remote: PluginState['settings']['remote'];
   actions: RouterActions;
+  state: PluginState;
+  formState: SetupFormState;
 }
 
 function buildSourceCard(props: SourceCardProps): HTMLElement {
-  const { type, title, icon, isActive, isEditing, features, limitation, summary, onSelect, onEdit, onCancel, onDisconnect, remote, actions } = props;
+  const { type, title, icon, isActive, isEditing, features, limitation, summary, onSelect, onEdit, onCancel, onDisconnect, remote, actions, state, formState } = props;
 
   const cardClass = isActive ? 'source-card active' : 'source-card';
   const card = el('div', { class: cardClass });
@@ -292,9 +341,9 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
   // Show form when editing
   if (isEditing) {
     if (type === 'github') {
-      card.appendChild(buildGitHubForm(remote, actions, onCancel, isActive ? onDisconnect : undefined));
+      card.appendChild(buildGitHubForm(remote, actions, state, formState, onCancel, isActive ? onDisconnect : undefined));
     } else {
-      card.appendChild(buildUrlForm(actions, onCancel, isActive ? onDisconnect : undefined));
+      card.appendChild(buildUrlForm(actions, state, formState, onCancel, isActive ? onDisconnect : undefined));
     }
   }
 
@@ -308,58 +357,159 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
 }
 
 // =============================================================================
+// Helper: Input with Test Button
+// =============================================================================
+
+function InputWithTest(props: {
+  label: string;
+  placeholder: string;
+  value: string;
+  testResult?: PathTestResult;
+  onBlur: boolean;
+  onChange: (value: string) => void;
+  onTest: () => void;
+}): HTMLElement {
+  const { label, placeholder, value, testResult, onBlur, onChange, onTest } = props;
+
+  const container = el('div', { class: 'input-with-test-container' });
+  const row = el('div', { class: 'input-with-test' });
+
+  // Input wrapper (takes most of the space)
+  const inputWrapper = el('div', { class: 'input-with-test__input' });
+  inputWrapper.appendChild(Input({
+    label,
+    placeholder,
+    value,
+    onBlur,
+    onChange,
+  }));
+  row.appendChild(inputWrapper);
+
+  // Test button
+  const testBtn = el('button', {
+    class: 'input-with-test__btn',
+    type: 'button',
+    title: 'Test',
+  });
+
+  // Show status icon or "Test" text
+  if (testResult?.tested) {
+    if (testResult.success) {
+      testBtn.innerHTML = '\u2713'; // checkmark
+      testBtn.classList.add('input-with-test__btn--success');
+    } else if (testResult.warning) {
+      testBtn.innerHTML = '!'; // warning
+      testBtn.classList.add('input-with-test__btn--warning');
+    } else {
+      testBtn.innerHTML = '\u2717'; // x
+      testBtn.classList.add('input-with-test__btn--error');
+    }
+  } else {
+    testBtn.textContent = 'Test';
+  }
+
+  testBtn.onclick = onTest;
+  row.appendChild(testBtn);
+  container.appendChild(row);
+
+  // Show message below input if there's an error or warning
+  if (testResult?.tested && !testResult.success && testResult.error) {
+    const msgClass = testResult.warning ? 'input-with-test__msg--warning' : 'input-with-test__msg--error';
+    const msg = el('div', { class: `input-with-test__msg ${msgClass}` }, testResult.error);
+    container.appendChild(msg);
+  }
+
+  return container;
+}
+
+// =============================================================================
 // GitHub Form
 // =============================================================================
 
 function buildGitHubForm(
   remote: PluginState['settings']['remote'],
   actions: RouterActions,
+  state: PluginState,
+  formState: SetupFormState,
   onCancel: () => void,
   onDisconnect?: () => void
 ): HTMLElement {
+  const { githubForm, pathTests } = formState;
   const container = el('div', { class: 'source-form' });
 
-  // Repository input
-  container.appendChild(Input({
+  // Repository + Branch row with test button
+  const repoDisplayValue = githubForm.owner && githubForm.repo
+    ? `${githubForm.owner}/${githubForm.repo}`
+    : (githubForm.owner || '');
+
+  container.appendChild(InputWithTest({
     label: 'Repository',
     placeholder: 'owner/repo',
-    value: githubForm.owner && githubForm.repo ? `${githubForm.owner}/${githubForm.repo}` : '',
+    value: repoDisplayValue,
+    testResult: pathTests?.repo,
+    onBlur: true,
     onChange: (value) => {
       const parts = value.split('/');
-      if (parts.length === 2) {
-        githubForm.owner = parts[0].trim();
-        githubForm.repo = parts[1].trim();
-      }
+      const newGithubForm = {
+        ...githubForm,
+        owner: parts[0]?.trim() || '',
+        repo: parts.length >= 2 ? (parts[1]?.trim() || '') : '',
+      };
+      updateFormState(actions, state, { githubForm: newGithubForm, pathTests: { ...pathTests, repo: undefined } });
+    },
+    onTest: () => {
+      saveGitHubSettings(actions, formState);
+      testPath(buildGitHubSettingsFromForm(formState), '', 'repo');
     },
   }));
 
-  // Branch input
+  // Branch input (no test button - tested with repo)
   container.appendChild(Input({
     label: 'Branch',
     placeholder: 'main',
     value: githubForm.branch || remote.github?.branch || 'main',
+    onBlur: true,
     onChange: (value) => {
-      githubForm.branch = value.trim() || 'main';
+      const newGithubForm = { ...githubForm, branch: value.trim() || 'main' };
+      updateFormState(actions, state, { githubForm: newGithubForm, pathTests: { ...pathTests, repo: undefined } });
     },
   }));
 
-  // Path input (for fetching export-baseline.json)
-  container.appendChild(Input({
+  // Code → Figma path with test
+  container.appendChild(InputWithTest({
     label: 'Code \u2192 Figma path',
-    placeholder: 'synkio/export-baseline.json',
-    value: githubForm.path || remote.github?.path || 'synkio/export-baseline.json',
+    placeholder: 'e.g. synkio/export-baseline.json',
+    value: 'path' in githubForm ? (githubForm.path || '') : (remote.github?.path || ''),
+    testResult: pathTests?.exportPath,
+    onBlur: true,
     onChange: (value) => {
-      githubForm.path = value.trim() || 'synkio/export-baseline.json';
+      const newGithubForm = { ...githubForm, path: value.trim() };
+      updateFormState(actions, state, { githubForm: newGithubForm, pathTests: { ...pathTests, exportPath: undefined } });
+    },
+    onTest: () => {
+      saveGitHubSettings(actions, formState);
+      const path = githubForm.path || '';
+      if (!path) return; // Don't test empty path
+      testPath(buildGitHubSettingsFromForm(formState), path, 'exportPath');
     },
   }));
 
-  // PR Path input (for creating PRs with baseline.json)
-  container.appendChild(Input({
+  // Figma → Code path with test
+  container.appendChild(InputWithTest({
     label: 'Figma \u2192 Code path',
-    placeholder: 'synkio/baseline.json',
-    value: githubForm.prPath || remote.github?.prPath || 'synkio/baseline.json',
+    placeholder: 'e.g. synkio/baseline.json',
+    value: 'prPath' in githubForm ? (githubForm.prPath || '') : (remote.github?.prPath || ''),
+    testResult: pathTests?.prPath,
+    onBlur: true,
     onChange: (value) => {
-      githubForm.prPath = value.trim() || 'synkio/baseline.json';
+      const newGithubForm = { ...githubForm, prPath: value.trim() };
+      updateFormState(actions, state, { githubForm: newGithubForm, pathTests: { ...pathTests, prPath: undefined } });
+    },
+    onTest: () => {
+      saveGitHubSettings(actions, formState);
+      const path = githubForm.prPath || '';
+      if (!path) return; // Don't test empty path
+      testPath(buildGitHubSettingsFromForm(formState), path, 'prPath');
     },
   }));
 
@@ -369,8 +519,11 @@ function buildGitHubForm(
     placeholder: 'ghp_xxxxx...',
     type: 'password',
     value: githubForm.token || '',
+    onBlur: true,
     onChange: (value) => {
-      githubForm.token = value.trim();
+      const newGithubForm = { ...githubForm, token: value.trim() };
+      // Clear all path tests when token changes
+      updateFormState(actions, state, { githubForm: newGithubForm, pathTests: undefined });
     },
   }));
 
@@ -382,17 +535,27 @@ function buildGitHubForm(
   }, 'Create token on GitHub \u2197');
   container.appendChild(tokenLink);
 
-  // Connection status
-  if (connectionStatus.tested) {
-    const statusEl = el('div', { class: 'mt-sm' });
-
-    if (connectionStatus.success === true) {
-      statusEl.appendChild(StatusIndicator({ type: 'success', label: 'Connected' }));
-    } else if (connectionStatus.success === false) {
-      statusEl.appendChild(StatusIndicator({ type: 'error', label: connectionStatus.error || 'Connection failed' }));
+  // Show path test errors
+  const pathErrors: string[] = [];
+  if (pathTests?.repo?.tested && !pathTests.repo.success && pathTests.repo.error) {
+    pathErrors.push(`Repository: ${pathTests.repo.error}`);
+  }
+  if (pathTests?.exportPath?.tested && !pathTests.exportPath.success && pathTests.exportPath.error) {
+    // 404 for export path is ok - show as info not error
+    if (!pathTests.exportPath.error.includes('will be created')) {
+      pathErrors.push(`Export path: ${pathTests.exportPath.error}`);
     }
+  }
+  if (pathTests?.prPath?.tested && !pathTests.prPath.success && pathTests.prPath.error) {
+    if (!pathTests.prPath.error.includes('will be created')) {
+      pathErrors.push(`PR path: ${pathTests.prPath.error}`);
+    }
+  }
 
-    container.appendChild(statusEl);
+  if (pathErrors.length > 0) {
+    const errorEl = el('div', { class: 'mt-sm' });
+    errorEl.appendChild(StatusIndicator({ type: 'error', label: pathErrors.join('; ') }));
+    container.appendChild(errorEl);
   }
 
   // Action buttons
@@ -415,24 +578,12 @@ function buildGitHubForm(
   }));
 
   buttonRow.appendChild(Button({
-    label: 'Test',
-    variant: 'secondary',
-    size: 'sm',
-    onClick: () => {
-      saveGitHubSettings(actions);
-      connectionStatus = { tested: true };
-      actions.send({ type: 'test-connection' });
-    },
-  }));
-
-  buttonRow.appendChild(Button({
     label: 'Save',
     variant: 'primary',
     size: 'sm',
     onClick: () => {
-      saveGitHubSettings(actions);
-      editingSource = null;
-      actions.updateState({});
+      saveGitHubSettings(actions, formState);
+      updateFormState(actions, state, { editingSource: null });
     },
   }));
 
@@ -441,15 +592,31 @@ function buildGitHubForm(
   return container;
 }
 
+// Helper to build GitHubSettings from form state
+function buildGitHubSettingsFromForm(formState: SetupFormState): GitHubSettings {
+  const { githubForm } = formState;
+  return {
+    owner: githubForm.owner || '',
+    repo: githubForm.repo || '',
+    branch: githubForm.branch || 'main',
+    path: githubForm.path || '',
+    prPath: githubForm.prPath || '',
+    token: githubForm.token,
+  };
+}
+
 // =============================================================================
 // URL Form
 // =============================================================================
 
 function buildUrlForm(
   actions: RouterActions,
+  state: PluginState,
+  formState: SetupFormState,
   onCancel: () => void,
   onDisconnect?: () => void
 ): HTMLElement {
+  const { urlForm } = formState;
   const container = el('div', { class: 'source-form' });
 
   // Export URL (Code → Figma)
@@ -457,8 +624,10 @@ function buildUrlForm(
     label: 'Code \u2192 Figma URL',
     placeholder: 'https://example.com/synkio/export-baseline.json',
     value: urlForm.exportUrl || '',
+    onBlur: true,
     onChange: (value) => {
-      urlForm.exportUrl = value.trim();
+      const newUrlForm = { ...urlForm, exportUrl: value.trim() };
+      updateFormState(actions, state, { urlForm: newUrlForm });
     },
   }));
 
@@ -471,8 +640,10 @@ function buildUrlForm(
     label: 'Figma \u2192 Code URL',
     placeholder: 'https://example.com/synkio/baseline.json',
     value: urlForm.baselineUrl || '',
+    onBlur: true,
     onChange: (value) => {
-      urlForm.baselineUrl = value.trim();
+      const newUrlForm = { ...urlForm, baselineUrl: value.trim() };
+      updateFormState(actions, state, { urlForm: newUrlForm });
     },
   }));
 
@@ -504,9 +675,8 @@ function buildUrlForm(
     variant: 'primary',
     size: 'sm',
     onClick: () => {
-      saveUrlSettings(actions);
-      editingSource = null;
-      actions.updateState({});
+      saveUrlSettings(actions, formState);
+      updateFormState(actions, state, { editingSource: null });
     },
   }));
 
@@ -519,7 +689,8 @@ function buildUrlForm(
 // Save Settings
 // =============================================================================
 
-function saveGitHubSettings(actions: RouterActions) {
+function saveGitHubSettings(actions: RouterActions, formState: SetupFormState) {
+  const { githubForm } = formState;
   actions.send({
     type: 'save-settings',
     settings: {
@@ -529,15 +700,16 @@ function saveGitHubSettings(actions: RouterActions) {
         owner: githubForm.owner || '',
         repo: githubForm.repo || '',
         branch: githubForm.branch || 'main',
-        path: githubForm.path || 'synkio/export-baseline.json',
-        prPath: githubForm.prPath || 'synkio/baseline.json',
+        path: githubForm.path || '',
+        prPath: githubForm.prPath || '',
         token: githubForm.token,
       },
     },
   });
 }
 
-function saveUrlSettings(actions: RouterActions) {
+function saveUrlSettings(actions: RouterActions, formState: SetupFormState) {
+  const { urlForm } = formState;
   actions.send({
     type: 'save-settings',
     settings: {

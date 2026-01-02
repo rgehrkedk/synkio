@@ -27,16 +27,9 @@ import styles from './QuickStart.module.css';
 // Helper to safely get class names from CSS modules
 const getStyle = (key: string): string => (styles && styles[key]) || '';
 
-const cliCommands = `# Install the CLI
-npm install -g synkio
-
-# Initialize in your project
+const cliCommands = `npm install -g synkio
 synkio init
-
-# Pull variables from Figma
 synkio pull
-
-# Generate token files + CSS
 synkio build`;
 
 export function QuickStart(): HTMLElement {
@@ -53,11 +46,11 @@ export function QuickStart(): HTMLElement {
 
   const title = document.createElement('h2');
   title.className = getStyle('title');
-  title.textContent = 'Get Started in 60 Seconds';
+  title.textContent = 'Quick start';
 
   const subtitle = document.createElement('p');
   subtitle.className = getStyle('subtitle');
-  subtitle.textContent = 'Four commands. That\'s all it takes to sync your Figma variables to code.';
+  subtitle.textContent = 'Copy, paste, done.';
 
   header.appendChild(title);
   header.appendChild(subtitle);
@@ -143,7 +136,7 @@ export function QuickStart(): HTMLElement {
   const link = document.createElement('a');
   link.className = getStyle('docsLink');
   link.href = '#'; // Replace with actual docs URL
-  link.textContent = 'View full documentation';
+  link.textContent = 'Read the docs';
 
   const arrow = createIconElement('arrow-right', 16);
   arrow.className = getStyle('linkIcon');

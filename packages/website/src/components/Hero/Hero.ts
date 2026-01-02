@@ -6,7 +6,6 @@
 import { Logo } from '../shared/Logo';
 import { Button } from '../shared/Button';
 import { CodeBlock } from '../shared/CodeBlock';
-import { createIcon } from '../shared/icons';
 import styles from './Hero.module.css';
 
 // Helper to safely get class names from CSS modules
@@ -19,7 +18,7 @@ export function Hero(): HTMLElement {
   const content = document.createElement('div');
   content.className = getStyle('content');
 
-  // Animated Logo
+  // Small logo above tagline (mobile and context)
   const logoContainer = document.createElement('div');
   logoContainer.className = getStyle('logoContainer');
   logoContainer.appendChild(Logo({ size: 'hero', animated: true }));
@@ -32,13 +31,13 @@ export function Hero(): HTMLElement {
   // Tagline
   const tagline = document.createElement('h1');
   tagline.className = getStyle('tagline');
-  tagline.innerHTML = `Figma variables <span class="${getStyle('taglineGradient')}">&rarr;</span> code tokens`;
+  tagline.innerHTML = `Design tokens shouldn't<br>cost <span class="${getStyle('taglineGradient')}">$75/seat</span>`;
   textContent.appendChild(tagline);
 
   // Subhead
   const subhead = document.createElement('p');
   subhead.className = getStyle('subhead');
-  subhead.textContent = 'No Enterprise plan required.';
+  subhead.textContent = 'Sync Figma variables to code. Works with any plan.';
   textContent.appendChild(subhead);
 
   content.appendChild(textContent);
@@ -66,26 +65,36 @@ export function Hero(): HTMLElement {
   actions.className = getStyle('actions');
 
   const pluginButton = Button({
-    label: 'Get the Plugin',
+    label: 'Install Plugin',
     variant: 'primary',
     size: 'lg',
     href: 'https://www.figma.com/community/plugin/synkio',
-    icon: createIcon('figma'),
-    iconPosition: 'left',
   });
   actions.appendChild(pluginButton);
 
   const docsButton = Button({
-    label: 'Read the Docs',
+    label: 'Documentation',
     variant: 'secondary',
     size: 'lg',
     href: '/docs',
-    icon: createIcon('arrowRight'),
-    iconPosition: 'right',
   });
   actions.appendChild(docsButton);
 
   content.appendChild(actions);
+
+  // Bidirectional sync indicator - below actions
+  const syncIndicator = document.createElement('div');
+  syncIndicator.className = getStyle('syncIndicator');
+  syncIndicator.innerHTML = `
+    <span class="${getStyle('syncLabel')}">Figma</span>
+    <svg viewBox="0 0 100 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 12 L85 12" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3"/>
+      <path d="M80 8 L88 12 L80 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M20 8 L12 12 L20 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="${getStyle('syncLabel')}">Code</span>
+  `;
+  content.appendChild(syncIndicator);
 
   section.appendChild(content);
 

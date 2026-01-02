@@ -20,44 +20,38 @@ const features: Feature[] = [
   {
     id: 'dtcg',
     icon: 'code' as IconName,
-    title: 'W3C DTCG Format',
-    description:
-      'Industry-standard token format. Works with Style Dictionary, Tokens Studio, and more.',
+    title: 'W3C DTCG',
+    description: 'Standard format. Works with Style Dictionary and friends.',
   },
   {
     id: 'diffing',
     icon: 'sync' as IconName,
-    title: 'ID-Based Diffing',
-    description:
-      "Renames don't break. Smart change detection using Figma's permanent variable IDs.",
+    title: 'Smart diffing',
+    description: 'Renames don\'t break things. We track by ID, not name.',
   },
   {
     id: 'css',
     icon: 'terminal' as IconName,
-    title: 'CSS Generation',
-    description:
-      'Auto-generate CSS custom properties and utility classes from your tokens.',
+    title: 'CSS output',
+    description: 'Custom properties. Utility classes. Ready to use.',
   },
   {
     id: 'modes',
     icon: 'palette' as IconName,
-    title: 'Modes & Themes',
-    description:
-      'Full support for light/dark modes, brand variants, and responsive breakpoints.',
+    title: 'Modes',
+    description: 'Light, dark, brand variants. All supported.',
   },
   {
     id: 'split',
     icon: 'grid' as IconName,
-    title: 'Split Strategies',
-    description:
-      'Split by collection, mode, or group. Organize tokens however your codebase needs.',
+    title: 'Flexible output',
+    description: 'Split by collection, mode, or group. Your call.',
   },
   {
     id: 'styles',
     icon: 'brush' as IconName,
-    title: 'Style Support',
-    description:
-      'Sync Figma paint, text, and effect styles alongside your variables.',
+    title: 'Styles too',
+    description: 'Paint, text, effect styles. Not just variables.',
   },
 ];
 
@@ -76,12 +70,11 @@ export function Features(): HTMLElement {
 
   const title = document.createElement('h2');
   title.className = getStyle('title');
-  title.textContent = 'Built for Design Systems';
+  title.textContent = 'What you get';
 
   const subtitle = document.createElement('p');
   subtitle.className = getStyle('subtitle');
-  subtitle.textContent =
-    'Everything you need to keep design and code in sync, without the enterprise price tag.';
+  subtitle.textContent = 'No surprises. Just the essentials.';
 
   header.appendChild(title);
   header.appendChild(subtitle);

@@ -186,6 +186,100 @@ input:focus-visible {
 }
 
 /* =============================================================================
+   Input with Test Button
+   ============================================================================= */
+
+.input-with-test {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+}
+
+.input-with-test__input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Remove margin from input-group when inside input-with-test */
+.input-with-test__input .input-group {
+  margin-bottom: 0;
+}
+
+.input-with-test__btn {
+  flex-shrink: 0;
+  width: 48px;
+  height: 32px;
+  margin-bottom: 0;
+  padding: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-with-test__btn:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.input-with-test__btn--success {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-color: var(--color-success);
+}
+
+.input-with-test__btn--success:hover {
+  background: var(--color-success-bg);
+}
+
+.input-with-test__btn--warning {
+  color: var(--color-warning, #f59e0b);
+  background: var(--color-warning-bg, rgba(245, 158, 11, 0.1));
+  border-color: var(--color-warning, #f59e0b);
+}
+
+.input-with-test__btn--warning:hover {
+  background: var(--color-warning-bg, rgba(245, 158, 11, 0.15));
+}
+
+.input-with-test__btn--error {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border-color: var(--color-error);
+}
+
+.input-with-test__btn--error:hover {
+  background: var(--color-error-bg);
+}
+
+.input-with-test-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-with-test__msg {
+  font-size: var(--font-size-xs);
+  margin-top: 4px;
+  padding: 0 2px;
+}
+
+.input-with-test__msg--warning {
+  color: var(--color-warning, #f59e0b);
+}
+
+.input-with-test__msg--error {
+  color: var(--color-error);
+}
+
+/* =============================================================================
    Tab Badge (Onboarding step indicator)
    ============================================================================= */
 

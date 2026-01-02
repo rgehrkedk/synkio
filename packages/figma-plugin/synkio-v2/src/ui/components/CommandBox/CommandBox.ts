@@ -78,7 +78,18 @@ export function CommandBox(props: CommandBoxProps): HTMLDivElement {
         copyBtn.classList.remove('command-box__copy--success');
       }, 1500);
     } catch {
-      // Silent fail - clipboard may not be available
+      // Show error feedback instead of silent fail
+      copyBtn.innerHTML = '';
+      copyBtn.appendChild(Icon('x', 'sm'));
+      copyBtn.classList.add('command-box__copy--error');
+      copyBtn.setAttribute('title', 'Copy failed - select text manually');
+
+      setTimeout(() => {
+        copyBtn.innerHTML = '';
+        copyBtn.appendChild(Icon('copy', 'sm'));
+        copyBtn.classList.remove('command-box__copy--error');
+        copyBtn.setAttribute('title', '');
+      }, 2500);
     }
   });
   box.appendChild(copyBtn);

@@ -44,3 +44,4 @@
 }
 .command-box__copy:hover { background: var(--color-bg-tertiary); }
 .command-box__copy--success { color: var(--color-added); }
+.command-box__copy--error { color: var(--color-error); }

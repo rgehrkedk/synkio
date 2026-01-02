@@ -1,32 +1,30 @@
 /* =============================================================================
-   Button Component Styles
+   Button Component Styles - Minimal
    ============================================================================= */
 
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   font-family: var(--typography-family-sans);
-  font-weight: var(--typography-weight-medium);
+  font-weight: var(--typography-weight-regular);
+  font-size: var(--typography-size-sm);
   text-decoration: none;
   cursor: pointer;
-  transition:
-    background-color var(--animation-duration-fast) var(--animation-easing-out),
-    border-color var(--animation-duration-fast) var(--animation-easing-out),
-    transform var(--animation-duration-fast) var(--animation-easing-out),
-    box-shadow var(--animation-duration-fast) var(--animation-easing-out);
+  transition: opacity var(--animation-duration-fast) var(--animation-easing-out);
   white-space: nowrap;
   user-select: none;
+  letter-spacing: 0.02em;
 }
 
 .button:focus-visible {
-  outline: 2px solid var(--color-brand-emerald);
+  outline: 1px solid var(--text-tertiary);
   outline-offset: 2px;
 }
 
 .button:active {
-  transform: scale(0.98);
+  opacity: 0.7;
 }
 
 /* Button Content */
@@ -93,20 +91,13 @@
    ============================================================================= */
 
 .button--primary {
-  background: linear-gradient(
-    135deg,
-    var(--color-brand-emerald) 0%,
-    var(--color-brand-teal) 50%,
-    var(--color-brand-cyan) 100%
-  );
-  color: var(--color-neutral-950);
+  background: var(--text-primary);
+  color: var(--bg-primary);
   border: none;
-  box-shadow: var(--shadow-md);
 }
 
 .button--primary:hover {
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
-  filter: brightness(1.1);
+  opacity: 0.8;
 }
 
 /* =============================================================================
@@ -115,14 +106,13 @@
 
 .button--secondary {
   background: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
 }
 
 .button--secondary:hover {
-  background: var(--bg-tertiary);
-  border-color: var(--color-brand-emerald);
-  color: var(--color-brand-emerald);
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
 }
 
 /* =============================================================================

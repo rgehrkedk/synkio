@@ -50,7 +50,7 @@ export function ApplyScreen(state: PluginState, actions: RouterActions): HTMLEle
       currentView = 'source';
       // Clear error when navigating away
       actions.updateState({ error: undefined });
-      actions.navigate('home');
+      actions.navigate('main');
     },
   });
 

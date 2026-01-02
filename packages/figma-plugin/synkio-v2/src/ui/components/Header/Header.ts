@@ -20,7 +20,7 @@ export function Header(props: HeaderProps): HTMLElement {
 
   const left = el('div', { class: 'header__left' });
   if (showBack) {
-    const backBtn = el('button', { class: 'header__back' });
+    const backBtn = el('button', { class: 'header__back', 'aria-label': 'Go back' });
     backBtn.appendChild(Icon('chevron-left', 'md'));
     if (onBack) {
       backBtn.addEventListener('click', onBack);

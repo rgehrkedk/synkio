@@ -24,22 +24,57 @@ export interface VariableChangeInput {
 export async function createOrUpdateVariable(change: VariableChangeInput): Promise<void> {
   // Find or create collection
   const allCollections = await figma.variables.getLocalVariableCollectionsAsync();
-  let collection = allCollections.find(c => c.name === change.collection);
+  let collection = allCollections.find((c) => c.name === change.collection);
 
   if (!collection) {
-    collection = figma.variables.createVariableCollection(change.collection);
+    try {
+      collection = figma.variables.createVariableCollection(change.collection);
+    } catch (e) {
+      throw new Error(
+        `Could not create collection "${change.collection}". ` +
+          `You may have reached Figma's collection limit. Error: ${e}`
+      );
+    }
+
+    if (!collection) {
+      throw new Error(
+        `Failed to create collection "${change.collection}". ` +
+          `Figma may have restrictions on collection creation.`
+      );
+    }
   }
 
   // Find or create mode
-  let modeId = collection.modes.find(m => m.name === change.mode)?.modeId;
+  let modeId = collection.modes.find((m) => m.name === change.mode)?.modeId;
 
   if (!modeId) {
     // For collections with single "Mode 1", rename it
     if (collection.modes.length === 1 && collection.modes[0].name === 'Mode 1') {
-      collection.renameMode(collection.modes[0].modeId, change.mode);
-      modeId = collection.modes[0].modeId;
+      try {
+        collection.renameMode(collection.modes[0].modeId, change.mode);
+        modeId = collection.modes[0].modeId;
+      } catch (e) {
+        throw new Error(
+          `Could not rename mode to "${change.mode}" in collection "${change.collection}". ` +
+            `Error: ${e}`
+        );
+      }
     } else {
-      modeId = collection.addMode(change.mode);
+      try {
+        modeId = collection.addMode(change.mode);
+      } catch (e) {
+        throw new Error(
+          `Could not add mode "${change.mode}" to collection "${change.collection}". ` +
+            `You may have reached the mode limit for your Figma plan. Error: ${e}`
+        );
+      }
+    }
+
+    if (!modeId) {
+      throw new Error(
+        `Failed to create mode "${change.mode}" in collection "${change.collection}". ` +
+          `Mode creation returned no ID.`
+      );
     }
   }
 
@@ -53,9 +88,13 @@ export async function createOrUpdateVariable(change: VariableChangeInput): Promi
   if (!variable) {
     // Try to find by name
     const variableName = change.path.replace(/\./g, '/');
-    const variablePromises = collection.variableIds.map(id => figma.variables.getVariableByIdAsync(id));
+    const variablePromises = collection.variableIds.map((id) =>
+      figma.variables.getVariableByIdAsync(id)
+    );
     const variables = await Promise.all(variablePromises);
-    const existingVariables = variables.filter((v): v is Variable => v !== null && v.name === variableName);
+    const existingVariables = variables.filter(
+      (v): v is Variable => v !== null && v.name === variableName
+    );
 
     variable = existingVariables[0] || null;
   }
@@ -64,12 +103,34 @@ export async function createOrUpdateVariable(change: VariableChangeInput): Promi
     // Create new variable
     const resolvedType = getResolvedType(change.type);
     const variableName = change.path.replace(/\./g, '/');
-    variable = figma.variables.createVariable(variableName, collection, resolvedType);
+
+    try {
+      variable = figma.variables.createVariable(variableName, collection, resolvedType);
+    } catch (e) {
+      throw new Error(
+        `Could not create variable "${variableName}" in collection "${change.collection}". ` +
+          `Error: ${e}`
+      );
+    }
+
+    if (!variable) {
+      throw new Error(
+        `Failed to create variable "${variableName}" in collection "${change.collection}". ` +
+          `This may be due to an invalid variable name, type restriction, or Figma plan limits.`
+      );
+    }
   }
 
   // Set value
-  const value = await convertValueForFigma(change.value, change.type);
-  variable.setValueForMode(modeId, value);
+  try {
+    const value = await convertValueForFigma(change.value, change.type);
+    variable.setValueForMode(modeId, value);
+  } catch (e) {
+    throw new Error(
+      `Could not set value for "${change.path}" in mode "${change.mode}". ` +
+        `The value may be incompatible with the variable type. Error: ${e}`
+    );
+  }
 }
 
 /**

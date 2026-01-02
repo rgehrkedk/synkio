@@ -26,6 +26,7 @@ import {
 
 import { compareBaselines } from '../lib/compare';
 import { debug, isDebugEnabled } from '../lib/debug';
+import { validateBaselineData, isValidationError } from '../lib/validation';
 import { buildBaseline } from '../operations';
 import { SendMessage } from './types';
 
@@ -91,12 +92,8 @@ export async function handleFetchRemoteResult(
   send: SendMessage
 ): Promise<void> {
   try {
-    // Parse and validate
-    const codeBaseline = JSON.parse(content) as BaselineData;
-
-    if (!codeBaseline.baseline) {
-      throw new Error('Invalid baseline format: missing baseline field');
-    }
+    // Parse and validate with schema checking
+    const codeBaseline = validateBaselineData(content);
 
     // Save code baseline
     saveChunked(KEYS.CODE_BASELINE, codeBaseline);
@@ -118,8 +115,9 @@ export async function handleFetchRemoteResult(
 
     // === DEBUG LOGGING ===
     if (isDebugEnabled()) {
-      const codeEntries = Object.values(codeBaseline.baseline);
-      const figmaEntries = Object.values(currentBaseline.baseline);
+      // Defensive null checks for debug logging
+      const codeEntries = codeBaseline.baseline ? Object.values(codeBaseline.baseline) : [];
+      const figmaEntries = currentBaseline.baseline ? Object.values(currentBaseline.baseline) : [];
 
       debug('=== COMPARISON DEBUG ===');
       debug('Code baseline entries:', codeEntries.length);
@@ -215,9 +213,14 @@ export async function handleFetchRemoteResult(
       diff,
     });
   } catch (error) {
+    // Provide user-friendly error for validation failures
+    const errorMessage = isValidationError(error)
+      ? error.message
+      : `Failed to process baseline: ${String(error)}`;
+
     send({
       type: 'fetch-error',
-      error: String(error),
+      error: errorMessage,
     });
   }
 }
@@ -232,6 +235,7 @@ export function handleFetchRemoteError(error: string, send: SendMessage): void {
 
 // =============================================================================
 // handleTestConnection - Test GitHub connection
+// Delegates to UI which has fetch access
 // =============================================================================
 
 export async function handleTestConnection(send: SendMessage): Promise<void> {
@@ -247,32 +251,21 @@ export async function handleTestConnection(send: SendMessage): Promise<void> {
     }
 
     const { owner, repo, branch, path, token } = settings.remote.github;
-    const url = token
-      ? `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch || 'main'}`
-      : `https://raw.githubusercontent.com/${owner}/${repo}/${branch || 'main'}/${path}`;
 
-    const headers: Record<string, string> = {
-      'Accept': token ? 'application/vnd.github.v3+json' : 'application/json',
-    };
-
-    if (token) {
-      headers['Authorization'] = `token ${token}`;
-    }
-
-    const response = await fetch(url, { headers, method: 'HEAD' });
-
-    if (response.ok) {
-      send({
-        type: 'connection-test-result',
-        success: true,
-      });
-    } else {
+    if (!owner || !repo) {
       send({
         type: 'connection-test-result',
         success: false,
-        error: `HTTP ${response.status}`,
+        error: 'Repository not configured',
       });
+      return;
     }
+
+    // Send to UI to perform the actual fetch (plugin sandbox has no network access)
+    send({
+      type: 'do-test-connection',
+      github: { owner, repo, branch: branch || 'main', path: path || 'synkio/export-baseline.json', token },
+    });
   } catch (error) {
     send({
       type: 'connection-test-result',
@@ -280,6 +273,22 @@ export async function handleTestConnection(send: SendMessage): Promise<void> {
       error: String(error),
     });
   }
+}
+
+// =============================================================================
+// handleTestConnectionResult - Forward test result to UI
+// =============================================================================
+
+export function handleTestConnectionResult(
+  success: boolean,
+  error: string | undefined,
+  send: SendMessage
+): void {
+  send({
+    type: 'connection-test-result',
+    success,
+    error,
+  });
 }
 
 // =============================================================================

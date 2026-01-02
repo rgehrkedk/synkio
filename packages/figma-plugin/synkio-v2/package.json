@@ -2,14 +2,42 @@
   "name": "synkio-figma-plugin",
   "version": "1.0.0",
   "description": "Synkio Figma Plugin - Sync design variables with code",
+  "author": {
+    "name": "Rasmus Gehrke",
+    "url": "https://github.com/rgehrkedk"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rgehrkedk/synkio.git",
+    "directory": "packages/figma-plugin/synkio-v2"
+  },
+  "license": "MIT",
+  "keywords": [
+    "figma",
+    "figma-plugin",
+    "design-tokens",
+    "design-systems",
+    "synkio",
+    "dtcg",
+    "css-variables",
+    "figma-variables"
+  ],
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "node build.js",
     "watch": "node build.js --watch",
-    "dev": "node build.js --watch"
+    "dev": "node build.js --watch",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.100.0",
     "esbuild": "^0.24.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
   }
 }

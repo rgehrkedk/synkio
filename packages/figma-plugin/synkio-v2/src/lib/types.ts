@@ -371,6 +371,38 @@ export interface CodeSyncState {
   error?: string;
 }
 
+/**
+ * Result of testing a path/URL
+ */
+export interface PathTestResult {
+  tested: boolean;
+  success?: boolean;
+  warning?: boolean;  // true = not found but will be created (yellow/orange)
+  error?: string;
+}
+
+/**
+ * State for the Setup tab form (prevents race conditions from module-level state).
+ */
+export interface SetupFormState {
+  editingSource: 'github' | 'url' | null;
+  githubForm: Partial<GitHubSettings>;
+  urlForm: Partial<UrlSettings>;
+  connectionStatus: {
+    tested: boolean;
+    success?: boolean;
+    error?: string;
+  };
+  // Individual path test results
+  pathTests?: {
+    repo?: PathTestResult;
+    exportPath?: PathTestResult;
+    prPath?: PathTestResult;
+  };
+  // Raw input value for repository field to avoid re-render issues while typing
+  repoInputValue?: string;
+}
+
 export interface PluginState {
   screen: Screen;
   isLoading: boolean;
@@ -392,6 +424,9 @@ export interface PluginState {
   // First-time state
   isFirstTime: boolean;
   onboardingStep?: 1 | 2 | 3;  // Only present during first-time flow
+
+  // Setup tab form state (moved from module-level to avoid race conditions)
+  setupFormState?: SetupFormState;
 }
 
 // =============================================================================
@@ -425,7 +460,11 @@ export type MessageToCode =
   // Code sync status
   | { type: 'check-code-sync' }
   | { type: 'code-sync-result'; content: string }
-  | { type: 'code-sync-error'; error: string };
+  | { type: 'code-sync-error'; error: string }
+  // Connection test results from UI
+  | { type: 'test-connection-result'; success: boolean; error?: string }
+  // Debug
+  | { type: 'toggle-debug' };
 
 export type MessageToUI =
   | { type: 'initialized'; state: Partial<PluginState> }
@@ -448,6 +487,9 @@ export type MessageToUI =
   | { type: 'history-update'; history: SyncEvent[] }
   | { type: 'settings-update'; settings: PluginSettings }
   | { type: 'connection-test-result'; success: boolean; error?: string }
+  | { type: 'do-test-connection'; github: GitHubSettings }
+  | { type: 'do-test-path'; github: GitHubSettings; path: string; testType: 'repo' | 'exportPath' | 'prPath' }
+  | { type: 'path-test-result'; testType: 'repo' | 'exportPath' | 'prPath'; success: boolean; error?: string }
   | { type: 'data-cleared' }
   | { type: 'do-create-pr'; github: GitHubSettings; files: Record<string, string>; prTitle: string; prBody: string }
   | { type: 'pr-created'; prUrl: string; prNumber: number }
@@ -455,4 +497,6 @@ export type MessageToUI =
   // Code sync status
   | { type: 'do-check-code-sync'; github: GitHubSettings; baselinePath: string }
   | { type: 'do-check-code-sync-url'; url: string }
-  | { type: 'code-sync-update'; codeSyncState: CodeSyncState };
+  | { type: 'code-sync-update'; codeSyncState: CodeSyncState }
+  // Debug mode
+  | { type: 'debug-toggled'; enabled: boolean };

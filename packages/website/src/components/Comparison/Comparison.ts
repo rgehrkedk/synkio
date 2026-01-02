@@ -36,33 +36,33 @@ interface ComparisonRow {
 
 const comparisonData: ComparisonRow[] = [
   {
-    feature: 'Variables API Access',
-    synkio: 'Free (via plugin)',
-    enterprise: '$75/user/mo',
+    feature: 'Variables API',
+    synkio: 'Free',
+    enterprise: '$75/seat',
     tokensStudio: 'Free',
   },
   {
-    feature: 'CLI Sync',
+    feature: 'CLI sync',
     synkio: true,
     enterprise: false,
     tokensStudio: true,
   },
   {
-    feature: 'Breaking Change Detection',
+    feature: 'Breaking change detection',
     synkio: true,
     enterprise: false,
     tokensStudio: false,
   },
   {
-    feature: 'W3C DTCG Output',
+    feature: 'W3C DTCG',
     synkio: true,
     enterprise: 'Partial',
     tokensStudio: true,
   },
   {
-    feature: 'Price',
-    synkio: 'Free & Open Source',
-    enterprise: '$$$$',
+    feature: 'Cost',
+    synkio: 'Free',
+    enterprise: '$$$',
     tokensStudio: 'Freemium',
   },
 ];
@@ -79,10 +79,10 @@ function createCell(value: boolean | string, isHighlight: boolean = false): HTML
   } else {
     cell.textContent = value;
     // Add special styling for price emphasis
-    if (value === 'Free & Open Source') {
+    if (value === 'Free') {
       const freeClass = getStyle('freeText');
       if (freeClass) cell.classList.add(freeClass);
-    } else if (value === '$$$$') {
+    } else if (value === '$$$' || value === '$75/seat') {
       const expensiveClass = getStyle('expensiveText');
       if (expensiveClass) cell.classList.add(expensiveClass);
     }
@@ -112,12 +112,11 @@ export function Comparison(): HTMLElement {
 
   const title = document.createElement('h2');
   title.className = getStyle('title');
-  title.textContent = 'Why Synkio?';
+  title.textContent = 'Comparison';
 
   const subtitle = document.createElement('p');
   subtitle.className = getStyle('subtitle');
-  subtitle.textContent =
-    'See how Synkio compares to other design token solutions.';
+  subtitle.textContent = 'How we stack up.';
 
   header.appendChild(title);
   header.appendChild(subtitle);

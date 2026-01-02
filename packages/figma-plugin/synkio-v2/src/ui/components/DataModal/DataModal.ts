@@ -59,7 +59,7 @@ function createDataModal({ onClearData, onClose }: DataModalProps): HTMLElement 
   titleRow.appendChild(el('span', { class: 'font-medium' }, 'Data Management'));
   header.appendChild(titleRow);
 
-  const closeBtn = el('button', { class: 'modal-close', title: 'Close' });
+  const closeBtn = el('button', { class: 'modal-close', title: 'Close', 'aria-label': 'Close modal' });
   closeBtn.appendChild(Icon('x', 'sm'));
   closeBtn.addEventListener('click', onClose);
   header.appendChild(closeBtn);

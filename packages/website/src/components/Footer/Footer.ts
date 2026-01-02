@@ -104,14 +104,14 @@ export function Footer(): HTMLElement {
 
   const credit = document.createElement('span');
   credit.className = getStyle('credit');
-  credit.textContent = 'Built by ';
+  credit.textContent = 'Made by ';
 
   const authorLink = document.createElement('a');
   authorLink.className = getStyle('authorLink');
   authorLink.href = 'https://github.com/rgehrkedk';
   authorLink.target = '_blank';
   authorLink.rel = 'noopener noreferrer';
-  authorLink.textContent = '@rgehrkedk';
+  authorLink.textContent = 'rgehrkedk';
 
   credit.appendChild(authorLink);
 

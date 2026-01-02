@@ -10,10 +10,14 @@ export interface InputProps {
   value?: string;
   type?: 'text' | 'password' | 'url';
   onChange?: (value: string) => void;
+  /** If true, only fire onChange on blur instead of every keystroke */
+  onBlur?: boolean;
+  /** Debounce delay in ms. If set, onChange fires after typing stops. */
+  debounce?: number;
 }
 
 export function Input(props: InputProps): HTMLDivElement {
-  const { label, placeholder, value = '', type = 'text', onChange } = props;
+  const { label, placeholder, value = '', type = 'text', onChange, onBlur = false, debounce = 0 } = props;
 
   const group = el('div', { class: 'input-group' });
 
@@ -29,7 +33,25 @@ export function Input(props: InputProps): HTMLDivElement {
   input.value = value;
 
   if (onChange) {
-    input.addEventListener('input', () => onChange(input.value));
+    if (onBlur) {
+      // Only fire on blur
+      input.addEventListener('blur', () => onChange(input.value));
+    } else if (debounce > 0) {
+      // Debounced input
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      input.addEventListener('input', () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => onChange(input.value), debounce);
+      });
+      // Also fire on blur to ensure value is saved
+      input.addEventListener('blur', () => {
+        if (timeoutId) clearTimeout(timeoutId);
+        onChange(input.value);
+      });
+    } else {
+      // Immediate (default)
+      input.addEventListener('input', () => onChange(input.value));
+    }
   }
 
   group.appendChild(input);

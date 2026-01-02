@@ -36,7 +36,7 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
   const header = Header({
     title: 'Sync',
     showBack: true,
-    onBack: () => actions.navigate('home'),
+    onBack: () => actions.navigate('main'),
   });
 
   // Loading state

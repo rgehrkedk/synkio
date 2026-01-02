@@ -21,7 +21,11 @@ import {
   saveForCLI,
   generateBaselineHash,
   getFigmaBaselineHash,
+  loadDebugSetting,
+  saveDebugSetting,
 } from '../lib/storage';
+
+import { debug, setDebugEnabled, isDebugEnabled } from '../lib/debug';
 
 import {
   collectVariables,
@@ -40,6 +44,11 @@ import { SendMessage } from './types';
 // =============================================================================
 
 export async function handleReady(send: SendMessage): Promise<void> {
+  // Load debug setting first
+  const debugEnabled = await loadDebugSetting();
+  setDebugEnabled(debugEnabled);
+  debug('Plugin ready, debug mode:', debugEnabled);
+
   // Load all stored data
   const syncBaseline = loadChunked<BaselineData>(KEYS.SYNC_BASELINE);
   const codeBaseline = loadChunked<BaselineData>(KEYS.CODE_BASELINE);
@@ -248,4 +257,22 @@ export async function handleSync(send: SendMessage): Promise<void> {
 
 export function handleCompleteOnboarding(): void {
   saveSimple(KEYS.ONBOARDING_COMPLETE, true);
+}
+
+// =============================================================================
+// handleToggleDebug - Toggle debug mode on/off
+// =============================================================================
+
+export async function handleToggleDebug(send: SendMessage): Promise<void> {
+  const current = isDebugEnabled();
+  const newValue = !current;
+  setDebugEnabled(newValue);
+  await saveDebugSetting(newValue);
+  debug(`Debug mode ${newValue ? 'enabled' : 'disabled'}`);
+
+  // Notify UI about the change
+  send({
+    type: 'debug-toggled',
+    enabled: newValue,
+  });
 }

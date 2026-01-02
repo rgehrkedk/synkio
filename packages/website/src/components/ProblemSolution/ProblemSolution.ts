@@ -20,20 +20,20 @@ interface CardData {
 
 const problemData: CardData = {
   type: 'problem',
-  label: 'The Problem',
+  label: 'Without Synkio',
   icon: 'lock',
-  title: 'Figma Variables REST API',
-  badge: '$75/user/month',
-  description: 'Accessing Figma design variables via API requires an Enterprise plan, pricing out most teams and individuals.',
+  title: 'Enterprise API',
+  badge: '$75/seat/mo',
+  description: 'Figma locks the Variables REST API behind Enterprise. Most teams can\'t justify the cost.',
 };
 
 const solutionData: CardData = {
   type: 'solution',
-  label: 'The Solution',
+  label: 'With Synkio',
   icon: 'unlock',
-  title: 'Synkio Plugin + CLI',
+  title: 'Plugin + CLI',
   badge: 'Free',
-  description: 'Works with any Figma plan. The plugin stores variable data in the file, and the CLI fetches it via the standard API.',
+  description: 'A plugin stores your variables. The CLI reads them. No special API access required.',
 };
 
 export function ProblemSolution(): HTMLElement {
@@ -49,12 +49,12 @@ export function ProblemSolution(): HTMLElement {
 
   const title = document.createElement('h2');
   title.className = getStyle('title');
-  title.textContent = 'Design tokens for everyone';
+  title.textContent = 'The workaround';
   header.appendChild(title);
 
   const subtitle = document.createElement('p');
   subtitle.className = getStyle('subtitle');
-  subtitle.textContent = 'Synkio bridges the gap between Figma and code without the Enterprise price tag.';
+  subtitle.textContent = 'Same result. Different path.';
   header.appendChild(subtitle);
 
   container.appendChild(header);

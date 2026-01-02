@@ -6,6 +6,7 @@ import { Screen, PluginState, MessageToUI, MessageToCode, GitHubSettings } from 
 import { createRouter, Router, ScreenRenderer, ScreenCleanup } from './router';
 import { injectStyles } from './styles/index';
 import { countChanges } from '../lib/compare';
+import { setRouterRef, testPath } from './api';
 import {
   MainScreen,
   SyncScreen,
@@ -49,6 +50,14 @@ const initialState: PluginState = {
 
   isFirstTime: true,
   onboardingStep: 1,  // Start at step 1 for first-time users
+
+  // Setup form state (prevents race conditions from module-level variables)
+  setupFormState: {
+    editingSource: null,
+    githubForm: {},
+    urlForm: {},
+    connectionStatus: { tested: false },
+  },
 };
 
 // =============================================================================
@@ -88,11 +97,22 @@ function init() {
   // Create router
   router = createRouter(app, screens, initialState, sendMessage, screenCleanup);
 
+  // Set router reference for API functions
+  setRouterRef(router);
+
   // Initial render
   router.render();
 
   // Listen for messages from plugin code
   window.onmessage = handleMessage;
+
+  // Keyboard shortcut: Ctrl+Shift+D to toggle debug mode
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+      e.preventDefault();
+      sendMessage({ type: 'toggle-debug' });
+    }
+  });
 
   // Tell the plugin we're ready
   sendMessage({ type: 'ready' });
@@ -238,8 +258,15 @@ function handleMessage(event: MessageEvent) {
       break;
 
     case 'connection-test-result':
-      updateSetupConnectionStatus(message.success, message.error);
-      router.updateState({}); // Trigger re-render
+      updateSetupConnectionStatus(router, message.success, message.error);
+      break;
+
+    case 'do-test-connection':
+      handleDoTestConnection(message.github);
+      break;
+
+    case 'do-test-path':
+      testPath(message.github, message.path, message.testType);
       break;
 
     case 'data-cleared':
@@ -277,6 +304,11 @@ function handleMessage(event: MessageEvent) {
 
     case 'code-sync-update':
       router.updateState({ codeSyncState: message.codeSyncState });
+      break;
+
+    case 'debug-toggled':
+      console.log(`Debug mode ${message.enabled ? 'enabled' : 'disabled'}`);
+      // Could show a toast notification here
       break;
   }
 }
@@ -410,6 +442,53 @@ async function handleDoFetchRemote(github: GitHubSettings) {
   }
 }
 
+// =============================================================================
+// Test Connection (UI has fetch access, plugin sandbox does not)
+// Tests repository access only - doesn't require specific files to exist
+// =============================================================================
+
+async function handleDoTestConnection(github: GitHubSettings) {
+  try {
+    const { owner, repo, branch, token } = github;
+
+    // Test repository access using GitHub API (works for both public and private repos)
+    // We check if the branch exists, which validates: repo access + branch + token permissions
+    const url = `https://api.github.com/repos/${owner}/${repo}/branches/${branch || 'main'}`;
+
+    const headers: Record<string, string> = {
+      'Accept': 'application/vnd.github.v3+json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `token ${token}`;
+    }
+
+    const response = await fetch(url, { headers });
+
+    if (response.ok) {
+      sendMessage({ type: 'test-connection-result', success: true });
+    } else {
+      let errorMsg = `HTTP ${response.status}`;
+      if (response.status === 404) {
+        // Could be repo not found OR branch not found OR private repo without token
+        if (token) {
+          errorMsg = `Repository or branch not found: ${owner}/${repo} (${branch || 'main'})`;
+        } else {
+          errorMsg = `Repository not found or private. Add a token for private repos.`;
+        }
+      } else if (response.status === 401) {
+        errorMsg = 'Invalid or expired token';
+      } else if (response.status === 403) {
+        errorMsg = 'Access forbidden - check token permissions';
+      }
+      sendMessage({ type: 'test-connection-result', success: false, error: errorMsg });
+    }
+  } catch (error) {
+    sendMessage({ type: 'test-connection-result', success: false, error: String(error) });
+  }
+}
+
+// =============================================================================
 // =============================================================================
 // URL Fetch (for custom URL source)
 // =============================================================================
@@ -608,6 +687,58 @@ async function handleCreatePR(
   }
 }
 
+// =============================================================================
+// GitHub API Helpers
+// =============================================================================
+
+interface GitHubApiError {
+  message?: string;
+  documentation_url?: string;
+}
+
+/**
+ * Fetch with response.ok check. Throws user-friendly error on failure.
+ */
+async function checkedFetch(
+  url: string,
+  options: RequestInit,
+  context: string
+): Promise<Response> {
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    let errorMessage = `${context}: HTTP ${response.status}`;
+
+    try {
+      const errorData: GitHubApiError = await response.json();
+      if (errorData.message) {
+        errorMessage = `${context}: ${errorData.message}`;
+      }
+    } catch {
+      // Response body wasn't JSON, use status text
+      if (response.statusText) {
+        errorMessage = `${context}: ${response.statusText}`;
+      }
+    }
+
+    throw new Error(errorMessage);
+  }
+
+  return response;
+}
+
+/**
+ * Fetch JSON with response.ok check. Throws user-friendly error on failure.
+ */
+async function checkedFetchJson<T>(
+  url: string,
+  options: RequestInit,
+  context: string
+): Promise<T> {
+  const response = await checkedFetch(url, options, context);
+  return response.json() as Promise<T>;
+}
+
 async function getBaseBranchSha(
   owner: string,
   repo: string,
@@ -622,13 +753,11 @@ async function getBaseBranchSha(
   }
 
   const url = `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${branch}`;
-  const response = await fetch(url, { headers });
-
-  if (!response.ok) {
-    throw new Error(`Failed to get base branch: ${response.statusText}`);
-  }
-
-  const data = await response.json();
+  const data = await checkedFetchJson<{ object: { sha: string } }>(
+    url,
+    { headers },
+    'Failed to get base branch'
+  );
   return data.object.sha;
 }
 
@@ -648,18 +777,18 @@ async function createBranch(
   }
 
   const url = `https://api.github.com/repos/${owner}/${repo}/git/refs`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      ref: `refs/heads/${branch}`,
-      sha,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create branch: ${response.statusText}`);
-  }
+  await checkedFetch(
+    url,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        ref: `refs/heads/${branch}`,
+        sha,
+      }),
+    },
+    'Failed to create branch'
+  );
 }
 
 async function commitFiles(
@@ -678,31 +807,39 @@ async function commitFiles(
     headers['Authorization'] = `token ${token}`;
   }
 
+  const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
+
   // 1. Get current commit SHA
-  const refUrl = `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${branch}`;
-  const refResponse = await fetch(refUrl, { headers });
-  const refData = await refResponse.json();
+  const refData = await checkedFetchJson<{ object: { sha: string } }>(
+    `${baseUrl}/git/ref/heads/${branch}`,
+    { headers },
+    'Failed to get branch reference'
+  );
   const currentCommitSha = refData.object.sha;
 
   // 2. Get current commit tree
-  const commitUrl = `https://api.github.com/repos/${owner}/${repo}/git/commits/${currentCommitSha}`;
-  const commitResponse = await fetch(commitUrl, { headers });
-  const commitData = await commitResponse.json();
+  const commitData = await checkedFetchJson<{ tree: { sha: string } }>(
+    `${baseUrl}/git/commits/${currentCommitSha}`,
+    { headers },
+    'Failed to get commit details'
+  );
   const baseTreeSha = commitData.tree.sha;
 
   // 3. Create blobs for each file
-  const tree = [];
+  const tree: Array<{ path: string; mode: string; type: string; sha: string }> = [];
   for (const [path, content] of Object.entries(files)) {
-    const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs`;
-    const blobResponse = await fetch(blobUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        content,
-        encoding: 'utf-8',
-      }),
-    });
-    const blobData = await blobResponse.json();
+    const blobData = await checkedFetchJson<{ sha: string }>(
+      `${baseUrl}/git/blobs`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          content,
+          encoding: 'utf-8',
+        }),
+      },
+      `Failed to create blob for ${path}`
+    );
 
     tree.push({
       path,
@@ -713,39 +850,46 @@ async function commitFiles(
   }
 
   // 4. Create tree
-  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees`;
-  const treeResponse = await fetch(treeUrl, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      base_tree: baseTreeSha,
-      tree,
-    }),
-  });
-  const treeData = await treeResponse.json();
+  const treeData = await checkedFetchJson<{ sha: string }>(
+    `${baseUrl}/git/trees`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        base_tree: baseTreeSha,
+        tree,
+      }),
+    },
+    'Failed to create Git tree'
+  );
 
   // 5. Create commit
-  const newCommitUrl = `https://api.github.com/repos/${owner}/${repo}/git/commits`;
-  const newCommitResponse = await fetch(newCommitUrl, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      message,
-      tree: treeData.sha,
-      parents: [currentCommitSha],
-    }),
-  });
-  const newCommitData = await newCommitResponse.json();
+  const newCommitData = await checkedFetchJson<{ sha: string }>(
+    `${baseUrl}/git/commits`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        message,
+        tree: treeData.sha,
+        parents: [currentCommitSha],
+      }),
+    },
+    'Failed to create commit'
+  );
 
   // 6. Update branch ref
-  const updateRefUrl = `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`;
-  await fetch(updateRefUrl, {
-    method: 'PATCH',
-    headers,
-    body: JSON.stringify({
-      sha: newCommitData.sha,
-    }),
-  });
+  await checkedFetch(
+    `${baseUrl}/git/refs/heads/${branch}`,
+    {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        sha: newCommitData.sha,
+      }),
+    },
+    'Failed to update branch reference'
+  );
 }
 
 async function createPullRequest(
@@ -763,18 +907,15 @@ async function createPullRequest(
   }
 
   const url = `https://api.github.com/repos/${owner}/${repo}/pulls`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(pr),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(`Failed to create PR: ${errorData.message || response.statusText}`);
-  }
-
-  return response.json();
+  return checkedFetchJson<{ html_url: string; number: number }>(
+    url,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(pr),
+    },
+    'Failed to create pull request'
+  );
 }
 
 // =============================================================================

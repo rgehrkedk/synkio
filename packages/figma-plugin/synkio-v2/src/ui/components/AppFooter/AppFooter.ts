@@ -63,6 +63,7 @@ function createFooterLink(
   const link = el('button', {
     class: 'app-footer-link',
     title: label,
+    'aria-label': label,
   });
 
   link.appendChild(Icon(icon, 'sm'));

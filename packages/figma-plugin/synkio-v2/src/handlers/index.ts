@@ -6,7 +6,7 @@ import { MessageToCode } from '../lib/types';
 import { SendMessage } from './types';
 
 // Import all handlers
-import { handleReady, handleInit, handleSync, handleCompleteOnboarding } from './sync-handlers';
+import { handleReady, handleInit, handleSync, handleCompleteOnboarding, handleToggleDebug } from './sync-handlers';
 import {
   handleGetCollections,
   handleSaveExcludedCollections,
@@ -18,6 +18,7 @@ import {
   handleFetchRemoteResult,
   handleFetchRemoteError,
   handleTestConnection,
+  handleTestConnectionResult,
   handleCheckCodeSync,
   handleCodeSyncResult,
   handleCodeSyncError,
@@ -111,6 +112,20 @@ export async function handleMessage(
         await handleTestConnection(send);
         break;
 
+      case 'test-connection-result':
+        handleTestConnectionResult(message.success, message.error, send);
+        break;
+
+      case 'path-test-result':
+        // Forward path test result directly to UI
+        send({
+          type: 'path-test-result',
+          testType: message.testType,
+          success: message.success,
+          error: message.error,
+        });
+        break;
+
       case 'clear-all-data':
         await handleClearAllData(send);
         break;
@@ -146,6 +161,10 @@ export async function handleMessage(
 
       case 'complete-onboarding':
         handleCompleteOnboarding();
+        break;
+
+      case 'toggle-debug':
+        await handleToggleDebug(send);
         break;
 
       // Navigate messages are handled by UI, not plugin code

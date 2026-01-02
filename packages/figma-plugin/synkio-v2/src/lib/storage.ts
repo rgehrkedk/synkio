@@ -107,6 +107,21 @@ export async function loadClientStorage<T>(key: string): Promise<T | null> {
 }
 
 // =============================================================================
+// Debug Setting Storage
+// =============================================================================
+
+const DEBUG_KEY = 'debugEnabled';
+
+export async function loadDebugSetting(): Promise<boolean> {
+  const value = await figma.clientStorage.getAsync(DEBUG_KEY);
+  return value === true;
+}
+
+export async function saveDebugSetting(enabled: boolean): Promise<void> {
+  await figma.clientStorage.setAsync(DEBUG_KEY, enabled);
+}
+
+// =============================================================================
 // CLI-Compatible Storage
 // The CLI expects data in 'chunk_0', 'chunk_1', etc. keys with 'chunkCount'
 // This is different from our internal prefixed keys
