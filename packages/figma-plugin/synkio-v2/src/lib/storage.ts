@@ -184,6 +184,7 @@ export async function clearAllStorage(): Promise<void> {
   figma.root.setSharedPluginData(NAMESPACE, KEYS.EXCLUDED_COLLECTIONS, '');
   figma.root.setSharedPluginData(NAMESPACE, KEYS.EXCLUDED_STYLE_TYPES, '');
   figma.root.setSharedPluginData(NAMESPACE, KEYS.SETTINGS, '');
+  figma.root.setSharedPluginData(NAMESPACE, KEYS.ONBOARDING_COMPLETE, '');
 
   // Clear client storage (persistent settings)
   await figma.clientStorage.deleteAsync('settings');

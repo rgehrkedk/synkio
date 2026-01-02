@@ -1,5 +1,5 @@
 {
-  "name": "Synkio v2",
+  "name": "Synkio",
   "id": "PLUGIN_ID_FROM_FIGMA",
   "api": "1.0.0",
   "main": "dist/code.js",

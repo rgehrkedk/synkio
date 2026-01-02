@@ -1,0 +1,36 @@
+{
+  "animation": {
+    "duration": {
+      "fast": {
+        "$value": "150ms",
+        "$type": "duration"
+      },
+      "normal": {
+        "$value": "300ms",
+        "$type": "duration"
+      },
+      "slow": {
+        "$value": "500ms",
+        "$type": "duration"
+      },
+      "logo": {
+        "$value": "20s",
+        "$type": "duration"
+      },
+      "letters": {
+        "$value": "8s",
+        "$type": "duration"
+      }
+    },
+    "easing": {
+      "out": {
+        "$value": "cubic-bezier(0, 0, 0.2, 1)",
+        "$type": "cubicBezier"
+      },
+      "inOut": {
+        "$value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "$type": "cubicBezier"
+      }
+    }
+  }
+}

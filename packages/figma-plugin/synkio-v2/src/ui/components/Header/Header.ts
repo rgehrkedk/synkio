@@ -30,7 +30,7 @@ export function Header(props: HeaderProps): HTMLElement {
 
   if (showLogo) {
     const logo = el('div', { class: 'header__logo' });
-    logo.appendChild(Icon('sync', 'sm'));
+    logo.appendChild(Icon('synkio-logo', 'sm'));
     logo.appendChild(el('span', { class: 'header__logo-text' }, 'SYNKIO'));
     left.appendChild(logo);
 

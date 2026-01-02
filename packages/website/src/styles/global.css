@@ -1,0 +1,192 @@
+/* Modern CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  line-height: var(--typography-lineHeight-normal);
+  font-family: var(--typography-family-sans);
+  font-size: var(--typography-size-base);
+  font-weight: var(--typography-weight-regular);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+#root {
+  min-height: 100%;
+  isolation: isolate;
+}
+
+/* Base Typography */
+h1 {
+  font-size: var(--typography-size-hero);
+  font-weight: var(--typography-weight-bold);
+  line-height: var(--typography-lineHeight-tight);
+  letter-spacing: var(--typography-letterSpacing-tight);
+}
+
+h2 {
+  font-size: var(--typography-size-4xl);
+  font-weight: var(--typography-weight-bold);
+  line-height: var(--typography-lineHeight-tight);
+  letter-spacing: var(--typography-letterSpacing-tight);
+}
+
+h3 {
+  font-size: var(--typography-size-3xl);
+  font-weight: var(--typography-weight-semibold);
+  line-height: var(--typography-lineHeight-tight);
+}
+
+h4 {
+  font-size: var(--typography-size-2xl);
+  font-weight: var(--typography-weight-semibold);
+  line-height: var(--typography-lineHeight-tight);
+}
+
+h5 {
+  font-size: var(--typography-size-xl);
+  font-weight: var(--typography-weight-medium);
+  line-height: var(--typography-lineHeight-normal);
+}
+
+h6 {
+  font-size: var(--typography-size-lg);
+  font-weight: var(--typography-weight-medium);
+  line-height: var(--typography-lineHeight-normal);
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: var(--typography-lineHeight-relaxed);
+}
+
+code {
+  font-family: var(--typography-family-mono);
+  font-size: var(--typography-size-sm);
+  background-color: var(--bg-code);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+pre {
+  font-family: var(--typography-family-mono);
+  font-size: var(--typography-size-sm);
+  background-color: var(--bg-code);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--color-brand-emerald);
+  color: var(--color-neutral-950);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--color-brand-emerald);
+  outline-offset: 2px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-600);
+}
+
+/* Utility classes */
+.text-brand {
+  color: var(--text-brand);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.font-mono {
+  font-family: var(--typography-family-mono);
+}

@@ -142,6 +142,8 @@ export async function handleReady(send: SendMessage): Promise<void> {
       history,
       settings: finalSettings,
       isFirstTime,
+      // Start at step 1 for first-time users
+      onboardingStep: isFirstTime ? 1 : undefined,
     },
   });
 }

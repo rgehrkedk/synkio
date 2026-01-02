@@ -1,0 +1,206 @@
+/* Custom styles for Synkio docs */
+
+/* Override VitePress defaults with our design tokens */
+.VPNav,
+.VPSidebar,
+.VPContent {
+  font-family: var(--font-family-sans);
+}
+
+/* Hero section enhancements */
+.VPHero .name {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Align the S in Synkio hero name */
+.VPHero .name .clip {
+  text-transform: none;
+}
+
+.VPHero .tagline {
+  color: var(--vp-c-text-2);
+}
+
+/* Header logo text alignment */
+.VPNavBarTitle .title {
+  text-transform: none;
+  font-weight: 600;
+}
+
+/* Hero image size */
+.VPHero .image-container .image-bg,
+.VPHero .image-container .image-src {
+  max-width: 60px;
+  max-height: 60px;
+}
+
+/* Code block styling */
+.vp-doc [class*='language-'] code {
+  font-family: var(--font-family-mono);
+}
+
+.vp-doc [class*='language-']::before {
+  font-family: var(--font-family-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Inline code */
+.vp-doc :not(pre) > code {
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-size: 0.9em;
+}
+
+/* Custom blocks */
+.vp-doc .custom-block {
+  border-radius: var(--radius-lg);
+}
+
+.vp-doc .custom-block.tip {
+  border-left: 4px solid var(--color-brand-emerald);
+}
+
+.vp-doc .custom-block.warning {
+  border-left: 4px solid var(--color-feedback-warning);
+}
+
+.vp-doc .custom-block.danger {
+  border-left: 4px solid var(--color-feedback-error);
+}
+
+/* Table styling */
+.vp-doc table {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.vp-doc th {
+  background: var(--vp-c-bg-soft);
+  font-weight: 600;
+}
+
+.vp-doc tr:nth-child(even) {
+  background: var(--vp-c-bg-alt);
+}
+
+/* Button styling */
+.VPButton.brand {
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all var(--duration-fast) var(--easing-out);
+}
+
+.VPButton.brand:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Feature cards */
+.VPFeature {
+  border-radius: var(--radius-xl);
+  transition: all var(--duration-normal) var(--easing-out);
+}
+
+.VPFeature:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-brand-emerald);
+}
+
+.VPFeature .icon {
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-emerald) 0%,
+    var(--color-brand-teal) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Sidebar styling */
+.VPSidebarItem.level-0 > .item > .text {
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+}
+
+.VPSidebarItem.is-active > .item > .text {
+  color: var(--color-brand-emerald);
+}
+
+/* Search */
+.VPLocalSearchBox .search-input {
+  border-radius: var(--radius-lg);
+}
+
+/* Footer */
+.VPFooter {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus states */
+:focus-visible {
+  outline: 2px solid var(--color-brand-emerald);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+/* Scrollbar styling (WebKit) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vp-c-bg-alt);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-400);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-600);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Badge styling for commands */
+.vp-doc .badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.vp-doc .badge.tip {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--color-brand-emerald);
+}
+
+.vp-doc .badge.warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--color-feedback-warning);
+}

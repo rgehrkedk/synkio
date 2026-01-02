@@ -1,25 +1,95 @@
 // =============================================================================
-// Home Screen - Status Overview
+// Sync Tab - Status overview and sync workflows
 // =============================================================================
 
-import { PluginState, SyncEvent, CodeSyncState } from '../lib/types';
-import { RouterActions } from '../ui/router';
+import { PluginState, SyncEvent, CodeSyncState } from '../../lib/types';
+import { RouterActions } from '../../ui/router';
 import {
   el,
-  Header,
   Card,
   Button,
   StatusIndicator,
-  IconButton,
-} from '../ui/components/index';
-import { Icon } from '../ui/icons';
-import {
-  PageLayout,
-  ContentArea,
-  Row,
-} from '../ui/layout/index';
+  HeroHeader,
+  WelcomeFeature,
+  WelcomeLinks,
+} from '../../ui/components/index';
+import { Icon } from '../../ui/icons';
+import { ContentArea, Row, Footer } from '../../ui/layout/index';
 
-export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElement {
+export interface TabContent {
+  content: HTMLElement;
+  footer: HTMLElement | null;
+}
+
+export function SyncTab(state: PluginState, actions: RouterActions): TabContent {
+  const { isFirstTime, onboardingStep } = state;
+
+  // First-time: Show welcome content
+  if (isFirstTime && onboardingStep === 1) {
+    return buildFirstTimeContent(actions);
+  }
+
+  // Normal: Show sync status and workflows
+  return buildNormalContent(state, actions);
+}
+
+// =============================================================================
+// First-Time Content (Welcome)
+// =============================================================================
+
+function buildFirstTimeContent(actions: RouterActions): TabContent {
+  const content = ContentArea([]);
+
+  // Hero header with logo and tagline
+  content.appendChild(HeroHeader({
+    title: 'SYNKIO',
+    subtitle: 'Sync design tokens without Figma Enterprise.',
+  }));
+
+  // Single feature card - bi-directional sync visualization
+  content.appendChild(WelcomeFeature({
+    title: 'Bi-directional Sync',
+    description: 'Keep your design tokens in sync between Figma and your codebase.',
+  }));
+
+  // Spacer to push footer down
+  const spacer = el('div', { style: 'flex: 1;' });
+  content.appendChild(spacer);
+
+  // External links
+  content.appendChild(WelcomeLinks({
+    onWebsiteClick: () => {
+      window.open('https://synkio.io', '_blank');
+    },
+    onDocsClick: () => {
+      window.open('https://synkio.io/docs', '_blank');
+    },
+  }));
+
+  // Footer with CTA
+  const footer = Footer([
+    Button({
+      label: 'NEXT: SELECT TOKENS',
+      variant: 'primary',
+      fullWidth: true,
+      onClick: () => {
+        // Trigger collection/style scanning
+        actions.send({ type: 'get-collections' });
+        actions.send({ type: 'get-style-types' });
+        // Advance to step 2
+        actions.updateState({ onboardingStep: 2 });
+      },
+    }),
+  ]);
+
+  return { content, footer };
+}
+
+// =============================================================================
+// Normal Content (Sync Status)
+// =============================================================================
+
+function buildNormalContent(state: PluginState, actions: RouterActions): TabContent {
   const { syncStatus, codeSyncState, history } = state;
 
   // Build status section
@@ -32,34 +102,22 @@ export function HomeScreen(state: PluginState, actions: RouterActions): HTMLElem
   // Build activity section
   const activitySection = buildActivitySection(history, actions);
 
-  // Settings button for header using IconButton
-  const settingsBtn = IconButton({
-    icon: 'settings',
-    variant: 'ghost',
-    onClick: () => actions.navigate('settings'),
-    ariaLabel: 'Settings',
-  });
-
-  const header = Header({
-    rightAction: settingsBtn,
-  });
-
-  // Version footer
-  const versionFooter = el('div', { class: 'text-center text-xs text-tertiary pt-md' }, 'Synkio v2.0.0');
-
   const content = ContentArea([
     statusCard,
     Row([syncCard, applyCard], 'var(--spacing-md)'),
     activitySection,
-    versionFooter,
   ]);
 
   // Make workflow cards equal width
   syncCard.classList.add('flex-1');
   applyCard.classList.add('flex-1');
 
-  return PageLayout([header, content]);
+  return { content, footer: null };
 }
+
+// =============================================================================
+// Status Card
+// =============================================================================
 
 function buildStatusCard(
   syncStatus: PluginState['syncStatus'],
@@ -148,6 +206,10 @@ function buildStatusCard(
 
   return card;
 }
+
+// =============================================================================
+// Workflow Cards
+// =============================================================================
 
 function buildSyncCard(state: PluginState, actions: RouterActions): HTMLElement {
   const pendingCount = state.syncStatus.pendingChanges || 0;
@@ -246,6 +308,10 @@ function buildApplyCard(state: PluginState, actions: RouterActions): HTMLElement
   return card;
 }
 
+// =============================================================================
+// Activity Section
+// =============================================================================
+
 function buildActivitySection(history: SyncEvent[], actions: RouterActions): HTMLElement {
   const section = el('div');
 
@@ -313,8 +379,6 @@ function buildCodeSyncIndicator(
 ): HTMLElement {
   const container = el('div', { class: 'mt-md pt-md', style: 'border-top: 1px solid var(--color-border);' });
 
-  // Map code sync status to display
-  // Note: These check against the remote repository, not local files
   const statusConfig: Record<string, { icon: string; label: string; color: string; class: string }> = {
     'synced': {
       icon: 'check',
@@ -385,11 +449,10 @@ function buildCodeSyncIndicator(
 
   container.appendChild(row);
 
-  // Show error message if there's one (helps explain why status is pending)
+  // Show error message if there's one
   if (codeSyncState.error && displayStatus === 'pending-pull') {
     container.appendChild(el('div', { class: 'text-xs text-tertiary mt-xs', style: 'max-width: 200px; text-align: center; margin: 0 auto;' }, codeSyncState.error));
   } else if (codeSyncState.lastChecked) {
-    // Show last checked time if available
     const lastChecked = new Date(codeSyncState.lastChecked);
     const timeAgo = getTimeAgo(lastChecked);
     container.appendChild(el('div', { class: 'text-xs text-tertiary mt-xs' }, `Checked ${timeAgo}`));
@@ -398,7 +461,9 @@ function buildCodeSyncIndicator(
   return container;
 }
 
+// =============================================================================
 // Helpers
+// =============================================================================
 
 function countChanges(diff: PluginState['syncDiff']): number {
   if (!diff) return 0;

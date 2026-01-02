@@ -62,18 +62,10 @@ function showHelp(command?: string) {
             console.log('Initialize a new Synkio project.\n');
             console.log('Options:');
             console.log('  --figma-url=<url>   Figma file URL (skip prompt)');
-            console.log('  --github            GitHub workflow mode (no FIGMA_TOKEN required)');
             console.log('  --base-url=<url>    Custom Figma API base URL (enterprise)\n');
-            console.log('Workflows:\n');
-            console.log('  CLI workflow (default):');
-            console.log('    Requires FIGMA_TOKEN. Use: plugin Save → synkio pull → synkio build');
-            console.log('');
-            console.log('  GitHub workflow (--github):');
-            console.log('    No FIGMA_TOKEN needed. Use: plugin Create PR → merge → synkio build\n');
             console.log('Examples:');
-            console.log('  synkio init                        # CLI workflow, interactive');
-            console.log('  synkio init --github               # GitHub workflow, no token needed');
-            console.log('  FIGMA_TOKEN=xxx synkio init --figma-url=https://figma.com/design/ABC123/File');
+            console.log('  synkio init');
+            console.log('  synkio init --figma-url=https://figma.com/design/ABC123/File');
             break;
         case 'pull':
             console.log('Usage: synkio pull [options]\n');
@@ -271,7 +263,6 @@ switch (command) {
     initCommand({
         figmaUrl: options.figmaUrl as string,
         baseUrl: options.baseUrl as string,
-        github: options.github as boolean,
     });
     break;
   }

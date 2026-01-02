@@ -7,6 +7,8 @@ registerCSS('command-box', css);
 
 export interface CommandBoxProps {
   command: string;
+  label?: string;
+  description?: string;
 }
 
 /**
@@ -45,7 +47,20 @@ function copyToClipboard(text: string): Promise<void> {
 }
 
 export function CommandBox(props: CommandBoxProps): HTMLDivElement {
-  const { command } = props;
+  const { command, label, description } = props;
+
+  const container = el('div', { class: 'command-box-container' });
+
+  // Add label if provided
+  if (label) {
+    container.appendChild(el('div', { class: 'command-box__label' }, label));
+  }
+
+  // Add description if provided
+  if (description) {
+    container.appendChild(el('div', { class: 'command-box__description' }, description));
+  }
+
   const box = el('div', { class: 'command-box' });
   box.appendChild(el('span', { class: 'command-box__text' }, command));
 
@@ -67,5 +82,7 @@ export function CommandBox(props: CommandBoxProps): HTMLDivElement {
     }
   });
   box.appendChild(copyBtn);
-  return box;
+  container.appendChild(box);
+
+  return container;
 }

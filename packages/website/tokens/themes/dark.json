@@ -1,0 +1,48 @@
+{
+  "bg": {
+    "primary": {
+      "$value": "{color.neutral.950}",
+      "$type": "color"
+    },
+    "secondary": {
+      "$value": "{color.neutral.900}",
+      "$type": "color"
+    },
+    "tertiary": {
+      "$value": "{color.neutral.800}",
+      "$type": "color"
+    },
+    "code": {
+      "$value": "{color.neutral.800}",
+      "$type": "color"
+    }
+  },
+  "text": {
+    "primary": {
+      "$value": "{color.neutral.50}",
+      "$type": "color"
+    },
+    "secondary": {
+      "$value": "{color.neutral.400}",
+      "$type": "color"
+    },
+    "tertiary": {
+      "$value": "{color.neutral.500}",
+      "$type": "color"
+    },
+    "brand": {
+      "$value": "{color.brand.emerald}",
+      "$type": "color"
+    }
+  },
+  "border": {
+    "default": {
+      "$value": "{color.neutral.800}",
+      "$type": "color"
+    },
+    "strong": {
+      "$value": "{color.neutral.700}",
+      "$type": "color"
+    }
+  }
+}

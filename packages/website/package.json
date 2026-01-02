@@ -1,0 +1,17 @@
+{
+  "name": "@synkio/website",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run tokens:build && vite build",
+    "preview": "vite preview",
+    "tokens:build": "style-dictionary build --config tokens/style-dictionary.config.js"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "typescript": "^5.3.0",
+    "style-dictionary": "^4.0.0"
+  }
+}

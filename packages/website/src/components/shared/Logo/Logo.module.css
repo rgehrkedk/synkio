@@ -1,0 +1,242 @@
+/* =============================================================================
+   Logo Component Styles
+   ============================================================================= */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* =============================================================================
+   Logo Icon
+   ============================================================================= */
+
+.logo__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo__svg {
+  filter: drop-shadow(0 2px 12px rgba(20, 184, 166, 0.5));
+}
+
+/* Animated rotation */
+.logo--animated .logo__svg,
+.logo__svg--animated {
+  animation: logo-rotate var(--animation-duration-logo, 20s) ease-in-out infinite;
+}
+
+@keyframes logo-rotate {
+  0%,
+  20% {
+    transform: rotate(0deg);
+  }
+  25%,
+  45% {
+    transform: rotate(180deg);
+  }
+  50%,
+  95% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* =============================================================================
+   Logo Text
+   ============================================================================= */
+
+.logo__text {
+  display: flex;
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.logo__letter {
+  display: inline-block;
+  color: var(--text-primary);
+}
+
+/* Animated letter colors */
+.logo--animated .logo__letter {
+  animation: letter-color var(--animation-duration-letters, 8s) ease-in-out infinite;
+}
+
+@keyframes letter-color {
+  0%,
+  100% {
+    color: var(--text-primary);
+  }
+  20% {
+    color: var(--color-brand-emerald, #10b981);
+  }
+  40% {
+    color: var(--color-brand-teal, #14b8a6);
+  }
+  60% {
+    color: var(--color-brand-cyan, #06b6d4);
+  }
+  80% {
+    color: var(--color-brand-violet, #8b5cf6);
+  }
+}
+
+/* =============================================================================
+   Color Variants
+   ============================================================================= */
+
+/* Neutral - adapts to dark/light mode */
+.logo--neutral {
+  color: var(--text-primary);
+}
+
+.logo--neutral .logo__svg {
+  filter: none;
+}
+
+.logo--neutral .logo__letter {
+  color: currentColor;
+}
+
+/* Disable color animation for neutral */
+.logo--neutral.logo--animated .logo__letter {
+  animation: none;
+}
+
+/* =============================================================================
+   Size Variants
+   ============================================================================= */
+
+/* Small */
+.logo--sm {
+  gap: 2px;
+}
+
+.logo--sm .logo__icon {
+  width: 11px;
+  height: 11px;
+  margin-top: 2px;
+}
+
+.logo--sm .logo__text {
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+/* Medium */
+.logo--md {
+  gap: var(--spacing-xs);
+}
+
+.logo--md .logo__icon {
+  width: 32px;
+  height: 32px;
+}
+
+.logo--md .logo__text {
+  font-size: 20px;
+  letter-spacing: 1.5px;
+}
+
+/* Large */
+.logo--lg {
+  gap: var(--spacing-sm);
+}
+
+.logo--lg .logo__icon {
+  width: 48px;
+  height: 48px;
+}
+
+.logo--lg .logo__text {
+  font-size: 32px;
+  letter-spacing: 2px;
+}
+
+/* Extra Large */
+.logo--xl {
+  gap: var(--spacing-sm);
+}
+
+.logo--xl .logo__icon {
+  width: 64px;
+  height: 64px;
+}
+
+.logo--xl .logo__text {
+  font-size: 42px;
+  letter-spacing: 3px;
+}
+
+/* Hero - biggest size for landing page */
+.logo--hero {
+  gap: 4px;
+}
+
+.logo--hero .logo__icon {
+  width: 52px;
+  height: 52px;
+}
+
+.logo--hero .logo__text {
+  font-size: 74px;
+  letter-spacing: 6px;
+  font-weight: 500;
+}
+
+.logo--hero .logo__svg {
+  filter: drop-shadow(0 4px 24px rgba(20, 184, 166, 0.6));
+}
+
+/* Hero float animation */
+.logo--hero {
+  animation: logoFloat 6s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* =============================================================================
+   Responsive - Hero Size
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .logo--hero .logo__icon {
+    width: 48px;
+    height: 48px;
+    margin-top: 4px;
+
+  }
+
+  .logo--hero .logo__text {
+    font-size: 70px;
+    padding-left: 4px;
+    letter-spacing: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo--hero .logo__icon {
+    width: 40px;
+    height: 40px;
+    margin-top: 3px;
+  }
+
+  .logo--hero .logo__text {
+    font-size: 56px;
+    letter-spacing: 3px;
+  }
+}

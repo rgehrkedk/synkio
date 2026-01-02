@@ -1,0 +1,141 @@
+/* =============================================================================
+   Button Component Styles
+   ============================================================================= */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  font-family: var(--typography-family-sans);
+  font-weight: var(--typography-weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) var(--animation-easing-out),
+    border-color var(--animation-duration-fast) var(--animation-easing-out),
+    transform var(--animation-duration-fast) var(--animation-easing-out),
+    box-shadow var(--animation-duration-fast) var(--animation-easing-out);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-brand-emerald);
+  outline-offset: 2px;
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+/* Button Content */
+.button__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.button__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.button__label {
+  display: inline-block;
+}
+
+/* =============================================================================
+   Size Variants
+   ============================================================================= */
+
+.button--sm {
+  height: 32px;
+  padding: 0 var(--spacing-md);
+  font-size: var(--typography-size-sm);
+  gap: var(--spacing-xs);
+}
+
+.button--sm .button__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.button--md {
+  height: 40px;
+  padding: 0 var(--spacing-lg);
+  font-size: var(--typography-size-base);
+  gap: var(--spacing-sm);
+}
+
+.button--md .button__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.button--lg {
+  height: 48px;
+  padding: 0 var(--spacing-xl);
+  font-size: var(--typography-size-lg);
+  gap: var(--spacing-sm);
+}
+
+.button--lg .button__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* =============================================================================
+   Variant: Primary
+   ============================================================================= */
+
+.button--primary {
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-emerald) 0%,
+    var(--color-brand-teal) 50%,
+    var(--color-brand-cyan) 100%
+  );
+  color: var(--color-neutral-950);
+  border: none;
+  box-shadow: var(--shadow-md);
+}
+
+.button--primary:hover {
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  filter: brightness(1.1);
+}
+
+/* =============================================================================
+   Variant: Secondary
+   ============================================================================= */
+
+.button--secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+}
+
+.button--secondary:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--color-brand-emerald);
+  color: var(--color-brand-emerald);
+}
+
+/* =============================================================================
+   Variant: Ghost
+   ============================================================================= */
+
+.button--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+}
+
+.button--ghost:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}

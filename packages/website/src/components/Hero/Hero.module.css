@@ -1,0 +1,228 @@
+/* Hero Component Styles */
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-6xl) var(--spacing-xl);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background gradient effect */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(
+    circle,
+    rgba(16, 185, 129, 0.15) 0%,
+    rgba(20, 184, 166, 0.08) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2xl);
+  max-width: 800px;
+}
+
+.logoContainer {
+  margin-bottom: var(--spacing-lg);
+}
+
+.textContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.tagline {
+  font-size: var(--typography-size-hero);
+  font-weight: var(--typography-weight-bold);
+  line-height: var(--typography-lineHeight-tight);
+  letter-spacing: var(--typography-letterSpacing-tight);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.taglineGradient {
+  background: linear-gradient(
+    135deg,
+    var(--color-brand-emerald),
+    var(--color-brand-teal),
+    var(--color-brand-cyan)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subhead {
+  font-size: var(--typography-size-xl);
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: var(--typography-weight-regular);
+}
+
+.installSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  max-width: 400px;
+}
+
+.installLabel {
+  font-size: var(--typography-size-sm);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--typography-letterSpacing-wide);
+}
+
+.codeBlockWrapper {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--spacing-lg);
+}
+
+/* Scroll indicator */
+.scrollIndicator {
+  position: absolute;
+  bottom: var(--spacing-3xl);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-tertiary);
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.scrollIndicator span {
+  font-size: var(--typography-size-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--typography-letterSpacing-wide);
+}
+
+.scrollIndicator svg {
+  width: 24px;
+  height: 24px;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  40% {
+    transform: translateX(-50%) translateY(-8px);
+  }
+  60% {
+    transform: translateX(-50%) translateY(-4px);
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--spacing-5xl) var(--spacing-lg);
+    min-height: auto;
+    padding-top: 120px;
+    padding-bottom: var(--spacing-4xl);
+  }
+
+  .content {
+    gap: var(--spacing-xl);
+  }
+
+  .tagline {
+    font-size: var(--typography-size-4xl);
+  }
+
+  .subhead {
+    font-size: var(--typography-size-lg);
+  }
+
+  .installSection {
+    max-width: 100%;
+  }
+
+  .actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+
+  .scrollIndicator {
+    bottom: var(--spacing-xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: var(--spacing-4xl) var(--spacing-md);
+    padding-top: 100px;
+  }
+
+  .content {
+    gap: var(--spacing-lg);
+  }
+
+  .logoContainer {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .textContent {
+    gap: var(--spacing-md);
+  }
+
+  .tagline {
+    font-size: var(--typography-size-3xl);
+  }
+
+  .subhead {
+    font-size: var(--typography-size-base);
+  }
+
+  .installSection {
+    gap: var(--spacing-xs);
+  }
+
+  .installLabel {
+    font-size: var(--typography-size-xs);
+  }
+
+  .actions {
+    margin-top: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .scrollIndicator {
+    display: none;
+  }
+}

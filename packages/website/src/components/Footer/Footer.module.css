@@ -1,0 +1,119 @@
+/* Footer */
+.footer {
+  border-top: 1px solid var(--border-default);
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-2xl) 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+}
+
+/* Left Side */
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.logo {
+  font-family: var(--typography-family-mono);
+  font-size: var(--typography-size-lg);
+  font-weight: var(--typography-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+}
+
+.separator {
+  color: var(--text-tertiary);
+}
+
+.license {
+  font-size: var(--typography-size-sm);
+  color: var(--text-tertiary);
+}
+
+/* Right Side */
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2xl);
+}
+
+/* Social Links */
+.socialNav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  transition: all var(--animation-duration-fast) var(--animation-easing-out);
+}
+
+.socialLink:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+}
+
+.socialLink:hover svg {
+  transform: scale(1.1);
+}
+
+.socialLink svg {
+  transition: transform var(--animation-duration-fast) var(--animation-easing-out);
+}
+
+/* Credit */
+.credit {
+  font-size: var(--typography-size-sm);
+  color: var(--text-tertiary);
+}
+
+.authorLink {
+  color: var(--text-secondary);
+  transition: color var(--animation-duration-fast) var(--animation-easing-out);
+}
+
+.authorLink:hover {
+  color: var(--color-brand-emerald);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .left {
+    order: 2;
+  }
+
+  .right {
+    order: 1;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .socialNav {
+    gap: var(--spacing-xl);
+  }
+
+  .socialLink {
+    padding: var(--spacing-md);
+  }
+}

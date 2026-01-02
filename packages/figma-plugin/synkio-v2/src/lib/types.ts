@@ -333,7 +333,8 @@ export interface PluginSettings {
 // Plugin State
 // =============================================================================
 
-export type Screen = 'home' | 'sync' | 'apply' | 'history' | 'settings' | 'onboarding';
+export type Screen = 'main' | 'sync' | 'apply' | 'history';
+export type MainTab = 'sync' | 'tokens' | 'setup';
 
 export interface SyncStatus {
   state: 'in-sync' | 'pending-changes' | 'out-of-sync' | 'not-setup';
@@ -390,6 +391,7 @@ export interface PluginState {
 
   // First-time state
   isFirstTime: boolean;
+  onboardingStep?: 1 | 2 | 3;  // Only present during first-time flow
 }
 
 // =============================================================================

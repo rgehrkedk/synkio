@@ -75,3 +75,12 @@ export type { TwoColumnLayoutProps } from './TwoColumnLayout/TwoColumnLayout';
 
 export { WelcomeFeature, WelcomeLinks } from './WelcomeFeature/WelcomeFeature';
 export type { WelcomeFeatureProps, WelcomeLinksProps } from './WelcomeFeature/WelcomeFeature';
+
+export { TabBadge } from './TabBadge/TabBadge';
+export type { TabBadgeProps } from './TabBadge/TabBadge';
+
+export { AppFooter } from './AppFooter/AppFooter';
+export type { AppFooterProps } from './AppFooter/AppFooter';
+
+export { showDataModal, closeDataModal } from './DataModal/DataModal';
+export type { DataModalProps } from './DataModal/DataModal';

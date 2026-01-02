@@ -1,259 +1,71 @@
 // =============================================================================
-// Settings Screen - Tabbed Layout
+// Setup Tab - Remote source configuration (GitHub/URL)
 // =============================================================================
 
-import { PluginState, CollectionInfo, StyleTypeInfo, GitHubSettings, UrlSettings } from '../lib/types';
-import { RouterActions } from '../ui/router';
+import { PluginState, GitHubSettings, UrlSettings } from '../../lib/types';
+import { RouterActions } from '../../ui/router';
 import {
   el,
-  Header,
-  Card,
   Button,
   Checkbox,
   Input,
   StatusIndicator,
-  SegmentedControl,
-} from '../ui/components/index';
-import { Icon } from '../ui/icons';
-import {
-  PageLayout,
-  ContentArea,
-} from '../ui/layout/index';
+  CommandBox,
+} from '../../ui/components/index';
+import { Icon } from '../../ui/icons';
+import { ContentArea, Footer } from '../../ui/layout/index';
+import { TabContent } from './SyncTab';
+import { setMainTab } from '../main';
 
 // =============================================================================
 // Local State
 // =============================================================================
 
-type SettingsTab = 'remote' | 'data';
 type EditingSource = 'github' | 'url' | null;
 
-let currentTab: SettingsTab = 'remote';
 let editingSource: EditingSource = null;
 let githubForm: Partial<GitHubSettings> = {};
 let urlForm: Partial<UrlSettings> = {};
 let connectionStatus: { tested: boolean; success?: boolean; error?: string } = { tested: false };
 
-export function resetSettingsScreen() {
-  currentTab = 'remote';
+export function resetSetupTab() {
   editingSource = null;
   githubForm = {};
   urlForm = {};
   connectionStatus = { tested: false };
 }
 
+export function updateSetupConnectionStatus(success: boolean, error?: string) {
+  connectionStatus = { tested: true, success, error };
+}
+
 // =============================================================================
-// Main Screen
+// Main Export
 // =============================================================================
 
-export function SettingsScreen(state: PluginState, actions: RouterActions): HTMLElement {
-  const { collections, styleTypes, settings } = state;
+export function SetupTab(state: PluginState, actions: RouterActions): TabContent {
+  const { isFirstTime, onboardingStep, settings } = state;
+  const isOnboarding = isFirstTime && onboardingStep === 3;
+  const remote = settings.remote;
 
   // Initialize form with current settings
-  if (Object.keys(githubForm).length === 0 && settings.remote.github) {
-    githubForm = { ...settings.remote.github };
-  }
-
-  // Header
-  const header = Header({
-    title: 'Settings',
-    showBack: true,
-    onBack: () => {
-      resetSettingsScreen();
-      actions.navigate('home');
-    },
-  });
-
-  // Tab control
-  const tabs = SegmentedControl({
-    options: [
-      { value: 'remote', label: 'Remote' },
-      { value: 'data', label: 'Data' },
-    ],
-    value: currentTab,
-    onChange: (value) => {
-      currentTab = value as SettingsTab;
-      actions.updateState({}); // Trigger re-render
-    },
-  });
-
-  const tabWrapper = el('div', { class: 'px-lg pt-md' });
-  tabWrapper.appendChild(tabs);
-
-  // Tab content
-  let tabContent: HTMLElement;
-  switch (currentTab) {
-    case 'remote':
-      tabContent = buildSourceTab(settings.remote, actions);
-      break;
-    case 'data':
-      tabContent = buildDataTab(collections, styleTypes, settings, actions);
-      break;
-  }
-
-  const content = ContentArea([tabContent]);
-
-  return PageLayout([header, tabWrapper, content]);
-}
-
-// =============================================================================
-// Data Tab
-// =============================================================================
-
-function buildDataTab(
-  collections: CollectionInfo[],
-  styleTypes: StyleTypeInfo[],
-  settings: PluginState['settings'],
-  actions: RouterActions
-): HTMLElement {
-  const container = el('div', { class: 'flex flex-col gap-lg' });
-
-  // Collections card
-  const collectionsCard = buildCollectionsCard(collections, settings.excludedCollections, actions);
-  container.appendChild(collectionsCard);
-
-  // Styles card
-  const stylesCard = buildStylesCard(styleTypes, settings.excludedStyleTypes, actions);
-  container.appendChild(stylesCard);
-
-  // Danger zone card
-  const dangerCard = Card({ padding: 'md' });
-  dangerCard.appendChild(el('div', { class: 'font-medium mb-xs text-error' }, 'DANGER ZONE'));
-  dangerCard.appendChild(el('div', { class: 'text-sm text-secondary mb-md' }, 'Remove all baselines, history, and settings'));
-
-  dangerCard.appendChild(Button({
-    label: 'Clear All Data',
-    variant: 'danger',
-    fullWidth: true,
-    onClick: () => {
-      if (confirm('This will remove all plugin data. Are you sure?')) {
-        actions.send({ type: 'clear-all-data' });
-      }
-    },
-  }));
-
-  container.appendChild(dangerCard);
-
-  return container;
-}
-
-function buildCollectionsCard(
-  collections: CollectionInfo[],
-  excluded: string[],
-  actions: RouterActions
-): HTMLElement {
-  const card = Card({ padding: 'md' });
-
-  // Header with count
-  const includedCount = collections.filter(c => !excluded.includes(c.name)).length;
-  const headerRow = el('div', { class: 'flex items-center justify-between mb-md' });
-  headerRow.appendChild(el('span', { class: 'font-medium' }, 'COLLECTIONS'));
-  headerRow.appendChild(el('span', { class: 'text-xs text-secondary' }, `${includedCount} of ${collections.length}`));
-  card.appendChild(headerRow);
-
-  if (collections.length === 0) {
-    card.appendChild(el('div', { class: 'text-sm text-tertiary' }, 'No variable collections found'));
-  } else {
-    const list = el('div', { class: 'flex flex-col gap-sm' });
-
-    for (const collection of collections) {
-      const isExcluded = excluded.includes(collection.name);
-      const modeNames = collection.modes.map(m => m.name).join(' \u00B7 ');
-
-      const checkbox = Checkbox({
-        label: collection.name,
-        sublabel: `${modeNames} \u00B7 ${collection.variableCount} vars`,
-        checked: !isExcluded,
-        onChange: (checked) => {
-          const newExcluded = checked
-            ? excluded.filter(n => n !== collection.name)
-            : [...excluded, collection.name];
-          actions.send({ type: 'save-excluded-collections', collections: newExcluded });
-        },
-      });
-
-      list.appendChild(checkbox);
-    }
-
-    card.appendChild(list);
-  }
-
-  return card;
-}
-
-function buildStylesCard(
-  styleTypes: StyleTypeInfo[],
-  excluded: string[],
-  actions: RouterActions
-): HTMLElement {
-  const card = Card({ padding: 'md' });
-
-  // Header with count
-  const includedCount = styleTypes.filter(s => !excluded.includes(s.type)).length;
-  const headerRow = el('div', { class: 'flex items-center justify-between mb-md' });
-  headerRow.appendChild(el('span', { class: 'font-medium' }, 'STYLES'));
-  headerRow.appendChild(el('span', { class: 'text-xs text-secondary' }, `${includedCount} of ${styleTypes.length}`));
-  card.appendChild(headerRow);
-
-  if (styleTypes.length === 0) {
-    card.appendChild(el('div', { class: 'text-sm text-tertiary' }, 'No styles found'));
-  } else {
-    const styleLabels: Record<string, string> = {
-      paint: 'Paint Styles',
-      text: 'Text Styles',
-      effect: 'Effect Styles',
-    };
-
-    const list = el('div', { class: 'flex flex-col gap-sm' });
-
-    for (const styleType of styleTypes) {
-      const isExcluded = excluded.includes(styleType.type);
-
-      const checkbox = Checkbox({
-        label: styleLabels[styleType.type] || styleType.type,
-        sublabel: `${styleType.count} styles`,
-        checked: !isExcluded,
-        onChange: (checked) => {
-          const newExcluded = checked
-            ? excluded.filter(t => t !== styleType.type)
-            : [...excluded, styleType.type];
-          actions.send({ type: 'save-excluded-style-types', styleTypes: newExcluded as any });
-        },
-      });
-
-      list.appendChild(checkbox);
-    }
-
-    card.appendChild(list);
-  }
-
-  return card;
-}
-
-// =============================================================================
-// Source Tab - Card-based selection
-// =============================================================================
-
-function buildSourceTab(
-  remote: PluginState['settings']['remote'],
-  actions: RouterActions
-): HTMLElement {
-  const container = el('div', { class: 'flex flex-col gap-md' });
-
-  // Initialize local state from settings on first render
   if (Object.keys(githubForm).length === 0 && remote.github) {
     githubForm = { ...remote.github };
   }
   if (Object.keys(urlForm).length === 0 && remote.url) {
     urlForm = { ...remote.url };
   }
-  // Migrate from deprecated customUrl
-  if (!urlForm.baselineUrl && remote.customUrl) {
-    urlForm.baselineUrl = remote.customUrl;
-  }
 
-  // Header
-  container.appendChild(el('div', { class: 'font-medium' }, 'REMOTE SOURCE'));
-  container.appendChild(el('div', { class: 'text-xs text-secondary -mt-xs' }, 'Connect to fetch & sync tokens'));
+  const contentChildren: HTMLElement[] = [];
+
+  // Header text
+  if (isOnboarding) {
+    contentChildren.push(el('div', { class: 'font-medium' }, 'CONNECT TO CODE (optional)'));
+    contentChildren.push(el('div', { class: 'text-xs text-secondary -mt-xs mb-md' }, 'Skip if using CLI only'));
+  } else {
+    contentChildren.push(el('div', { class: 'font-medium' }, 'CONNECT TO CODE'));
+    contentChildren.push(el('div', { class: 'text-xs text-secondary -mt-xs mb-md' }, 'Connect to fetch & sync tokens'));
+  }
 
   // Determine active source
   const activeSource = remote.source;
@@ -261,7 +73,7 @@ function buildSourceTab(
   const isUrlActive = activeSource === 'url';
 
   // GitHub Card
-  container.appendChild(buildSourceCard({
+  contentChildren.push(buildSourceCard({
     type: 'github',
     title: 'GitHub',
     icon: 'github',
@@ -300,7 +112,7 @@ function buildSourceTab(
   }));
 
   // URL Card
-  container.appendChild(buildSourceCard({
+  contentChildren.push(buildSourceCard({
     type: 'url',
     title: 'Custom URL',
     icon: 'link',
@@ -340,7 +152,7 @@ function buildSourceTab(
 
   // Auto-check option (only show if a source is configured)
   if (isGitHubActive || isUrlActive) {
-    container.appendChild(Checkbox({
+    contentChildren.push(Checkbox({
       label: 'Auto-check for updates',
       sublabel: 'Check remote source when plugin opens',
       checked: remote.autoCheck,
@@ -353,16 +165,42 @@ function buildSourceTab(
     }));
   }
 
-  return container;
+  // CLI init command box - only show during onboarding
+  if (isOnboarding) {
+    const initBox = el('div', { class: 'mt-md' });
+    initBox.appendChild(CommandBox({
+      command: 'npx synkio init',
+      label: 'Next step: Initialize your project',
+      description: 'Run this command in your project folder to connect Synkio and start generating token files. This is required regardless of setup option above.',
+    }));
+    contentChildren.push(initBox);
+  }
+
+  const content = ContentArea(contentChildren);
+
+  // Footer
+  const footer = Footer([
+    Button({
+      label: isOnboarding ? 'START SYNCING' : 'SAVE',
+      variant: 'primary',
+      fullWidth: true,
+      onClick: () => {
+        if (isOnboarding) {
+          // Complete onboarding and go back to sync tab
+          actions.send({ type: 'complete-onboarding' });
+          setMainTab('sync');
+          actions.updateState({ isFirstTime: false, onboardingStep: undefined });
+        }
+      },
+    }),
+  ]);
+
+  return { content, footer };
 }
 
-function truncateUrl(url: string, maxLength = 35): string {
-  if (url.length <= maxLength) return url;
-  // Remove protocol
-  let short = url.replace(/^https?:\/\//, '');
-  if (short.length <= maxLength) return short;
-  return short.slice(0, maxLength - 3) + '...';
-}
+// =============================================================================
+// Source Card
+// =============================================================================
 
 interface SourceCardProps {
   type: 'github' | 'url';
@@ -385,7 +223,6 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
   const { type, title, icon, isActive, isEditing, features, limitation, summary, onSelect, onEdit, onCancel, onDisconnect, remote, actions } = props;
 
   const cardClass = isActive ? 'source-card active' : 'source-card';
-
   const card = el('div', { class: cardClass });
 
   // Card header row
@@ -399,14 +236,14 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
   leftSide.appendChild(radio);
 
   // Icon
-  leftSide.appendChild(Icon(icon as any, 'md'));
+  leftSide.appendChild(Icon(icon as 'github' | 'link', 'md'));
 
   // Title
   leftSide.appendChild(el('span', { class: 'font-medium' }, title));
 
   headerRow.appendChild(leftSide);
 
-  // Right side: status badge or edit button
+  // Right side: status badge
   const rightSide = el('div', { class: 'flex items-center gap-sm' });
 
   if (isActive && summary && !isEditing) {
@@ -414,7 +251,6 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
   }
 
   headerRow.appendChild(rightSide);
-
   card.appendChild(headerRow);
 
   // Show summary when active and not editing
@@ -438,14 +274,14 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
 
     for (const feature of features) {
       const featureItem = el('div', { class: 'source-feature' });
-      featureItem.appendChild(el('span', { class: 'source-feature-check' }, '✓'));
+      featureItem.appendChild(el('span', { class: 'source-feature-check' }, '\u2713'));
       featureItem.appendChild(el('span', { class: 'text-xs' }, feature));
       featureList.appendChild(featureItem);
     }
 
     if (limitation) {
       const limitItem = el('div', { class: 'source-feature limitation' });
-      limitItem.appendChild(el('span', { class: 'source-feature-x' }, '✗'));
+      limitItem.appendChild(el('span', { class: 'source-feature-x' }, '\u2717'));
       limitItem.appendChild(el('span', { class: 'text-xs text-tertiary' }, limitation));
       featureList.appendChild(limitItem);
     }
@@ -472,7 +308,7 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
 }
 
 // =============================================================================
-// GitHub Form (inline in card)
+// GitHub Form
 // =============================================================================
 
 function buildGitHubForm(
@@ -509,7 +345,7 @@ function buildGitHubForm(
 
   // Path input (for fetching export-baseline.json)
   container.appendChild(Input({
-    label: 'Code → Figma path',
+    label: 'Code \u2192 Figma path',
     placeholder: 'synkio/export-baseline.json',
     value: githubForm.path || remote.github?.path || 'synkio/export-baseline.json',
     onChange: (value) => {
@@ -519,7 +355,7 @@ function buildGitHubForm(
 
   // PR Path input (for creating PRs with baseline.json)
   container.appendChild(Input({
-    label: 'Figma → Code path',
+    label: 'Figma \u2192 Code path',
     placeholder: 'synkio/baseline.json',
     value: githubForm.prPath || remote.github?.prPath || 'synkio/baseline.json',
     onChange: (value) => {
@@ -543,7 +379,7 @@ function buildGitHubForm(
     href: 'https://github.com/settings/tokens/new?scopes=repo&description=Synkio%20Figma%20Plugin',
     target: '_blank',
     class: 'text-xs link',
-  }, 'Create token on GitHub ↗');
+  }, 'Create token on GitHub \u2197');
   container.appendChild(tokenLink);
 
   // Connection status
@@ -563,24 +399,22 @@ function buildGitHubForm(
   const buttonRow = el('div', { class: 'source-form-buttons' });
 
   if (onDisconnect) {
-    const disconnectBtn = Button({
+    buttonRow.appendChild(Button({
       label: 'Disconnect',
       variant: 'danger',
       size: 'sm',
       onClick: onDisconnect,
-    });
-    buttonRow.appendChild(disconnectBtn);
+    }));
   }
 
-  const cancelBtn = Button({
+  buttonRow.appendChild(Button({
     label: 'Cancel',
     variant: 'secondary',
     size: 'sm',
     onClick: onCancel,
-  });
-  buttonRow.appendChild(cancelBtn);
+  }));
 
-  const testBtn = Button({
+  buttonRow.appendChild(Button({
     label: 'Test',
     variant: 'secondary',
     size: 'sm',
@@ -589,10 +423,9 @@ function buildGitHubForm(
       connectionStatus = { tested: true };
       actions.send({ type: 'test-connection' });
     },
-  });
-  buttonRow.appendChild(testBtn);
+  }));
 
-  const saveBtn = Button({
+  buttonRow.appendChild(Button({
     label: 'Save',
     variant: 'primary',
     size: 'sm',
@@ -601,8 +434,7 @@ function buildGitHubForm(
       editingSource = null;
       actions.updateState({});
     },
-  });
-  buttonRow.appendChild(saveBtn);
+  }));
 
   container.appendChild(buttonRow);
 
@@ -610,7 +442,7 @@ function buildGitHubForm(
 }
 
 // =============================================================================
-// URL Form (inline in card)
+// URL Form
 // =============================================================================
 
 function buildUrlForm(
@@ -622,7 +454,7 @@ function buildUrlForm(
 
   // Export URL (Code → Figma)
   container.appendChild(Input({
-    label: 'Code → Figma URL',
+    label: 'Code \u2192 Figma URL',
     placeholder: 'https://example.com/synkio/export-baseline.json',
     value: urlForm.exportUrl || '',
     onChange: (value) => {
@@ -636,7 +468,7 @@ function buildUrlForm(
 
   // Baseline URL (Figma → Code sync check)
   container.appendChild(Input({
-    label: 'Figma → Code URL',
+    label: 'Figma \u2192 Code URL',
     placeholder: 'https://example.com/synkio/baseline.json',
     value: urlForm.baselineUrl || '',
     onChange: (value) => {
@@ -652,24 +484,22 @@ function buildUrlForm(
   const buttonRow = el('div', { class: 'source-form-buttons' });
 
   if (onDisconnect) {
-    const disconnectBtn = Button({
+    buttonRow.appendChild(Button({
       label: 'Disconnect',
       variant: 'danger',
       size: 'sm',
       onClick: onDisconnect,
-    });
-    buttonRow.appendChild(disconnectBtn);
+    }));
   }
 
-  const cancelBtn = Button({
+  buttonRow.appendChild(Button({
     label: 'Cancel',
     variant: 'secondary',
     size: 'sm',
     onClick: onCancel,
-  });
-  buttonRow.appendChild(cancelBtn);
+  }));
 
-  const saveBtn = Button({
+  buttonRow.appendChild(Button({
     label: 'Save',
     variant: 'primary',
     size: 'sm',
@@ -678,8 +508,7 @@ function buildUrlForm(
       editingSource = null;
       actions.updateState({});
     },
-  });
-  buttonRow.appendChild(saveBtn);
+  }));
 
   container.appendChild(buttonRow);
 
@@ -723,9 +552,13 @@ function saveUrlSettings(actions: RouterActions) {
 }
 
 // =============================================================================
-// Export for message handler
+// Helpers
 // =============================================================================
 
-export function updateConnectionStatus(success: boolean, error?: string) {
-  connectionStatus = { tested: true, success, error };
+function truncateUrl(url: string, maxLength = 35): string {
+  if (url.length <= maxLength) return url;
+  // Remove protocol
+  let short = url.replace(/^https?:\/\//, '');
+  if (short.length <= maxLength) return short;
+  return short.slice(0, maxLength - 3) + '...';
 }

@@ -12,56 +12,67 @@
   background: var(--color-bg);
 }
 
-/* Logo container with subtle glow effect */
+/* Brand group - logo and title side by side */
+.hero-header__brand {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+/* Logo container - no frame, just the icon */
 .hero-header__logo {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-xl);
-  background: var(--color-primary);
-  color: var(--color-text-onbrand);
-  margin-bottom: var(--spacing-lg);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.05),
-    0 4px 12px rgba(99, 102, 241, 0.25),
-    0 0 24px rgba(99, 102, 241, 0.15);
+  width: 48px;
+  height: 48px;
 }
 
-/* Subtle animated pulse on logo */
-.hero-header__logo::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: var(--radius-xl);
-  background: var(--color-primary);
-  opacity: 0.15;
-  animation: hero-pulse 3s ease-in-out infinite;
+/* Gradient stroke and animation on the logo icon */
+.hero-header__logo svg {
+  stroke: url(#synkio-gradient);
+  filter: drop-shadow(0 2px 12px rgba(20, 184, 166, 0.5));
+  animation: hero-rotate 20s ease-in-out infinite;
 }
 
-@keyframes hero-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.15; }
-  50% { transform: scale(1.08); opacity: 0.08; }
+@keyframes hero-rotate {
+  0%, 20% { transform: rotate(0deg); }
+  25%, 45% { transform: rotate(180deg); }
+  50%, 95% { transform: rotate(360deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Brand name - refined typography */
 .hero-header__title {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: var(--spacing-xs);
-  letter-spacing: 2px;
+  display: flex;
+  font-size: 42px;
+  font-weight: 300;
+  letter-spacing: 4px;
   text-transform: uppercase;
+}
+
+/* Individual letter animation */
+.hero-header__letter {
+  display: inline-block;
+  color: var(--figma-color-text, var(--color-text));
+  animation: letter-color 8s ease-in-out infinite;
+}
+
+@keyframes letter-color {
+  0%, 100% { color: var(--figma-color-text, var(--color-text)); }
+  20% { color: #10b981; }
+  40% { color: #14b8a6; }
+  60% { color: #06b6d4; }
+  80% { color: #8b5cf6; }
 }
 
 /* Tagline - elegant secondary text */
 .hero-header__subtitle {
   font-size: var(--font-size-sm);
   font-weight: 400;
-  color: var(--color-text-secondary);
-  max-width: 260px;
+  color: var(--figma-color-text-secondary, var(--color-text-secondary));
+  max-width: 280px;
   line-height: 1.5;
 }
 
@@ -70,10 +81,13 @@
   padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md);
 }
 
+.hero-header--compact .hero-header__brand {
+  margin-bottom: var(--spacing-sm);
+}
+
 .hero-header--compact .hero-header__logo {
-  width: 44px;
-  height: 44px;
-  margin-bottom: var(--spacing-md);
+  width: 32px;
+  height: 32px;
 }
 
 .hero-header--compact .hero-header__title {

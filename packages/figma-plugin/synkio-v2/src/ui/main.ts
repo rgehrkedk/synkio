@@ -7,16 +7,13 @@ import { createRouter, Router, ScreenRenderer, ScreenCleanup } from './router';
 import { injectStyles } from './styles/index';
 import { countChanges } from '../lib/compare';
 import {
-  HomeScreen,
+  MainScreen,
   SyncScreen,
   ApplyScreen,
   HistoryScreen,
-  SettingsScreen,
-  OnboardingScreen,
-  updateConnectionStatus,
-  resetOnboarding,
+  resetMainScreen,
   resetApplyScreen,
-  resetSettingsScreen,
+  updateSetupConnectionStatus,
 } from '../screens';
 
 // =============================================================================
@@ -24,7 +21,7 @@ import {
 // =============================================================================
 
 const initialState: PluginState = {
-  screen: 'home',
+  screen: 'main',
   isLoading: true,
   loadingMessage: 'Initializing...',
 
@@ -51,6 +48,7 @@ const initialState: PluginState = {
   },
 
   isFirstTime: true,
+  onboardingStep: 1,  // Start at step 1 for first-time users
 };
 
 // =============================================================================
@@ -58,12 +56,10 @@ const initialState: PluginState = {
 // =============================================================================
 
 const screens: Record<Screen, ScreenRenderer> = {
-  home: HomeScreen,
+  main: MainScreen,
   sync: SyncScreen,
   apply: ApplyScreen,
   history: HistoryScreen,
-  settings: SettingsScreen,
-  onboarding: OnboardingScreen,
 };
 
 // =============================================================================
@@ -85,9 +81,8 @@ function init() {
 
   // Screen cleanup registry - called when navigating away from a screen
   const screenCleanup: Partial<Record<Screen, ScreenCleanup>> = {
-    onboarding: resetOnboarding,
+    main: resetMainScreen,
     apply: resetApplyScreen,
-    settings: resetSettingsScreen,
   };
 
   // Create router
@@ -223,8 +218,8 @@ function handleMessage(event: MessageEvent) {
         // Clear code diff after apply
         codeDiff: undefined,
       });
-      // Navigate back to home
-      router.navigate('home');
+      // Navigate back to main
+      router.navigate('main');
       break;
 
     case 'apply-error':
@@ -243,12 +238,12 @@ function handleMessage(event: MessageEvent) {
       break;
 
     case 'connection-test-result':
-      updateConnectionStatus(message.success, message.error);
+      updateSetupConnectionStatus(message.success, message.error);
       router.updateState({}); // Trigger re-render
       break;
 
     case 'data-cleared':
-      resetOnboarding(); // Reset UI state before closing
+      resetMainScreen(); // Reset UI state before closing
       alert('All plugin data has been cleared. Please close and reopen the plugin.');
       sendMessage({ type: 'close' });
       break;
@@ -287,16 +282,10 @@ function handleMessage(event: MessageEvent) {
 }
 
 function handleInitialized(state: Partial<PluginState>) {
-  // Determine initial screen
-  let screen: Screen = 'home';
-
-  if (state.isFirstTime) {
-    screen = 'onboarding';
-  }
-
+  // Always start on main screen - tab-based UI handles first-time vs returning
   router.updateState({
     ...state,
-    screen,
+    screen: 'main',
     isLoading: false,
     loadingMessage: undefined,
   });
@@ -353,11 +342,8 @@ function handleSyncComplete(baseline: PluginState['syncBaseline'], diff?: Plugin
     isFirstTime: false,
   });
 
-  // If we were in onboarding, stay on the onboarding complete screen
-  // Otherwise navigate to sync screen
-  if (currentState.screen !== 'onboarding') {
-    router.navigate('sync');
-  }
+  // Navigate to sync screen to show results
+  router.navigate('sync');
 }
 
 
