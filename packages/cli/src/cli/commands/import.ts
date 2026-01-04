@@ -82,9 +82,9 @@ export async function importCommand(options: ImportOptions): Promise<void> {
     const shouldContinue = await handleComparison(newBaseline, options, spinner);
     if (!shouldContinue) return;
 
-    // 7. Write baseline
+    // 7. Write baseline (source: figma - importing from Figma's native JSON)
     spinner.start('Writing baseline...');
-    await writeBaseline(newBaseline);
+    await writeBaseline(newBaseline, 'figma');
 
     // 8. Generate output files if config exists
     if (config) {

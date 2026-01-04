@@ -9,26 +9,22 @@
  * if it exists, enabling proper ID-based comparison in the Figma plugin.
  */
 
-import { writeFile, mkdir, readFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { readFile } from 'node:fs/promises';
 import chalk from 'chalk';
 import ora from 'ora';
 import { loadConfig } from '../../core/config.js';
 import { discoverTokenFiles, extractModeFromFile, extractGroupFromFile } from '../../core/export/file-discoverer.js';
 import { parseTokenFile, parseMultiModeFile, ParsedToken } from '../../core/export/token-parser.js';
 import { buildExportBaseline, type BuildExportBaselineOptions, type StylesConfig } from '../../core/export/baseline-builder.js';
-import { readBaseline } from '../../core/baseline.js';
+import { readBaseline, writeBaseline, PATHS } from '../../core/baseline.js';
 import { createLogger } from '../../utils/logger.js';
 import type { BaselineEntry, StyleBaselineEntry } from '../../types/index.js';
 
 export interface ExportBaselineOptions {
-  output?: string;
   config?: string;
   preview?: boolean;
   verbose?: boolean;
 }
-
-const DEFAULT_OUTPUT = 'synkio/export-baseline.json';
 
 /**
  * Build a lookup key for matching tokens by path, collection, and mode.
@@ -240,7 +236,6 @@ function addGroupPrefixToTokens(tokens: ParsedToken[], groupPrefix: string): voi
 export async function exportBaselineCommand(options: ExportBaselineOptions = {}): Promise<void> {
   const logger = createLogger();
   const spinner = ora('Exporting baseline...').start();
-  const outputPath = options.output || DEFAULT_OUTPUT;
 
   try {
     // 1. Load config
@@ -403,12 +398,11 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
       console.log(chalk.cyan(`Preview: ${tokenCount} tokens, ${styleCount} styles from ${collections.size} collection(s)`));
     } else {
       spinner.text = 'Writing baseline...';
-      await mkdir(dirname(resolve(outputPath)), { recursive: true });
-      await writeFile(resolve(outputPath), JSON.stringify(exportData, null, 2));
+      await writeBaseline(exportData, 'code');
 
       spinner.succeed(chalk.green('Export baseline created!'));
       console.log('');
-      console.log(chalk.dim('  Output:'), outputPath);
+      console.log(chalk.dim('  Output:'), 'synkio/baseline.json + synkio/compare/latest-code-baseline.json');
       console.log(chalk.dim('  Tokens:'), tokenCount);
       console.log(chalk.dim('  Styles:'), styleCount);
       console.log(chalk.dim('  Collections:'), Array.from(collections).join(', '));
@@ -421,12 +415,12 @@ export async function exportBaselineCommand(options: ExportBaselineOptions = {})
       }
       console.log('');
       console.log(chalk.yellow('  Important:'));
-      console.log(chalk.dim('    Commit and push this file to your repository'));
-      console.log(chalk.dim('    so the Figma plugin can fetch it.'));
+      console.log(chalk.dim('    Commit and push these files to your repository'));
+      console.log(chalk.dim('    so the Figma plugin can fetch them.'));
       console.log('');
       console.log(chalk.cyan('  Next steps:'));
-      console.log(chalk.dim('    1. git add synkio/export-baseline.json'));
-      console.log(chalk.dim('    2. git commit -m "Update export baseline"'));
+      console.log(chalk.dim('    1. git add synkio/'));
+      console.log(chalk.dim('    2. git commit -m "Update code baseline"'));
       console.log(chalk.dim('    3. git push'));
       console.log(chalk.dim('    4. In Figma: Synkio plugin → "Apply from Code" → "Fetch from GitHub"'));
       console.log('');

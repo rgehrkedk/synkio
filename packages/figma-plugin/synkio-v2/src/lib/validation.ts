@@ -48,7 +48,7 @@ export function validateBaselineData(content: string): BaselineData {
   if (!data.baseline) {
     throw new ValidationError(
       'Invalid baseline format: Missing "baseline" field. ' +
-        'This file may not be a valid Synkio export-baseline.json.',
+        'This file may not be a valid Synkio baseline file.',
       'baseline'
     );
   }

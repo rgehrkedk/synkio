@@ -21,7 +21,7 @@ export function setRouterRef(router: { getState: () => any; updateState: (partia
 export async function testPath(
   github: GitHubSettings,
   path: string,
-  testType: 'repo' | 'exportPath' | 'prPath'
+  testType: 'repo' | 'exportPath'
 ) {
   try {
     const { owner, repo, branch, token } = github;
@@ -71,7 +71,7 @@ export async function testPath(
 
 // Helper to update path test result in router state
 function updatePathTestResult(
-  testType: 'repo' | 'exportPath' | 'prPath',
+  testType: 'repo' | 'exportPath',
   success: boolean,
   error?: string,
   warning?: boolean

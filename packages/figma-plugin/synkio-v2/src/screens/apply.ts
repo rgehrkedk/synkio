@@ -73,7 +73,7 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
   const { settings, codeBaseline } = state;
   const remoteSettings = settings.remote;
   const isGitHubConfigured = remoteSettings.source === 'github' && remoteSettings.github?.owner && remoteSettings.github?.repo;
-  const isUrlConfigured = remoteSettings.source === 'url' && remoteSettings.url?.exportUrl;
+  const isUrlConfigured = remoteSettings.source === 'url' && remoteSettings.url?.baselineUrl;
   const isRemoteConfigured = isGitHubConfigured || isUrlConfigured;
 
   let contentChildren: HTMLElement[] = [];
@@ -103,7 +103,7 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
 
     const pathInfo = el('div', {
       class: 'text-xs text-tertiary font-mono',
-    }, remoteSettings.github?.path || 'synkio/export-baseline.json');
+    }, remoteSettings.github?.path || 'synkio/baseline.json');
     githubCard.appendChild(pathInfo);
 
     contentChildren.push(githubCard);
@@ -129,7 +129,7 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
 
     const urlInfo = el('div', {
       class: 'text-xs text-tertiary font-mono break-all',
-    }, remoteSettings.url?.exportUrl || '');
+    }, remoteSettings.url?.baselineUrl || '');
     urlCard.appendChild(urlInfo);
 
     contentChildren.push(urlCard);

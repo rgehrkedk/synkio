@@ -71,7 +71,11 @@ export type { FigmaClientOptions } from './core/figma.js';
 export {
   readBaseline,
   writeBaseline,
-  readPreviousBaseline,
+  readLatestFigmaBaseline,
+  readPrevFigmaBaseline,
+  readLatestCodeBaseline,
+  readPrevCodeBaseline,
+  PATHS,
 } from './core/baseline.js';
 
 // Token processing

@@ -898,7 +898,6 @@ describe('baseline-builder', () => {
 
       expect(Object.keys(result.baseline)).toHaveLength(1);
       expect(result.baseline['colors.primary:theme.light']).toBeDefined();
-      expect(result.metadata.source).toBe('export');
       expect(result.metadata.syncedAt).toBeDefined();
     });
 
@@ -1076,7 +1075,7 @@ describe('baseline-builder', () => {
       const result = buildExportBaseline(parsedFiles);
 
       expect(Object.keys(result.baseline)).toHaveLength(0);
-      expect(result.metadata.source).toBe('export');
+      expect(result.metadata.syncedAt).toBeDefined();
     });
   });
 });

@@ -5,6 +5,7 @@
  */
 
 import type { ComparisonResult } from '../../types/index.js';
+import type { PathComparisonResult } from './path-comparison.js';
 import { hasChanges, getChangeCounts } from './utils.js';
 
 /**
@@ -163,4 +164,79 @@ export function printValueChanges(
     console.log(`      ${JSON.stringify(change.oldValue)} -> ${JSON.stringify(change.newValue)}`);
   });
   console.log('');
+}
+
+/**
+ * Display path-based comparison result (for bootstrap sync)
+ *
+ * Used when pulling after `init-baseline` created a baseline without IDs.
+ * Shows path-based comparison since we can't match by Figma variable IDs.
+ *
+ * @param result - Path comparison result
+ */
+export function displayPathComparisonResult(result: PathComparisonResult): void {
+  console.log('\n' + '='.repeat(60));
+  console.log('  Bootstrap Comparison (path-based)');
+  console.log('='.repeat(60) + '\n');
+
+  console.log('  Comparing by token path (no Figma IDs yet).\n');
+
+  const hasNoChanges =
+    result.onlyInFigma.length === 0 &&
+    result.onlyInCode.length === 0 &&
+    result.valueChanges.length === 0;
+
+  // Perfect match scenario
+  if (hasNoChanges) {
+    console.log(`  ✓ Perfect match: ${result.matched.length} tokens`);
+    console.log('    All tokens in code match Figma exactly.\n');
+  } else {
+    // Matched tokens
+    console.log(`  ✓ Matched: ${result.matched.length} tokens`);
+  }
+
+  // Only in Figma (new tokens - non-breaking)
+  if (result.onlyInFigma.length > 0) {
+    console.log(`\n  + New from Figma: ${result.onlyInFigma.length} tokens (non-breaking)`);
+    const showCount = Math.min(result.onlyInFigma.length, 10);
+    for (let i = 0; i < showCount; i++) {
+      const entry = result.onlyInFigma[i];
+      console.log(`      ${entry.collection}.${entry.mode}/${entry.path}`);
+    }
+    if (result.onlyInFigma.length > showCount) {
+      console.log(`      ... and ${result.onlyInFigma.length - showCount} more`);
+    }
+  }
+
+  // Value changes (non-breaking)
+  if (result.valueChanges.length > 0) {
+    console.log(`\n  ~ Value changes: ${result.valueChanges.length} tokens (non-breaking)`);
+    const showCount = Math.min(result.valueChanges.length, 10);
+    for (let i = 0; i < showCount; i++) {
+      const change = result.valueChanges[i];
+      console.log(`      ${change.collection}.${change.mode}/${change.path}:`);
+      console.log(`        ${JSON.stringify(change.codeValue)} -> ${JSON.stringify(change.figmaValue)}`);
+    }
+    if (result.valueChanges.length > showCount) {
+      console.log(`      ... and ${result.valueChanges.length - showCount} more`);
+    }
+  }
+
+  // Only in code (deletions - BREAKING)
+  if (result.onlyInCode.length > 0) {
+    console.log(`\n  - Only in code: ${result.onlyInCode.length} tokens (BREAKING - will be lost)`);
+    const showCount = Math.min(result.onlyInCode.length, 10);
+    for (let i = 0; i < showCount; i++) {
+      const entry = result.onlyInCode[i];
+      console.log(`      ${entry.collection}.${entry.mode}/${entry.path}`);
+    }
+    if (result.onlyInCode.length > showCount) {
+      console.log(`      ... and ${result.onlyInCode.length - showCount} more`);
+    }
+  }
+
+  console.log('\n' + '-'.repeat(60));
+  console.log('  After sync, baseline will have Figma variable IDs.');
+  console.log('  Future pulls will use ID-based comparison (can detect renames).');
+  console.log('-'.repeat(60) + '\n');
 }

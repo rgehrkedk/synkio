@@ -32,38 +32,65 @@ interface ComparisonRow {
   synkio: boolean | string;
   enterprise: boolean | string;
   tokensStudio: boolean | string;
+  zeroheight: boolean | string;
 }
 
 const comparisonData: ComparisonRow[] = [
   {
-    feature: 'Variables API',
-    synkio: 'Free',
-    enterprise: '$75/seat',
-    tokensStudio: 'Free',
+    feature: 'Figma variables sync',
+    synkio: true,
+    enterprise: true,
+    tokensStudio: true,
+    zeroheight: true,
   },
   {
-    feature: 'CLI sync',
+    feature: 'CLI / local workflow',
     synkio: true,
     enterprise: false,
-    tokensStudio: true,
+    tokensStudio: 'Git only',
+    zeroheight: false,
   },
   {
     feature: 'Breaking change detection',
     synkio: true,
     enterprise: false,
     tokensStudio: false,
+    zeroheight: false,
   },
   {
-    feature: 'W3C DTCG',
+    feature: 'Bidirectional sync',
+    synkio: true,
+    enterprise: false,
+    tokensStudio: true,
+    zeroheight: false,
+  },
+  {
+    feature: 'W3C DTCG format',
     synkio: true,
     enterprise: 'Partial',
     tokensStudio: true,
+    zeroheight: true,
+  },
+  {
+    feature: 'Documentation site',
+    synkio: 'Basic',
+    enterprise: false,
+    tokensStudio: false,
+    zeroheight: true,
+  },
+  {
+    feature: 'Requires Enterprise plan',
+    synkio: false,
+    enterprise: true,
+    tokensStudio: false,
+    zeroheight: false,
   },
   {
     feature: 'Cost',
     synkio: 'Free',
-    enterprise: '$$$',
+    enterprise: '$75/seat/mo',
     tokensStudio: 'Freemium',
+    zeroheight: '$59/editor/mo',
   },
 ];
 
@@ -137,6 +164,7 @@ export function Comparison(): HTMLElement {
   headerRow.appendChild(createHeaderCell('Synkio', true));
   headerRow.appendChild(createHeaderCell('Figma Enterprise'));
   headerRow.appendChild(createHeaderCell('Tokens Studio'));
+  headerRow.appendChild(createHeaderCell('Zeroheight'));
 
   thead.appendChild(headerRow);
   table.appendChild(thead);
@@ -156,6 +184,7 @@ export function Comparison(): HTMLElement {
     tr.appendChild(createCell(row.synkio, true));
     tr.appendChild(createCell(row.enterprise));
     tr.appendChild(createCell(row.tokensStudio));
+    tr.appendChild(createCell(row.zeroheight));
 
     tbody.appendChild(tr);
   });

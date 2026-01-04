@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { createRequire } from 'node:module';
 
 import { initCommand } from './commands/init.js';
+import { initBaselineCommand } from './commands/init-baseline.js';
 import { pullCommand, pullWatchCommand } from './commands/pull.js';
 import { buildCommand } from './commands/build.js';
 import { diffCommand } from './commands/diff.js';
@@ -66,6 +67,21 @@ function showHelp(command?: string) {
             console.log('Examples:');
             console.log('  synkio init');
             console.log('  synkio init --figma-url=https://figma.com/design/ABC123/File');
+            break;
+        case 'init-baseline':
+            console.log('Usage: synkio init-baseline [options]\n');
+            console.log('Create baseline.json from existing token files.\n');
+            console.log('Use this before your first Figma pull if you have existing token files.');
+            console.log('The baseline will have no Figma IDs; the first pull will use path-based');
+            console.log('comparison to show what would change.\n');
+            console.log('Options:');
+            console.log('  --config=<path>   Config file path (default: synkio.config.json)');
+            console.log('  --dry-run         Preview without writing baseline');
+            console.log('  --force           Overwrite existing baseline.json\n');
+            console.log('Examples:');
+            console.log('  synkio init-baseline');
+            console.log('  synkio init-baseline --dry-run');
+            console.log('  synkio init-baseline --force');
             break;
         case 'pull':
             console.log('Usage: synkio pull [options]\n');
@@ -174,14 +190,15 @@ function showHelp(command?: string) {
             console.log('Export token files to baseline format for Figma plugin import.\n');
             console.log('Enables code-first workflows by converting local token files to a');
             console.log('baseline that can be imported and applied to Figma via the plugin.\n');
+            console.log('Writes to:');
+            console.log('  synkio/baseline.json                      (source of truth)');
+            console.log('  synkio/compare/latest-code-baseline.json  (for plugin comparison)\n');
             console.log('Options:');
-            console.log('  --output=<path>     Output file path (default: synkio/export-baseline.json)');
             console.log('  --config=<path>     Config file path (default: synkio.config.json)');
             console.log('  --preview           Print output to console without writing file');
             console.log('  --verbose           Show detailed processing information\n');
             console.log('Examples:');
             console.log('  synkio export-baseline');
-            console.log('  synkio export-baseline --output ./for-figma.json');
             console.log('  synkio export-baseline --preview');
             break;
         case 'serve':
@@ -204,6 +221,7 @@ function showHelp(command?: string) {
             console.log('Usage: synkio <command> [options]\n');
             console.log('Commands:');
             console.log('  init            Initialize a new project');
+            console.log('  init-baseline   Create baseline from existing token files');
             console.log('  pull            Fetch tokens from Figma');
             console.log('  build           Generate token files from baseline');
             console.log('  diff            Compare baseline with token files');
@@ -263,6 +281,15 @@ switch (command) {
     initCommand({
         figmaUrl: options.figmaUrl as string,
         baseUrl: options.baseUrl as string,
+    });
+    break;
+  }
+  case 'init-baseline': {
+    const initBaselineOptions = parseArgs(args);
+    initBaselineCommand({
+        config: initBaselineOptions.config as string,
+        dryRun: initBaselineOptions.dryRun as boolean,
+        force: initBaselineOptions.force as boolean,
     });
     break;
   }
@@ -346,7 +373,6 @@ switch (command) {
   case 'export-baseline': {
     const exportOptions = parseArgs(args);
     exportBaselineCommand({
-        output: exportOptions.output as string,
         config: exportOptions.config as string,
         preview: exportOptions.preview as boolean,
         verbose: exportOptions.verbose as boolean,

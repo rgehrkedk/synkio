@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { readPreviousBaseline, writeBaseline, readBaseline } from '../../core/baseline.js';
+import { readPrevFigmaBaseline, writeBaseline, readBaseline } from '../../core/baseline.js';
 import { splitTokens } from '../../core/tokens.js';
 import { compareBaselines, printDiffSummary, hasChanges } from '../../core/compare.js';
 import { createLogger } from '../../utils/logger.js';
@@ -17,9 +17,9 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
   const spinner = ora('Checking rollback availability...').start();
 
   try {
-    // 1. Read the previous baseline
+    // 1. Read the previous Figma baseline from compare directory
     spinner.text = 'Reading previous baseline...';
-    const prevBaseline = await readPreviousBaseline();
+    const prevBaseline = await readPrevFigmaBaseline();
 
     if (!prevBaseline) {
       spinner.fail('No previous baseline found. Cannot rollback.');
@@ -55,7 +55,7 @@ export async function rollbackCommand(options: RollbackOptions = {}) {
 
     // 3. Restore the previous baseline as the current one
     spinner.text = 'Restoring baseline...';
-    await writeBaseline(prevBaseline);
+    await writeBaseline(prevBaseline, 'figma');
 
     // 4. Re-write the token files from the restored baseline
     spinner.text = 'Writing token files...';

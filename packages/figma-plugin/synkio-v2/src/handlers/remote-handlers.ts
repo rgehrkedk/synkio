@@ -47,14 +47,15 @@ export async function handleFetchRemote(send: SendMessage): Promise<void> {
 
     // Handle URL source
     if (remote.source === 'url') {
-      const exportUrl = remote.url?.exportUrl;
-      if (!exportUrl) {
-        throw new Error('Export URL not configured. Please configure in Settings.');
+      // baselineUrl is primary, exportUrl is deprecated fallback
+      const baselineUrl = remote.url?.baselineUrl || remote.url?.exportUrl;
+      if (!baselineUrl) {
+        throw new Error('Baseline URL not configured. Please configure in Settings.');
       }
 
       send({
         type: 'do-fetch-remote-url',
-        url: exportUrl,
+        url: baselineUrl,
       });
       return;
     }
@@ -73,7 +74,7 @@ export async function handleFetchRemote(send: SendMessage): Promise<void> {
     // Send fetch request to UI (which has access to fetch API)
     send({
       type: 'do-fetch-remote',
-      github: { owner, repo, branch: branch || 'main', path: path || 'synkio/export-baseline.json', token },
+      github: { owner, repo, branch: branch || 'main', path: path || 'synkio/baseline.json', token },
     });
   } catch (error) {
     send({
@@ -264,7 +265,7 @@ export async function handleTestConnection(send: SendMessage): Promise<void> {
     // Send to UI to perform the actual fetch (plugin sandbox has no network access)
     send({
       type: 'do-test-connection',
-      github: { owner, repo, branch: branch || 'main', path: path || 'synkio/export-baseline.json', token },
+      github: { owner, repo, branch: branch || 'main', path: path || 'synkio/baseline.json', token },
     });
   } catch (error) {
     send({
@@ -311,7 +312,8 @@ export async function handleCheckCodeSync(send: SendMessage): Promise<void> {
 
     // Handle custom URL source
     if (remote.source === 'url') {
-      const baselineUrl = remote.url?.baselineUrl || remote.customUrl; // Support deprecated customUrl
+      // baselineUrl is primary, exportUrl and customUrl are deprecated fallbacks
+      const baselineUrl = remote.url?.baselineUrl || remote.url?.exportUrl || remote.customUrl;
       if (!baselineUrl) {
         send({
           type: 'code-sync-update',
@@ -336,8 +338,8 @@ export async function handleCheckCodeSync(send: SendMessage): Promise<void> {
       return;
     }
 
-    // Get the baseline path (prPath for baseline.json, defaults to synkio/baseline.json)
-    const baselinePath = github.prPath || 'synkio/baseline.json';
+    // Get the baseline path (path is the primary field, prPath is deprecated)
+    const baselinePath = github.path || github.prPath || 'synkio/baseline.json';
 
     // Send request to UI to fetch the baseline.json from GitHub
     send({

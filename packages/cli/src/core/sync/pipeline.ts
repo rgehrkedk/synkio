@@ -694,9 +694,9 @@ export async function executeSyncPipeline(
     spinner.info('No local baseline found. Performing initial sync.');
   }
 
-  // 8. Write baseline
+  // 8. Write baseline (source: figma)
   spinner.start('Writing baseline...');
-  await writeBaseline(newBaseline);
+  await writeBaseline(newBaseline, 'figma');
 
   // Handle collection renames
   if (collectionRenames.length > 0) {

@@ -142,6 +142,7 @@ export interface BaselineData {
   metadata: {
     syncedAt: string;
     figmaBaselineHash?: string; // Hash for sync status tracking
+    source?: 'figma' | 'code';  // Indicates who last synced this baseline
   };
 }
 
@@ -303,14 +304,16 @@ export interface GitHubSettings {
   owner: string;
   repo: string;
   branch: string;
-  path: string;              // Path for fetching export-baseline.json (Code → Figma)
-  prPath?: string;           // Path for PR baseline.json (Figma → Code). Defaults to synkio/baseline.json
+  path: string;              // Path to baseline.json. Default: synkio/baseline.json
+  /** @deprecated Use `path` instead. Falls back to path if not set. */
+  prPath?: string;
   token?: string;
 }
 
 export interface UrlSettings {
-  exportUrl?: string;   // URL to export-baseline.json (Code → Figma)
-  baselineUrl?: string; // URL to baseline.json (Figma → Code sync check)
+  baselineUrl?: string; // URL to baseline.json. Primary field.
+  /** @deprecated Use `baselineUrl` instead. Falls back to baselineUrl if not set. */
+  exportUrl?: string;
 }
 
 export interface RemoteSettings {
@@ -396,8 +399,7 @@ export interface SetupFormState {
   // Individual path test results
   pathTests?: {
     repo?: PathTestResult;
-    exportPath?: PathTestResult;
-    prPath?: PathTestResult;
+    exportPath?: PathTestResult;  // Used for baseline path testing
   };
   // Raw input value for repository field to avoid re-render issues while typing
   repoInputValue?: string;
@@ -488,8 +490,8 @@ export type MessageToUI =
   | { type: 'settings-update'; settings: PluginSettings }
   | { type: 'connection-test-result'; success: boolean; error?: string }
   | { type: 'do-test-connection'; github: GitHubSettings }
-  | { type: 'do-test-path'; github: GitHubSettings; path: string; testType: 'repo' | 'exportPath' | 'prPath' }
-  | { type: 'path-test-result'; testType: 'repo' | 'exportPath' | 'prPath'; success: boolean; error?: string }
+  | { type: 'do-test-path'; github: GitHubSettings; path: string; testType: 'repo' | 'exportPath' }
+  | { type: 'path-test-result'; testType: 'repo' | 'exportPath'; success: boolean; error?: string }
   | { type: 'data-cleared' }
   | { type: 'do-create-pr'; github: GitHubSettings; files: Record<string, string>; prTitle: string; prBody: string }
   | { type: 'pr-created'; prUrl: string; prNumber: number }

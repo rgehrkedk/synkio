@@ -172,8 +172,8 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
       'Sync status',
     ],
     limitation: 'No PR creation',
-    summary: isUrlActive && remote.url?.exportUrl
-      ? truncateUrl(remote.url.exportUrl)
+    summary: isUrlActive && remote.url?.baselineUrl
+      ? truncateUrl(remote.url.baselineUrl)
       : undefined,
     onSelect: () => {
       updateFormState(actions, state, { editingSource: 'url' });
@@ -475,10 +475,10 @@ function buildGitHubForm(
     },
   }));
 
-  // Code → Figma path with test
+  // Baseline path with test
   container.appendChild(InputWithTest({
-    label: 'Code \u2192 Figma path',
-    placeholder: 'e.g. synkio/export-baseline.json',
+    label: 'Baseline path',
+    placeholder: 'synkio/baseline.json',
     value: 'path' in githubForm ? (githubForm.path || '') : (remote.github?.path || ''),
     testResult: pathTests?.exportPath,
     onBlur: true,
@@ -491,25 +491,6 @@ function buildGitHubForm(
       const path = githubForm.path || '';
       if (!path) return; // Don't test empty path
       testPath(buildGitHubSettingsFromForm(formState), path, 'exportPath');
-    },
-  }));
-
-  // Figma → Code path with test
-  container.appendChild(InputWithTest({
-    label: 'Figma \u2192 Code path',
-    placeholder: 'e.g. synkio/baseline.json',
-    value: 'prPath' in githubForm ? (githubForm.prPath || '') : (remote.github?.prPath || ''),
-    testResult: pathTests?.prPath,
-    onBlur: true,
-    onChange: (value) => {
-      const newGithubForm = { ...githubForm, prPath: value.trim() };
-      updateFormState(actions, state, { githubForm: newGithubForm, pathTests: { ...pathTests, prPath: undefined } });
-    },
-    onTest: () => {
-      saveGitHubSettings(actions, formState);
-      const path = githubForm.prPath || '';
-      if (!path) return; // Don't test empty path
-      testPath(buildGitHubSettingsFromForm(formState), path, 'prPath');
     },
   }));
 
@@ -541,14 +522,9 @@ function buildGitHubForm(
     pathErrors.push(`Repository: ${pathTests.repo.error}`);
   }
   if (pathTests?.exportPath?.tested && !pathTests.exportPath.success && pathTests.exportPath.error) {
-    // 404 for export path is ok - show as info not error
+    // 404 for baseline path is ok - show as info not error
     if (!pathTests.exportPath.error.includes('will be created')) {
-      pathErrors.push(`Export path: ${pathTests.exportPath.error}`);
-    }
-  }
-  if (pathTests?.prPath?.tested && !pathTests.prPath.success && pathTests.prPath.error) {
-    if (!pathTests.prPath.error.includes('will be created')) {
-      pathErrors.push(`PR path: ${pathTests.prPath.error}`);
+      pathErrors.push(`Baseline path: ${pathTests.exportPath.error}`);
     }
   }
 
@@ -599,8 +575,7 @@ function buildGitHubSettingsFromForm(formState: SetupFormState): GitHubSettings 
     owner: githubForm.owner || '',
     repo: githubForm.repo || '',
     branch: githubForm.branch || 'main',
-    path: githubForm.path || '',
-    prPath: githubForm.prPath || '',
+    path: githubForm.path || 'synkio/baseline.json',
     token: githubForm.token,
   };
 }
@@ -619,25 +594,9 @@ function buildUrlForm(
   const { urlForm } = formState;
   const container = el('div', { class: 'source-form' });
 
-  // Export URL (Code → Figma)
+  // Baseline URL
   container.appendChild(Input({
-    label: 'Code \u2192 Figma URL',
-    placeholder: 'https://example.com/synkio/export-baseline.json',
-    value: urlForm.exportUrl || '',
-    onBlur: true,
-    onChange: (value) => {
-      const newUrlForm = { ...urlForm, exportUrl: value.trim() };
-      updateFormState(actions, state, { urlForm: newUrlForm });
-    },
-  }));
-
-  container.appendChild(el('div', { class: 'text-xs text-tertiary -mt-xs mb-sm' },
-    'URL to export-baseline.json'
-  ));
-
-  // Baseline URL (Figma → Code sync check)
-  container.appendChild(Input({
-    label: 'Figma \u2192 Code URL',
+    label: 'Baseline URL',
     placeholder: 'https://example.com/synkio/baseline.json',
     value: urlForm.baselineUrl || '',
     onBlur: true,
@@ -648,7 +607,7 @@ function buildUrlForm(
   }));
 
   container.appendChild(el('div', { class: 'text-xs text-tertiary -mt-xs mb-sm' },
-    'URL to baseline.json for sync status'
+    'URL to your baseline.json file'
   ));
 
   // Action buttons
@@ -700,8 +659,7 @@ function saveGitHubSettings(actions: RouterActions, formState: SetupFormState) {
         owner: githubForm.owner || '',
         repo: githubForm.repo || '',
         branch: githubForm.branch || 'main',
-        path: githubForm.path || '',
-        prPath: githubForm.prPath || '',
+        path: githubForm.path || 'synkio/baseline.json',
         token: githubForm.token,
       },
     },
@@ -716,7 +674,6 @@ function saveUrlSettings(actions: RouterActions, formState: SetupFormState) {
       enabled: true,
       source: 'url',
       url: {
-        exportUrl: urlForm.exportUrl || '',
         baselineUrl: urlForm.baselineUrl || '',
       },
     },

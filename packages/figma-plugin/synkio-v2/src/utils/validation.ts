@@ -177,9 +177,6 @@ export function validateGitHubSettings(settings: Partial<GitHubSettings>): Valid
   const pathResult = validateFilePath(settings.path || '');
   if (!pathResult.valid) return pathResult;
 
-  const prPathResult = validateFilePath(settings.prPath || '');
-  if (!prPathResult.valid) return prPathResult;
-
   return { valid: true };
 }
 
@@ -187,11 +184,6 @@ export function validateGitHubSettings(settings: Partial<GitHubSettings>): Valid
  * Validates all URL settings at once.
  */
 export function validateUrlSettings(settings: Partial<UrlSettings>): ValidationResult {
-  if (settings.exportUrl) {
-    const exportResult = validateUrl(settings.exportUrl, 'Export URL');
-    if (!exportResult.valid) return exportResult;
-  }
-
   if (settings.baselineUrl) {
     const baselineResult = validateUrl(settings.baselineUrl, 'Baseline URL');
     if (!baselineResult.valid) return baselineResult;

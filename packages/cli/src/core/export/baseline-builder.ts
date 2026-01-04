@@ -67,8 +67,6 @@ export interface ExportBaseline {
   metadata: {
     /** ISO timestamp of export */
     syncedAt: string;
-    /** Source type (always 'export' for this flow) */
-    source: 'export';
   };
 }
 
@@ -431,7 +429,6 @@ export function buildExportBaseline(
     styles,
     metadata: {
       syncedAt: new Date().toISOString(),
-      source: 'export',
     },
   };
 }

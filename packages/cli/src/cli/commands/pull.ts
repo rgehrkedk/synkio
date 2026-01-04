@@ -28,6 +28,12 @@ import {
   getStyleChangeCounts,
   printStyleDiffSummary,
 } from '../../core/compare.js';
+import {
+  compareBaselinesByPath,
+  baselineHasIds,
+  hasPathChanges,
+} from '../../core/compare/path-comparison.js';
+import { displayPathComparisonResult } from '../../core/compare/console-display.js';
 import { discoverCollectionsFromTokens } from '../../core/utils/collection-discovery.js';
 import { filterPhantomModes } from '../../utils/figma.js';
 import { createLogger } from '../../utils/logger.js';
@@ -248,6 +254,71 @@ async function executePull(
     }
   }
 
+  // Handle bootstrap sync - baseline exists but has no IDs (from init-baseline)
+  const isBootstrapSync = localBaseline && !baselineHasIds(localBaseline);
+  if (isBootstrapSync) {
+    spinner.stop();
+    console.log(chalk.cyan('\n  Bootstrap sync detected\n'));
+    console.log(chalk.dim('  Baseline has no Figma IDs. Using path-based comparison.\n'));
+
+    const pathResult = compareBaselinesByPath(localBaseline, newBaseline);
+    displayPathComparisonResult(pathResult);
+
+    const hasChangesInBootstrap = hasPathChanges(pathResult);
+    // Tokens only in code = breaking (they will be lost when building from new baseline)
+    const hasBreakingInBootstrap = pathResult.onlyInCode.length > 0;
+
+    // Preview mode for bootstrap
+    if (options.preview) {
+      console.log(chalk.cyan('  Preview Mode - No changes will be applied\n'));
+      return {
+        hasChanges: hasChangesInBootstrap,
+        hasBreakingChanges: hasBreakingInBootstrap,
+        isFirstSync: false,
+        tokenChanges: {
+          added: pathResult.onlyInFigma.length,
+          modified: pathResult.valueChanges.length,
+          deleted: pathResult.onlyInCode.length,
+          pathChanges: 0,
+        },
+        styleChanges: { added: 0, modified: 0, deleted: 0, pathChanges: 0 },
+      };
+    }
+
+    // Show breaking changes warning
+    if (hasBreakingInBootstrap) {
+      console.log(chalk.red.bold('\n  BREAKING CHANGES DETECTED\n'));
+      console.log(chalk.yellow(`  ${pathResult.onlyInCode.length} token(s) exist only in code and will be lost.`));
+      console.log(chalk.dim('  These tokens are not in Figma and will not be in the new baseline.\n'));
+    }
+
+    // Write Figma baseline (has IDs) - this replaces the init baseline
+    spinner.start('Writing baseline with Figma variable IDs...');
+    await writeBaseline(newBaseline, 'figma');
+
+    spinner.succeed(chalk.green('Baseline updated with Figma variable IDs.'));
+
+    if (hasBreakingInBootstrap) {
+      console.log(chalk.yellow('\n  Breaking changes detected. Review carefully before running build.'));
+      console.log(chalk.dim(`  Run ${chalk.cyan('synkio build --force')} to proceed despite breaking changes.\n`));
+    } else {
+      console.log(chalk.dim(`\n  Run ${chalk.cyan('synkio build')} to generate token files.\n`));
+    }
+
+    return {
+      hasChanges: hasChangesInBootstrap,
+      hasBreakingChanges: hasBreakingInBootstrap,
+      isFirstSync: false,
+      tokenChanges: {
+        added: pathResult.onlyInFigma.length,
+        modified: pathResult.valueChanges.length,
+        deleted: pathResult.onlyInCode.length,
+        pathChanges: 0,
+      },
+      styleChanges: { added: 0, modified: 0, deleted: 0, pathChanges: 0 },
+    };
+  }
+
   // Compare with local baseline
   let result: ComparisonResult = {
     valueChanges: [],
@@ -353,9 +424,9 @@ async function executePull(
     displayStyleChanges(styleResult);
   }
 
-  // Write baseline
+  // Write baseline (source: figma)
   spinner.start('Writing baseline...');
-  await writeBaseline(newBaseline);
+  await writeBaseline(newBaseline, 'figma');
 
   // Handle collection renames in config
   if (result.collectionRenames.length > 0) {

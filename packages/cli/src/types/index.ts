@@ -49,6 +49,7 @@ export interface BaselineData {
   metadata: {
     syncedAt: string;
     figmaBaselineHash?: string;  // Hash for tracking code sync status
+    source?: 'figma' | 'code' | 'init';   // Indicates who last synced this baseline
   };
 }
 

@@ -30,10 +30,12 @@ synkio/
 │   │   │   └── utils/         # Shared utilities
 │   │   └── USER_GUIDE.md      # Complete command and config reference
 │   └── figma-plugin/
-│       ├── synkio-sync/       # Minimal Figma plugin (esbuild)
-│       └── synkio-ui/         # UI plugin with diff view and history
+│       └── synkio-v2/         # Figma plugin with PR workflow, diff view, and history
 └── examples/
-    └── demo-app/              # Example integration
+    ├── demo-app/              # Full integration example with CSS generation
+    ├── starter-app/           # Minimal starter template
+    ├── import-demo/           # Import workflow using Figma's native JSON export
+    └── export-baseline-demo/  # Code-to-Figma roundtrip workflow
 ```
 
 ## Development Commands
@@ -63,7 +65,7 @@ npm run docs
 npm run docs:serve
 ```
 
-### Figma Plugin (packages/figma-plugin/synkio-sync)
+### Figma Plugin (packages/figma-plugin/synkio-v2)
 
 ```bash
 # Build plugin
@@ -92,6 +94,14 @@ node packages/cli/dist/cli/bin.js pull
 - Test files: `**/*.test.ts` (excluded from build)
 - Test framework: Vitest
 - Tests are located alongside implementation files (e.g., `compare.ts` → `compare.test.ts`)
+
+```bash
+# Run a single test file
+npm run test -- src/core/compare/compare.test.ts
+
+# Run tests matching a pattern
+npm run test -- --testNamePattern="should detect"
+```
 
 ## Core Architecture
 
@@ -123,6 +133,12 @@ Compares baseline.json with token files on disk (read-only, for CI):
 2. **Discover Files** - [export/file-discoverer.ts](packages/cli/src/core/export/file-discoverer.ts) finds token files
 3. **Parse Tokens** - [export/token-parser.ts](packages/cli/src/core/export/token-parser.ts) reads token files
 4. **Compare** - Reports differences between baseline and files
+
+#### Init-Baseline Command ([init-baseline.ts](packages/cli/src/cli/commands/init-baseline.ts))
+Creates baseline.json from existing token files WITHOUT Figma IDs. Used for bootstrap scenarios when teams have existing tokens and want meaningful diff detection on their first Figma pull.
+
+#### Serve Command ([serve.ts](packages/cli/src/cli/commands/serve.ts))
+Starts a local HTTP server to serve the baseline file for the Figma plugin, enabling local development workflows without manual file imports.
 
 ### Baseline System
 
