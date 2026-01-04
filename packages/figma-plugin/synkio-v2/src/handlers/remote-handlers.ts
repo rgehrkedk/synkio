@@ -47,8 +47,7 @@ export async function handleFetchRemote(send: SendMessage): Promise<void> {
 
     // Handle URL source
     if (remote.source === 'url') {
-      // baselineUrl is primary, exportUrl is deprecated fallback
-      const baselineUrl = remote.url?.baselineUrl || remote.url?.exportUrl;
+      const baselineUrl = remote.url?.baselineUrl;
       if (!baselineUrl) {
         throw new Error('Baseline URL not configured. Please configure in Settings.');
       }
@@ -310,10 +309,9 @@ export async function handleCheckCodeSync(send: SendMessage): Promise<void> {
       return;
     }
 
-    // Handle custom URL source
+    // Handle URL source
     if (remote.source === 'url') {
-      // baselineUrl is primary, exportUrl and customUrl are deprecated fallbacks
-      const baselineUrl = remote.url?.baselineUrl || remote.url?.exportUrl || remote.customUrl;
+      const baselineUrl = remote.url?.baselineUrl;
       if (!baselineUrl) {
         send({
           type: 'code-sync-update',
@@ -338,8 +336,8 @@ export async function handleCheckCodeSync(send: SendMessage): Promise<void> {
       return;
     }
 
-    // Get the baseline path (path is the primary field, prPath is deprecated)
-    const baselinePath = github.path || github.prPath || 'synkio/baseline.json';
+    // Get the baseline path
+    const baselinePath = github.path || 'synkio/baseline.json';
 
     // Send request to UI to fetch the baseline.json from GitHub
     send({

@@ -41,7 +41,17 @@ export {
 
 export {
   printDiffSummary,
+  displayPathComparisonResult,
 } from './compare/console-display.js';
+
+export {
+  compareBaselinesByPath,
+  baselineHasIds,
+  hasPathChanges,
+  type PathComparisonResult,
+  type PathMatch,
+  type PathValueChange,
+} from './compare/path-comparison.js';
 
 /**
  * Compare two baselines and return categorized changes
