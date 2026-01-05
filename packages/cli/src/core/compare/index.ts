@@ -54,4 +54,15 @@ export {
   printBreakingChangesDetails,
   printNewVariables,
   printValueChanges,
+  displayPathComparisonResult,
 } from './console-display.js';
+
+// Path-based comparison (for bootstrap scenarios)
+export {
+  compareBaselinesByPath,
+  baselineHasIds,
+  hasPathChanges,
+  type PathComparisonResult,
+  type PathMatch,
+  type PathValueChange,
+} from './path-comparison.js';

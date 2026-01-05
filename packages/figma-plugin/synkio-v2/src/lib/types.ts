@@ -305,15 +305,11 @@ export interface GitHubSettings {
   repo: string;
   branch: string;
   path: string;              // Path to baseline.json. Default: synkio/baseline.json
-  /** @deprecated Use `path` instead. Falls back to path if not set. */
-  prPath?: string;
   token?: string;
 }
 
 export interface UrlSettings {
-  baselineUrl?: string; // URL to baseline.json. Primary field.
-  /** @deprecated Use `baselineUrl` instead. Falls back to baselineUrl if not set. */
-  exportUrl?: string;
+  baselineUrl?: string; // URL to baseline.json
 }
 
 export interface RemoteSettings {
@@ -321,7 +317,6 @@ export interface RemoteSettings {
   source: 'github' | 'url' | 'none';
   github?: GitHubSettings;
   url?: UrlSettings;
-  customUrl?: string;   // @deprecated - use url.baselineUrl instead
   autoCheck: boolean;
   lastFetch?: string;
 }

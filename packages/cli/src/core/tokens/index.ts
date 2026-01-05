@@ -5,6 +5,29 @@
  * Re-exports all public APIs for backward compatibility.
  */
 
+// Main token functions (from parent tokens.ts)
+export {
+  splitTokens,
+  splitStyles,
+  normalizePluginData,
+  normalizeStyleData,
+  hasStyles,
+  getStyleCount,
+  parseVariableId,
+  mapToDTCGType,
+  type RawTokens,
+  type SplitTokenFile,
+  type SplitTokens,
+  type CollectionSplitOptions,
+  type SplitTokensOptions,
+  type SplitStyleFile,
+  type SplitStyles,
+  type StyleTypeConfig,
+  type StylesSplitOptions,
+  type MergeInto,
+  type StyleType,
+} from '../tokens.js';
+
 // Split strategies
 export {
   determineSplitStrategy,

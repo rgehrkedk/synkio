@@ -140,51 +140,27 @@ catch (error) {
 
 ## Inconsistencies
 
-### 7. Import Path Chaos
+### 7. ~~Import Path Chaos~~ ✅ FIXED
 
-Commands use inconsistent import patterns:
+~~Commands use inconsistent import patterns~~
 
-| File | Pattern |
-|------|---------|
-| build.ts | `from '../../core/compare.js'` (facade) |
-| pull.ts | `from '../../core/compare/console-display.js'` (direct) |
-| diff.ts | `from '../../core/compare.js'` (facade) |
-
-**Fix:** Standardize on facade imports only.
+**Status:** Fixed. All commands now import from the facade (`compare.js`). Missing exports (`compareBaselinesByPath`, `baselineHasIds`, `hasPathChanges`, `displayPathComparisonResult`) added to both `compare.ts` and `compare/index.ts`.
 
 ---
 
-### 8. Incomplete Tokens Facade
+### 8. ~~Incomplete Tokens Facade~~ ✅ FIXED
 
-[tokens/index.ts](packages/cli/src/core/tokens/index.ts) re-exports split strategies but NOT the main functions from [tokens.ts](packages/cli/src/core/tokens.ts):
+~~[tokens/index.ts](packages/cli/src/core/tokens/index.ts) re-exports split strategies but NOT the main functions from [tokens.ts](packages/cli/src/core/tokens.ts)~~
 
-Missing from facade:
-- `splitTokens`
-- `splitStyles`
-- `normalizePluginData`
-- `normalizeStyleData`
-- `parseVariableId`
-- `hasStyles`
-- `getStyleCount`
-- `mapToDTCGType`
-
-**Impact:** Consumers must know to import from two different paths.
+**Status:** Fixed. The facade now re-exports all main functions: `splitTokens`, `splitStyles`, `normalizePluginData`, `normalizeStyleData`, `parseVariableId`, `hasStyles`, `getStyleCount`, `mapToDTCGType`, plus all associated types.
 
 ---
 
-### 9. Deprecated Fields Still in Types
+### 9. ~~Deprecated Fields Still in Types~~ ✅ FIXED
 
-[lib/types.ts](packages/figma-plugin/synkio-v2/src/lib/types.ts) has deprecated fields with active fallback chains:
+~~[lib/types.ts](packages/figma-plugin/synkio-v2/src/lib/types.ts) has deprecated fields with active fallback chains~~
 
-```typescript
-/** @deprecated Use `path` instead */
-prPath?: string;
-
-/** @deprecated Use `baselineUrl` instead */
-exportUrl?: string;
-```
-
-These create branching logic across handlers. Should be removed.
+**Status:** Fixed. Removed deprecated fields (`prPath`, `exportUrl`, `customUrl`) from type definitions and cleaned up all fallback chains in `pr-handlers.ts` and `remote-handlers.ts`.
 
 ---
 
@@ -227,21 +203,27 @@ Hardcoded placeholder that appears to be legacy/unused but still in codebase.
 
 ## Priority Fixes
 
-| Priority | Issue | Effort |
-|----------|-------|--------|
-| P0 | Update all docs from `sync` to `pull`+`build` | 2h |
-| P0 | Add tests for pull/build commands | 4h |
-| P1 | Remove dead PR status code | 30m |
-| P1 | Add rollback for apply operations | 2h |
-| P2 | Consolidate compare facades | 1h |
-| P2 | Standardize import paths | 1h |
-| P3 | Remove deprecated type fields | 1h |
-| P3 | Clean up unused error utilities | 30m |
+| Priority | Issue | Effort | Status |
+|----------|-------|--------|--------|
+| P0 | Update all docs from `sync` to `pull`+`build` | 2h | |
+| P0 | Add tests for pull/build commands | 4h | |
+| P1 | Remove dead PR status code | 30m | |
+| P1 | Add rollback for apply operations | 2h | |
+| P2 | Consolidate compare facades | 1h | ✅ Fixed |
+| P2 | Standardize import paths | 1h | ✅ Fixed |
+| P3 | Remove deprecated type fields | 1h | ✅ Fixed |
+| P3 | Clean up unused error utilities | 30m | |
 
 ---
 
 ## Summary
 
-The core token syncing functionality is solid. The ID-based diffing is genuinely innovative. However, the product has significant documentation rot (`sync` command), dead code in the plugin, and zero test coverage for primary user workflows. The architecture is clean but has inconsistent facade patterns that make the codebase harder to navigate.
+The core token syncing functionality is solid. The ID-based diffing is genuinely innovative. However, the product has significant documentation rot (`sync` command), dead code in the plugin, and zero test coverage for primary user workflows. ~~The architecture is clean but has inconsistent facade patterns that make the codebase harder to navigate.~~ **Update:** Facade inconsistencies have been resolved.
 
 **Recommendation:** Update documentation to reflect the `pull` + `build` architecture immediately - the outdated `sync` references break the entire getting-started experience. Then add integration tests for pull/build before any new features.
+
+---
+
+## Changelog
+
+- **2026-01-04:** Fixed import path chaos, incomplete tokens facade, and deprecated type fields (Issues #7, #8, #9)

@@ -85,8 +85,7 @@ export async function handleCreatePR(send: SendMessage): Promise<void> {
     };
 
     // 6. Determine baseline path from GitHub settings (or use default)
-    // path is primary, prPath is deprecated fallback
-    const baselinePath = github.path || github.prPath || 'synkio/baseline.json';
+    const baselinePath = github.path || 'synkio/baseline.json';
 
     // 7. Build files to commit
     const files: Record<string, string> = {

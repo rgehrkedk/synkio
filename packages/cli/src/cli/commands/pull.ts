@@ -27,13 +27,11 @@ import {
   hasBreakingStyleChanges,
   getStyleChangeCounts,
   printStyleDiffSummary,
-} from '../../core/compare.js';
-import {
   compareBaselinesByPath,
   baselineHasIds,
   hasPathChanges,
-} from '../../core/compare/path-comparison.js';
-import { displayPathComparisonResult } from '../../core/compare/console-display.js';
+  displayPathComparisonResult,
+} from '../../core/compare.js';
 import { discoverCollectionsFromTokens } from '../../core/utils/collection-discovery.js';
 import { filterPhantomModes } from '../../utils/figma.js';
 import { createLogger } from '../../utils/logger.js';
