@@ -327,6 +327,227 @@ A designer should be able to:
 
 ---
 
+---
+
+## Interactive Element: "Breaking Change Roulette"
+
+### The Concept
+
+The landing page is built with CSS custom properties (design tokens). A game widget lets visitors "break" the page by changing token values. Then Synkio "rolls back" and fixes it.
+
+**The meta-joke:** The page itself is the demo. You experience the chaos. Then you experience the fix.
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│   🎰 BREAKING CHANGE ROULETTE                          │
+│                                                         │
+│   "A designer changed something. Spin to find out what."│
+│                                                         │
+│              [ SPIN THE WHEEL ]                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**On spin:**
+1. Wheel animates through token names
+2. Lands on a random token (e.g., `--color-primary`)
+3. Token value changes to something absurd
+4. **The actual page breaks in real-time**
+
+**After the break:**
+```
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│   💥 PRODUCTION IS DOWN                                 │
+│                                                         │
+│   --spacing-md changed from 16px to 400px               │
+│                                                         │
+│   "The designer said it needed more breathing room."    │
+│                                                         │
+│              [ SYNKIO ROLLBACK ]                        │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**On rollback:**
+- Page smoothly transitions back to normal
+- Satisfying "fixed" feedback
+- Counter increments: "Synkio has saved this page 4,382 times"
+
+---
+
+### Token Breaks (The Fun Part)
+
+Each token has a funny "designer request" and an absurd result:
+
+| Token | Designer Said | New Value | Visual Result |
+|-------|---------------|-----------|---------------|
+| `--color-primary` | "Make it pop" | `#FF00FF` (magenta) | All buttons/links go nuclear pink |
+| `--color-background` | "Warmer" | `#8B0000` (dark red) | Page looks like a crime scene |
+| `--font-size-base` | "More readable" | `48px` | Everything is ENORMOUS |
+| `--font-size-base` | "Subtle" | `8px` | Everything is microscopic |
+| `--spacing-md` | "Breathing room" | `200px` | Massive gaps everywhere |
+| `--spacing-md` | "Tighter" | `-8px` | Everything overlaps |
+| `--border-radius` | "Softer" | `50px` | All rectangles are pills |
+| `--border-radius` | "Modern" | `0` | Brutalist boxes everywhere |
+| `--font-family` | "Playful" | `Comic Sans MS` | Self-explanatory |
+| `--font-family` | "Premium" | `Papyrus` | Even worse |
+| `--line-height` | "Dense" | `0.8` | Text overlaps itself |
+| `--color-text` | "Subtle" | Same as background | Text disappears |
+| `--shadow` | "Depth" | `20px 20px 0 red` | 90s GeoCities vibes |
+
+---
+
+### Technical Implementation
+
+**Page tokens (CSS custom properties):**
+```css
+:root {
+  --color-primary: #6366f1;
+  --color-background: #0a0a0a;
+  --color-text: #fafafa;
+  --font-size-base: 16px;
+  --font-family: 'Inter', system-ui, sans-serif;
+  --spacing-md: 16px;
+  --border-radius: 8px;
+  --line-height: 1.5;
+  --shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+```
+
+**Break function:**
+```javascript
+function breakToken(token, newValue) {
+  document.documentElement.style.setProperty(token, newValue);
+  // Add transition for smooth chaos
+}
+
+function rollback() {
+  document.documentElement.removeAttribute('style');
+  // Tokens revert to CSS defaults
+  incrementSaveCounter();
+}
+```
+
+**The wheel:**
+- Pure CSS/JS, no heavy libraries
+- Satisfying spin physics (easing, momentum)
+- Suspenseful slowdown
+- Click sound optional (respect prefers-reduced-motion)
+
+---
+
+### Copy for the Widget
+
+**Header options:**
+- "Breaking Change Roulette"
+- "What Did The Designer Change?"
+- "Spin to Break Production"
+
+**Pre-spin:**
+> "Every token change is a dice roll. Spin to see what breaks."
+
+**Post-break (randomized):**
+- "Congrats! You just mass to 400px."
+- "The checkout button is now magenta. Conversion rate: 0%."
+- "Legal can't read the terms anymore. Font size: 6px."
+- "The CEO is asking why the site looks like Papyrus."
+
+**Post-rollback:**
+> "One command. Everything fixed."
+> `npx synkio rollback`
+
+---
+
+### Shareable Moments
+
+Generate a "breaking change report" users can share:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  I BROKE PRODUCTION                                     │
+│                                                         │
+│  Changed: --font-family                                 │
+│  To: Comic Sans MS                                      │
+│  Designer said: "Let's be more approachable"            │
+│                                                         │
+│  Synkio fixed it in 0.003s                              │
+│                                                         │
+│  [Share on Twitter]  [Try it yourself]                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Escalating Chaos Mode (Optional)
+
+**Multi-break mode:** Don't roll back. Keep spinning.
+
+```
+Spin 1: --color-primary → magenta
+Spin 2: --spacing-md → 200px
+Spin 3: --font-family → Papyrus
+Spin 4: --font-size-base → 8px
+Spin 5: --border-radius → 50px
+
+[The page is now completely unusable]
+
+"This is 3 months of design drift. In 30 seconds."
+
+[ SYNKIO ROLLBACK ]  ← Fixes EVERYTHING at once
+```
+
+**The payoff:** One rollback fixes all 5 breaks simultaneously. Visceral demonstration of value.
+
+---
+
+### Where It Lives on the Page
+
+**Option A: Hero integration**
+- Widget is the hero's main CTA instead of just "Install"
+- Immediately interactive
+- Risk: Might confuse first-time visitors
+
+**Option B: Dedicated section**
+- Below the fold, after "How it works"
+- Clear context before you play
+- Safer but less surprising
+
+**Option C: Easter egg**
+- Hidden trigger (Konami code? Click the logo 3 times?)
+- Reward for curious visitors
+- Generates social sharing when discovered
+
+**Recommendation:** Option B for launch, with the game prominent but contextualized. Move to Option A once user research confirms it helps, not hurts, comprehension.
+
+---
+
+### Accessibility Considerations
+
+- Respect `prefers-reduced-motion`: Skip animations, instant state changes
+- Screen reader: Announce what changed and that rollback is available
+- Keyboard: Full widget control via keyboard
+- Don't auto-play: User must initiate the break
+- Ensure rollback is always visible/reachable even when page is "broken"
+
+---
+
+### The Meta-Lesson
+
+The widget teaches through experience:
+
+1. **Token changes have consequences** — You see it break
+2. **Small changes can cascade** — One value, whole page affected
+3. **Rollback is instant** — The fix is one click/command
+4. **This is what Synkio does** — Protect you from this chaos
+
+The page IS the product demo. No screenshots needed.
+
+---
+
 ## One More Thing
 
 The landing page itself should demonstrate the philosophy:
@@ -334,5 +555,6 @@ The landing page itself should demonstrate the philosophy:
 **Clear ownership.** Every element has a reason.
 **No drift.** Copy matches product reality.
 **Safe to ship.** Nothing clever that might break.
+**Except when we break it on purpose.** To show you why that matters.
 
 Make it a page we'd be proud to `git push`.
