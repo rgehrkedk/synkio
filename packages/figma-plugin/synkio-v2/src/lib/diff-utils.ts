@@ -109,47 +109,56 @@ export function groupStylesByType(diff: ComparisonResult): Record<string, Groupe
 
 /**
  * Build diff item elements for variable changes
+ * @param changes - Grouped changes by type
+ * @param variableIdLookup - Optional map from VariableID to path for resolving references
  */
-export function buildDiffItems(changes: GroupedChanges): HTMLElement[] {
+export function buildDiffItems(
+  changes: GroupedChanges,
+  variableIdLookup?: Map<string, string>
+): HTMLElement[] {
   const items: HTMLElement[] = [];
 
-  // Added
+  // Added - new tokens that will be created
   for (const item of changes.added) {
+    // Include mode in path to distinguish between modes
+    const displayPath = `${item.path} (${item.mode})`;
     items.push(DiffItem({
       type: 'added',
-      path: item.path,
-      value: formatValue(item.value),
-      colorPreview: item.type === 'color' ? String(item.value) : undefined,
+      path: displayPath,
+      value: formatValue(item.value, variableIdLookup),
+      colorPreview: item.type === 'color' ? resolveColorValue(item.value) : undefined,
     }));
   }
 
-  // Modified
+  // Modified - value changes
   for (const item of changes.modified) {
+    const displayPath = `${item.path} (${item.mode})`;
     items.push(DiffItem({
       type: 'modified',
-      path: item.path,
-      value: formatValue(item.newValue),
-      oldValue: formatValue(item.oldValue),
-      colorPreview: item.type === 'color' ? String(item.newValue) : undefined,
+      path: displayPath,
+      // Show old -> new values
+      value: formatValue(item.newValue, variableIdLookup),
+      oldValue: formatValue(item.oldValue, variableIdLookup),
+      colorPreview: item.type === 'color' ? resolveColorValue(item.newValue) : undefined,
     }));
   }
 
-  // Renamed
+  // Renamed - path changed but same variable
   for (const item of changes.renamed) {
     items.push(DiffItem({
       type: 'renamed',
       path: item.newPath,
       oldPath: item.oldPath,
-      value: formatValue(item.value),
+      value: formatValue(item.value, variableIdLookup),
     }));
   }
 
-  // Deleted
+  // Deleted - tokens that will be removed (just show path, value irrelevant)
   for (const item of changes.deleted) {
+    const displayPath = `${item.path} (${item.mode})`;
     items.push(DiffItem({
       type: 'deleted',
-      path: item.path,
-      value: `was ${formatValue(item.value)}`,
+      path: displayPath,
     }));
   }
 
@@ -157,9 +166,33 @@ export function buildDiffItems(changes: GroupedChanges): HTMLElement[] {
 }
 
 /**
- * Build diff item elements for style changes
+ * Try to resolve a color value for preview (handles aliases)
  */
-export function buildStyleDiffItems(changes: GroupedStyleChanges): HTMLElement[] {
+function resolveColorValue(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    // Direct hex/rgb color
+    if (value.startsWith('#') || value.startsWith('rgb')) {
+      return value;
+    }
+    // It's an alias reference - can't preview
+    return undefined;
+  }
+  if (typeof value === 'object' && value !== null) {
+    // $ref format - can't preview the alias
+    return undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Build diff item elements for style changes
+ * @param changes - Grouped style changes by type
+ * @param variableIdLookup - Optional map from VariableID to path for resolving references
+ */
+export function buildStyleDiffItems(
+  changes: GroupedStyleChanges,
+  variableIdLookup?: Map<string, string>
+): HTMLElement[] {
   const items: HTMLElement[] = [];
 
   // Added
@@ -167,7 +200,7 @@ export function buildStyleDiffItems(changes: GroupedStyleChanges): HTMLElement[]
     items.push(DiffItem({
       type: 'added',
       path: item.path,
-      value: formatValue(item.value),
+      value: formatValue(item.value, variableIdLookup),
     }));
   }
 
@@ -176,8 +209,8 @@ export function buildStyleDiffItems(changes: GroupedStyleChanges): HTMLElement[]
     items.push(DiffItem({
       type: 'modified',
       path: item.path,
-      value: formatValue(item.newValue),
-      oldValue: formatValue(item.oldValue),
+      value: formatValue(item.newValue, variableIdLookup),
+      oldValue: formatValue(item.oldValue, variableIdLookup),
     }));
   }
 
@@ -187,16 +220,15 @@ export function buildStyleDiffItems(changes: GroupedStyleChanges): HTMLElement[]
       type: 'renamed',
       path: item.newPath,
       oldPath: item.oldPath,
-      value: formatValue(item.value),
+      value: formatValue(item.value, variableIdLookup),
     }));
   }
 
-  // Deleted
+  // Deleted - styles that will be removed (no value needed)
   for (const item of changes.deleted) {
     items.push(DiffItem({
       type: 'deleted',
       path: item.path,
-      value: `was ${formatValue(item.value)}`,
     }));
   }
 
@@ -208,15 +240,45 @@ export function buildStyleDiffItems(changes: GroupedStyleChanges): HTMLElement[]
 // =============================================================================
 
 /**
- * Format a token value for display
+ * Format a token value for display.
+ * Handles variable references and makes them more readable.
  */
-export function formatValue(value: unknown): string {
+export function formatValue(value: unknown, variableIdToPath?: Map<string, string>): string {
   if (value === null || value === undefined) return '';
+  
+  if (typeof value === 'string') {
+    // Check for variable alias reference pattern: {VariableID:xxxx:xxxx}
+    const varIdMatch = value.match(/^\{(VariableID:[^}]+)\}$/);
+    if (varIdMatch) {
+      const varId = varIdMatch[1];
+      // If we have a lookup, resolve to path
+      if (variableIdToPath) {
+        const path = variableIdToPath.get(varId);
+        if (path) {
+          return `{${path}}`;
+        }
+      }
+      // Fallback: show as "variable alias" without the ugly ID
+      return '{variable alias}';
+    }
+    return value;
+  }
+  
   if (typeof value === 'object') {
+    // Handle $ref format: {$ref: 'VariableID:xxxx:xxxx'}
     if ('$ref' in (value as Record<string, unknown>)) {
-      return `{${(value as { $ref: string }).$ref}}`;
+      const ref = (value as { $ref: string }).$ref;
+      // Check if it's a VariableID reference that we can resolve
+      if (ref.startsWith('VariableID:') && variableIdToPath) {
+        const path = variableIdToPath.get(ref);
+        if (path) {
+          return `{${path}}`;
+        }
+      }
+      return `{${ref}}`;
     }
     return JSON.stringify(value);
   }
+  
   return String(value);
 }

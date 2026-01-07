@@ -232,7 +232,9 @@ In CI pipelines, sync-status.json provides a record of what was synced:
 ```yaml
 # Example GitHub Actions
 - name: Sync Figma tokens
-  run: npx synkio sync
+  run: |
+    npx synkio pull
+    npx synkio build
 
 - name: Commit sync status
   run: |
@@ -242,7 +244,7 @@ In CI pipelines, sync-status.json provides a record of what was synced:
 
 ## Regenerate Mode
 
-When running `synkio sync --regenerate`, the status file should **not** be updated since no actual sync from Figma occurs:
+When running `synkio build --rebuild`, the status file should **not** be updated since no actual sync from Figma occurs:
 
 ```typescript
 // In pipeline.ts

@@ -10,7 +10,12 @@
   "networkAccess": {
     "allowedDomains": [
       "https://api.github.com",
-      "https://raw.githubusercontent.com"
-    ]
+      "https://raw.githubusercontent.com",
+      "http://localhost:3847",
+      "http://localhost:3848",
+      "http://localhost:3849",
+      "http://localhost:8080"
+    ],
+    "reasoning": "Localhost access is required for the Local Server feature, which allows developers to fetch baseline tokens from the synkio CLI serve command during local development workflows."
   }
 }

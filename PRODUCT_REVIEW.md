@@ -205,8 +205,8 @@ Hardcoded placeholder that appears to be legacy/unused but still in codebase.
 
 | Priority | Issue | Effort | Status |
 |----------|-------|--------|--------|
-| P0 | Update all docs from `sync` to `pull`+`build` | 2h | |
-| P0 | Add tests for pull/build commands | 4h | |
+| P0 | Update all docs from `sync` to `pull`+`build` | 2h | ✅ Fixed |
+| P0 | Add tests for pull/build commands | 4h | ✅ Fixed |
 | P1 | Remove dead PR status code | 30m | |
 | P1 | Add rollback for apply operations | 2h | |
 | P2 | Consolidate compare facades | 1h | ✅ Fixed |
@@ -218,12 +218,13 @@ Hardcoded placeholder that appears to be legacy/unused but still in codebase.
 
 ## Summary
 
-The core token syncing functionality is solid. The ID-based diffing is genuinely innovative. However, the product has significant documentation rot (`sync` command), dead code in the plugin, and zero test coverage for primary user workflows. ~~The architecture is clean but has inconsistent facade patterns that make the codebase harder to navigate.~~ **Update:** Facade inconsistencies have been resolved.
+The core token syncing functionality is solid. The ID-based diffing is genuinely innovative. ~~However, the product has significant documentation rot (`sync` command), dead code in the plugin, and zero test coverage for primary user workflows.~~ **Update:** Documentation has been fixed and tests have been added for pull/build commands. ~~The architecture is clean but has inconsistent facade patterns that make the codebase harder to navigate.~~ **Update:** Facade inconsistencies have been resolved.
 
-**Recommendation:** Update documentation to reflect the `pull` + `build` architecture immediately - the outdated `sync` references break the entire getting-started experience. Then add integration tests for pull/build before any new features.
+**Recommendation:** Continue adding more comprehensive integration tests and address the remaining P1 issues (dead PR status code, apply rollback).
 
 ---
 
 ## Changelog
 
+- **2026-01-05:** Added tests for pull and build commands (Issue #3 - P0 priority)
 - **2026-01-04:** Fixed import path chaos, incomplete tokens facade, and deprecated type fields (Issues #7, #8, #9)

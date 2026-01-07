@@ -5,7 +5,9 @@
   "description": "Demo app showcasing Synkio design tokens integration",
   "scripts": {
     "dev": "npx serve src",
-    "sync": "npx synkio sync",
+    "pull": "npx synkio pull",
+    "build:tokens": "npx synkio build",
+    "sync": "npx synkio pull && npx synkio build",
     "docs": "npx synkio docs --open",
     "validate": "npx synkio validate"
   },

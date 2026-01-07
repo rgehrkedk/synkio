@@ -39,6 +39,8 @@ export default defineConfig({
             { text: 'diff', link: '/guide/commands/diff' },
             { text: 'import', link: '/guide/commands/import' },
             { text: 'export', link: '/guide/commands/export' },
+            { text: 'init-baseline', link: '/guide/commands/init-baseline' },
+            { text: 'serve', link: '/guide/commands/serve' },
             { text: 'rollback', link: '/guide/commands/rollback' },
             { text: 'validate', link: '/guide/commands/validate' },
             { text: 'tokens', link: '/guide/commands/tokens' },
@@ -76,6 +78,12 @@ export default defineConfig({
           items: [
             { text: 'Figma Setup', link: '/guide/setup/figma' },
             { text: 'Hosting Docs', link: '/guide/setup/hosting' }
+          ]
+        },
+        {
+          text: 'Help',
+          items: [
+            { text: 'Troubleshooting', link: '/guide/troubleshooting' }
           ]
         }
       ]

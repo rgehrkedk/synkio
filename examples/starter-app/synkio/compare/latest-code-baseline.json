@@ -6801,11 +6801,10 @@
         "WEB": "--bg-primary-bg-blur"
       }
     },
-    "VariableID:18386:834313:theme.dark": {
+    "bg.alpha.primary.default:theme.dark": {
       "collection": "theme",
       "mode": "dark",
       "path": "bg.alpha.primary.default",
-      "variableId": "VariableID:18386:834313",
       "value": "{colors.neutral.alpha.950.50}",
       "type": "color"
     },
@@ -8379,11 +8378,10 @@
         "WEB": "--bg-primary-bg-blur"
       }
     },
-    "VariableID:18386:834313:theme.light": {
+    "bg.alpha.primary.default:theme.light": {
       "collection": "theme",
       "mode": "light",
       "path": "bg.alpha.primary.default",
-      "variableId": "VariableID:18386:834313",
       "value": "{colors.neutral.alpha.50.50}",
       "type": "color"
     },

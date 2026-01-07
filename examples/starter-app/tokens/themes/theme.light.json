@@ -14,6 +14,10 @@
           "$value": "{colors.neutral.alpha.50.50}",
           "$type": "color"
         },
+         "default2": {
+          "$value": "{colors.neutral.alpha.50.20}",
+          "$type": "color"
+        },
         "subtle": {
           "$value": "{colors.neutral.alpha.50.20}",
           "$type": "color"
@@ -105,7 +109,7 @@
       }
     },
     "primary": {
-      "base": {
+      "default": {
         "$value": "{colors.neutral.50}",
         "$type": "color"
       },

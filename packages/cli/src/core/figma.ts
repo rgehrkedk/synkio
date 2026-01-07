@@ -134,9 +134,40 @@ export class FigmaClient {
             throw new Error(`Server error: ${response.status}`);
           }
 
-          // Abort on client errors (except 429)
+          // Abort on client errors (except 429) with helpful messages
           if (!response.ok) {
             const errorText = await response.text();
+
+            if (response.status === 403) {
+              throw new AbortError(
+                `Figma API error (403 Forbidden): Access denied.\n\n` +
+                `Possible causes:\n` +
+                `  • Your token doesn't have access to this file\n` +
+                `  • The token may be invalid or expired\n` +
+                `  • The file may be in a team/org you don't have access to\n\n` +
+                `Solutions:\n` +
+                `  1. Verify you can open this file in Figma with the same account\n` +
+                `  2. Generate a new token at https://www.figma.com/settings\n` +
+                `  3. Update FIGMA_TOKEN in your .env file`
+              );
+            }
+
+            if (response.status === 404) {
+              throw new AbortError(
+                `Figma API error (404 Not Found): File not found.\n\n` +
+                `Possible causes:\n` +
+                `  • The file ID in your config is incorrect\n` +
+                `  • The file has been deleted or moved\n` +
+                `  • The file URL format has changed\n\n` +
+                `Solutions:\n` +
+                `  1. Check the fileId in synkio.config.json\n` +
+                `  2. Copy the file ID from your Figma URL:\n` +
+                `     https://www.figma.com/design/ABC123xyz/...\n` +
+                `                                ^^^^^^^^^^^\n` +
+                `  3. Run 'synkio init' to reconfigure`
+              );
+            }
+
             throw new AbortError(`Figma API error (${response.status}): ${errorText}`);
           }
 

@@ -24,7 +24,8 @@ npm install
 # It should contain: FIGMA_TOKEN=your_token_here
 
 # Sync tokens
-npx synkio sync
+npx synkio pull   # Fetch from Figma
+npx synkio build  # Generate token files
 
 # Generate documentation
 npx synkio docs --open
@@ -55,10 +56,11 @@ npm install
 # It should contain: FIGMA_TOKEN=your_token_here
 
 # 5. Use the linked CLI
-synkio sync
+synkio pull && synkio build
 
 # Or run the built CLI directly
-node ../../packages/cli/dist/cli/bin.js sync
+node ../../packages/cli/dist/cli/bin.js pull
+node ../../packages/cli/dist/cli/bin.js build
 
 # 6. Generate documentation
 synkio docs --open

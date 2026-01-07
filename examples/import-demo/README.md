@@ -67,7 +67,7 @@ npm run import:preview
 # 3. Import (will show breaking changes if any)
 npm run import
 
-# 4. Regenerate output files
+# 4. Build output files
 npm run regenerate
 ```
 

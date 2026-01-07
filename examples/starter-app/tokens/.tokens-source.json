@@ -1016,7 +1016,7 @@
         }
       },
       "primary": {
-        "base": {
+        "default": {
           "$value": "{colors.neutral.950}",
           "$type": "color"
         },
@@ -1656,7 +1656,7 @@
     }
   },
   "$metadata": {
-    "syncedAt": "2026-01-03T07:59:29.622Z",
+    "syncedAt": "2026-01-05T20:57:08.553Z",
     "source": {
       "figmaFileId": "IDaXDDvcIU1nDvuIP0IG47"
     },

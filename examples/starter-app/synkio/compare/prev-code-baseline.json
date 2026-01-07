@@ -6801,21 +6801,6 @@
         "WEB": "--bg-primary-bg-blur"
       }
     },
-    "VariableID:18386:834313:theme.dark": {
-      "collection": "theme",
-      "mode": "dark",
-      "path": "bg.alpha.primary.default",
-      "variableId": "VariableID:18386:834313",
-      "value": "{colors.neutral.alpha.950.50}",
-      "type": "color"
-    },
-    "bg.alpha.primary.default2:theme.dark": {
-      "collection": "theme",
-      "mode": "dark",
-      "path": "bg.alpha.primary.default2",
-      "value": "{colors.neutral.alpha.950.20}",
-      "type": "color"
-    },
     "VariableID:24965:17623:theme.dark": {
       "collection": "theme",
       "mode": "dark",
@@ -8378,21 +8363,6 @@
       "codeSyntax": {
         "WEB": "--bg-primary-bg-blur"
       }
-    },
-    "VariableID:18386:834313:theme.light": {
-      "collection": "theme",
-      "mode": "light",
-      "path": "bg.alpha.primary.default",
-      "variableId": "VariableID:18386:834313",
-      "value": "{colors.neutral.alpha.50.50}",
-      "type": "color"
-    },
-    "bg.alpha.primary.default2:theme.light": {
-      "collection": "theme",
-      "mode": "light",
-      "path": "bg.alpha.primary.default2",
-      "value": "{colors.neutral.alpha.50.20}",
-      "type": "color"
     },
     "VariableID:24965:17623:theme.light": {
       "collection": "theme",
@@ -11024,7 +10994,7 @@
     }
   },
   "metadata": {
-    "syncedAt": "2026-01-05T21:10:08.664Z",
+    "syncedAt": "2026-01-05T21:03:02.230Z",
     "source": "code"
   }
 }

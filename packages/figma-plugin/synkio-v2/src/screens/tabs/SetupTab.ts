@@ -2,7 +2,7 @@
 // Setup Tab - Remote source configuration (GitHub/URL)
 // =============================================================================
 
-import { PluginState, GitHubSettings, UrlSettings, SetupFormState, PathTestResult } from '../../lib/types';
+import { PluginState, GitHubSettings, UrlSettings, LocalSettings, SetupFormState, PathTestResult } from '../../lib/types';
 import { RouterActions } from '../../ui/router';
 import {
   el,
@@ -26,6 +26,7 @@ const defaultFormState: SetupFormState = {
   editingSource: null,
   githubForm: {},
   urlForm: {},
+  localForm: {},
   connectionStatus: { tested: false },
 };
 
@@ -92,7 +93,7 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
 
   // Get current form state from plugin state
   const formState = getFormState(state);
-  const { editingSource, githubForm, urlForm, connectionStatus } = formState;
+  const { editingSource, githubForm, urlForm, localForm, connectionStatus } = formState;
 
   // Initialize form with current settings if empty
   if (Object.keys(githubForm).length === 0 && remote.github) {
@@ -104,6 +105,11 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
   if (Object.keys(urlForm).length === 0 && remote.url) {
     queueMicrotask(() => {
       updateFormState(actions, state, { urlForm: { ...remote.url } });
+    });
+  }
+  if (Object.keys(localForm || {}).length === 0 && remote.local) {
+    queueMicrotask(() => {
+      updateFormState(actions, state, { localForm: { ...remote.local } });
     });
   }
 
@@ -122,6 +128,7 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
   const activeSource = remote.source;
   const isGitHubActive = activeSource === 'github';
   const isUrlActive = activeSource === 'url';
+  const isLocalActive = activeSource === 'local';
 
   // GitHub Card
   contentChildren.push(buildSourceCard({
@@ -197,8 +204,45 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
     formState,
   }));
 
+  // Local Server Card
+  contentChildren.push(buildSourceCard({
+    type: 'local',
+    title: 'Local Server',
+    icon: 'terminal',
+    isActive: isLocalActive,
+    isEditing: editingSource === 'local',
+    features: [
+      'Fetch code changes',
+      'Real-time development',
+    ],
+    limitation: 'Requires CLI running',
+    summary: isLocalActive
+      ? `localhost:${remote.local?.port || 3847}`
+      : undefined,
+    onSelect: () => {
+      updateFormState(actions, state, { editingSource: 'local' });
+    },
+    onEdit: () => {
+      updateFormState(actions, state, { editingSource: 'local' });
+    },
+    onCancel: () => {
+      updateFormState(actions, state, { editingSource: null });
+    },
+    onDisconnect: () => {
+      updateFormState(actions, state, { editingSource: null, localForm: {} });
+      actions.send({
+        type: 'save-settings',
+        settings: { enabled: false, source: 'none' },
+      });
+    },
+    remote,
+    actions,
+    state,
+    formState,
+  }));
+
   // Auto-check option (only show if a source is configured)
-  if (isGitHubActive || isUrlActive) {
+  if (isGitHubActive || isUrlActive || isLocalActive) {
     contentChildren.push(Checkbox({
       label: 'Auto-check for updates',
       sublabel: 'Check remote source when plugin opens',
@@ -250,7 +294,7 @@ export function SetupTab(state: PluginState, actions: RouterActions): TabContent
 // =============================================================================
 
 interface SourceCardProps {
-  type: 'github' | 'url';
+  type: 'github' | 'url' | 'local';
   title: string;
   icon: string;
   isActive: boolean;
@@ -285,7 +329,7 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
   leftSide.appendChild(radio);
 
   // Icon
-  leftSide.appendChild(Icon(icon as 'github' | 'link', 'md'));
+  leftSide.appendChild(Icon(icon as 'github' | 'link' | 'terminal', 'md'));
 
   // Title
   leftSide.appendChild(el('span', { class: 'font-medium' }, title));
@@ -342,8 +386,10 @@ function buildSourceCard(props: SourceCardProps): HTMLElement {
   if (isEditing) {
     if (type === 'github') {
       card.appendChild(buildGitHubForm(remote, actions, state, formState, onCancel, isActive ? onDisconnect : undefined));
-    } else {
+    } else if (type === 'url') {
       card.appendChild(buildUrlForm(actions, state, formState, onCancel, isActive ? onDisconnect : undefined));
+    } else if (type === 'local') {
+      card.appendChild(buildLocalServerForm(actions, state, formState, onCancel, isActive ? onDisconnect : undefined));
     }
   }
 
@@ -645,6 +691,82 @@ function buildUrlForm(
 }
 
 // =============================================================================
+// Local Server Form
+// =============================================================================
+
+function buildLocalServerForm(
+  actions: RouterActions,
+  state: PluginState,
+  formState: SetupFormState,
+  onCancel: () => void,
+  onDisconnect?: () => void
+): HTMLElement {
+  const localForm = formState.localForm || {};
+  const container = el('div', { class: 'source-form' });
+
+  // Port input
+  container.appendChild(Input({
+    label: 'Port',
+    placeholder: '3847',
+    value: String(localForm.port || 3847),
+    onBlur: true,
+    onChange: (value) => {
+      const port = parseInt(value, 10) || 3847;
+      updateFormState(actions, state, { localForm: { ...localForm, port } });
+    },
+  }));
+
+  // Token input
+  container.appendChild(Input({
+    label: 'Access Token',
+    placeholder: 'Token from synkio serve',
+    value: localForm.token || '',
+    type: 'password',
+    onBlur: true,
+    onChange: (value) => {
+      updateFormState(actions, state, { localForm: { ...localForm, token: value } });
+    },
+  }));
+
+  container.appendChild(el('div', { class: 'text-xs text-tertiary -mt-xs mb-sm' },
+    'Run "synkio serve" and copy the token from the terminal'
+  ));
+
+  // Action buttons
+  const buttonRow = el('div', { class: 'source-form-buttons' });
+
+  if (onDisconnect) {
+    buttonRow.appendChild(Button({
+      label: 'Disconnect',
+      variant: 'danger',
+      size: 'sm',
+      onClick: onDisconnect,
+    }));
+  }
+
+  buttonRow.appendChild(Button({
+    label: 'Cancel',
+    variant: 'secondary',
+    size: 'sm',
+    onClick: onCancel,
+  }));
+
+  buttonRow.appendChild(Button({
+    label: 'Save',
+    variant: 'primary',
+    size: 'sm',
+    onClick: () => {
+      saveLocalSettings(actions, formState);
+      updateFormState(actions, state, { editingSource: null });
+    },
+  }));
+
+  container.appendChild(buttonRow);
+
+  return container;
+}
+
+// =============================================================================
 // Save Settings
 // =============================================================================
 
@@ -675,6 +797,21 @@ function saveUrlSettings(actions: RouterActions, formState: SetupFormState) {
       source: 'url',
       url: {
         baselineUrl: urlForm.baselineUrl || '',
+      },
+    },
+  });
+}
+
+function saveLocalSettings(actions: RouterActions, formState: SetupFormState) {
+  const { localForm } = formState;
+  actions.send({
+    type: 'save-settings',
+    settings: {
+      enabled: true,
+      source: 'local',
+      local: {
+        port: localForm.port || 3847,
+        token: localForm.token,
       },
     },
   });

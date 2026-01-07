@@ -83,8 +83,9 @@ Synkio supports two workflows:
 **Direct Sync** (traditional):
 ```bash
 # Designer runs plugin in Figma
-# Developer syncs to codebase
-npx synkio sync
+# Developer pulls and builds
+npx synkio pull   # Fetch from Figma, update baseline
+npx synkio build  # Generate token files
 ```
 
 **GitHub PR Workflow** (team-friendly):
@@ -144,10 +145,11 @@ This creates:
 
 This snapshots your variables so the CLI can access them.
 
-### 4. Sync
+### 4. Pull and Build
 
 ```bash
-npx synkio sync
+npx synkio pull   # Fetch from Figma, update baseline
+npx synkio build  # Generate token files
 ```
 
 Your tokens are now in your project!
@@ -159,17 +161,17 @@ Your tokens are now in your project!
 | Command | Description |
 |---------|-------------|
 | `synkio init` | Initialize project with Figma credentials |
-| `synkio sync` | Fetch tokens from Figma |
-| `synkio sync --preview` | Preview changes without applying |
-| `synkio sync --watch` | Poll for changes automatically |
-| `synkio sync --backup` | Create backup before syncing |
-| `synkio sync --collection=<name>` | Sync specific collection(s) |
-| `synkio sync --force` | Overwrite local files, ignoring safety warnings |
-| `synkio sync --regenerate` | Regenerate files from existing baseline |
-| `synkio import` | Import from Figma's native JSON export (no plugin) |
-| `synkio build` | Build token files from baseline (for PR workflow) |
+| `synkio pull` | Fetch tokens from Figma, update baseline |
+| `synkio pull --preview` | Preview changes without updating baseline |
+| `synkio pull --watch` | Poll for changes automatically |
+| `synkio pull --collection=<name>` | Pull specific collection(s) |
+| `synkio build` | Generate token files from baseline |
+| `synkio build --force` | Apply changes despite breaking change warnings |
+| `synkio build --rebuild` | Regenerate all files from existing baseline |
 | `synkio build --from <path>` | Build from custom baseline path |
-| `synkio export` | Export tokens for Figma import (code → Figma) |
+| `synkio import` | Import from Figma's native JSON export (no plugin) |
+| `synkio export-baseline` | Generate baseline from existing token files |
+| `synkio diff` | Compare baseline with token files on disk |
 | `synkio docs` | Generate documentation site |
 | `synkio docs --open` | Generate and open docs in browser |
 | `synkio rollback` | Revert to previous sync |
@@ -224,7 +226,7 @@ See the [User Guide](packages/cli/USER_GUIDE.md) for full configuration options 
 
 ## Example Output
 
-After running `synkio sync`, your token files will look like this (DTCG format):
+After running `synkio pull` and `synkio build`, your token files will look like this (DTCG format):
 
 ```json
 {
@@ -261,7 +263,7 @@ Synkio acts as a gatekeeper for your design system. Unlike simple exporters, it 
 - **Deletions** — Blocks sync if a variable used in your code has been deleted in Figma
 - **Mode Changes** — Detects if a theme mode (e.g., "Dark Mode") was added or removed
 
-Use `npx synkio sync --preview` to see a full report of changes without writing any files.
+Use `npx synkio pull --preview` to see a full report of changes without updating baseline.
 
 ```
 BREAKING CHANGES DETECTED
@@ -271,7 +273,7 @@ BREAKING CHANGES DETECTED
 
   These changes may break your code.
 
-  Run 'synkio sync --force' to apply anyway.
+  Run 'synkio build --force' to apply anyway.
 ```
 
 ---
@@ -301,7 +303,7 @@ See the [Hosting Guide](docs/HOSTING.md) for deployment options (GitHub Pages, N
 
 ### "FIGMA_TOKEN environment variable is not set"
 
-Make sure your `.env` file is in the **project root** (where you run `npx synkio sync`), not in subdirectories:
+Make sure your `.env` file is in the **project root** (where you run `npx synkio pull`), not in subdirectories:
 
 ```
 my-project/
@@ -327,7 +329,7 @@ node --version
 Enable verbose logging for troubleshooting:
 
 ```bash
-DEBUG=synkio npx synkio sync
+DEBUG=synkio npx synkio pull
 ```
 
 ---
@@ -382,8 +384,8 @@ npm run test:watch  # Watch mode
 **Note:** When developing locally, `npx synkio` fetches from npm. Use one of these instead:
 
 ```bash
-synkio sync                              # After npm link
-node packages/cli/dist/cli/bin.js sync   # Direct execution
+synkio pull                              # After npm link
+node packages/cli/dist/cli/bin.js pull   # Direct execution
 ```
 
 ---

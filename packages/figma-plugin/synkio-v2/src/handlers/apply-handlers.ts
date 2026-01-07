@@ -55,10 +55,33 @@ export async function handleImportBaseline(
     // Compare baselines using ID-based matching
     const diff = compareBaselines(currentBaseline, codeBaseline);
 
+    // Build a lookup from VariableID to path for resolving references in the UI
+    // Include entries from both baselines since references could come from either
+    const variableIdLookup: Record<string, string> = {};
+    
+    // First add from code baseline (imported file)
+    if (codeBaseline.baseline) {
+      for (const entry of Object.values(codeBaseline.baseline)) {
+        if (entry.variableId && entry.path) {
+          variableIdLookup[entry.variableId] = entry.path;
+        }
+      }
+    }
+    
+    // Then add from current Figma baseline (may override with current paths)
+    if (currentBaseline.baseline) {
+      for (const entry of Object.values(currentBaseline.baseline)) {
+        if (entry.variableId && entry.path) {
+          variableIdLookup[entry.variableId] = entry.path;
+        }
+      }
+    }
+
     send({
       type: 'import-complete',
       baseline: codeBaseline,
       diff,
+      variableIdLookup,
     });
   } catch (error) {
     send({

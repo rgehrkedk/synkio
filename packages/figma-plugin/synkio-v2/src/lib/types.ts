@@ -151,7 +151,7 @@ export interface BaselineData {
 // =============================================================================
 
 export interface ValueChange {
-  variableId: string;
+  variableId?: string; // Optional for code-created tokens without Figma ID
   path: string;
   oldValue: unknown;
   newValue: unknown;
@@ -171,7 +171,7 @@ export interface PathChange {
 }
 
 export interface NewVariable {
-  variableId: string;
+  variableId?: string; // Optional for code-created tokens without Figma ID
   path: string;
   value: unknown;
   type: string;
@@ -180,7 +180,7 @@ export interface NewVariable {
 }
 
 export interface DeletedVariable {
-  variableId: string;
+  variableId?: string; // Optional for code-created tokens without Figma ID
   path: string;
   value: unknown;
   type: string;
@@ -312,11 +312,17 @@ export interface UrlSettings {
   baselineUrl?: string; // URL to baseline.json
 }
 
+export interface LocalSettings {
+  port?: number;    // Default: 3847
+  token?: string;   // Access token from serve command
+}
+
 export interface RemoteSettings {
   enabled: boolean;
-  source: 'github' | 'url' | 'none';
+  source: 'github' | 'url' | 'local' | 'none';
   github?: GitHubSettings;
   url?: UrlSettings;
+  local?: LocalSettings;
   autoCheck: boolean;
   lastFetch?: string;
 }
@@ -383,9 +389,10 @@ export interface PathTestResult {
  * State for the Setup tab form (prevents race conditions from module-level state).
  */
 export interface SetupFormState {
-  editingSource: 'github' | 'url' | null;
+  editingSource: 'github' | 'url' | 'local' | null;
   githubForm: Partial<GitHubSettings>;
   urlForm: Partial<UrlSettings>;
+  localForm: Partial<LocalSettings>;
   connectionStatus: {
     tested: boolean;
     success?: boolean;
@@ -415,6 +422,7 @@ export interface PluginState {
   codeBaseline?: BaselineData;
   syncDiff?: ComparisonResult;
   codeDiff?: ComparisonResult;
+  variableIdLookup?: Record<string, string>; // Maps VariableID to path for display
   history: SyncEvent[];
   settings: PluginSettings;
 
@@ -467,16 +475,16 @@ export type MessageToUI =
   | { type: 'initialized'; state: Partial<PluginState> }
   | { type: 'state-update'; state: Partial<PluginState> }
   | { type: 'sync-started' }
-  | { type: 'sync-complete'; baseline: BaselineData; diff?: ComparisonResult }
+  | { type: 'sync-complete'; baseline: BaselineData; diff?: ComparisonResult; variableIdLookup?: Record<string, string> }
   | { type: 'sync-error'; error: string }
   | { type: 'collections-update'; collections: CollectionInfo[] }
   | { type: 'style-types-update'; styleTypes: StyleTypeInfo[] }
   | { type: 'fetch-started' }
-  | { type: 'fetch-complete'; baseline: BaselineData; diff?: ComparisonResult }
+  | { type: 'fetch-complete'; baseline: BaselineData; diff?: ComparisonResult; variableIdLookup?: Record<string, string> }
   | { type: 'fetch-error'; error: string }
   | { type: 'do-fetch-remote'; github: GitHubSettings }
   | { type: 'do-fetch-remote-url'; url: string }
-  | { type: 'import-complete'; baseline: BaselineData; diff?: ComparisonResult }
+  | { type: 'import-complete'; baseline: BaselineData; diff?: ComparisonResult; variableIdLookup?: Record<string, string> }
   | { type: 'import-error'; error: string }
   | { type: 'apply-started' }
   | { type: 'apply-complete'; summary: { created: number; updated: number; renamed: number } }

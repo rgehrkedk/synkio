@@ -30,7 +30,7 @@ import {
 import { countChanges, countStyleChanges } from '../lib/compare';
 
 export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElement {
-  const { isLoading, loadingMessage, syncDiff, syncBaseline } = state;
+  const { isLoading, loadingMessage, syncDiff, syncBaseline, variableIdLookup } = state;
 
   // Header
   const header = Header({
@@ -129,12 +129,15 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
     }));
   }
 
+  // Convert lookup to Map for formatValue
+  const lookupMap = variableIdLookup ? new Map(Object.entries(variableIdLookup)) : undefined;
+
   // Diff sections grouped by collection (variables)
   if (syncDiff && hasChanges) {
     const groupedDiffs = groupByCollection(syncDiff);
 
     for (const [collection, changes] of Object.entries(groupedDiffs)) {
-      const diffItems = buildDiffItems(changes);
+      const diffItems = buildDiffItems(changes, lookupMap);
       const section = Section({
         title: collection,
         count: diffItems.length,
@@ -150,7 +153,7 @@ export function SyncScreen(state: PluginState, actions: RouterActions): HTMLElem
       const groupedStyles = groupStylesByType(syncDiff);
 
       for (const [styleType, changes] of Object.entries(groupedStyles)) {
-        const diffItems = buildStyleDiffItems(changes);
+        const diffItems = buildStyleDiffItems(changes, lookupMap);
         const section = Section({
           title: styleType,
           count: diffItems.length,

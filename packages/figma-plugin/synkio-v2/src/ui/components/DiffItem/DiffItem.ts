@@ -42,6 +42,11 @@ export function DiffItem(props: DiffItemProps): HTMLDivElement {
     header.appendChild(el('span', { class: 'diff-item__path' }, path));
   }
 
+  // For deleted items, add explicit "will be deleted" text
+  if (type === 'deleted') {
+    header.appendChild(el('span', { class: 'diff-item__status diff-item__status--deleted' }, 'will be deleted'));
+  }
+
   item.appendChild(header);
 
   // Value display
@@ -55,11 +60,14 @@ export function DiffItem(props: DiffItemProps): HTMLDivElement {
     }
 
     if (type === 'modified' && oldValue) {
+      // For modified items, show old → new
       const changeEl = el('div', { class: 'diff-item__value-change' });
       changeEl.appendChild(el('span', { class: 'diff-item__old-value' }, oldValue));
+      
       const arrowEl = el('span', { class: 'diff-item__arrow' });
       arrowEl.appendChild(Icon('arrow-right', 'xs'));
       changeEl.appendChild(arrowEl);
+      
       changeEl.appendChild(el('span', {}, value || ''));
       valueEl.appendChild(changeEl);
     } else if (value) {

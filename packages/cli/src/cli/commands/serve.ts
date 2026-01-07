@@ -17,7 +17,7 @@ export interface ServeOptions {
 }
 
 const DEFAULT_PORT = 3847;
-const DEFAULT_BASELINE_PATH = 'synkio/export-baseline.json';
+const DEFAULT_BASELINE_PATH = 'synkio/baseline.json';
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
 const PRIVILEGED_PORT = 1024;
@@ -133,7 +133,7 @@ async function serveBaseline(res: ServerResponse, baselinePath: string): Promise
       res.writeHead(404);
       res.end(JSON.stringify({
         error: 'Baseline file not found',
-        message: 'Run synkio export-baseline first',
+        message: 'Run synkio pull or synkio export-baseline first to create synkio/baseline.json',
       }));
     } else {
       addCorsHeaders(res);

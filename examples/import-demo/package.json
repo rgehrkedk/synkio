@@ -6,7 +6,7 @@
   "scripts": {
     "import": "npx synkio import ./figma-exports --collection=theme",
     "import:preview": "npx synkio import ./figma-exports --collection=theme --preview",
-    "regenerate": "npx synkio sync --regenerate",
+    "regenerate": "npx synkio build --rebuild",
     "docs": "npx synkio docs --open",
     "dev": "npx serve ."
   },

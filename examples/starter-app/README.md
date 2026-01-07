@@ -46,7 +46,8 @@ Before syncing, install the **Synkio Sync** plugin in Figma:
 ```bash
 npm run sync
 # or
-npx synkio sync
+npx synkio pull   # Fetch from Figma
+npx synkio build  # Generate token files
 ```
 
 ### 6. Generate documentation (optional)
@@ -62,7 +63,9 @@ npx synkio docs --open
 | Script | Description |
 |--------|-------------|
 | `npm run init` | Initialize Synkio configuration |
-| `npm run sync` | Sync tokens from Figma |
+| `npm run pull` | Fetch tokens from Figma (updates baseline) |
+| `npm run build:tokens` | Generate token files from baseline |
+| `npm run sync` | Pull and build in one command |
 | `npm run docs` | Generate token documentation |
 | `npm run validate` | Validate config and Figma connection |
 | `npm run dev` | Start local dev server |

@@ -74,7 +74,8 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
   const remoteSettings = settings.remote;
   const isGitHubConfigured = remoteSettings.source === 'github' && remoteSettings.github?.owner && remoteSettings.github?.repo;
   const isUrlConfigured = remoteSettings.source === 'url' && remoteSettings.url?.baselineUrl;
-  const isRemoteConfigured = isGitHubConfigured || isUrlConfigured;
+  const isLocalConfigured = remoteSettings.source === 'local';
+  const isRemoteConfigured = isGitHubConfigured || isUrlConfigured || isLocalConfigured;
 
   let contentChildren: HTMLElement[] = [];
 
@@ -145,6 +146,33 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
         actions.send({ type: 'fetch-remote' });
       },
     }));
+  } else if (isLocalConfigured) {
+    // Show configured Local Server info
+    const localCard = Card({ padding: 'md' });
+
+    const localHeader = el('div', { class: 'flex items-center gap-sm mb-sm' });
+    localHeader.appendChild(Icon('terminal', 'md'));
+    localHeader.appendChild(el('span', { class: 'font-medium' }, 'Local Server'));
+    localCard.appendChild(localHeader);
+
+    const localInfo = el('div', {
+      class: 'text-xs text-tertiary font-mono',
+    }, `localhost:${remoteSettings.local?.port || 3847}`);
+    localCard.appendChild(localInfo);
+
+    contentChildren.push(localCard);
+
+    // Fetch button
+    contentChildren.push(Button({
+      label: 'FETCH FROM LOCAL SERVER',
+      variant: 'primary',
+      fullWidth: true,
+      onClick: () => {
+        currentView = 'preview';
+        actions.updateState({ error: undefined });
+        actions.send({ type: 'fetch-remote' });
+      },
+    }));
   } else {
     // Show setup prompt
     const setupCard = Card({ padding: 'md' });
@@ -155,7 +183,7 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
 
     const setupDesc = el('div', {
       class: 'text-sm text-secondary',
-    }, 'Configure GitHub or a custom URL to fetch token updates from your repository.');
+    }, 'Configure GitHub, a custom URL, or Local Server to fetch token updates.');
     setupCard.appendChild(setupDesc);
 
     contentChildren.push(setupCard);
@@ -236,11 +264,14 @@ function buildSourceView(state: PluginState, actions: RouterActions, header: HTM
 }
 
 function buildPreviewView(state: PluginState, actions: RouterActions, header: HTMLElement): HTMLElement {
-  const { codeDiff } = state;
+  const { codeDiff, variableIdLookup } = state;
 
   if (!codeDiff) {
     return buildSourceView(state, actions, header);
   }
+
+  // Convert the lookup object to a Map for formatValue
+  const lookupMap = variableIdLookup ? new Map(Object.entries(variableIdLookup)) : undefined;
 
   let contentChildren: HTMLElement[] = [];
 
@@ -262,7 +293,7 @@ function buildPreviewView(state: PluginState, actions: RouterActions, header: HT
   const groupedDiffs = groupByCollection(codeDiff);
 
   for (const [collection, changes] of Object.entries(groupedDiffs)) {
-    const diffItems = buildDiffItems(changes);
+    const diffItems = buildDiffItems(changes, lookupMap);
     const section = Section({
       title: collection,
       count: diffItems.length,
@@ -278,7 +309,7 @@ function buildPreviewView(state: PluginState, actions: RouterActions, header: HT
     const groupedStyles = groupStylesByType(codeDiff);
 
     for (const [styleType, changes] of Object.entries(groupedStyles)) {
-      const diffItems = buildStyleDiffItems(changes);
+      const diffItems = buildStyleDiffItems(changes, lookupMap);
       const section = Section({
         title: styleType,
         count: diffItems.length,

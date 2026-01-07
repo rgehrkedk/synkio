@@ -115,7 +115,7 @@ After importing to Figma:
 
 1. Update `synkio.config.json` with your actual Figma file key
 2. Set your `FIGMA_TOKEN` environment variable
-3. Run `npx synkio sync` to enable bi-directional syncing
+3. Run `npx synkio pull && npx synkio build` to enable bi-directional syncing
 
 ## Expected Output
 

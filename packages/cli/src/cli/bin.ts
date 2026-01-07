@@ -204,13 +204,13 @@ function showHelp(command?: string) {
         case 'serve':
             console.log('Usage: synkio serve [options]\n');
             console.log('Start a local HTTP server to serve the baseline file for the Figma plugin.\n');
-            console.log('The server provides endpoints for the plugin to fetch the export baseline,');
+            console.log('The server provides endpoints for the plugin to fetch the baseline,');
             console.log('enabling local development workflows without manual file imports.\n');
             console.log('Options:');
             console.log('  --port=<number>     Port to listen on (default: 3847)\n');
             console.log('Endpoints:');
-            console.log('  GET /               Serves synkio/export-baseline.json');
-            console.log('  GET /baseline       Serves synkio/export-baseline.json');
+            console.log('  GET /               Serves synkio/baseline.json');
+            console.log('  GET /baseline       Serves synkio/baseline.json');
             console.log('  GET /health         Health check endpoint\n');
             console.log('Examples:');
             console.log('  synkio serve');
@@ -383,6 +383,8 @@ switch (command) {
     const serveOptions = parseArgs(args);
     serveCommand({
         port: serveOptions.port as string | number,
+        token: serveOptions.token as string,
+        noToken: serveOptions['no-token'] as boolean,
     });
     break;
   }

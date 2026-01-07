@@ -77,3 +77,13 @@
   color: var(--color-text-tertiary);
   text-decoration: line-through;
 }
+.diff-item__status {
+  font-size: var(--font-size-xs);
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+.diff-item__status--deleted {
+  color: var(--color-deleted);
+  background: var(--color-deleted-bg);
+}

@@ -61,13 +61,14 @@ For simple projects using JSON or CSS output, this is not required.
 
 This snapshots your variables so the CLI can access them.
 
-### 5. Sync
+### 5. Pull and Build
 
 ```bash
-npx synkio sync
+npx synkio pull   # Fetch from Figma, update baseline
+npx synkio build  # Generate token files
 ```
 
-Your tokens are now in your project! 🎉
+Your tokens are now in your project!
 
 ## Commands
 
@@ -75,12 +76,13 @@ Your tokens are now in your project! 🎉
 |---------|-------------|
 | `synkio --version` | Show CLI version |
 | `synkio init` | Initialize project with Figma credentials |
-| `synkio sync` | Fetch tokens from Figma |
-| `synkio sync --preview` | Preview changes without applying |
-| `synkio sync --watch` | Poll for changes automatically |
-| `synkio sync --collection=<name>` | Sync specific collection(s) |
-| `synkio sync --regenerate` | Regenerate files from existing baseline (no Figma fetch) |
-| `synkio sync --force` | Overwrite local files, ignoring safety warnings |
+| `synkio pull` | Fetch tokens from Figma, update baseline |
+| `synkio pull --preview` | Preview changes without updating baseline |
+| `synkio pull --watch` | Poll for changes automatically |
+| `synkio pull --collection=<name>` | Pull specific collection(s) |
+| `synkio build` | Generate token files from baseline |
+| `synkio build --force` | Apply changes despite breaking change warnings |
+| `synkio build --rebuild` | Regenerate all files from existing baseline |
 | `synkio rollback` | Revert to previous sync |
 | `synkio rollback --preview` | Preview rollback changes |
 | `synkio validate` | Check config and connection |
@@ -98,7 +100,7 @@ Synkio acts as a gatekeeper for your design system. Unlike simple exporters, it 
 - **Deletions** — Blocks sync if a variable used in your code has been deleted in Figma
 - **Mode Changes** — Detects if a theme mode (e.g., "Dark Mode") was added or removed
 
-Use `npx synkio sync --preview` to see a full report of changes without writing any files.
+Use `npx synkio pull --preview` to see a full report of changes without updating baseline.
 
 ## Configuration
 
@@ -186,7 +188,7 @@ You can configure each collection individually with custom output directories an
 | `splitModes` | boolean | `true` | Split modes into separate files (`colors.light.json`, `colors.dark.json`) |
 | `includeMode` | boolean | `true` | Include mode as first-level key in output |
 
-Use `synkio sync --regenerate` to regenerate files after changing collection config.
+Use `synkio build --rebuild` to regenerate files after changing collection config.
 
 See the [User Guide](USER_GUIDE.md#configuration) for full configuration options.
 
@@ -210,7 +212,7 @@ This preserves Figma's `variableId` for full breaking change protection, just li
 
 | Workflow | Use Case |
 |----------|----------|
-| `synkio sync` | Automated CI/CD, real-time sync with Figma |
+| `synkio pull` + `synkio build` | Automated CI/CD, real-time sync with Figma |
 | `synkio import` | Manual handoff, offline workflows, no plugin needed |
 
 Both workflows support the same breaking change detection and output generation.

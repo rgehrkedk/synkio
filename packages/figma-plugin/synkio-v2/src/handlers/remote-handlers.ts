@@ -59,6 +59,23 @@ export async function handleFetchRemote(send: SendMessage): Promise<void> {
       return;
     }
 
+    // Handle Local Server source
+    if (remote.source === 'local') {
+      const port = remote.local?.port || 3847;
+      const token = remote.local?.token;
+
+      let url = `http://localhost:${port}/baseline`;
+      if (token) {
+        url += `?token=${token}`;
+      }
+
+      send({
+        type: 'do-fetch-remote-url',
+        url,
+      });
+      return;
+    }
+
     // Handle GitHub source
     if (!remote.github) {
       throw new Error('GitHub not configured. Please configure in Settings.');
@@ -207,10 +224,33 @@ export async function handleFetchRemoteResult(
       debug('=== END DEBUG ===');
     }
 
+    // Build a lookup from VariableID to path for resolving references in the UI
+    // Include entries from both baselines since references could come from either
+    const variableIdLookup: Record<string, string> = {};
+    
+    // First add from code baseline (remote/file)
+    if (codeBaseline.baseline) {
+      for (const entry of Object.values(codeBaseline.baseline)) {
+        if (entry.variableId && entry.path) {
+          variableIdLookup[entry.variableId] = entry.path;
+        }
+      }
+    }
+    
+    // Then add from current Figma baseline (may override with current paths)
+    if (currentBaseline.baseline) {
+      for (const entry of Object.values(currentBaseline.baseline)) {
+        if (entry.variableId && entry.path) {
+          variableIdLookup[entry.variableId] = entry.path;
+        }
+      }
+    }
+
     send({
       type: 'fetch-complete',
       baseline: codeBaseline,
       diff,
+      variableIdLookup,
     });
   } catch (error) {
     // Provide user-friendly error for validation failures
@@ -322,6 +362,23 @@ export async function handleCheckCodeSync(send: SendMessage): Promise<void> {
       send({
         type: 'do-check-code-sync-url',
         url: baselineUrl,
+      });
+      return;
+    }
+
+    // Handle Local Server source
+    if (remote.source === 'local') {
+      const port = remote.local?.port || 3847;
+      const token = remote.local?.token;
+
+      let url = `http://localhost:${port}/baseline`;
+      if (token) {
+        url += `?token=${token}`;
+      }
+
+      send({
+        type: 'do-check-code-sync-url',
+        url,
       });
       return;
     }

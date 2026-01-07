@@ -82,30 +82,13 @@ For Figma Enterprise with custom domains, set `baseUrl`:
 
 ## Troubleshooting
 
-### "Figma token not set"
+Quick fixes for common issues:
 
-Ensure your `.env` file exists and contains:
+| Error | Solution |
+|-------|----------|
+| "FIGMA_TOKEN not set" | Add token to `.env` file in project root |
+| "403 Forbidden" | Verify token access, regenerate if needed |
+| "404 Not Found" | Check fileId in config matches your URL |
+| "Plugin data not found" | Run Synkio plugin in Figma, or use `synkio import` |
 
-```bash
-FIGMA_TOKEN=your_token_here
-```
-
-### "File not accessible"
-
-Check that:
-
-- The file URL is correct
-- Your token has access to the file
-- The file hasn't been deleted or moved
-
-### "Plugin data not found"
-
-Run the Synkio plugin in Figma first, or use `synkio import` for native JSON exports.
-
-### "Token expired"
-
-Figma tokens don't expire by default. If you're having issues:
-
-1. Generate a new token
-2. Update your `.env`
-3. Try again
+For detailed error messages and solutions, see the [Troubleshooting Guide](/guide/troubleshooting#figma-connection-issues).

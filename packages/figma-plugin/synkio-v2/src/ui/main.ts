@@ -148,7 +148,7 @@ function handleMessage(event: MessageEvent) {
       break;
 
     case 'sync-complete':
-      handleSyncComplete(message.baseline, message.diff);
+      handleSyncComplete(message.baseline, message.diff, message.variableIdLookup);
       break;
 
     case 'sync-error':
@@ -203,6 +203,7 @@ function handleMessage(event: MessageEvent) {
         isLoading: false,
         codeBaseline: message.baseline,
         codeDiff: message.diff,
+        variableIdLookup: message.variableIdLookup,
       });
       break;
 
@@ -218,6 +219,7 @@ function handleMessage(event: MessageEvent) {
         isLoading: false,
         codeBaseline: message.baseline,
         codeDiff: message.diff,
+        variableIdLookup: message.variableIdLookup,
       });
       break;
 
@@ -326,7 +328,8 @@ function handleInitialized(state: Partial<PluginState>) {
   const remote = state.settings?.remote;
   const hasRemoteSource = remote?.enabled && (
     (remote.source === 'github' && remote.github?.owner && remote.github?.repo) ||
-    (remote.source === 'url' && remote.url?.baselineUrl)
+    (remote.source === 'url' && remote.url?.baselineUrl) ||
+    (remote.source === 'local')
   );
   const hasBaseline = state.syncStatus?.state !== 'not-setup';
   if (hasRemoteSource && hasBaseline && !state.isFirstTime) {
@@ -335,7 +338,11 @@ function handleInitialized(state: Partial<PluginState>) {
   }
 }
 
-function handleSyncComplete(baseline: PluginState['syncBaseline'], diff?: PluginState['syncDiff']) {
+function handleSyncComplete(
+  baseline: PluginState['syncBaseline'],
+  diff?: PluginState['syncDiff'],
+  variableIdLookup?: Record<string, string>
+) {
   const currentState = router.getState();
 
   // Count changes for history record
@@ -357,6 +364,7 @@ function handleSyncComplete(baseline: PluginState['syncBaseline'], diff?: Plugin
     isLoading: false,
     syncBaseline: baseline,
     syncDiff: undefined, // Clear diff - we just synced, no pending changes
+    variableIdLookup: variableIdLookup,
     syncStatus: {
       state: 'in-sync', // After sync, always in-sync
       lastSync: {
@@ -512,7 +520,7 @@ async function handleDoFetchRemoteUrl(url: string) {
     try {
       const parsed = JSON.parse(content);
       if (!parsed.baseline) {
-        throw new Error('Invalid export-baseline.json format: missing baseline field');
+        throw new Error('Invalid baseline format: missing baseline field');
       }
     } catch (e) {
       if (e instanceof SyntaxError) {

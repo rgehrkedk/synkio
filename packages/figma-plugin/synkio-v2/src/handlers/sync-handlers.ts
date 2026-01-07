@@ -233,6 +233,12 @@ export async function handleSync(send: SendMessage): Promise<void> {
       type: 'sync-complete',
       baseline: newBaseline,
       diff,
+      // Build lookup from the new baseline for resolving VariableID references
+      variableIdLookup: Object.fromEntries(
+        Object.values(newBaseline.baseline)
+          .filter(entry => entry.variableId && entry.path)
+          .map(entry => [entry.variableId, entry.path])
+      ),
     });
 
     // Update code sync status - we just saved new data, code needs to pull

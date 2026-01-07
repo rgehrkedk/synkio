@@ -115,7 +115,7 @@ A practical starting configuration with common collection settings:
 >
 > To find your collection names:
 > 1. Open Figma and check the Variables panel
-> 2. Or run `npx synkio sync --preview` to see detected collections
+> 2. Or run `npx synkio pull --preview` to see detected collections
 >
 > If a collection name in your config doesn't match any Figma collection, it will be silently ignored.
 
@@ -767,7 +767,7 @@ Collection settings use nullish coalescing (`??`) to inherit from parent:
 After modifying collection configuration, regenerate files without fetching from Figma:
 
 ```bash
-npx synkio sync --regenerate
+npx synkio build --rebuild
 ```
 
 This re-processes the existing baseline using your updated configuration.
@@ -970,11 +970,11 @@ Skip the build confirmation prompt and run automatically:
 **CLI overrides:**
 
 ```bash
-# Force build (override autoRun: false)
-npx synkio sync --build
+# Run build explicitly
+npx synkio build
 
-# Skip build entirely (override autoRun: true)
-npx synkio sync --no-build
+# Build with force to bypass breaking change warnings
+npx synkio build --force
 ```
 
 ---
@@ -1321,8 +1321,8 @@ Synkio searches for configuration files in order:
 Specify a custom configuration file:
 
 ```bash
-npx synkio sync --config=./config/synkio.config.json
-npx synkio sync --config=/absolute/path/to/config.json
+npx synkio pull --config=./config/synkio.config.json
+npx synkio pull --config=/absolute/path/to/config.json
 ```
 
 ---
@@ -1412,7 +1412,7 @@ If your config has collection settings but no tokens are being generated for tha
 
 **Solution:**
 1. Check your Figma file's Variables panel for exact collection names
-2. Run `npx synkio sync --preview` to see detected collections
+2. Run `npx synkio pull --preview` to see detected collections
 3. Update your config to match the exact names (including spaces and capitalization)
 
 Example: If Figma has `Brand Colors`, your config must use `"Brand Colors"`, not `"brand-colors"` or `"brandColors"`.
@@ -1430,7 +1430,7 @@ Warning: No Synkio plugin data found in file
 For detailed logging, set the `DEBUG` environment variable:
 
 ```bash
-DEBUG=synkio:* npx synkio sync
+DEBUG=synkio:* npx synkio pull
 ```
 
 ---

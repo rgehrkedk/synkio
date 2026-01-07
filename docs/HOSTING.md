@@ -331,7 +331,8 @@ on:
 Make sure you have a `synkio/baseline.json` file committed:
 
 ```bash
-npx synkio sync
+npx synkio pull
+npx synkio build
 git add synkio/baseline.json
 git commit -m "Add baseline"
 ```

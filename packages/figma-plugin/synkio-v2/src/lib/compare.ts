@@ -55,11 +55,17 @@ export function compareBaselines(
   const oldByVariableId = new Map<string, BaselineEntry[]>();
   const newByVariableId = new Map<string, BaselineEntry[]>();
 
+  // Track entries WITHOUT variableId (code-created tokens)
+  const oldWithoutId: BaselineEntry[] = [];
+  const newWithoutId: BaselineEntry[] = [];
+
   for (const entry of oldEntries) {
     if (entry.variableId) {
       const existing = oldByVariableId.get(entry.variableId) || [];
       existing.push(entry);
       oldByVariableId.set(entry.variableId, existing);
+    } else {
+      oldWithoutId.push(entry);
     }
   }
 
@@ -68,6 +74,8 @@ export function compareBaselines(
       const existing = newByVariableId.get(entry.variableId) || [];
       existing.push(entry);
       newByVariableId.set(entry.variableId, existing);
+    } else {
+      newWithoutId.push(entry);
     }
   }
 
@@ -177,6 +185,77 @@ export function compareBaselines(
           mode: newEntry.mode,
         });
       }
+    }
+  }
+
+  // =============================================================================
+  // Path-based comparison for entries WITHOUT variableId (code-created tokens)
+  // =============================================================================
+
+  // Build path-based lookup for old entries (to check if path exists in Figma)
+  const oldByPath = new Map<string, BaselineEntry[]>();
+  for (const entry of oldEntries) {
+    const pathKey = `${entry.collection}:${entry.path}:${entry.mode}`;
+    const existing = oldByPath.get(pathKey) || [];
+    existing.push(entry);
+    oldByPath.set(pathKey, existing);
+  }
+
+  // Check new entries without variableId - these are code-created tokens
+  for (const newEntry of newWithoutId) {
+    const pathKey = `${newEntry.collection}:${newEntry.path}:${newEntry.mode}`;
+    const oldMatch = oldByPath.get(pathKey);
+
+    if (!oldMatch || oldMatch.length === 0) {
+      // No matching path in old baseline - this is a NEW variable from code
+      result.newVariables.push({
+        variableId: undefined, // Will be assigned when created in Figma
+        path: newEntry.path,
+        value: newEntry.value,
+        type: newEntry.type,
+        collection: newEntry.collection,
+        mode: newEntry.mode,
+      });
+    } else {
+      // Path exists - check for value changes
+      const oldEntry = oldMatch[0];
+      if (!valuesEqual(oldEntry.value, newEntry.value)) {
+        result.valueChanges.push({
+          variableId: oldEntry.variableId, // Use the ID from Figma if available
+          path: newEntry.path,
+          oldValue: oldEntry.value,
+          newValue: newEntry.value,
+          type: newEntry.type,
+          collection: newEntry.collection,
+          mode: newEntry.mode,
+        });
+      }
+    }
+  }
+
+  // Check old entries without variableId that don't exist in new baseline
+  const newByPath = new Map<string, BaselineEntry[]>();
+  for (const entry of newEntries) {
+    const pathKey = `${entry.collection}:${entry.path}:${entry.mode}`;
+    const existing = newByPath.get(pathKey) || [];
+    existing.push(entry);
+    newByPath.set(pathKey, existing);
+  }
+
+  for (const oldEntry of oldWithoutId) {
+    const pathKey = `${oldEntry.collection}:${oldEntry.path}:${oldEntry.mode}`;
+    const newMatch = newByPath.get(pathKey);
+
+    if (!newMatch || newMatch.length === 0) {
+      // Path no longer exists in new baseline - deleted
+      result.deletedVariables.push({
+        variableId: undefined,
+        path: oldEntry.path,
+        value: oldEntry.value,
+        type: oldEntry.type,
+        collection: oldEntry.collection,
+        mode: oldEntry.mode,
+      });
     }
   }
 
