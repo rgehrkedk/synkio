@@ -7,3 +7,4 @@ dist/
 # Keep tokens.css in git as a reference, but it can be regenerated
 # Uncomment below to exclude it:
 # build/tokens.css
+.vercel
