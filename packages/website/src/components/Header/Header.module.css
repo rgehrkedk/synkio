@@ -1,4 +1,7 @@
-/* Header Component Styles - Minimal */
+/* =============================================================================
+   Header Component - Japanese Minimalist
+   Clean, floating, intentionally sparse
+   ============================================================================= */
 
 .header {
   position: fixed;
@@ -7,18 +10,25 @@
   right: 0;
   z-index: 100;
   background: transparent;
-  border-bottom: none;
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
 }
 
-[data-theme="light"] .header {
-  background: transparent;
+/* Subtle blur on scroll - applied via JS */
+.header.scrolled {
+  background: rgba(var(--bg-primary-rgb, 15, 14, 12), 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+[data-theme="light"] .header.scrolled {
+  background: rgba(245, 242, 237, 0.85);
 }
 
 .container {
   max-width: none;
   margin: 0;
-  padding: var(--spacing-xl) var(--spacing-xl);
-  padding-left: 12%;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  padding-left: max(15%, var(--spacing-xl));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -30,25 +40,30 @@
   gap: var(--spacing-sm);
   text-decoration: none;
   color: var(--text-primary);
+  transition: opacity 0.2s ease;
+}
+
+.logo:hover {
+  opacity: 0.7;
 }
 
 .logoText {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: var(--typography-weight-regular);
-  letter-spacing: 0.05em;
-  text-transform: lowercase;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
 }
 
 .navLinks {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-2xl);
 }
 
 .navLink {
@@ -59,38 +74,66 @@
   font-size: var(--typography-size-xs);
   font-weight: var(--typography-weight-regular);
   text-decoration: none;
-  transition: color var(--animation-duration-fast) var(--animation-easing-out);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.navLink::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--accent-line);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
 }
 
 .navLink:hover {
-  color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.navLink:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 .navLink svg {
   opacity: 0.5;
   width: 14px;
   height: 14px;
+  transition: opacity 0.2s ease;
 }
 
 .navLink:hover svg {
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .themeToggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   color: var(--text-tertiary);
-  transition: color var(--animation-duration-fast) var(--animation-easing-out);
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .themeToggle:hover {
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.themeToggle svg {
+  width: 18px;
+  height: 18px;
 }
 
 .mobileMenuButton {
@@ -103,10 +146,23 @@
   border: none;
   cursor: pointer;
   color: var(--text-primary);
+  transition: opacity 0.2s ease;
 }
 
-/* Mobile styles */
+.mobileMenuButton:hover {
+  opacity: 0.7;
+}
+
+/* =============================================================================
+   Mobile Styles
+   ============================================================================= */
+
 @media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-md) var(--spacing-lg);
+    padding-left: var(--spacing-lg);
+  }
+
   .navLinks {
     display: none;
   }
@@ -124,12 +180,28 @@
     right: 0;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border-default);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-xl);
     gap: var(--spacing-lg);
   }
 
   .nav.open .navLink {
-    font-size: var(--typography-size-base);
+    font-size: var(--typography-size-sm);
     padding: var(--spacing-sm) 0;
+  }
+
+  .nav.open .navLink::after {
+    display: none;
+  }
+}
+
+/* =============================================================================
+   Animation Performance
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .navLink::after,
+  .themeToggle {
+    transition: none;
   }
 }

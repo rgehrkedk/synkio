@@ -1,73 +1,139 @@
-/* Hero Component Styles - Minimal Japanese */
+/* =============================================================================
+   Hero Component - Japanese Minimalist with Edge
+   Ma (間) - Intentional emptiness creates meaning
+   ============================================================================= */
 
 .hero {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   justify-content: center;
   padding: var(--spacing-6xl) var(--spacing-4xl);
-  padding-left: 12%;
-  text-align: left;
+  padding-left: max(15%, var(--spacing-4xl));
   position: relative;
   overflow: hidden;
+}
+
+/* Decorative vertical line - architectural element */
+.hero::before {
+  content: '';
+  position: absolute;
+  left: max(10%, 40px);
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--accent-line) 20%,
+    var(--accent-line) 80%,
+    transparent 100%
+  );
+  opacity: 0.3;
+}
+
+/* Subtle dot grid pattern - top right */
+.hero::after {
+  content: '';
+  position: absolute;
+  right: 5%;
+  top: 20%;
+  width: 120px;
+  height: 120px;
+  background-image: radial-gradient(
+    circle,
+    var(--border-strong) 1px,
+    transparent 1px
+  );
+  background-size: 20px 20px;
+  opacity: 0.4;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-3xl);
-  max-width: 600px;
-  flex-shrink: 0;
+  gap: var(--spacing-4xl);
+  max-width: 700px;
+  position: relative;
+  z-index: 1;
 }
 
 .logoContainer {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  opacity: 0;
+  animation: slideInLeft 0.8s ease-out 0.2s forwards;
 }
 
 .textContent {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
 }
 
 .tagline {
-  font-size: var(--typography-size-4xl);
+  font-size: clamp(2.5rem, 7vw, 5rem);
   font-weight: var(--typography-weight-light);
-  line-height: 1.3;
-  letter-spacing: -0.01em;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
   color: var(--text-primary);
   margin: 0;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 0.4s forwards;
 }
 
 .taglineGradient {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  position: relative;
+  display: inline-block;
+}
+
+/* Strikethrough effect on price */
+.taglineGradient::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent-vermillion);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: strikethrough 0.6s ease-out 1.2s forwards;
+}
+
+@keyframes strikethrough {
+  to {
+    transform: scaleX(1);
+  }
 }
 
 .subhead {
-  font-size: var(--typography-size-base);
-  color: var(--text-tertiary);
+  font-size: var(--typography-size-lg);
+  color: var(--text-secondary);
   margin: 0;
-  font-weight: var(--typography-weight-regular);
-  max-width: 400px;
+  font-weight: var(--typography-weight-light);
+  max-width: 480px;
   line-height: 1.7;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 0.6s forwards;
 }
 
 .installSection {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   width: 100%;
-  max-width: 320px;
+  max-width: 380px;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 0.8s forwards;
 }
 
 .installLabel {
   font-size: var(--typography-size-xs);
   color: var(--text-tertiary);
-  text-transform: lowercase;
-  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: var(--typography-weight-medium);
 }
 
 .codeBlockWrapper {
@@ -76,58 +142,140 @@
 
 .actions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   flex-wrap: wrap;
-  justify-content: flex-start;
-  margin-top: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  opacity: 0;
+  animation: fadeIn 1s ease-out 1s forwards;
 }
 
 /* Bidirectional sync indicator */
 .syncIndicator {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   color: var(--text-tertiary);
-  margin-top: var(--spacing-xl);
+  margin-top: var(--spacing-3xl);
+  padding-top: var(--spacing-3xl);
+  border-top: 1px solid var(--border-default);
+  opacity: 0;
+  animation: fadeIn 1s ease-out 1.2s forwards;
 }
 
 .syncIndicator svg {
-  width: 60px;
-  height: 20px;
+  width: 80px;
+  height: 24px;
 }
 
 .syncLabel {
   font-size: var(--typography-size-xs);
   font-weight: var(--typography-weight-medium);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.15em;
 }
 
-/* Scroll indicator - minimal */
+/* Scroll indicator - subtle pulse */
 .scrollIndicator {
-  display: none;
+  position: absolute;
+  bottom: var(--spacing-3xl);
+  left: max(15%, var(--spacing-4xl));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-tertiary);
+  font-size: var(--typography-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 1.4s forwards;
 }
 
-/* Responsive styles */
+.scrollIndicator:hover {
+  color: var(--text-secondary);
+}
+
+.scrollIndicator svg {
+  width: 20px;
+  height: 20px;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* =============================================================================
+   Responsive Styles
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .hero::after {
+    width: 80px;
+    height: 80px;
+    right: 3%;
+    top: 15%;
+  }
+}
+
 @media (max-width: 768px) {
   .hero {
     padding: var(--spacing-4xl) var(--spacing-xl);
     padding-left: var(--spacing-xl);
     min-height: auto;
-    padding-top: 120px;
+    padding-top: 140px;
     padding-bottom: var(--spacing-4xl);
   }
 
+  .hero::before {
+    display: none;
+  }
+
+  .hero::after {
+    display: none;
+  }
+
   .content {
-    gap: var(--spacing-2xl);
+    gap: var(--spacing-3xl);
   }
 
   .tagline {
-    font-size: var(--typography-size-3xl);
+    font-size: clamp(2rem, 10vw, 3rem);
+    line-height: 1.1;
   }
 
   .subhead {
-    font-size: var(--typography-size-sm);
+    font-size: var(--typography-size-base);
+    max-width: 100%;
   }
 
   .installSection {
@@ -137,49 +285,78 @@
   .actions {
     flex-direction: column;
     width: 100%;
+    gap: var(--spacing-md);
   }
 
   .actions > * {
     width: 100%;
+  }
+
+  .syncIndicator {
+    margin-top: var(--spacing-2xl);
+    padding-top: var(--spacing-2xl);
+  }
+
+  .scrollIndicator {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
   .hero {
     padding: var(--spacing-3xl) var(--spacing-lg);
-    padding-top: 100px;
+    padding-top: 120px;
   }
 
   .content {
-    gap: var(--spacing-xl);
+    gap: var(--spacing-2xl);
   }
 
   .logoContainer {
-    margin-bottom: var(--spacing-xs);
+    margin-bottom: 0;
   }
 
   .textContent {
-    gap: var(--spacing-sm);
+    gap: var(--spacing-md);
   }
 
   .tagline {
-    font-size: var(--typography-size-2xl);
+    font-size: clamp(1.75rem, 9vw, 2.5rem);
   }
 
   .subhead {
     font-size: var(--typography-size-sm);
+    line-height: 1.6;
   }
 
   .installSection {
-    gap: var(--spacing-xs);
-  }
-
-  .actions {
-    margin-top: var(--spacing-sm);
     gap: var(--spacing-sm);
   }
 
-  .scrollIndicator {
-    display: none;
+  .actions {
+    margin-top: var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+}
+
+/* =============================================================================
+   Animation Performance
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::before,
+  .hero::after,
+  .logoContainer,
+  .tagline,
+  .taglineGradient::after,
+  .subhead,
+  .installSection,
+  .actions,
+  .syncIndicator,
+  .scrollIndicator,
+  .scrollIndicator svg {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }

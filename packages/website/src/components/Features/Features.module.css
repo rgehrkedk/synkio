@@ -1,52 +1,60 @@
-/* Features Section - Minimal */
+/* =============================================================================
+   Features Section - Japanese Minimalist
+   Asymmetric grid with intentional spacing
+   ============================================================================= */
+
 .section {
-  padding: var(--spacing-6xl) 0;
+  padding: clamp(100px, 15vh, 180px) 0;
   background-color: var(--bg-primary);
+  position: relative;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 0 var(--spacing-xl);
-  padding-left: 12%;
+  padding-left: max(15%, var(--spacing-xl));
 }
 
 /* Section Header */
 .header {
-  text-align: left;
-  margin-bottom: var(--spacing-4xl);
+  margin-bottom: var(--spacing-5xl);
+  position: relative;
+}
+
+/* Vertical accent line */
+.header::before {
+  content: '';
+  position: absolute;
+  left: -var(--spacing-xl);
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background-color: var(--accent-line);
+  opacity: 0.5;
 }
 
 .title {
-  font-size: var(--typography-size-xl);
-  font-weight: var(--typography-weight-regular);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: var(--typography-weight-light);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: var(--typography-size-sm);
+  font-size: var(--typography-size-base);
   color: var(--text-tertiary);
   max-width: 400px;
-  line-height: 1.6;
+  line-height: 1.7;
+  font-weight: var(--typography-weight-light);
 }
 
-/* Feature Grid */
+/* Feature Grid - Asymmetric */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-3xl) var(--spacing-4xl);
-}
-
-@media (max-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-2xl);
-  }
-
-  .container {
-    padding-left: var(--spacing-xl);
-  }
+  gap: var(--spacing-4xl) var(--spacing-5xl);
 }
 
 /* Feature Card */
@@ -54,9 +62,26 @@
   background-color: transparent;
   border: none;
   padding: 0;
+  position: relative;
 }
 
-/* Icon */
+/* Hover accent line */
+.card::before {
+  content: '';
+  position: absolute;
+  left: -var(--spacing-lg);
+  top: 0;
+  width: 2px;
+  height: 0;
+  background-color: var(--accent-vermillion);
+  transition: height 0.3s ease;
+}
+
+.card:hover::before {
+  height: 100%;
+}
+
+/* Icon - Hidden by default, minimal approach */
 .iconContainer {
   display: none;
 }
@@ -70,12 +95,95 @@
   font-size: var(--typography-size-base);
   font-weight: var(--typography-weight-medium);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: -0.01em;
+  transition: color 0.2s ease;
+}
+
+.card:hover .cardTitle {
+  color: var(--text-primary);
 }
 
 .cardDescription {
   font-size: var(--typography-size-sm);
   color: var(--text-tertiary);
-  line-height: 1.6;
+  line-height: 1.7;
   margin: 0;
+  max-width: 300px;
+}
+
+/* =============================================================================
+   Responsive Styles
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .section {
+    padding: var(--spacing-5xl) 0;
+  }
+
+  .container {
+    padding-left: var(--spacing-xl);
+  }
+
+  .header {
+    margin-bottom: var(--spacing-4xl);
+  }
+
+  .header::before {
+    display: none;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3xl);
+  }
+
+  .card::before {
+    display: none;
+  }
+
+  .cardDescription {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .section {
+    padding: var(--spacing-4xl) 0;
+  }
+
+  .header {
+    margin-bottom: var(--spacing-3xl);
+  }
+
+  .title {
+    font-size: var(--typography-size-xl);
+  }
+
+  .subtitle {
+    font-size: var(--typography-size-sm);
+  }
+
+  .grid {
+    gap: var(--spacing-2xl);
+  }
+
+  .cardTitle {
+    font-size: var(--typography-size-sm);
+  }
+
+  .cardDescription {
+    font-size: var(--typography-size-xs);
+  }
+}
+
+/* =============================================================================
+   Animation Performance
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .card::before,
+  .cardTitle {
+    transition: none;
+  }
 }

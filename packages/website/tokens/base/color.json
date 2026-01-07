@@ -1,80 +1,89 @@
 {
   "color": {
     "brand": {
-      "emerald": {
-        "$value": "#10b981",
-        "$type": "color"
+      "primary": {
+        "$value": "#c8b8a8",
+        "$type": "color",
+        "$description": "Warm sand - primary accent"
       },
-      "teal": {
-        "$value": "#14b8a6",
-        "$type": "color"
+      "accent": {
+        "$value": "#e8d5c4",
+        "$type": "color",
+        "$description": "Light sand - hover states"
       },
-      "cyan": {
-        "$value": "#06b6d4",
-        "$type": "color"
+      "ink": {
+        "$value": "#1a1814",
+        "$type": "color",
+        "$description": "Sumi ink - deep black with warmth"
       },
-      "violet": {
-        "$value": "#8b5cf6",
-        "$type": "color"
+      "paper": {
+        "$value": "#f5f2ed",
+        "$type": "color",
+        "$description": "Washi paper - warm white"
+      },
+      "vermillion": {
+        "$value": "#c45c3e",
+        "$type": "color",
+        "$description": "Vermillion red - subtle highlight"
       }
     },
     "neutral": {
       "50": {
-        "$value": "#fafafa",
+        "$value": "#f8f6f3",
         "$type": "color"
       },
       "100": {
-        "$value": "#f4f4f5",
+        "$value": "#f0ede8",
         "$type": "color"
       },
       "200": {
-        "$value": "#e4e4e7",
+        "$value": "#e4e0d9",
         "$type": "color"
       },
       "300": {
-        "$value": "#d4d4d8",
+        "$value": "#d4cfc6",
         "$type": "color"
       },
       "400": {
-        "$value": "#a1a1aa",
+        "$value": "#a8a298",
         "$type": "color"
       },
       "500": {
-        "$value": "#71717a",
+        "$value": "#7a756c",
         "$type": "color"
       },
       "600": {
-        "$value": "#52525b",
+        "$value": "#5c574f",
         "$type": "color"
       },
       "700": {
-        "$value": "#3f3f46",
+        "$value": "#3d3a35",
         "$type": "color"
       },
       "800": {
-        "$value": "#27272a",
+        "$value": "#2a2824",
         "$type": "color"
       },
       "900": {
-        "$value": "#18181b",
+        "$value": "#1c1a17",
         "$type": "color"
       },
       "950": {
-        "$value": "#09090b",
+        "$value": "#0f0e0c",
         "$type": "color"
       }
     },
     "feedback": {
       "success": {
-        "$value": "#22c55e",
+        "$value": "#7a9e7a",
         "$type": "color"
       },
       "warning": {
-        "$value": "#f59e0b",
+        "$value": "#c9a962",
         "$type": "color"
       },
       "error": {
-        "$value": "#ef4444",
+        "$value": "#c45c3e",
         "$type": "color"
       }
     }
