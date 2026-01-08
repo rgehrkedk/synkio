@@ -1,6 +1,6 @@
 /* =============================================================================
-   Header Component - Japanese Minimalist
-   Clean, floating, intentionally sparse
+   Header Component - Japanese-Scandinavian Fusion
+   Floating, ethereal navigation with zen precision
    ============================================================================= */
 
 .header {
@@ -10,24 +10,28 @@
   right: 0;
   z-index: 100;
   background: transparent;
-  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+  transition:
+    background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    backdrop-filter 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Subtle blur on scroll - applied via JS */
 .header.scrolled {
-  background: rgba(var(--bg-primary-rgb, 15, 14, 12), 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(14, 13, 11, 0.85);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: 0 1px 0 var(--border-default);
 }
 
 [data-theme="light"] .header.scrolled {
-  background: rgba(245, 242, 237, 0.85);
+  background: rgba(250, 248, 245, 0.88);
 }
 
 .container {
   max-width: none;
   margin: 0;
-  padding: var(--spacing-lg) var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-2xl);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -39,30 +43,51 @@
   gap: var(--spacing-sm);
   text-decoration: none;
   color: var(--text-primary);
-  transition: opacity 0.2s ease;
+  position: relative;
+  transition: opacity 0.3s ease;
+}
+
+/* Subtle glow on hover */
+.logo::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(
+    ellipse at center,
+    var(--ambient-glow1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.logo:hover::after {
+  opacity: 1;
 }
 
 .logo:hover {
-  opacity: 0.7;
+  opacity: 0.9;
 }
 
 .logoText {
   font-size: 13px;
   font-weight: var(--typography-weight-regular);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-2xl);
 }
 
 .navLinks {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2xl);
+  gap: var(--spacing-3xl);
 }
 
 .navLink {
@@ -74,11 +99,13 @@
   font-weight: var(--typography-weight-regular);
   text-decoration: none;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transition: color 0.2s ease;
+  letter-spacing: 0.12em;
   position: relative;
+  padding: var(--spacing-xs) 0;
+  transition: color 0.3s ease;
 }
 
+/* Elegant underline animation */
 .navLink::after {
   content: '';
   position: absolute;
@@ -86,10 +113,14 @@
   left: 0;
   width: 100%;
   height: 1px;
-  background-color: var(--accent-line);
+  background: linear-gradient(
+    90deg,
+    var(--accent-moss) 0%,
+    var(--accent-line) 100%
+  );
   transform: scaleX(0);
   transform-origin: right;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navLink:hover {
@@ -102,50 +133,86 @@
 }
 
 .navLink svg {
-  opacity: 0.5;
+  opacity: 0.4;
   width: 14px;
   height: 14px;
-  transition: opacity 0.2s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .navLink:hover svg {
   opacity: 0.8;
+  transform: translateX(2px);
 }
 
+/* Theme toggle - zen circle */
 .themeToggle {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  color: var(--text-tertiary);
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.themeToggle:hover {
-  color: var(--text-primary);
-  border-color: var(--border-default);
-}
-
-.themeToggle svg {
-  width: 18px;
-  height: 18px;
-}
-
-.mobileMenuButton {
-  display: none;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
   background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  position: relative;
+  transition:
+    color 0.3s ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease;
+}
+
+/* Organic hover background */
+.themeToggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--bg-tertiary);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.themeToggle:hover::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.themeToggle:hover {
+  color: var(--accent-moss);
+  border-color: transparent;
+}
+
+.themeToggle svg {
+  width: 18px;
+  height: 18px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.themeToggle:hover svg {
+  transform: rotate(15deg);
+}
+
+/* Mobile menu button */
+.mobileMenuButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: transparent;
   border: none;
   cursor: pointer;
   color: var(--text-primary);
-  transition: opacity 0.2s ease;
+  transition: opacity 0.3s ease;
 }
 
 .mobileMenuButton:hover {
@@ -178,8 +245,20 @@
     right: 0;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border-default);
-    padding: var(--spacing-xl);
+    padding: var(--spacing-2xl);
     gap: var(--spacing-lg);
+    animation: menuReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes menuReveal {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .nav.open .navLink {
@@ -190,6 +269,16 @@
   .nav.open .navLink::after {
     display: none;
   }
+
+  .themeToggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .themeToggle svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* =============================================================================
@@ -198,8 +287,16 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header,
+  .logo::after,
   .navLink::after,
-  .themeToggle {
+  .navLink svg,
+  .themeToggle,
+  .themeToggle::before,
+  .themeToggle svg {
     transition: none;
+  }
+
+  .nav.open .navLinks {
+    animation: none;
   }
 }

@@ -1,92 +1,190 @@
 /* =============================================================================
-   Features Section - Japanese Minimalist
-   Asymmetric grid with intentional spacing
+   Features Section - Japanese-Scandinavian Fusion
+   Golden ratio grid with organic hover states
    ============================================================================= */
 
 .section {
-  padding: clamp(100px, 15vh, 180px) 0;
+  padding: clamp(120px, 18vh, 200px) 0;
   background-color: var(--bg-primary);
   position: relative;
+  overflow: hidden;
+}
+
+/* Subtle ambient glow background */
+.section::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(
+    ellipse,
+    var(--ambient-glow2) 0%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  filter: blur(60px);
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 0 var(--spacing-xl);
+  position: relative;
+  z-index: 1;
 }
 
 /* Section Header */
 .header {
-  margin-bottom: var(--spacing-5xl);
+  margin-bottom: var(--spacing-6xl);
   position: relative;
+  max-width: 480px;
 }
 
-/* Vertical accent line */
+/* Decorative accent line */
 .header::before {
   content: '';
   position: absolute;
-  left: -var(--spacing-xl);
+  left: calc(-1 * var(--spacing-2xl));
   top: 0;
-  width: 1px;
+  width: 2px;
   height: 100%;
-  background-color: var(--accent-line);
+  background: linear-gradient(
+    to bottom,
+    var(--accent-moss) 0%,
+    var(--accent-line) 50%,
+    transparent 100%
+  );
   opacity: 0.5;
 }
 
 .title {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: clamp(2rem, 5vw, 2.75rem);
   font-weight: var(--typography-weight-light);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-md);
-  letter-spacing: -0.02em;
+  margin-bottom: var(--spacing-lg);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .subtitle {
   font-size: var(--typography-size-base);
   color: var(--text-tertiary);
-  max-width: 400px;
+  max-width: 380px;
   line-height: 1.7;
   font-weight: var(--typography-weight-light);
 }
 
-/* Feature Grid - Asymmetric */
+/* Feature Grid - Golden ratio inspired (1:1.618) */
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-4xl) var(--spacing-5xl);
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-3xl) var(--spacing-4xl);
 }
 
 /* Feature Card */
 .card {
   background-color: transparent;
   border: none;
-  padding: 0;
+  padding: var(--spacing-xl) 0;
   position: relative;
+  cursor: default;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Hover accent line */
+/* Ink spread hover effect container */
 .card::before {
   content: '';
   position: absolute;
-  left: -var(--spacing-lg);
-  top: 0;
-  width: 2px;
-  height: 0;
-  background-color: var(--accent-vermillion);
-  transition: height 0.3s ease;
+  left: calc(-1 * var(--spacing-lg));
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  background: var(--accent-moss);
+  border-radius: 50%;
+  transform: translateY(-50%) scale(0);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
 }
 
 .card:hover::before {
+  transform: translateY(-50%) scale(1);
+  opacity: 1;
+}
+
+/* Vertical accent line on hover */
+.card::after {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--spacing-lg));
+  top: 0;
+  width: 2px;
+  height: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--accent-moss) 30%,
+    var(--accent-vermillion) 70%,
+    transparent 100%
+  );
+  transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover::after {
   height: 100%;
 }
 
-/* Icon - Hidden by default, minimal approach */
+.card:hover {
+  transform: translateX(8px);
+}
+
+/* Icon Container */
 .iconContainer {
-  display: none;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Icon with organic background on hover */
+.iconContainer::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover .iconContainer::before {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .icon {
   color: var(--text-tertiary);
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.card:hover .icon {
+  color: var(--accent-moss);
 }
 
 /* Card Content */
@@ -96,7 +194,7 @@
   color: var(--text-primary);
   margin-bottom: var(--spacing-sm);
   letter-spacing: -0.01em;
-  transition: color 0.2s ease;
+  transition: color 0.3s ease;
 }
 
 .card:hover .cardTitle {
@@ -106,18 +204,73 @@
 .cardDescription {
   font-size: var(--typography-size-sm);
   color: var(--text-tertiary);
-  line-height: 1.7;
+  line-height: 1.65;
   margin: 0;
-  max-width: 300px;
+  max-width: 280px;
+  transition: color 0.3s ease;
+}
+
+.card:hover .cardDescription {
+  color: var(--text-secondary);
+}
+
+/* =============================================================================
+   Staggered layout - creates visual rhythm
+   ============================================================================= */
+
+/* Offset every other card for asymmetric feel */
+.card:nth-child(2) {
+  transform: translateY(20px);
+}
+
+.card:nth-child(2):hover {
+  transform: translateY(20px) translateX(8px);
+}
+
+.card:nth-child(5) {
+  transform: translateY(20px);
+}
+
+.card:nth-child(5):hover {
+  transform: translateY(20px) translateX(8px);
 }
 
 /* =============================================================================
    Responsive Styles
    ============================================================================= */
 
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-3xl) var(--spacing-3xl);
+  }
+
+  .card:nth-child(2),
+  .card:nth-child(5) {
+    transform: none;
+  }
+
+  .card:nth-child(2):hover,
+  .card:nth-child(5):hover {
+    transform: translateX(8px);
+  }
+
+  .card:nth-child(even) {
+    transform: translateY(16px);
+  }
+
+  .card:nth-child(even):hover {
+    transform: translateY(16px) translateX(8px);
+  }
+}
+
 @media (max-width: 768px) {
   .section {
     padding: var(--spacing-5xl) 0;
+  }
+
+  .section::before {
+    opacity: 0.3;
   }
 
   .header {
@@ -130,11 +283,24 @@
 
   .grid {
     grid-template-columns: 1fr;
-    gap: var(--spacing-3xl);
+    gap: var(--spacing-2xl);
   }
 
-  .card::before {
+  .card {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .card::before,
+  .card::after {
     display: none;
+  }
+
+  .card:nth-child(n) {
+    transform: none;
+  }
+
+  .card:hover {
+    transform: none;
   }
 
   .cardDescription {
@@ -160,7 +326,18 @@
   }
 
   .grid {
-    gap: var(--spacing-2xl);
+    gap: var(--spacing-xl);
+  }
+
+  .iconContainer {
+    width: 32px;
+    height: 32px;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .icon svg {
+    width: 20px;
+    height: 20px;
   }
 
   .cardTitle {
@@ -177,8 +354,21 @@
    ============================================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+  .card,
   .card::before,
-  .cardTitle {
+  .card::after,
+  .iconContainer::before,
+  .icon,
+  .cardTitle,
+  .cardDescription {
     transition: none;
+  }
+
+  .card:nth-child(n) {
+    transform: none;
+  }
+
+  .card:hover {
+    transform: none;
   }
 }

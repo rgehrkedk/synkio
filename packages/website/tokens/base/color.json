@@ -2,80 +2,107 @@
   "color": {
     "brand": {
       "primary": {
-        "$value": "#c8b8a8",
+        "$value": "#b8a99a",
         "$type": "color",
-        "$description": "Warm sand - primary accent"
+        "$description": "Warm stone - primary accent"
       },
       "accent": {
-        "$value": "#e8d5c4",
+        "$value": "#d4c5b5",
         "$type": "color",
         "$description": "Light sand - hover states"
       },
       "ink": {
-        "$value": "#1a1814",
+        "$value": "#18160f",
         "$type": "color",
         "$description": "Sumi ink - deep black with warmth"
       },
       "paper": {
-        "$value": "#f5f2ed",
+        "$value": "#faf8f5",
         "$type": "color",
         "$description": "Washi paper - warm white"
       },
       "vermillion": {
-        "$value": "#c45c3e",
+        "$value": "#d4614a",
         "$type": "color",
-        "$description": "Vermillion red - subtle highlight"
+        "$description": "Terracotta - warm earth accent"
+      },
+      "moss": {
+        "$value": "#7a8b6e",
+        "$type": "color",
+        "$description": "Moss green - zen garden accent"
+      },
+      "indigo": {
+        "$value": "#5c6b7a",
+        "$type": "color",
+        "$description": "Nordic twilight - subtle cool accent"
       }
     },
     "neutral": {
       "50": {
-        "$value": "#f8f6f3",
+        "$value": "#faf9f7",
         "$type": "color"
       },
       "100": {
-        "$value": "#f0ede8",
+        "$value": "#f4f2ee",
         "$type": "color"
       },
       "200": {
-        "$value": "#e4e0d9",
+        "$value": "#e8e5de",
         "$type": "color"
       },
       "300": {
-        "$value": "#d4cfc6",
+        "$value": "#d8d4ca",
         "$type": "color"
       },
       "400": {
-        "$value": "#a8a298",
+        "$value": "#a8a296",
         "$type": "color"
       },
       "500": {
-        "$value": "#7a756c",
+        "$value": "#7d786e",
         "$type": "color"
       },
       "600": {
-        "$value": "#5c574f",
+        "$value": "#5a564c",
         "$type": "color"
       },
       "700": {
-        "$value": "#3d3a35",
+        "$value": "#3a3830",
         "$type": "color"
       },
       "800": {
-        "$value": "#2a2824",
+        "$value": "#282620",
         "$type": "color"
       },
       "900": {
-        "$value": "#1c1a17",
+        "$value": "#1a1916",
         "$type": "color"
       },
       "950": {
-        "$value": "#0f0e0c",
+        "$value": "#0e0d0b",
         "$type": "color"
+      }
+    },
+    "ambient": {
+      "glow1": {
+        "$value": "#d4c5b520",
+        "$type": "color",
+        "$description": "Soft ambient glow - warm"
+      },
+      "glow2": {
+        "$value": "#7a8b6e15",
+        "$type": "color",
+        "$description": "Soft ambient glow - moss"
+      },
+      "glow3": {
+        "$value": "#5c6b7a12",
+        "$type": "color",
+        "$description": "Soft ambient glow - twilight"
       }
     },
     "feedback": {
       "success": {
-        "$value": "#7a9e7a",
+        "$value": "#7a8b6e",
         "$type": "color"
       },
       "warning": {
@@ -83,7 +110,7 @@
         "$type": "color"
       },
       "error": {
-        "$value": "#c45c3e",
+        "$value": "#d4614a",
         "$type": "color"
       }
     }

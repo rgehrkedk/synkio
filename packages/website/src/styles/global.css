@@ -1,38 +1,65 @@
 /* =============================================================================
-   Japanese Minimalist Theme - Global Styles
-   Inspired by Ma (間) - the beauty of negative space
+   Japanese-Scandinavian Fusion - Global Styles
+   Kanso (簡素) - simplicity | Hygge - warmth and coziness
+   Ma (間) - the beauty of negative space
    ============================================================================= */
 
 /* Dark Theme - Default */
 [data-theme="dark"] {
-  --bg-primary: #0f0e0c;
-  --bg-secondary: #1c1a17;
-  --bg-tertiary: #2a2824;
-  --bg-code: #1c1a17;
-  --text-primary: #f8f6f3;
-  --text-secondary: #a8a298;
-  --text-tertiary: #7a756c;
-  --border-default: #2a2824;
-  --border-strong: #3d3a35;
-  --border-accent: #c8b8a8;
-  --accent-line: #c8b8a8;
-  --accent-vermillion: #c45c3e;
+  --bg-primary: #0e0d0b;
+  --bg-secondary: #1a1916;
+  --bg-tertiary: #282620;
+  --bg-code: #1a1916;
+  --bg-elevated: #282620;
+  --text-primary: #faf9f7;
+  --text-secondary: #a8a296;
+  --text-tertiary: #7d786e;
+  --border-default: #282620;
+  --border-strong: #3a3830;
+  --border-accent: #b8a99a;
+  --accent-line: #b8a99a;
+  --accent-vermillion: #d4614a;
+  --accent-moss: #7a8b6e;
+  --accent-indigo: #5c6b7a;
+
+  /* Ambient glows */
+  --ambient-glow1: rgba(212, 197, 181, 0.08);
+  --ambient-glow2: rgba(122, 139, 110, 0.06);
+  --ambient-glow3: rgba(92, 107, 122, 0.05);
+
+  /* Gradients */
+  --gradient-ambient: radial-gradient(ellipse 80% 60% at 50% -20%, var(--ambient-glow1) 0%, transparent 70%);
+  --gradient-moss: radial-gradient(ellipse 60% 40% at 80% 80%, var(--ambient-glow2) 0%, transparent 60%);
+  --gradient-twilight: radial-gradient(ellipse 50% 50% at 10% 60%, var(--ambient-glow3) 0%, transparent 50%);
 }
 
 /* Light Theme */
 [data-theme="light"] {
-  --bg-primary: #f5f2ed;
-  --bg-secondary: #f0ede8;
-  --bg-tertiary: #e4e0d9;
-  --bg-code: #f0ede8;
-  --text-primary: #1a1814;
-  --text-secondary: #5c574f;
-  --text-tertiary: #7a756c;
-  --border-default: #e4e0d9;
-  --border-strong: #d4cfc6;
-  --border-accent: #3d3a35;
-  --accent-line: #3d3a35;
-  --accent-vermillion: #c45c3e;
+  --bg-primary: #faf8f5;
+  --bg-secondary: #f4f2ee;
+  --bg-tertiary: #e8e5de;
+  --bg-code: #f4f2ee;
+  --bg-elevated: #ffffff;
+  --text-primary: #18160f;
+  --text-secondary: #5a564c;
+  --text-tertiary: #7d786e;
+  --border-default: #e8e5de;
+  --border-strong: #d8d4ca;
+  --border-accent: #3a3830;
+  --accent-line: #3a3830;
+  --accent-vermillion: #d4614a;
+  --accent-moss: #7a8b6e;
+  --accent-indigo: #5c6b7a;
+
+  /* Ambient glows - more visible in light mode */
+  --ambient-glow1: rgba(212, 197, 181, 0.25);
+  --ambient-glow2: rgba(122, 139, 110, 0.15);
+  --ambient-glow3: rgba(92, 107, 122, 0.12);
+
+  /* Gradients */
+  --gradient-ambient: radial-gradient(ellipse 80% 60% at 50% -20%, var(--ambient-glow1) 0%, transparent 70%);
+  --gradient-moss: radial-gradient(ellipse 60% 40% at 80% 80%, var(--ambient-glow2) 0%, transparent 60%);
+  --gradient-twilight: radial-gradient(ellipse 50% 50% at 10% 60%, var(--ambient-glow3) 0%, transparent 50%);
 }
 
 /* Modern CSS Reset */
@@ -67,6 +94,7 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   letter-spacing: 0.01em;
+  overflow-x: hidden;
 }
 
 img,
@@ -114,39 +142,88 @@ ol {
 #root {
   min-height: 100%;
   isolation: isolate;
+  position: relative;
 }
 
 /* =============================================================================
-   Typography - Dramatic Hierarchy
+   Ambient Background Layer - Creates depth and atmosphere
+   ============================================================================= */
+
+#root::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    var(--gradient-ambient),
+    var(--gradient-moss),
+    var(--gradient-twilight);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Floating orbs - gentle ambient movement */
+#root::after {
+  content: '';
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  top: 20%;
+  right: -200px;
+  background: radial-gradient(circle, var(--ambient-glow1) 0%, transparent 70%);
+  filter: blur(80px);
+  opacity: 0.6;
+  animation: float 25s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-30px, 40px) scale(1.05);
+  }
+  50% {
+    transform: translate(-60px, -20px) scale(0.95);
+  }
+  75% {
+    transform: translate(-20px, 60px) scale(1.02);
+  }
+}
+
+/* =============================================================================
+   Typography - Elegant, balanced hierarchy
+   Golden ratio influenced sizing (1.618)
    ============================================================================= */
 
 h1 {
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
   font-weight: var(--typography-weight-light);
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
   color: var(--text-primary);
 }
 
 h2 {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: var(--typography-weight-regular);
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: var(--typography-weight-light);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
 }
 
 h3 {
   font-size: var(--typography-size-xl);
   font-weight: var(--typography-weight-regular);
-  line-height: 1.3;
-  letter-spacing: -0.01em;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
 }
 
 h4 {
   font-size: var(--typography-size-lg);
   font-weight: var(--typography-weight-medium);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 h5 {
@@ -160,13 +237,13 @@ h6 {
   font-weight: var(--typography-weight-medium);
   line-height: var(--typography-lineHeight-normal);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 p {
   color: var(--text-secondary);
-  line-height: 1.8;
-  max-width: 65ch;
+  line-height: 1.75;
+  max-width: 60ch;
 }
 
 /* Code */
@@ -174,8 +251,9 @@ code {
   font-family: var(--typography-family-mono);
   font-size: 0.875em;
   background-color: var(--bg-code);
-  padding: 0.2em 0.4em;
-  border-radius: 2px;
+  padding: 0.2em 0.5em;
+  border-radius: 3px;
+  border: 1px solid var(--border-default);
 }
 
 pre {
@@ -184,30 +262,33 @@ pre {
   background-color: var(--bg-code);
   padding: var(--spacing-xl);
   overflow-x: auto;
-  border-left: 1px solid var(--accent-line);
+  border-left: 2px solid var(--accent-moss);
+  border-radius: 0 4px 4px 0;
 }
 
 pre code {
   background: none;
   padding: 0;
+  border: none;
 }
 
-/* Selection - Vermillion accent */
+/* Selection - Terracotta accent */
 ::selection {
   background-color: var(--accent-vermillion);
   color: var(--bg-primary);
 }
 
-/* Focus styles - Subtle */
+/* Focus styles - Elegant and accessible */
 :focus-visible {
-  outline: 1px solid var(--accent-line);
-  outline-offset: 4px;
+  outline: 2px solid var(--accent-moss);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
-/* Scrollbar - Minimal */
+/* Scrollbar - Refined, minimal */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -216,7 +297,8 @@ pre code {
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
-  border-radius: 0;
+  border-radius: 4px;
+  border: 2px solid var(--bg-primary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -243,6 +325,10 @@ pre code {
   color: var(--accent-vermillion);
 }
 
+.text-moss {
+  color: var(--accent-moss);
+}
+
 .font-mono {
   font-family: var(--typography-family-mono);
 }
@@ -257,32 +343,69 @@ pre code {
   position: absolute;
   left: 0;
   top: 0;
-  width: 1px;
+  width: 2px;
   height: 100%;
-  background-color: var(--accent-line);
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--accent-moss) 30%,
+    var(--accent-line) 70%,
+    transparent 100%
+  );
 }
 
-/* Section spacing - Generous Ma */
+/* Section spacing - Generous Ma (negative space) */
 .section {
-  padding: clamp(80px, 12vh, 160px) 0;
+  padding: clamp(100px, 15vh, 180px) 0;
+  position: relative;
+  z-index: 1;
 }
 
-/* Container - Asymmetric */
+/* Container - Golden ratio inspired asymmetry */
 .container {
-  max-width: 1200px;
+  max-width: 1140px;
   margin: 0 auto;
   padding: 0 var(--spacing-xl);
-  padding-left: max(12%, var(--spacing-xl));
+  padding-left: max(8%, var(--spacing-xl));
 }
 
 /* =============================================================================
-   Animations - Subtle and Intentional
+   Zen Decorative Elements
+   ============================================================================= */
+
+/* Enso circle - Japanese calligraphy brush circle */
+.enso {
+  width: 120px;
+  height: 120px;
+  border: 2px solid var(--accent-line);
+  border-radius: 50%;
+  opacity: 0.15;
+  position: absolute;
+  /* Intentionally imperfect circle */
+  border-top-left-radius: 48%;
+  border-top-right-radius: 52%;
+  border-bottom-left-radius: 54%;
+  border-bottom-right-radius: 46%;
+}
+
+/* Vertical Japanese label */
+.vertical-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: var(--typography-size-xs);
+  color: var(--text-tertiary);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* =============================================================================
+   Animations - Subtle, organic, intentional
    ============================================================================= */
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -293,7 +416,7 @@ pre code {
 @keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(-24px);
   }
   to {
     opacity: 1;
@@ -310,12 +433,25 @@ pre code {
   }
 }
 
-@keyframes pulse {
+@keyframes gentlePulse {
   0%, 100% {
     opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes inkSpread {
+  from {
+    transform: scale(0);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(2);
+    opacity: 0;
   }
 }
 
@@ -329,6 +465,10 @@ pre code {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  #root::after {
+    animation: none;
+  }
 }
 
 /* =============================================================================
@@ -341,10 +481,27 @@ pre code {
   }
 
   h1 {
-    line-height: 1.15;
+    line-height: 1.1;
   }
 
   h2 {
-    line-height: 1.25;
+    line-height: 1.2;
+  }
+
+  .container {
+    padding-left: var(--spacing-xl);
+  }
+
+  #root::after {
+    width: 400px;
+    height: 400px;
+    right: -150px;
+    top: 10%;
+  }
+}
+
+@media (max-width: 480px) {
+  #root::after {
+    display: none;
   }
 }

@@ -1,15 +1,16 @@
 /* =============================================================================
-   Workflow Section - Japanese Minimalist
-   Clean flow diagrams with architectural precision
+   Workflow Section - Japanese-Scandinavian Fusion
+   Elegant flow diagrams with zen-inspired precision
    ============================================================================= */
 
 .section {
-  padding: clamp(100px, 15vh, 180px) var(--spacing-xl);
+  padding: clamp(120px, 18vh, 200px) var(--spacing-xl);
   background-color: var(--bg-primary);
   position: relative;
+  overflow: hidden;
 }
 
-/* Top border accent */
+/* Top border with gradient accent */
 .section::before {
   content: '';
   position: absolute;
@@ -17,32 +18,61 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: var(--border-default);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--border-default) 20%,
+    var(--accent-moss) 50%,
+    var(--border-default) 80%,
+    transparent 100%
+  );
+}
+
+/* Ambient background orb */
+.section::after {
+  content: '';
+  position: absolute;
+  left: -10%;
+  bottom: 10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(
+    circle,
+    var(--ambient-glow3) 0%,
+    transparent 70%
+  );
+  filter: blur(80px);
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 0 var(--spacing-xl);
+  position: relative;
+  z-index: 1;
 }
 
 /* Header */
 .header {
-  margin-bottom: var(--spacing-5xl);
+  margin-bottom: var(--spacing-6xl);
+  max-width: 480px;
 }
 
 .title {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: clamp(2rem, 5vw, 2.75rem);
   font-weight: var(--typography-weight-light);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-md);
-  letter-spacing: -0.02em;
+  margin-bottom: var(--spacing-lg);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .subtitle {
   font-size: var(--typography-size-base);
   color: var(--text-tertiary);
-  max-width: 400px;
+  max-width: 420px;
   line-height: 1.7;
   font-weight: var(--typography-weight-light);
 }
@@ -51,7 +81,7 @@
 .flows {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-5xl);
+  gap: var(--spacing-6xl);
 }
 
 /* Flow Card */
@@ -61,7 +91,38 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-2xl);
+  position: relative;
+}
+
+/* Decorative vertical line */
+.flow::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--spacing-xl));
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--border-default) 20%,
+    var(--border-default) 80%,
+    transparent 100%
+  );
+  opacity: 0.3;
+  transition: opacity 0.4s ease;
+}
+
+.flow:hover::before {
+  opacity: 0.6;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--accent-moss) 20%,
+    var(--accent-line) 80%,
+    transparent 100%
+  );
 }
 
 /* Flow Header */
@@ -73,29 +134,45 @@
 
 /* Flow Label Badge */
 .flowLabel {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   font-family: var(--typography-family-mono);
   font-size: var(--typography-size-xs);
   font-weight: var(--typography-weight-regular);
-  color: var(--text-secondary);
-  letter-spacing: 0.08em;
+  color: var(--accent-moss);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: 1px solid var(--border-default);
   width: fit-content;
-  transition: border-color 0.2s ease;
+  transition: color 0.3s ease;
+}
+
+/* Decorative dot before label */
+.flowLabel::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--accent-moss);
+  border-radius: 50%;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
 }
 
 .flow:hover .flowLabel {
-  border-color: var(--accent-line);
+  color: var(--accent-vermillion);
+}
+
+.flow:hover .flowLabel::before {
+  background: var(--accent-vermillion);
+  opacity: 1;
 }
 
 .flowTitle {
-  font-size: var(--typography-size-lg);
+  font-size: var(--typography-size-xl);
   font-weight: var(--typography-weight-regular);
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 .flowDescription {
@@ -103,7 +180,7 @@
   color: var(--text-tertiary);
   line-height: 1.7;
   margin: 0;
-  max-width: 450px;
+  max-width: 480px;
 }
 
 /* Flow Diagram */
@@ -121,19 +198,45 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-lg);
-  min-width: 100px;
+  min-width: 110px;
   text-align: center;
+  position: relative;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Node hover effect */
+.node::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flow:hover .node::before {
+  opacity: 0.5;
+  transform: scale(1);
 }
 
 .nodeIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   color: var(--text-secondary);
   opacity: 0.8;
-  transition: opacity 0.2s ease, color 0.2s ease;
+  transition:
+    opacity 0.3s ease,
+    color 0.3s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
 }
 
 .nodeIcon svg {
@@ -143,14 +246,16 @@
 
 .flow:hover .nodeIcon {
   opacity: 1;
-  color: var(--text-primary);
+  color: var(--accent-moss);
 }
 
 .nodeTitle {
   font-size: var(--typography-size-sm);
-  font-weight: var(--typography-weight-regular);
+  font-weight: var(--typography-weight-medium);
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  position: relative;
+  z-index: 1;
 }
 
 .nodeSubtitle {
@@ -158,6 +263,8 @@
   color: var(--text-tertiary);
   max-width: 100px;
   line-height: 1.4;
+  position: relative;
+  z-index: 1;
 }
 
 /* Flow Arrow */
@@ -167,16 +274,16 @@
   align-items: center;
   gap: var(--spacing-xs);
   flex: 1;
-  min-width: 60px;
-  max-width: 120px;
+  min-width: 70px;
+  max-width: 140px;
 }
 
 .arrowLine {
   width: 100%;
-  height: 1px;
+  height: 2px;
   background: var(--border-default);
   position: relative;
-  transition: background 0.2s ease;
+  transition: background 0.4s ease;
 }
 
 .arrowLine::after {
@@ -187,14 +294,18 @@
   transform: translateY(-50%);
   width: 0;
   height: 0;
-  border-left: 6px solid var(--border-default);
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
-  transition: border-left-color 0.2s ease;
+  border-left: 8px solid var(--border-default);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  transition: border-left-color 0.4s ease;
 }
 
 .flow:hover .arrowLine {
-  background: var(--accent-line);
+  background: linear-gradient(
+    90deg,
+    var(--accent-moss) 0%,
+    var(--accent-line) 100%
+  );
 }
 
 .flow:hover .arrowLine::after {
@@ -206,7 +317,12 @@
   font-size: 10px;
   color: var(--text-tertiary);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
+  transition: color 0.3s ease;
+}
+
+.flow:hover .arrowLabel {
+  color: var(--accent-moss);
 }
 
 /* Command */
@@ -222,8 +338,17 @@
   font-size: var(--typography-size-sm);
   background-color: var(--bg-secondary);
   color: var(--text-secondary);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-left: 1px solid var(--accent-line);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-left: 2px solid var(--accent-moss);
+  border-radius: 0 4px 4px 0;
+  transition:
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.flow:hover .command {
+  border-color: var(--accent-vermillion);
+  color: var(--text-primary);
 }
 
 /* =============================================================================
@@ -235,6 +360,10 @@
     padding: var(--spacing-5xl) var(--spacing-xl);
   }
 
+  .section::after {
+    display: none;
+  }
+
   .header {
     margin-bottom: var(--spacing-4xl);
   }
@@ -243,14 +372,18 @@
     gap: var(--spacing-4xl);
   }
 
+  .flow::before {
+    display: none;
+  }
+
   .node {
-    min-width: 80px;
+    min-width: 90px;
     padding: var(--spacing-md);
   }
 
   .nodeIcon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
 
   .nodeIcon svg {
@@ -259,7 +392,7 @@
   }
 
   .arrow {
-    min-width: 40px;
+    min-width: 50px;
   }
 }
 
@@ -281,7 +414,7 @@
   }
 
   .flowTitle {
-    font-size: var(--typography-size-base);
+    font-size: var(--typography-size-lg);
   }
 
   .diagram {
@@ -291,18 +424,18 @@
   }
 
   .node {
-    min-width: 70px;
+    min-width: 80px;
     padding: var(--spacing-sm);
   }
 
   .nodeIcon {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 
   .nodeIcon svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
 
   .nodeSubtitle {
@@ -310,8 +443,8 @@
   }
 
   .arrow {
-    min-width: 30px;
-    max-width: 50px;
+    min-width: 35px;
+    max-width: 60px;
   }
 
   .arrowLabel {
@@ -324,10 +457,15 @@
    ============================================================================= */
 
 @media (prefers-reduced-motion: reduce) {
+  .flow::before,
   .flowLabel,
+  .flowLabel::before,
+  .node::before,
   .nodeIcon,
   .arrowLine,
-  .arrowLine::after {
+  .arrowLine::after,
+  .arrowLabel,
+  .command {
     transition: none;
   }
 }
