@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd packages/website && npm install && npm run build",
+  "outputDirectory": "packages/website/dist",
+  "framework": null
+}
