@@ -17,18 +17,13 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    var(--border-default) max(15%, 60px),
-    var(--border-default) 100%
-  );
+  background: var(--border-default);
 }
 
 .container {
   max-width: 900px;
   margin: 0 auto;
-  padding-left: max(15%, var(--spacing-xl));
+  padding: 0 var(--spacing-xl);
 }
 
 /* Header */
@@ -69,6 +64,13 @@
   gap: var(--spacing-xl);
 }
 
+/* Flow Header */
+.flowHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
 /* Flow Label Badge */
 .flowLabel {
   display: inline-block;
@@ -104,50 +106,107 @@
   max-width: 450px;
 }
 
-/* ASCII Diagram */
-.asciiContainer {
-  background-color: var(--bg-secondary);
-  padding: var(--spacing-xl);
-  overflow-x: auto;
-  border-left: 1px solid var(--accent-line);
-  position: relative;
+/* Flow Diagram */
+.diagram {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: var(--spacing-xl) 0;
 }
 
-.ascii {
-  font-family: var(--typography-family-mono);
-  font-size: 11px;
-  line-height: 1.5;
-  color: var(--text-tertiary);
-  margin: 0;
-  white-space: pre;
-}
-
-/* Steps */
-.stepsContainer {
+/* Flow Node */
+.node {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--spacing-sm);
-  padding-left: var(--spacing-md);
-  border-left: 1px solid var(--border-default);
+  padding: var(--spacing-lg);
+  min-width: 100px;
+  text-align: center;
 }
 
-.step {
+.nodeIcon {
   display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-md);
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
-.stepNumber {
+.nodeIcon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.flow:hover .nodeIcon {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.nodeTitle {
+  font-size: var(--typography-size-sm);
+  font-weight: var(--typography-weight-regular);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.nodeSubtitle {
   font-size: var(--typography-size-xs);
   color: var(--text-tertiary);
-  min-width: 16px;
-  font-family: var(--typography-family-mono);
+  max-width: 100px;
+  line-height: 1.4;
 }
 
-.stepText {
-  font-size: var(--typography-size-sm);
+/* Flow Arrow */
+.arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex: 1;
+  min-width: 60px;
+  max-width: 120px;
+}
+
+.arrowLine {
+  width: 100%;
+  height: 1px;
+  background: var(--border-default);
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.arrowLine::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--border-default);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: border-left-color 0.2s ease;
+}
+
+.flow:hover .arrowLine {
+  background: var(--accent-line);
+}
+
+.flow:hover .arrowLine::after {
+  border-left-color: var(--accent-line);
+}
+
+.arrowLabel {
+  font-family: var(--typography-family-mono);
+  font-size: 10px;
   color: var(--text-tertiary);
-  line-height: 1.6;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 /* Command */
@@ -156,14 +215,6 @@
   align-items: center;
   gap: var(--spacing-lg);
   padding-top: var(--spacing-lg);
-}
-
-.commandLabel {
-  font-size: var(--typography-size-xs);
-  color: var(--text-tertiary);
-  font-weight: var(--typography-weight-regular);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .command {
@@ -184,10 +235,6 @@
     padding: var(--spacing-5xl) var(--spacing-xl);
   }
 
-  .container {
-    padding-left: var(--spacing-xl);
-  }
-
   .header {
     margin-bottom: var(--spacing-4xl);
   }
@@ -196,12 +243,23 @@
     gap: var(--spacing-4xl);
   }
 
-  .ascii {
-    font-size: 9px;
+  .node {
+    min-width: 80px;
+    padding: var(--spacing-md);
   }
 
-  .asciiContainer {
-    padding: var(--spacing-lg);
+  .nodeIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nodeIcon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .arrow {
+    min-width: 40px;
   }
 }
 
@@ -226,18 +284,38 @@
     font-size: var(--typography-size-base);
   }
 
-  .ascii {
-    font-size: 7px;
-  }
-
-  .asciiContainer {
-    padding: var(--spacing-md);
-  }
-
-  .commandContainer {
-    flex-direction: column;
-    align-items: flex-start;
+  .diagram {
+    flex-wrap: wrap;
+    justify-content: center;
     gap: var(--spacing-sm);
+  }
+
+  .node {
+    min-width: 70px;
+    padding: var(--spacing-sm);
+  }
+
+  .nodeIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nodeIcon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .nodeSubtitle {
+    font-size: 9px;
+  }
+
+  .arrow {
+    min-width: 30px;
+    max-width: 50px;
+  }
+
+  .arrowLabel {
+    font-size: 8px;
   }
 }
 
@@ -246,7 +324,10 @@
    ============================================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .flowLabel {
+  .flowLabel,
+  .nodeIcon,
+  .arrowLine,
+  .arrowLine::after {
     transition: none;
   }
 }

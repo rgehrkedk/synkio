@@ -9,7 +9,6 @@
   flex-direction: column;
   justify-content: center;
   padding: var(--spacing-6xl) var(--spacing-4xl);
-  padding-left: max(15%, var(--spacing-4xl));
   position: relative;
   overflow: hidden;
 }
@@ -18,7 +17,7 @@
 .hero::before {
   content: '';
   position: absolute;
-  left: max(10%, 40px);
+  left: var(--spacing-xl);
   top: 15%;
   height: 70%;
   width: 1px;
@@ -149,69 +148,6 @@
   animation: fadeIn 1s ease-out 1s forwards;
 }
 
-/* Bidirectional sync indicator */
-.syncIndicator {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  color: var(--text-tertiary);
-  margin-top: var(--spacing-3xl);
-  padding-top: var(--spacing-3xl);
-  border-top: 1px solid var(--border-default);
-  opacity: 0;
-  animation: fadeIn 1s ease-out 1.2s forwards;
-}
-
-.syncIndicator svg {
-  width: 80px;
-  height: 24px;
-}
-
-.syncLabel {
-  font-size: var(--typography-size-xs);
-  font-weight: var(--typography-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-}
-
-/* Scroll indicator - subtle pulse */
-.scrollIndicator {
-  position: absolute;
-  bottom: var(--spacing-3xl);
-  left: max(15%, var(--spacing-4xl));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-  color: var(--text-tertiary);
-  font-size: var(--typography-size-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  cursor: pointer;
-  transition: color 0.3s ease;
-  opacity: 0;
-  animation: fadeIn 1s ease-out 1.4s forwards;
-}
-
-.scrollIndicator:hover {
-  color: var(--text-secondary);
-}
-
-.scrollIndicator svg {
-  width: 20px;
-  height: 20px;
-  animation: float 2s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(6px);
-  }
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -250,7 +186,6 @@
 @media (max-width: 768px) {
   .hero {
     padding: var(--spacing-4xl) var(--spacing-xl);
-    padding-left: var(--spacing-xl);
     min-height: auto;
     padding-top: 140px;
     padding-bottom: var(--spacing-4xl);
@@ -290,15 +225,6 @@
 
   .actions > * {
     width: 100%;
-  }
-
-  .syncIndicator {
-    margin-top: var(--spacing-2xl);
-    padding-top: var(--spacing-2xl);
-  }
-
-  .scrollIndicator {
-    display: none;
   }
 }
 
@@ -351,10 +277,7 @@
   .taglineGradient::after,
   .subhead,
   .installSection,
-  .actions,
-  .syncIndicator,
-  .scrollIndicator,
-  .scrollIndicator svg {
+  .actions {
     animation: none;
     opacity: 1;
     transform: none;

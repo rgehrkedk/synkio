@@ -15,7 +15,7 @@
   content: '';
   position: absolute;
   top: -1px;
-  left: max(15%, 60px);
+  left: var(--spacing-xl);
   width: 40px;
   height: 1px;
   background-color: var(--accent-line);
@@ -25,7 +25,6 @@
   max-width: none;
   margin: 0;
   padding: 0 var(--spacing-xl);
-  padding-left: max(15%, var(--spacing-xl));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -153,10 +152,6 @@
 
   .footer::before {
     left: var(--spacing-xl);
-  }
-
-  .container {
-    padding-left: var(--spacing-xl);
   }
 }
 

@@ -22,25 +22,130 @@
 
 .logo__svg {
   filter: none;
+  transform-origin: center;
 }
 
-/* Animated rotation - slower, more contemplative */
-.logo--animated .logo__svg,
-.logo__svg--animated {
-  animation: logo-rotate 30s ease-in-out infinite;
+/* Overall logo rotation - full sync rotation */
+.logo--animated .logo__svg {
+  animation: logo-sync-rotate 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-@keyframes logo-rotate {
-  0%, 30% {
+@keyframes logo-sync-rotate {
+  0% {
     transform: rotate(0deg);
   }
-  35%, 65% {
-    transform: rotate(180deg);
+  40% {
+    transform: rotate(0deg);
   }
-  70%, 100% {
+  50% {
     transform: rotate(360deg);
   }
+  90% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(720deg);
+  }
 }
+
+/* =============================================================================
+   Path Animations - Individual element animations
+   ============================================================================= */
+
+/* Sync Arc animations - flowing pulse effect */
+:global(.logo__arc) {
+  transform-origin: center;
+  opacity: 1;
+}
+
+:global(.logo__arc--1) {
+  animation: arc-sync-1 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+:global(.logo__arc--2) {
+  animation: arc-sync-2 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Corner bracket animations - subtle pulse */
+:global(.logo__bracket) {
+  transform-origin: center;
+  opacity: 1;
+}
+
+:global(.logo__bracket--1) {
+  animation: bracket-pulse 10s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+:global(.logo__bracket--2) {
+  animation: bracket-pulse 10s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+/* Arc 1 (top-right) - flows down first */
+@keyframes arc-sync-1 {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+/* Arc 2 (bottom-left) - flows up after arc 1 */
+@keyframes arc-sync-2 {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  30% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+/* Bracket pulse - subtle scale effect */
+@keyframes bracket-pulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
 
 /* =============================================================================
    Logo Text
@@ -48,16 +153,30 @@
 
 .logo__text {
   display: flex;
-  font-family: var(--typography-family-sans);
-  font-weight: var(--typography-weight-light);
+  font-family: 'Urbanist', var(--typography-family-sans);
+  font-weight: 800;
   text-transform: uppercase;
   line-height: 1;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
 }
 
 .logo__letter {
   display: inline-block;
-  color: var(--text-primary);
+  color: var(--bg-primary);
+  font-weight: 800;
+  text-shadow:
+    -3px -3px 0 var(--text-primary),
+    3px -3px 0 var(--text-primary),
+    -3px 3px 0 var(--text-primary),
+    3px 3px 0 var(--text-primary),
+    -3px 0 0 var(--text-primary),
+    3px 0 0 var(--text-primary),
+    0 -3px 0 var(--text-primary),
+    0 3px 0 var(--text-primary),
+    -2px -2px 0 var(--text-primary),
+    2px -2px 0 var(--text-primary),
+    -2px 2px 0 var(--text-primary),
+    2px 2px 0 var(--text-primary);
 }
 
 /* Animated letter colors - very subtle */
@@ -113,7 +232,7 @@
 
 .logo--sm .logo__text {
   font-size: 14px;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.06em;
 }
 
 /* Medium */
@@ -128,7 +247,7 @@
 
 .logo--md .logo__text {
   font-size: 18px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.08em;
 }
 
 /* Large */
@@ -143,7 +262,7 @@
 
 .logo--lg .logo__text {
   font-size: 28px;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.08em;
 }
 
 /* Extra Large */
@@ -158,23 +277,26 @@
 
 .logo--xl .logo__text {
   font-size: 36px;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.08em;
 }
 
 /* Hero - dramatic size for landing page */
 .logo--hero {
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
 }
 
 .logo--hero .logo__icon {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
 }
 
 .logo--hero .logo__text {
-  font-size: 48px;
-  letter-spacing: 0.25em;
-  font-weight: var(--typography-weight-light);
+  font-size: 100px;
+  letter-spacing: 0.08em;
+}
+
+.logo--hero .logo__letter {
+  -webkit-text-stroke: 2px var(--text-primary);
 }
 
 .logo--hero .logo__svg {
@@ -187,9 +309,21 @@
 
 @media (max-width: 768px) {
   .logo--hero {
-    gap: var(--spacing-sm);
+    gap: var(--spacing-md);
   }
 
+  .logo--hero .logo__icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .logo--hero .logo__text {
+    font-size: 48px;
+    letter-spacing: 0.08em;
+  }
+}
+
+@media (max-width: 480px) {
   .logo--hero .logo__icon {
     width: 36px;
     height: 36px;
@@ -197,19 +331,7 @@
 
   .logo--hero .logo__text {
     font-size: 36px;
-    letter-spacing: 0.2em;
-  }
-}
-
-@media (max-width: 480px) {
-  .logo--hero .logo__icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  .logo--hero .logo__text {
-    font-size: 28px;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.08em;
   }
 }
 
@@ -222,5 +344,13 @@
   .logo__svg--animated,
   .logo--animated .logo__letter {
     animation: none;
+    transform: none;
+  }
+
+  :global(.logo__arc),
+  :global(.logo__bracket) {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

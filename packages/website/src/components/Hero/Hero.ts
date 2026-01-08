@@ -82,54 +82,9 @@ export function Hero(): HTMLElement {
 
   content.appendChild(actions);
 
-  // Bidirectional sync indicator - below actions
-  const syncIndicator = document.createElement('div');
-  syncIndicator.className = getStyle('syncIndicator');
-  syncIndicator.innerHTML = `
-    <span class="${getStyle('syncLabel')}">Figma</span>
-    <svg viewBox="0 0 100 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15 12 L85 12" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3"/>
-      <path d="M80 8 L88 12 L80 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M20 8 L12 12 L20 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <span class="${getStyle('syncLabel')}">Code</span>
-  `;
-  content.appendChild(syncIndicator);
-
   section.appendChild(content);
 
-  // Scroll indicator
-  const scrollIndicator = createScrollIndicator();
-  section.appendChild(scrollIndicator);
-
   return section;
-}
-
-function createScrollIndicator(): HTMLElement {
-  const indicator = document.createElement('div');
-  indicator.className = getStyle('scrollIndicator');
-
-  const text = document.createElement('span');
-  text.textContent = 'Scroll';
-  indicator.appendChild(text);
-
-  indicator.innerHTML += `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"></line>
-      <polyline points="19 12 12 19 5 12"></polyline>
-    </svg>
-  `;
-
-  // Click to scroll
-  indicator.style.cursor = 'pointer';
-  indicator.addEventListener('click', () => {
-    const nextSection = document.querySelector('section:nth-of-type(2)');
-    if (nextSection) {
-      nextSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  });
-
-  return indicator;
 }
 
 export default Hero;

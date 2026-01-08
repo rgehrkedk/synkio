@@ -14,7 +14,7 @@
   content: '';
   position: absolute;
   top: 0;
-  left: max(15%, 60px);
+  left: var(--spacing-xl);
   width: 60px;
   height: 1px;
   background-color: var(--accent-line);
@@ -23,7 +23,7 @@
 .container {
   max-width: 900px;
   margin: 0 auto;
-  padding-left: max(15%, var(--spacing-xl));
+  padding: 0 var(--spacing-xl);
 }
 
 .header {
@@ -141,10 +141,6 @@
   .section::before {
     left: var(--spacing-xl);
     width: 40px;
-  }
-
-  .container {
-    padding-left: var(--spacing-xl);
   }
 
   .header {

@@ -17,19 +17,13 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    var(--border-default) max(15%, 60px),
-    var(--border-default) 100%
-  );
+  background: var(--border-default);
 }
 
 .container {
   max-width: 900px;
   margin: 0 auto;
   padding: 0 var(--spacing-xl);
-  padding-left: max(15%, var(--spacing-xl));
 }
 
 /* Section Header */
@@ -175,10 +169,6 @@
 @media (max-width: 768px) {
   .section {
     padding: var(--spacing-5xl) 0;
-  }
-
-  .container {
-    padding-left: var(--spacing-xl);
   }
 
   .header {

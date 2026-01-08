@@ -13,7 +13,6 @@
   max-width: 900px;
   margin: 0 auto;
   padding: 0 var(--spacing-xl);
-  padding-left: max(15%, var(--spacing-xl));
 }
 
 /* Section Header */
@@ -153,10 +152,6 @@
 @media (max-width: 768px) {
   .section {
     padding: var(--spacing-5xl) 0;
-  }
-
-  .container {
-    padding-left: var(--spacing-xl);
   }
 
   .header {

@@ -28,7 +28,6 @@
   max-width: none;
   margin: 0;
   padding: var(--spacing-lg) var(--spacing-xl);
-  padding-left: max(15%, var(--spacing-xl));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -160,7 +159,6 @@
 @media (max-width: 768px) {
   .container {
     padding: var(--spacing-md) var(--spacing-lg);
-    padding-left: var(--spacing-lg);
   }
 
   .navLinks {
