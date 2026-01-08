@@ -15,6 +15,10 @@
     "code": {
       "$value": "{color.neutral.100}",
       "$type": "color"
+    },
+    "elevated": {
+      "$value": "#ffffff",
+      "$type": "color"
     }
   },
   "text": {
@@ -37,6 +41,10 @@
     "accent": {
       "$value": "{color.brand.vermillion}",
       "$type": "color"
+    },
+    "moss": {
+      "$value": "{color.brand.moss}",
+      "$type": "color"
     }
   },
   "border": {
@@ -50,6 +58,20 @@
     },
     "accent": {
       "$value": "{color.neutral.700}",
+      "$type": "color"
+    }
+  },
+  "ambient": {
+    "glow1": {
+      "$value": "#d4c5b530",
+      "$type": "color"
+    },
+    "glow2": {
+      "$value": "#7a8b6e20",
+      "$type": "color"
+    },
+    "glow3": {
+      "$value": "#5c6b7a18",
       "$type": "color"
     }
   }

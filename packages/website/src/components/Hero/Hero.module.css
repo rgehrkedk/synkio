@@ -1,6 +1,6 @@
 /* =============================================================================
-   Hero Component - Japanese Minimalist with Edge
-   Ma (間) - Intentional emptiness creates meaning
+   Hero Component - Japanese-Scandinavian Fusion
+   Ma (間) + Hygge - Elegant negative space meets cozy warmth
    ============================================================================= */
 
 .hero {
@@ -13,96 +13,172 @@
   overflow: hidden;
 }
 
-/* Decorative vertical line - architectural element */
+/* Floating ambient orb - large, subtle */
 .hero::before {
   content: '';
   position: absolute;
-  left: var(--spacing-xl);
-  top: 15%;
-  height: 70%;
-  width: 1px;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    var(--accent-line) 20%,
-    var(--accent-line) 80%,
-    transparent 100%
+  left: -15%;
+  top: 30%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    var(--accent-moss) 0%,
+    transparent 70%
   );
-  opacity: 0.3;
+  filter: blur(120px);
+  opacity: 0.15;
+  animation: floatOrb 30s ease-in-out infinite;
+  pointer-events: none;
 }
 
-/* Subtle dot grid pattern - top right */
+/* Secondary orb - warm accent */
 .hero::after {
   content: '';
   position: absolute;
-  right: 5%;
-  top: 20%;
-  width: 120px;
-  height: 120px;
-  background-image: radial-gradient(
+  right: 10%;
+  bottom: 20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(
     circle,
-    var(--border-strong) 1px,
-    transparent 1px
+    var(--accent-vermillion) 0%,
+    transparent 70%
   );
-  background-size: 20px 20px;
-  opacity: 0.4;
+  filter: blur(100px);
+  opacity: 0.08;
+  animation: floatOrb2 25s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes floatOrb {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(50px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-30px, 50px) scale(0.9);
+  }
+}
+
+@keyframes floatOrb2 {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-40px, -30px);
+  }
 }
 
 .content {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4xl);
-  max-width: 700px;
+  max-width: 720px;
   position: relative;
   z-index: 1;
 }
 
+/* Decorative vertical line with gradient */
+.content::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--spacing-4xl));
+  top: 0;
+  height: 100%;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--accent-moss) 20%,
+    var(--accent-line) 50%,
+    var(--accent-moss) 80%,
+    transparent 100%
+  );
+  opacity: 0.4;
+  transform: scaleY(0);
+  transform-origin: top;
+  animation: lineReveal 1.5s ease-out 0.5s forwards;
+}
+
+@keyframes lineReveal {
+  to {
+    transform: scaleY(1);
+  }
+}
+
 .logoContainer {
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
   opacity: 0;
-  animation: slideInLeft 0.8s ease-out 0.2s forwards;
+  animation: slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
 }
 
 .textContent {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-2xl);
 }
 
 .tagline {
-  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
   font-weight: var(--typography-weight-light);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
   color: var(--text-primary);
   margin: 0;
   opacity: 0;
-  animation: fadeIn 1s ease-out 0.4s forwards;
+  animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+}
+
+/* Each word can animate separately for kinetic effect */
+.taglineWord {
+  display: inline-block;
+  opacity: 0;
+  animation: wordReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes wordReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px) rotateX(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+  }
 }
 
 .taglineGradient {
-  color: var(--text-tertiary);
   position: relative;
   display: inline-block;
+  color: var(--text-tertiary);
 }
 
-/* Strikethrough effect on price */
+/* Elegant strikethrough with organic curve */
 .taglineGradient::after {
   content: '';
   position: absolute;
-  left: 0;
-  top: 50%;
-  width: 100%;
-  height: 2px;
-  background-color: var(--accent-vermillion);
-  transform: scaleX(0);
+  left: -2%;
+  top: 52%;
+  width: 104%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent-vermillion) 10%,
+    var(--accent-vermillion) 90%,
+    transparent 100%
+  );
+  transform: scaleX(0) rotate(-1deg);
   transform-origin: left;
-  animation: strikethrough 0.6s ease-out 1.2s forwards;
+  animation: strikethrough 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
 }
 
 @keyframes strikethrough {
   to {
-    transform: scaleX(1);
+    transform: scaleX(1) rotate(-1deg);
   }
 }
 
@@ -111,10 +187,10 @@
   color: var(--text-secondary);
   margin: 0;
   font-weight: var(--typography-weight-light);
-  max-width: 480px;
-  line-height: 1.7;
+  max-width: 440px;
+  line-height: 1.65;
   opacity: 0;
-  animation: fadeIn 1s ease-out 0.6s forwards;
+  animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
 }
 
 .installSection {
@@ -122,17 +198,30 @@
   flex-direction: column;
   gap: var(--spacing-md);
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
   opacity: 0;
-  animation: fadeIn 1s ease-out 0.8s forwards;
+  animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
 }
 
 .installLabel {
   font-size: var(--typography-size-xs);
-  color: var(--text-tertiary);
+  color: var(--accent-moss);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.2em;
   font-weight: var(--typography-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* Small decorative dot before label */
+.installLabel::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--accent-moss);
+  border-radius: 50%;
+  opacity: 0.6;
 }
 
 .codeBlockWrapper {
@@ -143,15 +232,35 @@
   display: flex;
   gap: var(--spacing-lg);
   flex-wrap: wrap;
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
   opacity: 0;
-  animation: fadeIn 1s ease-out 1s forwards;
+  animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
+}
+
+/* Decorative enso circle - zen accent */
+.ensoDecor {
+  position: absolute;
+  right: 15%;
+  top: 15%;
+  width: 180px;
+  height: 180px;
+  border: 2px solid var(--accent-line);
+  opacity: 0.06;
+  /* Intentionally imperfect - wabi-sabi */
+  border-radius: 47% 53% 51% 49% / 52% 48% 52% 48%;
+  animation: ensoRotate 60s linear infinite;
+}
+
+@keyframes ensoRotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -175,11 +284,11 @@
    ============================================================================= */
 
 @media (max-width: 1024px) {
-  .hero::after {
-    width: 80px;
-    height: 80px;
-    right: 3%;
-    top: 15%;
+  .ensoDecor {
+    width: 140px;
+    height: 140px;
+    right: 8%;
+    top: 12%;
   }
 }
 
@@ -191,11 +300,16 @@
     padding-bottom: var(--spacing-4xl);
   }
 
-  .hero::before {
+  .hero::before,
+  .hero::after {
+    opacity: 0.1;
+  }
+
+  .content::before {
     display: none;
   }
 
-  .hero::after {
+  .ensoDecor {
     display: none;
   }
 
@@ -204,8 +318,8 @@
   }
 
   .tagline {
-    font-size: clamp(2rem, 10vw, 3rem);
-    line-height: 1.1;
+    font-size: clamp(2.25rem, 11vw, 3.5rem);
+    line-height: 1.08;
   }
 
   .subhead {
@@ -234,6 +348,11 @@
     padding-top: 120px;
   }
 
+  .hero::before,
+  .hero::after {
+    display: none;
+  }
+
   .content {
     gap: var(--spacing-2xl);
   }
@@ -243,11 +362,11 @@
   }
 
   .textContent {
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
   }
 
   .tagline {
-    font-size: clamp(1.75rem, 9vw, 2.5rem);
+    font-size: clamp(1.85rem, 10vw, 2.75rem);
   }
 
   .subhead {
@@ -260,7 +379,7 @@
   }
 
   .actions {
-    margin-top: var(--spacing-md);
+    margin-top: var(--spacing-lg);
     gap: var(--spacing-sm);
   }
 }
@@ -272,12 +391,14 @@
 @media (prefers-reduced-motion: reduce) {
   .hero::before,
   .hero::after,
+  .content::before,
   .logoContainer,
   .tagline,
   .taglineGradient::after,
   .subhead,
   .installSection,
-  .actions {
+  .actions,
+  .ensoDecor {
     animation: none;
     opacity: 1;
     transform: none;

@@ -1,50 +1,88 @@
 /* =============================================================================
-   Footer Component - Japanese Minimalist
-   Clean, sparse, intentional
+   Footer Component - Japanese-Scandinavian Fusion
+   Zen minimalism with warm, cozy elegance
    ============================================================================= */
 
 .footer {
   border-top: 1px solid var(--border-default);
   background-color: transparent;
-  padding: var(--spacing-4xl) 0;
+  padding: var(--spacing-5xl) 0;
   position: relative;
 }
 
-/* Accent mark */
+/* Gradient accent mark */
 .footer::before {
   content: '';
   position: absolute;
   top: -1px;
-  left: var(--spacing-xl);
-  width: 40px;
-  height: 1px;
-  background-color: var(--accent-line);
+  left: var(--spacing-2xl);
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--accent-moss) 0%,
+    var(--accent-line) 100%
+  );
+}
+
+/* Subtle ambient glow */
+.footer::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  height: 200px;
+  background: radial-gradient(
+    ellipse at center bottom,
+    var(--ambient-glow2) 0%,
+    transparent 70%
+  );
+  filter: blur(60px);
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .container {
   max-width: none;
   margin: 0;
-  padding: 0 var(--spacing-xl);
+  padding: 0 var(--spacing-2xl);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--spacing-xl);
+  position: relative;
+  z-index: 1;
 }
 
 /* Left Side */
 .left {
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
 }
 
 .logo {
   font-size: var(--typography-size-xs);
   font-weight: var(--typography-weight-regular);
   color: var(--text-secondary);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* Small decorative dot */
+.logo::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: var(--accent-moss);
+  border-radius: 50%;
+  opacity: 0.6;
 }
 
 .separator {
@@ -60,7 +98,7 @@
 .right {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2xl);
+  gap: var(--spacing-3xl);
 }
 
 /* Social Links */
@@ -75,36 +113,70 @@
   align-items: center;
   justify-content: center;
   color: var(--text-tertiary);
-  padding: var(--spacing-xs);
-  transition: color 0.2s ease;
+  padding: var(--spacing-sm);
   position: relative;
+  border-radius: 50%;
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Organic hover background */
+.socialLink::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--bg-tertiary);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dot indicator on hover */
 .socialLink::after {
   content: '';
   position: absolute;
-  bottom: -2px;
+  bottom: -6px;
   left: 50%;
   width: 4px;
   height: 4px;
-  background-color: var(--accent-vermillion);
+  background-color: var(--accent-moss);
   border-radius: 50%;
   opacity: 0;
-  transform: translateX(-50%);
-  transition: opacity 0.2s ease;
+  transform: translateX(-50%) translateY(4px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .socialLink:hover {
-  color: var(--text-primary);
+  color: var(--accent-moss);
+}
+
+.socialLink:hover::before {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .socialLink:hover::after {
   opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .socialLink svg {
   width: 18px;
   height: 18px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.socialLink:hover svg {
+  transform: scale(1.1);
 }
 
 /* Credit */
@@ -115,10 +187,11 @@
 
 .authorLink {
   color: var(--text-secondary);
-  transition: color 0.2s ease;
   position: relative;
+  transition: color 0.3s ease;
 }
 
+/* Gradient underline */
 .authorLink::after {
   content: '';
   position: absolute;
@@ -126,10 +199,14 @@
   left: 0;
   width: 100%;
   height: 1px;
-  background-color: var(--accent-line);
+  background: linear-gradient(
+    90deg,
+    var(--accent-moss) 0%,
+    var(--accent-line) 100%
+  );
   transform: scaleX(0);
   transform-origin: right;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .authorLink:hover {
@@ -147,11 +224,19 @@
 
 @media (max-width: 768px) {
   .footer {
-    padding: var(--spacing-3xl) 0;
+    padding: var(--spacing-4xl) 0;
   }
 
   .footer::before {
     left: var(--spacing-xl);
+  }
+
+  .footer::after {
+    opacity: 0.3;
+  }
+
+  .container {
+    padding: 0 var(--spacing-xl);
   }
 }
 
@@ -159,7 +244,7 @@
   .container {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-xl);
   }
 
   .right {
@@ -175,7 +260,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .socialLink,
+  .socialLink::before,
   .socialLink::after,
+  .socialLink svg,
   .authorLink,
   .authorLink::after {
     transition: none;

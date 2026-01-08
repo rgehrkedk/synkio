@@ -15,6 +15,11 @@ export function Hero(): HTMLElement {
   const section = document.createElement('section');
   section.className = getStyle('hero');
 
+  // Decorative enso circle - zen accent
+  const enso = document.createElement('div');
+  enso.className = getStyle('ensoDecor');
+  section.appendChild(enso);
+
   const content = document.createElement('div');
   content.className = getStyle('content');
 
