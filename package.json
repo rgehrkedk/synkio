@@ -1,0 +1,7 @@
+{
+  "name": "synkio-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "cd packages/website && npm install && npm run build"
+  }
+}
