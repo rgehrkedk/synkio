@@ -31,7 +31,11 @@
       "$type": "color"
     },
     "brand": {
-      "$value": "{color.brand.emerald}",
+      "$value": "{color.brand.primary}",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "{color.brand.vermillion}",
       "$type": "color"
     }
   },
@@ -42,6 +46,10 @@
     },
     "strong": {
       "$value": "{color.neutral.700}",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "{color.brand.primary}",
       "$type": "color"
     }
   }

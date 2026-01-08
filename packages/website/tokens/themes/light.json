@@ -1,7 +1,7 @@
 {
   "bg": {
     "primary": {
-      "$value": "{color.neutral.50}",
+      "$value": "{color.brand.paper}",
       "$type": "color"
     },
     "secondary": {
@@ -19,7 +19,7 @@
   },
   "text": {
     "primary": {
-      "$value": "{color.neutral.900}",
+      "$value": "{color.brand.ink}",
       "$type": "color"
     },
     "secondary": {
@@ -31,7 +31,11 @@
       "$type": "color"
     },
     "brand": {
-      "$value": "{color.brand.emerald}",
+      "$value": "{color.neutral.700}",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "{color.brand.vermillion}",
       "$type": "color"
     }
   },
@@ -42,6 +46,10 @@
     },
     "strong": {
       "$value": "{color.neutral.300}",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "{color.neutral.700}",
       "$type": "color"
     }
   }

@@ -1,11 +1,12 @@
 /* =============================================================================
-   Logo Component Styles
+   Logo Component - Japanese Minimalist
+   Clean, elegant, with subtle animation
    ============================================================================= */
 
 .logo {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
 }
 
 /* =============================================================================
@@ -23,26 +24,20 @@
   filter: none;
 }
 
-/* Animated rotation */
+/* Animated rotation - slower, more contemplative */
 .logo--animated .logo__svg,
 .logo__svg--animated {
-  animation: logo-rotate var(--animation-duration-logo, 20s) ease-in-out infinite;
+  animation: logo-rotate 30s ease-in-out infinite;
 }
 
 @keyframes logo-rotate {
-  0%,
-  20% {
+  0%, 30% {
     transform: rotate(0deg);
   }
-  25%,
-  45% {
+  35%, 65% {
     transform: rotate(180deg);
   }
-  50%,
-  95% {
-    transform: rotate(360deg);
-  }
-  100% {
+  70%, 100% {
     transform: rotate(360deg);
   }
 }
@@ -53,10 +48,11 @@
 
 .logo__text {
   display: flex;
-  font-family: 'Quicksand', sans-serif;
-  font-weight: 600;
+  font-family: var(--typography-family-sans);
+  font-weight: var(--typography-weight-light);
   text-transform: uppercase;
   line-height: 1;
+  letter-spacing: 0.2em;
 }
 
 .logo__letter {
@@ -64,24 +60,18 @@
   color: var(--text-primary);
 }
 
-/* Animated letter colors */
+/* Animated letter colors - very subtle */
 .logo--animated .logo__letter {
-  animation: letter-color var(--animation-duration-letters, 8s) ease-in-out infinite;
+  animation: letter-fade 12s ease-in-out infinite;
+  animation-delay: calc(var(--letter-index, 0) * 0.3s);
 }
 
-@keyframes letter-color {
-  0%,
-  100% {
-    color: var(--text-primary);
-  }
-  25% {
-    color: var(--text-secondary);
+@keyframes letter-fade {
+  0%, 100% {
+    opacity: 1;
   }
   50% {
-    color: var(--text-tertiary);
-  }
-  75% {
-    color: var(--text-secondary);
+    opacity: 0.6;
   }
 }
 
@@ -113,115 +103,124 @@
 
 /* Small */
 .logo--sm {
-  gap: 2px;
+  gap: 4px;
 }
 
 .logo--sm .logo__icon {
-  width: 11px;
-  height: 11px;
-  margin-top: 2px;
+  width: 14px;
+  height: 14px;
 }
 
 .logo--sm .logo__text {
-  font-size: 16px;
-  letter-spacing: 1px;
+  font-size: 14px;
+  letter-spacing: 0.15em;
 }
 
 /* Medium */
 .logo--md {
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
 }
 
 .logo--md .logo__icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
 }
 
 .logo--md .logo__text {
-  font-size: 20px;
-  letter-spacing: 1.5px;
+  font-size: 18px;
+  letter-spacing: 0.18em;
 }
 
 /* Large */
 .logo--lg {
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .logo--lg .logo__icon {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
 }
 
 .logo--lg .logo__text {
-  font-size: 32px;
-  letter-spacing: 2px;
+  font-size: 28px;
+  letter-spacing: 0.2em;
 }
 
 /* Extra Large */
 .logo--xl {
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .logo--xl .logo__icon {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
 }
 
 .logo--xl .logo__text {
-  font-size: 42px;
-  letter-spacing: 3px;
+  font-size: 36px;
+  letter-spacing: 0.22em;
 }
 
-/* Hero - biggest size for landing page */
+/* Hero - dramatic size for landing page */
 .logo--hero {
-  gap: 8px;
+  gap: var(--spacing-md);
 }
 
 .logo--hero .logo__icon {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
 }
 
 .logo--hero .logo__text {
-  font-size: 42px;
-  letter-spacing: 4px;
-  font-weight: 400;
+  font-size: 48px;
+  letter-spacing: 0.25em;
+  font-weight: var(--typography-weight-light);
 }
 
 .logo--hero .logo__svg {
   filter: none;
 }
 
-/* Hero - no float animation for cleaner look */
-
 /* =============================================================================
    Responsive - Hero Size
    ============================================================================= */
 
 @media (max-width: 768px) {
-  .logo--hero .logo__icon {
-    width: 48px;
-    height: 48px;
-    margin-top: 4px;
+  .logo--hero {
+    gap: var(--spacing-sm);
+  }
 
+  .logo--hero .logo__icon {
+    width: 36px;
+    height: 36px;
   }
 
   .logo--hero .logo__text {
-    font-size: 70px;
-    padding-left: 4px;
-    letter-spacing: 4px;
+    font-size: 36px;
+    letter-spacing: 0.2em;
   }
 }
 
 @media (max-width: 480px) {
   .logo--hero .logo__icon {
-    width: 40px;
-    height: 40px;
-    margin-top: 3px;
+    width: 28px;
+    height: 28px;
   }
 
   .logo--hero .logo__text {
-    font-size: 56px;
-    letter-spacing: 3px;
+    font-size: 28px;
+    letter-spacing: 0.18em;
+  }
+}
+
+/* =============================================================================
+   Animation Performance
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .logo--animated .logo__svg,
+  .logo__svg--animated,
+  .logo--animated .logo__letter {
+    animation: none;
   }
 }

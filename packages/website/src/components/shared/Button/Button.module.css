@@ -1,30 +1,37 @@
 /* =============================================================================
-   Button Component Styles - Minimal
+   Button Component - Japanese Minimalist
+   Clean, intentional, with subtle edge
    ============================================================================= */
 
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0;
   font-family: var(--typography-family-sans);
   font-weight: var(--typography-weight-regular);
   font-size: var(--typography-size-sm);
   text-decoration: none;
   cursor: pointer;
-  transition: opacity var(--animation-duration-fast) var(--animation-easing-out);
   white-space: nowrap;
   user-select: none;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.2s ease;
 }
 
 .button:focus-visible {
-  outline: 1px solid var(--text-tertiary);
-  outline-offset: 2px;
+  outline: 1px solid var(--accent-line);
+  outline-offset: 4px;
 }
 
 .button:active {
-  opacity: 0.7;
+  transform: scale(0.98);
 }
 
 /* Button Content */
@@ -33,6 +40,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
 }
 
 .button__icon {
@@ -40,6 +49,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.button:hover .button__icon {
+  transform: translateX(2px);
 }
 
 .button__label {
@@ -51,9 +65,9 @@
    ============================================================================= */
 
 .button--sm {
-  height: 32px;
-  padding: 0 var(--spacing-md);
-  font-size: var(--typography-size-sm);
+  height: 36px;
+  padding: 0 var(--spacing-lg);
+  font-size: var(--typography-size-xs);
   gap: var(--spacing-xs);
 }
 
@@ -63,9 +77,9 @@
 }
 
 .button--md {
-  height: 40px;
-  padding: 0 var(--spacing-lg);
-  font-size: var(--typography-size-base);
+  height: 44px;
+  padding: 0 var(--spacing-xl);
+  font-size: var(--typography-size-sm);
   gap: var(--spacing-sm);
 }
 
@@ -75,39 +89,67 @@
 }
 
 .button--lg {
-  height: 48px;
-  padding: 0 var(--spacing-xl);
-  font-size: var(--typography-size-lg);
+  height: 52px;
+  padding: 0 var(--spacing-2xl);
+  font-size: var(--typography-size-sm);
   gap: var(--spacing-sm);
 }
 
 .button--lg .button__icon svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 /* =============================================================================
-   Variant: Primary
+   Variant: Primary - Solid with hover reveal
    ============================================================================= */
 
 .button--primary {
   background: var(--text-primary);
   color: var(--bg-primary);
-  border: none;
+  border: 1px solid var(--text-primary);
+}
+
+.button--primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-primary);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
 }
 
 .button--primary:hover {
-  opacity: 0.8;
+  color: var(--text-primary);
+}
+
+.button--primary:hover::before {
+  transform: translateY(0);
 }
 
 /* =============================================================================
-   Variant: Secondary
+   Variant: Secondary - Bordered with fill
    ============================================================================= */
 
 .button--secondary {
   background: transparent;
   color: var(--text-secondary);
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-strong);
+}
+
+.button--secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-tertiary);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
 }
 
 .button--secondary:hover {
@@ -115,17 +157,53 @@
   border-color: var(--text-tertiary);
 }
 
+.button--secondary:hover::before {
+  transform: translateY(0);
+}
+
 /* =============================================================================
-   Variant: Ghost
+   Variant: Ghost - Minimal with underline
    ============================================================================= */
 
 .button--ghost {
   background: transparent;
   color: var(--text-secondary);
   border: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.button--ghost::after {
+  content: '';
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--accent-line);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
 }
 
 .button--ghost:hover {
-  background: var(--bg-tertiary);
   color: var(--text-primary);
+}
+
+.button--ghost:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* =============================================================================
+   Animation Performance
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .button::before,
+  .button::after,
+  .button__icon {
+    transition: none;
+  }
 }

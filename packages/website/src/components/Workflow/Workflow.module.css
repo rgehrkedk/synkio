@@ -1,41 +1,62 @@
-/* Workflow Section - Minimal */
+/* =============================================================================
+   Workflow Section - Japanese Minimalist
+   Clean flow diagrams with architectural precision
+   ============================================================================= */
+
 .section {
-  padding: var(--spacing-6xl) var(--spacing-xl);
+  padding: clamp(100px, 15vh, 180px) var(--spacing-xl);
   background-color: var(--bg-primary);
-  border-top: 1px solid var(--border-default);
+  position: relative;
+}
+
+/* Top border accent */
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--border-default) max(15%, 60px),
+    var(--border-default) 100%
+  );
 }
 
 .container {
   max-width: 900px;
   margin: 0 auto;
-  padding-left: 12%;
+  padding-left: max(15%, var(--spacing-xl));
 }
 
 /* Header */
 .header {
-  text-align: left;
-  margin-bottom: var(--spacing-4xl);
+  margin-bottom: var(--spacing-5xl);
 }
 
 .title {
-  font-size: var(--typography-size-xl);
-  font-weight: var(--typography-weight-regular);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: var(--typography-weight-light);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  letter-spacing: -0.02em;
 }
 
 .subtitle {
-  font-size: var(--typography-size-sm);
+  font-size: var(--typography-size-base);
   color: var(--text-tertiary);
   max-width: 400px;
-  line-height: 1.6;
+  line-height: 1.7;
+  font-weight: var(--typography-weight-light);
 }
 
-/* Flows Grid */
+/* Flows */
 .flows {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4xl);
+  gap: var(--spacing-5xl);
 }
 
 /* Flow Card */
@@ -45,7 +66,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
 }
 
 /* Flow Label Badge */
@@ -53,43 +74,49 @@
   display: inline-block;
   font-family: var(--typography-family-mono);
   font-size: var(--typography-size-xs);
-  font-weight: var(--typography-weight-medium);
-  color: var(--text-primary);
-  letter-spacing: 0.05em;
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-default);
+  font-weight: var(--typography-weight-regular);
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--border-default);
   width: fit-content;
+  transition: border-color 0.2s ease;
+}
+
+.flow:hover .flowLabel {
+  border-color: var(--accent-line);
 }
 
 .flowTitle {
-  font-size: var(--typography-size-base);
-  font-weight: var(--typography-weight-medium);
+  font-size: var(--typography-size-lg);
+  font-weight: var(--typography-weight-regular);
   color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .flowDescription {
   font-size: var(--typography-size-sm);
   color: var(--text-tertiary);
-  line-height: 1.6;
+  line-height: 1.7;
   margin: 0;
-  max-width: 400px;
+  max-width: 450px;
 }
 
 /* ASCII Diagram */
 .asciiContainer {
   background-color: var(--bg-secondary);
-  border-radius: 0;
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xl);
   overflow-x: auto;
-  border-left: 1px solid var(--border-default);
+  border-left: 1px solid var(--accent-line);
+  position: relative;
 }
 
 .ascii {
   font-family: var(--typography-family-mono);
-  font-size: 10px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.5;
   color: var(--text-tertiary);
   margin: 0;
   white-space: pre;
@@ -100,6 +127,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  padding-left: var(--spacing-md);
+  border-left: 1px solid var(--border-default);
 }
 
 .step {
@@ -112,20 +141,20 @@
   font-size: var(--typography-size-xs);
   color: var(--text-tertiary);
   min-width: 16px;
-  padding-top: 1px;
+  font-family: var(--typography-family-mono);
 }
 
 .stepText {
   font-size: var(--typography-size-sm);
   color: var(--text-tertiary);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* Command */
 .commandContainer {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   padding-top: var(--spacing-lg);
 }
 
@@ -133,47 +162,72 @@
   font-size: var(--typography-size-xs);
   color: var(--text-tertiary);
   font-weight: var(--typography-weight-regular);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .command {
   font-family: var(--typography-family-mono);
-  font-size: var(--typography-size-xs);
+  font-size: var(--typography-size-sm);
   background-color: var(--bg-secondary);
   color: var(--text-secondary);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-left: 1px solid var(--accent-line);
 }
 
-/* Responsive styles */
+/* =============================================================================
+   Responsive Styles
+   ============================================================================= */
+
 @media (max-width: 768px) {
+  .section {
+    padding: var(--spacing-5xl) var(--spacing-xl);
+  }
+
   .container {
     padding-left: var(--spacing-xl);
   }
 
+  .header {
+    margin-bottom: var(--spacing-4xl);
+  }
+
+  .flows {
+    gap: var(--spacing-4xl);
+  }
+
+  .ascii {
+    font-size: 9px;
+  }
+
+  .asciiContainer {
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
   .section {
     padding: var(--spacing-4xl) var(--spacing-lg);
+  }
+
+  .title {
+    font-size: var(--typography-size-xl);
+  }
+
+  .subtitle {
+    font-size: var(--typography-size-sm);
   }
 
   .flows {
     gap: var(--spacing-3xl);
   }
 
-  .ascii {
-    font-size: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .section {
-    padding: var(--spacing-3xl) var(--spacing-lg);
-  }
-
-  .flows {
-    gap: var(--spacing-2xl);
+  .flowTitle {
+    font-size: var(--typography-size-base);
   }
 
   .ascii {
-    font-size: 6px;
+    font-size: 7px;
   }
 
   .asciiContainer {
@@ -183,6 +237,16 @@
   .commandContainer {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
+  }
+}
+
+/* =============================================================================
+   Animation Performance
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .flowLabel {
+    transition: none;
   }
 }
