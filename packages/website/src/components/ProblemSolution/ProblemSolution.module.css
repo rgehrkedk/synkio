@@ -1,15 +1,15 @@
 /* ProblemSolution Component Styles - Minimal */
 
 .section {
-  padding: var(--spacing-6xl) var(--spacing-xl);
+  padding: var(--section-padding-y-lg) 0;
   background: var(--bg-primary);
   border-top: 1px solid var(--border-default);
 }
 
 .container {
-  max-width: 900px;
+  max-width: var(--layout-max-width-narrow);
   margin: 0 auto;
-  padding-left: 12%;
+  padding: 0 var(--container-padding-x);
 }
 
 .header {
@@ -116,13 +116,13 @@
 
 /* Responsive styles */
 @media (max-width: 768px) {
-  .container {
-    padding-left: var(--spacing-xl);
+  .section {
+    padding: var(--spacing-5xl) 0;
   }
 }
 
 @media (max-width: 480px) {
   .section {
-    padding: var(--spacing-4xl) var(--spacing-lg);
+    padding: var(--spacing-4xl) 0;
   }
 }

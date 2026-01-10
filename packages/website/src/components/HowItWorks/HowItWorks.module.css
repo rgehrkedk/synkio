@@ -4,7 +4,7 @@
    ============================================================================= */
 
 .section {
-  padding: clamp(100px, 15vh, 180px) var(--spacing-xl);
+  padding: var(--section-padding-y-lg) 0;
   background: var(--bg-secondary);
   position: relative;
 }
@@ -14,16 +14,16 @@
   content: '';
   position: absolute;
   top: 0;
-  left: var(--spacing-xl);
+  left: var(--container-padding-x);
   width: 60px;
   height: 1px;
   background-color: var(--accent-line);
 }
 
 .container {
-  max-width: 900px;
+  max-width: var(--layout-max-width-narrow);
   margin: 0 auto;
-  padding: 0 var(--spacing-xl);
+  padding: 0 var(--container-padding-x);
 }
 
 .header {
@@ -52,6 +52,8 @@
   flex-direction: column;
   gap: var(--spacing-4xl);
   position: relative;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 /* Connecting line between steps */
@@ -135,11 +137,11 @@
 
 @media (max-width: 768px) {
   .section {
-    padding: var(--spacing-5xl) var(--spacing-xl);
+    padding: var(--spacing-5xl) 0;
   }
 
   .section::before {
-    left: var(--spacing-xl);
+    left: var(--container-padding-x);
     width: 40px;
   }
 
@@ -173,11 +175,11 @@
 
 @media (max-width: 480px) {
   .section {
-    padding: var(--spacing-4xl) var(--spacing-lg);
+    padding: var(--spacing-4xl) 0;
   }
 
   .section::before {
-    left: var(--spacing-lg);
+    left: var(--container-padding-x-mobile);
     width: 30px;
   }
 
