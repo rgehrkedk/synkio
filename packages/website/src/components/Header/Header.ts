@@ -36,7 +36,7 @@ export function Header(): HTMLElement {
   logoLink.className = getStyle('logo');
   logoLink.setAttribute('aria-label', 'Synkio home');
 
-  const logoElement = Logo({ size: 'sm', color: 'neutral', animated: false });
+  const logoElement = Logo({ size: 'lg', color: 'neutral', animated: false });
   logoLink.appendChild(logoElement);
 
   const logoText = document.createElement('span');
@@ -95,6 +95,23 @@ export function Header(): HTMLElement {
 
   container.appendChild(nav);
   header.appendChild(container);
+
+  // Add scroll listener to toggle 'scrolled' class
+  // Show header logo when scrolled past the hero logo
+  const handleScroll = () => {
+    const scrollThreshold = 200; // Approximately when hero logo is out of view
+    if (window.scrollY > scrollThreshold) {
+      header.classList.add(getStyle('scrolled'));
+    } else {
+      header.classList.remove(getStyle('scrolled'));
+    }
+  };
+
+  // Initial check
+  handleScroll();
+
+  // Listen for scroll
+  window.addEventListener('scroll', handleScroll, { passive: true });
 
   return header;
 }

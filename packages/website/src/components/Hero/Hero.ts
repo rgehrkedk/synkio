@@ -23,11 +23,15 @@ export function Hero(): HTMLElement {
   const content = document.createElement('div');
   content.className = getStyle('content');
 
-  // Small logo above tagline (mobile and context)
+  // Logo (left column)
   const logoContainer = document.createElement('div');
   logoContainer.className = getStyle('logoContainer');
   logoContainer.appendChild(Logo({ size: 'hero', animated: true }));
   content.appendChild(logoContainer);
+
+  // Right column - contains all text content, install section, and CTAs
+  const rightColumn = document.createElement('div');
+  rightColumn.className = getStyle('rightColumn');
 
   // Text content
   const textContent = document.createElement('div');
@@ -36,16 +40,16 @@ export function Hero(): HTMLElement {
   // Tagline
   const tagline = document.createElement('h1');
   tagline.className = getStyle('tagline');
-  tagline.innerHTML = `Design tokens shouldn't<br>cost <span class="${getStyle('taglineGradient')}">$75/seat</span>`;
+  tagline.innerHTML = `Your tokens are<br><span class="${getStyle('taglineGradient')}">drifting</span>`;
   textContent.appendChild(tagline);
 
   // Subhead
   const subhead = document.createElement('p');
   subhead.className = getStyle('subhead');
-  subhead.textContent = 'Sync Figma variables to code. Works with any plan.';
+  subhead.textContent = "Figma updated. Code didn't. Synkio keeps them in sync.";
   textContent.appendChild(subhead);
 
-  content.appendChild(textContent);
+  rightColumn.appendChild(textContent);
 
   // Install section
   const installSection = document.createElement('div');
@@ -63,7 +67,7 @@ export function Hero(): HTMLElement {
   );
   installSection.appendChild(codeBlockWrapper);
 
-  content.appendChild(installSection);
+  rightColumn.appendChild(installSection);
 
   // CTA buttons
   const actions = document.createElement('div');
@@ -85,7 +89,9 @@ export function Hero(): HTMLElement {
   });
   actions.appendChild(docsButton);
 
-  content.appendChild(actions);
+  rightColumn.appendChild(actions);
+
+  content.appendChild(rightColumn);
 
   section.appendChild(content);
 
