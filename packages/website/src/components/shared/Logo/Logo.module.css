@@ -7,26 +7,42 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  text-shadow:
+    -3px -3px 0 var(--text-primary);
 }
 
 /* =============================================================================
-   Logo Icon
+   Hero Key Visual (SVG S)
    ============================================================================= */
 
-.logo__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.logo__keyVisual {
+  position: absolute;
+  right: -300px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.15;
 }
 
-.logo__svg {
-  filter: none;
+.logo__keyVisualSvg {
+  width: 400px;
+  height: auto;
   transform-origin: center;
+  overflow: visible;
 }
 
-/* Overall logo rotation - full sync rotation */
-.logo--animated .logo__svg {
+/* Shadow layer - grouped S paths that sweep together (legacy) */
+:global(.logo__shadow) {
+  fill: var(--text-primary);
+  transform: translate(-3px, -3px);
+}
+
+.logo--animated :global(.logo__shadow) {
+  animation: svg-shadow-sweep 8s cubic-bezier(0.4, 0, 0.2, 0.2) infinite;
+}
+
+/* Overall logo rotation for key visual */
+.logo--animated .logo__keyVisualSvg {
   animation: logo-sync-rotate 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
@@ -48,103 +64,122 @@
   }
 }
 
+@keyframes svg-shadow-sweep {
+  0%, 100% {
+    transform: translate(-3px, -3px);
+  }
+  25% {
+    transform: translate(-10px, -3px);
+  }
+  50% {
+    transform: translate(10px, -3px);
+  }
+  75% {
+    transform: translate(-3px, -3px);
+  }
+}
+
 /* =============================================================================
-   Path Animations - Individual element animations
+   New S Logo (dashed outline + solid S with sweep)
    ============================================================================= */
 
-/* Sync Arc animations - flowing pulse effect */
-:global(.logo__arc) {
-  transform-origin: center;
-  opacity: 1;
+.logo__newS {
+  overflow: visible;
 }
 
-:global(.logo__arc--1) {
-  animation: arc-sync-1 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+/* Dashed outline - static, the unique logo mark */
+:global(.logo__dashedOutline) {
+  transform: translate(0, 0); /* Static - no animation */
+  stroke: var(--text-primary);
+  stroke-width: 1; /* Default stroke width */
 }
 
-:global(.logo__arc--2) {
-  animation: arc-sync-2 10s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+/* Size-specific stroke widths for dashed outline */
+.logo--lg :global(.logo__dashedOutline) {
+  stroke-width: 2;
 }
 
-/* Corner bracket animations - subtle pulse */
+.logo--hero :global(.logo__dashedOutline) {
+  stroke-width: 1;
+}
+
+/* Solid S - animated with sweep, 30% opacity set inline */
+:global(.logo__solidS) {
+  transform: translate(-3px, -3px);
+}
+
+.logo__newS--animated :global(.logo__solidS) {
+  animation: solidS-sweep 8s cubic-bezier(0.4, 0, 0.2, 0.2) infinite;
+}
+
+@keyframes solidS-sweep {
+  0%, 100% {
+    transform: translate(-3px, -3px);
+  }
+  25% {
+    transform: translate(-10px, -3px);
+  }
+  50% {
+    transform: translate(10px, -3px);
+  }
+  75% {
+    transform: translate(-3px, -3px);
+  }
+}
+
+/* =============================================================================
+   S Letter SVG in Text Logo
+   ============================================================================= */
+
+.logo__letterS {
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+  /* Remove text shadow since this is an SVG */
+  text-shadow: none !important;
+}
+
+.logo__sSvg {
+    height: 14px;
+    width: auto;
+    overflow: visible;
+    vertical-align: baseline;
+    margin-right: 3px;
+    transform-origin: center;
+    margin-top: 10px;
+}
+
+/* Hero size S SVG - larger fixed values for precise positioning */
+.logo--hero .logo__sSvg {
+    height: 78px;
+    margin-right: 14px;
+    margin-top: 48px;
+}
+
+/* S rotation animation */
+.logo__sSvg--animated {
+  animation: s-rotate 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes s-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Sync Arc and bracket base styles */
+:global(.logo__arc),
 :global(.logo__bracket) {
   transform-origin: center;
   opacity: 1;
 }
 
-:global(.logo__bracket--1) {
-  animation: bracket-pulse 10s ease-in-out infinite;
-  animation-delay: 1s;
-}
-
-:global(.logo__bracket--2) {
-  animation: bracket-pulse 10s ease-in-out infinite;
-  animation-delay: 0s;
-}
-
-/* Arc 1 (top-right) - flows down first */
-@keyframes arc-sync-1 {
-  0%, 100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  15% {
-    opacity: 1;
-    transform: scale(1.03);
-  }
-  30% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-}
-
-/* Arc 2 (bottom-left) - flows up after arc 1 */
-@keyframes arc-sync-2 {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  30% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  45% {
-    opacity: 1;
-    transform: scale(1.03);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  80% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-}
-
-/* Bracket pulse - subtle scale effect */
-@keyframes bracket-pulse {
-  0%, 100% {
-    opacity: 0.7;
-    transform: scale(1);
-  }
-  25% {
-    opacity: 1;
-    transform: scale(1.08);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-  75% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
 
 
 /* =============================================================================
@@ -153,66 +188,186 @@
 
 .logo__text {
   display: flex;
-  font-family: 'Urbanist', var(--typography-family-sans);
+  font-family: 'Outfit', var(--typography-family-sans);
   font-weight: 800;
-  text-transform: uppercase;
+
   line-height: 1;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
 }
 
 .logo__letter {
   display: inline-block;
   color: var(--bg-primary);
   font-weight: 800;
+  /* Outline via text-shadow (8 directions) + offset shadow */
   text-shadow:
+    /* Outline - 8 directions */
+    -1px -1px 0 var(--text-primary),
+     1px -1px 0 var(--text-primary),
+    -1px  1px 0 var(--text-primary),
+     1px  1px 0 var(--text-primary),
+     0   -1px 0 var(--text-primary),
+     0    1px 0 var(--text-primary),
+    -1px  0   0 var(--text-primary),
+     1px  0   0 var(--text-primary),
+    /* Offset shadow */
     -3px -3px 0 var(--text-primary),
-    3px -3px 0 var(--text-primary),
-    -3px 3px 0 var(--text-primary),
-    3px 3px 0 var(--text-primary),
-    -3px 0 0 var(--text-primary),
-    3px 0 0 var(--text-primary),
-    0 -3px 0 var(--text-primary),
-    0 3px 0 var(--text-primary),
-    -2px -2px 0 var(--text-primary),
-    2px -2px 0 var(--text-primary),
-    -2px 2px 0 var(--text-primary),
-    2px 2px 0 var(--text-primary);
+    -4px -4px 0 var(--text-primary);
 }
 
-/* Animated letter colors - very subtle */
-.logo--animated .logo__letter {
-  animation: letter-fade 12s ease-in-out infinite;
-  animation-delay: calc(var(--letter-index, 0) * 0.3s);
+/* =============================================================================
+   Letter "i" with vermillion dot
+   ============================================================================= */
+
+.logo__letterI {
+  position: relative;
+  display: inline-block;
 }
 
-@keyframes letter-fade {
+.logo__iDot {
+  position: absolute;
+  top: 0.10em;
+  left: 40%;
+  transform: translateX(-50%);
+  width: 0.22em;
+  height: 0.22em;
+  background-color: var(--text-primary);
+
+  border-radius: 50%;
+  box-sizing: border-box;
+  /* Static shadow to match the letter's offset shadow */
+  box-shadow:
+    -3px -3px 0 var(--accent-vermillion),
+    -4px -4px 0 var(--accent-vermillion);
+}
+
+/* Animated dot shadow sweep - inherits same delay as parent letter */
+.logo--animated .logo__iDot {
+  animation: dot-shadow-sweep 8s cubic-bezier(0.4, 0, 0.2, 0.2) infinite;
+  animation-delay: inherit;
+}
+
+@keyframes dot-shadow-sweep {
   0%, 100% {
-    opacity: 1;
+    box-shadow:
+      -3px -3px 0 var(--accent-vermillion),
+      -4px -4px 0 var(--accent-vermillion);
+  }
+  25% {
+    box-shadow:
+      -6px -3px 0 var(--accent-vermillion),
+      -7px -4px 0 var(--accent-vermillion);
   }
   50% {
-    opacity: 0.6;
+    box-shadow:
+      10px -3px 0 var(--accent-vermillion),
+      11px -4px 0 var(--accent-vermillion);
+  }
+  75% {
+    box-shadow:
+      -3px -3px 0 var(--accent-vermillion),
+      -4px -4px 0 var(--accent-vermillion);
   }
 }
 
+.logo__iStem {
+  display: inline-block;
+}
+
+/* Animated letter shadow sweep */
+.logo--animated .logo__letter {
+  animation: letter-shadow-sweep 8s cubic-bezier(0.4, 0, 0.2, 0.2) infinite;
+  animation-delay: calc(var(--letter-index, 0) * 0.15s);
+}
+
+@keyframes letter-shadow-sweep {
+  0%, 100% {
+    text-shadow:
+      -1px -1px 0 var(--text-primary),
+       1px -1px 0 var(--text-primary),
+      -1px  1px 0 var(--text-primary),
+       1px  1px 0 var(--text-primary),
+       0   -1px 0 var(--text-primary),
+       0    1px 0 var(--text-primary),
+      -1px  0   0 var(--text-primary),
+       1px  0   0 var(--text-primary),
+      -3px -3px 0 var(--text-primary),
+      -4px -4px 0 var(--text-primary);
+  }
+  25% {
+    text-shadow:
+      -1px -1px 0 var(--text-primary),
+       1px -1px 0 var(--text-primary),
+      -1px  1px 0 var(--text-primary),
+       1px  1px 0 var(--text-primary),
+       0   -1px 0 var(--text-primary),
+       0    1px 0 var(--text-primary),
+      -1px  0   0 var(--text-primary),
+       1px  0   0 var(--text-primary),
+      -6px -3px 0 var(--text-primary),
+      -7px -4px 0 var(--text-primary);
+  }
+  50% {
+    text-shadow:
+      -1px -1px 0 var(--text-primary),
+       1px -1px 0 var(--text-primary),
+      -1px  1px 0 var(--text-primary),
+       1px  1px 0 var(--text-primary),
+       0   -1px 0 var(--text-primary),
+       0    1px 0 var(--text-primary),
+      -1px  0   0 var(--text-primary),
+       1px  0   0 var(--text-primary),
+      10px -3px 0 var(--text-primary),
+      11px -4px 0 var(--text-primary);
+  }
+  75% {
+    text-shadow:
+      -1px -1px 0 var(--text-primary),
+       1px -1px 0 var(--text-primary),
+      -1px  1px 0 var(--text-primary),
+       1px  1px 0 var(--text-primary),
+       0   -1px 0 var(--text-primary),
+       0    1px 0 var(--text-primary),
+      -1px  0   0 var(--text-primary),
+       1px  0   0 var(--text-primary),
+      -3px -3px 0 var(--text-primary),
+      -4px -4px 0 var(--text-primary);
+  }
+}
 /* =============================================================================
    Color Variants
    ============================================================================= */
 
-/* Neutral - adapts to dark/light mode */
+/* Neutral - simple solid text, no shadows/outlines */
 .logo--neutral {
   color: var(--text-primary);
-}
-
-.logo--neutral .logo__svg {
-  filter: none;
+  text-shadow: none;
 }
 
 .logo--neutral .logo__letter {
-  color: currentColor;
+  color: var(--text-primary);
+  text-shadow: none;
 }
 
-/* Disable color animation for neutral */
-.logo--neutral.logo--animated .logo__letter {
+/* Neutral dot uses text color instead of vermillion */
+.logo--neutral .logo__iDot {
+  background-color: var(--text-primary);
+}
+
+.logo--neutral .logo__iDot {
+  box-shadow:
+    -3px -3px 0 var(--text-primary),
+    -4px -4px 0 var(--text-primary);
+  animation: none;
+}
+
+/* Disable shadow for neutral */
+.logo--neutral :global(.logo__shadow) {
+  display: none;
+}
+
+.logo--neutral.logo--animated .logo__letter,
+.logo--neutral.logo--animated .logo__keyVisualSvg {
   animation: none;
 }
 
@@ -221,60 +376,24 @@
    ============================================================================= */
 
 /* Small */
-.logo--sm {
-  gap: 4px;
-}
-
-.logo--sm .logo__icon {
-  width: 14px;
-  height: 14px;
-}
-
 .logo--sm .logo__text {
-  font-size: 14px;
+  font-size: 20px;
   letter-spacing: 0.06em;
 }
 
 /* Medium */
-.logo--md {
-  gap: var(--spacing-sm);
-}
-
-.logo--md .logo__icon {
-  width: 28px;
-  height: 28px;
-}
-
 .logo--md .logo__text {
-  font-size: 18px;
+  font-size: 24px;
   letter-spacing: 0.08em;
 }
 
 /* Large */
-.logo--lg {
-  gap: var(--spacing-md);
-}
-
-.logo--lg .logo__icon {
-  width: 40px;
-  height: 40px;
-}
-
 .logo--lg .logo__text {
   font-size: 28px;
   letter-spacing: 0.08em;
 }
 
 /* Extra Large */
-.logo--xl {
-  gap: var(--spacing-md);
-}
-
-.logo--xl .logo__icon {
-  width: 56px;
-  height: 56px;
-}
-
 .logo--xl .logo__text {
   font-size: 36px;
   letter-spacing: 0.08em;
@@ -282,56 +401,66 @@
 
 /* Hero - dramatic size for landing page */
 .logo--hero {
-  gap: var(--spacing-lg);
-}
-
-.logo--hero .logo__icon {
-  width: 72px;
-  height: 72px;
+  position: relative;
 }
 
 .logo--hero .logo__text {
-  font-size: 100px;
-  letter-spacing: 0.08em;
-}
-
-.logo--hero .logo__letter {
-  -webkit-text-stroke: 2px var(--text-primary);
-}
-
-.logo--hero .logo__svg {
-  filter: none;
+  font-size: 140px;
+  letter-spacing: 0.12em;
 }
 
 /* =============================================================================
    Responsive - Hero Size
    ============================================================================= */
 
-@media (max-width: 768px) {
-  .logo--hero {
-    gap: var(--spacing-md);
-  }
-
-  .logo--hero .logo__icon {
-    width: 48px;
-    height: 48px;
-  }
-
+@media (max-width: 1024px) {
   .logo--hero .logo__text {
-    font-size: 48px;
+    font-size: 100px;
+    letter-spacing: 0.10em;
+  }
+
+  .logo--hero .logo__sSvg {
+    height: 58px;
+    margin-right: 10px;
+    margin-top: 35px;
+  }
+}
+
+@media (max-width: 768px) {
+  .logo--hero .logo__text {
+    font-size: 64px;
     letter-spacing: 0.08em;
+  }
+
+  .logo--hero .logo__sSvg {
+    height: 38px;
+    margin-right: 7px;
+    margin-top: 22px;
+  }
+
+  .logo__keyVisual {
+    right: -150px;
+  }
+
+  .logo__keyVisualSvg {
+    width: 250px;
   }
 }
 
 @media (max-width: 480px) {
-  .logo--hero .logo__icon {
-    width: 36px;
-    height: 36px;
+  .logo--hero .logo__text {
+    font-size: 48px;
+    letter-spacing: 0.08em;
   }
 
-  .logo--hero .logo__text {
-    font-size: 36px;
-    letter-spacing: 0.08em;
+  .logo--hero .logo__sSvg {
+    height: 28px;
+    margin-right: 5px;
+    margin-top: 16px;
+  }
+
+  .logo__keyVisual {
+    display: none;
   }
 }
 
@@ -340,17 +469,30 @@
    ============================================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .logo--animated .logo__svg,
-  .logo__svg--animated,
-  .logo--animated .logo__letter {
+  .logo--animated .logo__letter,
+  .logo--animated .logo__keyVisualSvg,
+  .logo--animated .logo__iDot {
     animation: none;
-    transform: none;
   }
 
   :global(.logo__arc),
-  :global(.logo__bracket) {
+  :global(.logo__bracket),
+  :global(.logo__shadow) {
     animation: none !important;
     opacity: 1 !important;
-    transform: none !important;
+    transform: translate(-3px, -3px) !important;
+  }
+
+  /* New S logo - disable sweep animation */
+  .logo__newS--animated :global(.logo__solidS),
+  .logo__sSvg--animated :global(.logo__solidS) {
+    animation: none;
+    transform: translate(-3px, -3px);
+  }
+
+  /* S SVG - disable rotation */
+  .logo__sSvg--animated {
+    animation: none;
+    transform: none;
   }
 }
