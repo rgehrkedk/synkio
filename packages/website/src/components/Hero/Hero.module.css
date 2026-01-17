@@ -307,7 +307,7 @@
 
 @media (max-width: 768px) {
   .hero {
-    padding: var(--spacing-4xl) var(--spacing-xl);
+    padding: var(--spacing-4xl) var(--container-padding-x);
     min-height: auto;
     padding-top: 140px;
     padding-bottom: var(--spacing-4xl);
@@ -357,7 +357,7 @@
 
 @media (max-width: 480px) {
   .hero {
-    padding: var(--spacing-3xl) var(--spacing-lg);
+    padding: var(--spacing-3xl) var(--container-padding-x);
     padding-top: 120px;
   }
 

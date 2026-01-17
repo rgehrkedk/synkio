@@ -47,7 +47,7 @@
 .container {
   max-width: none;
   margin: 0;
-  padding: 0 var(--spacing-2xl);
+  padding: 0 var(--container-padding-x);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -228,7 +228,7 @@
   }
 
   .footer::before {
-    left: var(--spacing-xl);
+    left: var(--container-padding-x);
   }
 
   .footer::after {
@@ -236,7 +236,7 @@
   }
 
   .container {
-    padding: 0 var(--spacing-xl);
+    padding: 0 var(--container-padding-x);
   }
 }
 
