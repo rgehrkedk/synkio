@@ -179,7 +179,7 @@
   }
 
   .section::before {
-    left: var(--container-padding-x-mobile);
+    left: var(--container-padding-x);
     width: 30px;
   }
 

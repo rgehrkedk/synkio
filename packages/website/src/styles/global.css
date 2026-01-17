@@ -4,6 +4,22 @@
    Ma (間) - the beauty of negative space
    ============================================================================= */
 
+/* =============================================================================
+   Layout Variables - Shared across components
+   ============================================================================= */
+
+:root {
+  /* Container padding */
+  --container-padding-x: var(--spacing-xl);
+  --container-padding-x-mobile: var(--spacing-lg);
+
+  /* Section padding */
+  --section-padding-y-lg: clamp(100px, 15vh, 180px);
+
+  /* Max widths */
+  --layout-max-width-narrow: 800px;
+}
+
 /* Dark Theme - Default */
 [data-theme="dark"] {
   --bg-primary: #0e0d0b;
@@ -476,6 +492,10 @@ pre code {
    ============================================================================= */
 
 @media (max-width: 768px) {
+  :root {
+    --container-padding-x: var(--spacing-xl);
+  }
+
   body {
     font-size: var(--typography-size-sm);
   }
@@ -490,6 +510,7 @@ pre code {
 
   .container {
     padding-left: var(--spacing-xl);
+    padding-right: var(--spacing-xl);
   }
 
   #root::after {
@@ -501,6 +522,15 @@ pre code {
 }
 
 @media (max-width: 480px) {
+  :root {
+    --container-padding-x: var(--spacing-lg);
+  }
+
+  .container {
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-lg);
+  }
+
   #root::after {
     display: none;
   }
