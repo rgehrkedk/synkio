@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run tokens:build && vite build",
+    "build": "npm run tokens:build && npx vite build",
     "preview": "vite preview",
-    "tokens:build": "style-dictionary build --config tokens/style-dictionary.config.js"
+    "tokens:build": "npx style-dictionary build --config tokens/style-dictionary.config.js"
   },
   "devDependencies": {
     "paper": "^0.12.18",
