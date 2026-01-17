@@ -1,7 +1,7 @@
 {
-  "installCommand": "npm install",
+  "installCommand": "npm install --include=dev",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
+  "framework": null,
   "ignoreCommand": "git diff HEAD^ HEAD --quiet -- ."
 }
