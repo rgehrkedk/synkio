@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node node_modules/.bin/style-dictionary build --config tokens/style-dictionary.config.js && node node_modules/.bin/vite build",
+    "build": "style-dictionary build --config tokens/style-dictionary.config.js && vite build",
     "preview": "vite preview",
-    "tokens:build": "node node_modules/.bin/style-dictionary build --config tokens/style-dictionary.config.js"
+    "tokens:build": "style-dictionary build --config tokens/style-dictionary.config.js"
   },
   "devDependencies": {
     "paper": "^0.12.18",
