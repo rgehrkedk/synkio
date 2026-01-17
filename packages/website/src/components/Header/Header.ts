@@ -96,19 +96,49 @@ export function Header(): HTMLElement {
   container.appendChild(nav);
   header.appendChild(container);
 
-  // Add scroll listener to toggle 'scrolled' class
-  // Show header logo when scrolled past the hero logo
-  const handleScroll = () => {
-    const scrollThreshold = 200; // Approximately when hero logo is out of view
-    if (window.scrollY > scrollThreshold) {
-      header.classList.add(getStyle('scrolled'));
-    } else {
-      header.classList.remove(getStyle('scrolled'));
+  // Add scroll listener to toggle 'scrolled' class and reveal header logo
+  // The header logo should only appear after scrolling past the hero logo
+  let heroLogoBottom: number | null = null;
+
+  const updateHeroLogoPosition = () => {
+    const heroLogo = document.querySelector('[data-hero-logo]');
+    if (heroLogo) {
+      const rect = heroLogo.getBoundingClientRect();
+      // Calculate the absolute position of the hero logo's bottom from the top of the document
+      heroLogoBottom = window.scrollY + rect.bottom;
     }
   };
 
-  // Initial check
-  handleScroll();
+  const handleScroll = () => {
+    // Recalculate hero logo position if not yet determined
+    if (heroLogoBottom === null) {
+      updateHeroLogoPosition();
+    }
+
+    const scrollThreshold = heroLogoBottom ?? 200; // Fallback to 200px
+    const isPastHeroLogo = window.scrollY > scrollThreshold;
+
+    if (isPastHeroLogo) {
+      header.classList.add(getStyle('scrolled'));
+      logoLink.classList.add(getStyle('logoVisible'));
+    } else {
+      header.classList.remove(getStyle('scrolled'));
+      logoLink.classList.remove(getStyle('logoVisible'));
+    }
+  };
+
+  // Calculate hero logo position after page has rendered
+  requestAnimationFrame(() => {
+    updateHeroLogoPosition();
+    handleScroll();
+  });
+
+  // Recalculate on resize (hero logo position may change)
+  window.addEventListener('resize', () => {
+    heroLogoBottom = null;
+    updateHeroLogoPosition();
+    handleScroll();
+  }, { passive: true });
 
   // Listen for scroll
   window.addEventListener('scroll', handleScroll, { passive: true });
