@@ -4,6 +4,7 @@
  */
 
 import { Logo } from '../shared/Logo';
+import { LetterLogo } from '../shared/LetterLogo';
 import { Button } from '../shared/Button';
 import { CodeBlock } from '../shared/CodeBlock';
 import styles from './Hero.module.css';
@@ -27,6 +28,13 @@ export function Hero(): HTMLElement {
   const logoContainer = document.createElement('div');
   logoContainer.className = getStyle('logoContainer');
   logoContainer.appendChild(Logo({ size: 'hero', animated: true }));
+
+  // Letter logo (Monoton wordmark) below the main logo
+  const letterLogoContainer = document.createElement('div');
+  letterLogoContainer.className = getStyle('letterLogoContainer');
+  letterLogoContainer.appendChild(LetterLogo({ animated: true }));
+  logoContainer.appendChild(letterLogoContainer);
+
   content.appendChild(logoContainer);
 
   // Right column - contains all text content, install section, and CTAs

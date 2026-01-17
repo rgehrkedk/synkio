@@ -10,8 +10,14 @@
     "tokens:build": "style-dictionary build --config tokens/style-dictionary.config.js"
   },
   "devDependencies": {
-    "vite": "^5.4.0",
+    "paper": "^0.12.18",
+    "style-dictionary": "^4.0.0",
     "typescript": "^5.3.0",
-    "style-dictionary": "^4.0.0"
+    "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "gsap": "^3.14.2",
+    "motion": "^12.25.0",
+    "svg-outline-stroke": "^1.3.1"
   }
 }
