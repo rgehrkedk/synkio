@@ -44,7 +44,19 @@
   text-decoration: none;
   color: var(--text-primary);
   position: relative;
-  transition: opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition:
+    opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Logo becomes visible after scrolling past hero logo */
+.logo.logoVisible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 /* Subtle glow on hover */
@@ -63,11 +75,11 @@
   z-index: -1;
 }
 
-.logo:hover::after {
+.logo.logoVisible:hover::after {
   opacity: 1;
 }
 
-.logo:hover {
+.logo.logoVisible:hover {
   opacity: 0.9;
 }
 
@@ -287,6 +299,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header,
+  .logo,
   .logo::after,
   .navLink::after,
   .navLink svg,
@@ -294,6 +307,10 @@
   .themeToggle::before,
   .themeToggle svg {
     transition: none;
+  }
+
+  .logo {
+    transform: none;
   }
 
   .nav.open .navLinks {

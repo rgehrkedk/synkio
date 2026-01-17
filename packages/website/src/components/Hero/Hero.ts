@@ -32,6 +32,7 @@ export function Hero(): HTMLElement {
   // Letter logo (Monoton wordmark) below the main logo
   const letterLogoContainer = document.createElement('div');
   letterLogoContainer.className = getStyle('letterLogoContainer');
+  letterLogoContainer.setAttribute('data-hero-logo', 'true');
   letterLogoContainer.appendChild(LetterLogo({ animated: true }));
   logoContainer.appendChild(letterLogoContainer);
 
