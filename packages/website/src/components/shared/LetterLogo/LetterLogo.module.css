@@ -27,6 +27,23 @@
   user-select: none;
 }
 
+/* Size variants */
+.letterLogo--sm .word {
+  font-size: 1rem;
+}
+
+.letterLogo--md .word {
+  font-size: 1.25rem;
+}
+
+.letterLogo--lg .word {
+  font-size: 1.5rem;
+}
+
+.letterLogo--hero .word {
+  font-size: clamp(2.5rem, 8vw, 5rem);
+}
+
 .word {
   display: flex;
   align-items: baseline;

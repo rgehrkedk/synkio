@@ -11,6 +11,7 @@ const getStyle = (key: string): string => (styles && styles[key]) || '';
 
 export interface LetterLogoProps {
   animated?: boolean;
+  size?: 'sm' | 'md' | 'lg' | 'hero';
 }
 
 // =============================================================================
@@ -18,10 +19,11 @@ export interface LetterLogoProps {
 // =============================================================================
 
 export function LetterLogo(props: LetterLogoProps = {}): HTMLElement {
-  const { animated = true } = props;
+  const { animated = true, size = 'hero' } = props;
 
   const container = document.createElement('div');
-  container.className = `${getStyle('letterLogo')} ${animated ? getStyle('letterLogo--animated') : ''}`;
+  const sizeClass = getStyle(`letterLogo--${size}`);
+  container.className = `${getStyle('letterLogo')} ${sizeClass} ${animated ? getStyle('letterLogo--animated') : ''}`.trim();
 
   // Create the word "synkio" with special handling for "s"
   const word = document.createElement('div');
