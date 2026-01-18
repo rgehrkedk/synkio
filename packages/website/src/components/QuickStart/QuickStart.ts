@@ -78,12 +78,48 @@ export function QuickStart(): HTMLElement {
   terminalHeader.appendChild(dots);
   terminalHeader.appendChild(terminalTitle);
 
+  // Code block wrapper (for positioning copy button)
+  const codeWrapper = document.createElement('div');
+  codeWrapper.className = getStyle('codeWrapper');
+
   // Code block
   const pre = document.createElement('pre');
   pre.className = getStyle('pre');
 
   const code = document.createElement('code');
   code.className = getStyle('code');
+
+  // Copy button
+  const copyButton = document.createElement('button');
+  copyButton.className = getStyle('copyButton');
+  copyButton.setAttribute('aria-label', 'Copy to clipboard');
+  copyButton.innerHTML = icons.copy;
+
+  copyButton.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(cliCommands);
+      copyButton.innerHTML = icons.check;
+      copyButton.classList.add(getStyle('copied'));
+      setTimeout(() => {
+        copyButton.innerHTML = icons.copy;
+        copyButton.classList.remove(getStyle('copied'));
+      }, 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = cliCommands;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      copyButton.innerHTML = icons.check;
+      copyButton.classList.add(getStyle('copied'));
+      setTimeout(() => {
+        copyButton.innerHTML = icons.copy;
+        copyButton.classList.remove(getStyle('copied'));
+      }, 2000);
+    }
+  });
 
   // Parse and highlight the code
   const lines = cliCommands.split('\n');
@@ -126,8 +162,11 @@ export function QuickStart(): HTMLElement {
 
   pre.appendChild(code);
 
+  codeWrapper.appendChild(pre);
+  codeWrapper.appendChild(copyButton);
+
   codeContainer.appendChild(terminalHeader);
-  codeContainer.appendChild(pre);
+  codeContainer.appendChild(codeWrapper);
 
   // Documentation link
   const linkWrapper = document.createElement('div');

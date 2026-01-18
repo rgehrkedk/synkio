@@ -16,11 +16,6 @@ export function Hero(): HTMLElement {
   const section = document.createElement('section');
   section.className = getStyle('hero');
 
-  // Decorative enso circle - zen accent
-  const enso = document.createElement('div');
-  enso.className = getStyle('ensoDecor');
-  section.appendChild(enso);
-
   const content = document.createElement('div');
   content.className = getStyle('content');
 
@@ -46,16 +41,16 @@ export function Hero(): HTMLElement {
   const textContent = document.createElement('div');
   textContent.className = getStyle('textContent');
 
-  // Tagline
+  // Tagline - Clear value proposition
   const tagline = document.createElement('h1');
   tagline.className = getStyle('tagline');
-  tagline.innerHTML = `Your tokens are<br><span class="${getStyle('taglineGradient')}">drifting</span>`;
+  tagline.innerHTML = `Sync Figma variables<br>to code`;
   textContent.appendChild(tagline);
 
   // Subhead
   const subhead = document.createElement('p');
   subhead.className = getStyle('subhead');
-  subhead.textContent = "Figma updated. Code didn't. Synkio keeps them in sync.";
+  subhead.textContent = "Export design tokens with one command. Works with any Figma plan—no Enterprise required.";
   textContent.appendChild(subhead);
 
   rightColumn.appendChild(textContent);
@@ -78,25 +73,28 @@ export function Hero(): HTMLElement {
 
   rightColumn.appendChild(installSection);
 
-  // CTA buttons
+  // CTA buttons - Primary action + text link
   const actions = document.createElement('div');
   actions.className = getStyle('actions');
 
   const pluginButton = Button({
-    label: 'Install Plugin',
+    label: 'Get Started',
     variant: 'primary',
     size: 'lg',
     href: 'https://www.figma.com/community/plugin/synkio',
   });
   actions.appendChild(pluginButton);
 
-  const docsButton = Button({
-    label: 'Documentation',
-    variant: 'secondary',
-    size: 'lg',
-    href: '/docs',
-  });
-  actions.appendChild(docsButton);
+  // Documentation as text link (demoted from button)
+  const docsLink = document.createElement('a');
+  docsLink.className = getStyle('docsLink');
+  docsLink.href = '/docs';
+  docsLink.textContent = 'Read the docs';
+  const arrow = document.createElement('span');
+  arrow.className = getStyle('docsLinkArrow');
+  arrow.innerHTML = '→';
+  docsLink.appendChild(arrow);
+  actions.appendChild(docsLink);
 
   rightColumn.appendChild(actions);
 

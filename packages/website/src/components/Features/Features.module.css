@@ -10,24 +10,7 @@
   overflow: hidden;
 }
 
-/* Subtle ambient glow background */
-.section::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 800px;
-  height: 600px;
-  background: radial-gradient(
-    ellipse,
-    var(--ambient-glow2) 0%,
-    transparent 70%
-  );
-  transform: translate(-50%, -50%);
-  filter: blur(60px);
-  opacity: 0.5;
-  pointer-events: none;
-}
+/* Ambient glow removed for cleaner design */
 
 .container {
   max-width: 1080px;
@@ -63,7 +46,7 @@
 
 .title {
   font-size: clamp(2rem, 5vw, 2.75rem);
-  font-weight: var(--typography-weight-light);
+  font-weight: var(--typography-weight-regular);
   color: var(--text-primary);
   margin-bottom: var(--spacing-lg);
   letter-spacing: -0.03em;
@@ -75,7 +58,7 @@
   color: var(--text-tertiary);
   max-width: 380px;
   line-height: 1.7;
-  font-weight: var(--typography-weight-light);
+  font-weight: var(--typography-weight-regular);
 }
 
 /* Feature Grid - Golden ratio inspired (1:1.618) */

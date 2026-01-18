@@ -13,64 +13,7 @@
   overflow: hidden;
 }
 
-/* Floating ambient orb - large, subtle */
-.hero::before {
-  content: '';
-  position: absolute;
-  left: -15%;
-  top: 30%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(
-    circle,
-    var(--accent-moss) 0%,
-    transparent 70%
-  );
-  filter: blur(120px);
-  opacity: 0.15;
-  animation: floatOrb 30s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Secondary orb - warm accent */
-.hero::after {
-  content: '';
-  position: absolute;
-  right: 10%;
-  bottom: 20%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(
-    circle,
-    var(--accent-vermillion) 0%,
-    transparent 70%
-  );
-  filter: blur(100px);
-  opacity: 0.08;
-  animation: floatOrb2 25s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes floatOrb {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(50px, -30px) scale(1.1);
-  }
-  66% {
-    transform: translate(-30px, 50px) scale(0.9);
-  }
-}
-
-@keyframes floatOrb2 {
-  0%, 100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(-40px, -30px);
-  }
-}
+/* Visual noise removed for cleaner, focused design */
 
 .content {
   display: flex;
@@ -243,31 +186,41 @@
 
 .actions {
   display: flex;
-  gap: var(--spacing-lg);
+  align-items: center;
+  gap: var(--spacing-xl);
   flex-wrap: wrap;
   margin-top: var(--spacing-xl);
   opacity: 0;
   animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
 }
 
-/* Decorative enso circle - zen accent */
+/* Enso decoration removed for cleaner design */
 .ensoDecor {
-  position: absolute;
-  right: 15%;
-  top: 15%;
-  width: 180px;
-  height: 180px;
-  border: 2px solid var(--accent-line);
-  opacity: 0.06;
-  /* Intentionally imperfect - wabi-sabi */
-  border-radius: 47% 53% 51% 49% / 52% 48% 52% 48%;
-  animation: ensoRotate 60s linear infinite;
+  display: none;
 }
 
-@keyframes ensoRotate {
-  to {
-    transform: rotate(360deg);
-  }
+/* Documentation text link (secondary CTA) */
+.docsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--text-secondary);
+  font-size: var(--typography-size-sm);
+  font-weight: var(--typography-weight-medium);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.docsLink:hover {
+  color: var(--text-primary);
+}
+
+.docsLinkArrow {
+  transition: transform 0.2s ease;
+}
+
+.docsLink:hover .docsLinkArrow {
+  transform: translateX(4px);
 }
 
 @keyframes fadeIn {
@@ -296,14 +249,7 @@
    Responsive Styles
    ============================================================================= */
 
-@media (max-width: 1024px) {
-  .ensoDecor {
-    width: 140px;
-    height: 140px;
-    right: 8%;
-    top: 12%;
-  }
-}
+/* Removed 1024px enso decor media query (enso no longer displayed) */
 
 @media (max-width: 768px) {
   .hero {
@@ -313,16 +259,7 @@
     padding-bottom: var(--spacing-4xl);
   }
 
-  .hero::before,
-  .hero::after {
-    opacity: 0.1;
-  }
-
   .content::before {
-    display: none;
-  }
-
-  .ensoDecor {
     display: none;
   }
 
@@ -346,12 +283,17 @@
 
   .actions {
     flex-direction: column;
+    align-items: flex-start;
     width: 100%;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
   }
 
-  .actions > * {
+  .actions > a:first-child {
     width: 100%;
+  }
+
+  .docsLink {
+    align-self: flex-start;
   }
 }
 
@@ -359,11 +301,6 @@
   .hero {
     padding: var(--spacing-3xl) var(--container-padding-x);
     padding-top: 120px;
-  }
-
-  .hero::before,
-  .hero::after {
-    display: none;
   }
 
   .content {
@@ -402,19 +339,17 @@
    ============================================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .hero::before,
-  .hero::after,
   .content::before,
   .logoContainer,
   .letterLogoContainer,
   .tagline,
-  .taglineGradient::after,
   .subhead,
   .installSection,
   .actions,
-  .ensoDecor {
+  .docsLinkArrow {
     animation: none;
     opacity: 1;
     transform: none;
+    transition: none;
   }
 }

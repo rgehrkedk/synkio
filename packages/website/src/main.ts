@@ -10,7 +10,6 @@ import './styles/global.css';
 import {
   Header,
   Hero,
-  HowItWorks,
   Workflow,
   Features,
   Comparison,
@@ -37,7 +36,6 @@ function init(): void {
   // Build the page - all sections in order
   root.appendChild(Header());
   root.appendChild(Hero());
-  root.appendChild(HowItWorks());
   root.appendChild(Workflow());
   root.appendChild(Features());
   root.appendChild(Comparison());

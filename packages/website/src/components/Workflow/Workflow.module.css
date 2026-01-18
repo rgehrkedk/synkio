@@ -28,23 +28,7 @@
   );
 }
 
-/* Ambient background orb */
-.section::after {
-  content: '';
-  position: absolute;
-  left: -10%;
-  bottom: 10%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(
-    circle,
-    var(--ambient-glow3) 0%,
-    transparent 70%
-  );
-  filter: blur(80px);
-  opacity: 0.6;
-  pointer-events: none;
-}
+/* Ambient orb removed for cleaner design */
 
 .container {
   max-width: 960px;
@@ -62,7 +46,7 @@
 
 .title {
   font-size: clamp(2rem, 5vw, 2.75rem);
-  font-weight: var(--typography-weight-light);
+  font-weight: var(--typography-weight-regular);
   color: var(--text-primary);
   margin-bottom: var(--spacing-lg);
   letter-spacing: -0.03em;
@@ -74,7 +58,7 @@
   color: var(--text-tertiary);
   max-width: 420px;
   line-height: 1.7;
-  font-weight: var(--typography-weight-light);
+  font-weight: var(--typography-weight-regular);
 }
 
 /* Flows */

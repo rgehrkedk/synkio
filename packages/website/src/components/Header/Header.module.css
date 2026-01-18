@@ -282,14 +282,17 @@
     display: none;
   }
 
+  /* Touch target minimum 44x44px for accessibility */
   .themeToggle {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .themeToggle svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
 }
 

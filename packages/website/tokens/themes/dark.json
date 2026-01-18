@@ -31,8 +31,9 @@
       "$type": "color"
     },
     "tertiary": {
-      "$value": "{color.neutral.500}",
-      "$type": "color"
+      "$value": "{color.neutral.400}",
+      "$type": "color",
+      "$description": "Improved contrast ratio (5.5:1) for accessibility"
     },
     "brand": {
       "$value": "{color.brand.primary}",

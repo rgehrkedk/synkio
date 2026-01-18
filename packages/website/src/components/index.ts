@@ -8,7 +8,6 @@ export { Header } from './Header';
 // Hero and page sections
 export { Hero } from './Hero';
 export { ProblemSolution } from './ProblemSolution';
-export { HowItWorks } from './HowItWorks';
 export { Workflow } from './Workflow';
 
 // Existing components
