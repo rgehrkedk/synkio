@@ -61,7 +61,7 @@ const comparisonData: ComparisonRow[] = [
     feature: 'Bidirectional sync',
     synkio: true,
     enterprise: false,
-    tokensStudio: true,
+    tokensStudio: 'Pro',
     zeroheight: false,
   },
   {
@@ -73,7 +73,7 @@ const comparisonData: ComparisonRow[] = [
   },
   {
     feature: 'Documentation site',
-    synkio: 'Basic',
+    synkio: true,
     enterprise: false,
     tokensStudio: false,
     zeroheight: true,
@@ -89,7 +89,7 @@ const comparisonData: ComparisonRow[] = [
     feature: 'Cost',
     synkio: 'Free',
     enterprise: '$75/seat/mo',
-    tokensStudio: 'Freemium',
+    tokensStudio: '€39/user/mo',
     zeroheight: '$59/editor/mo',
   },
 ];
@@ -155,6 +155,20 @@ export function Comparison(): HTMLElement {
   // Table
   const table = document.createElement('table');
   table.className = getStyle('table');
+
+  // Column group for explicit widths
+  const colgroup = document.createElement('colgroup');
+  const colFeature = document.createElement('col');
+  colFeature.className = getStyle('colFeature');
+  colgroup.appendChild(colFeature);
+
+  // Add 4 comparison columns with equal width
+  for (let i = 0; i < 4; i++) {
+    const col = document.createElement('col');
+    col.className = getStyle('colCompare');
+    colgroup.appendChild(col);
+  }
+  table.appendChild(colgroup);
 
   // Table header
   const thead = document.createElement('thead');

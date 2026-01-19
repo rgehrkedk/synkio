@@ -48,6 +48,16 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 500px;
+  table-layout: fixed;
+}
+
+/* Column widths */
+.colFeature {
+  width: 30%;
+}
+
+.colCompare {
+  width: 17.5%;
 }
 
 /* Header Cells */

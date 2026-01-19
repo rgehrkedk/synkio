@@ -187,6 +187,7 @@
 .diagram {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0;
   padding: var(--spacing-xl) 0;
 }
@@ -417,15 +418,15 @@
     font-size: var(--typography-size-lg);
   }
 
+  /* Stack diagram vertically on mobile */
   .diagram {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--spacing-sm);
+    flex-direction: column;
+    gap: 0;
   }
 
   .node {
-    min-width: 80px;
-    padding: var(--spacing-sm);
+    min-width: 120px;
+    padding: var(--spacing-md);
   }
 
   .nodeIcon {
@@ -439,16 +440,44 @@
   }
 
   .nodeSubtitle {
-    font-size: 9px;
+    font-size: 10px;
   }
 
+  /* Vertical arrows on mobile */
   .arrow {
-    min-width: 35px;
-    max-width: 60px;
+    flex-direction: row;
+    min-width: auto;
+    max-width: none;
+    width: auto;
+    height: 50px;
+  }
+
+  .arrowLine {
+    width: 2px;
+    height: 100%;
+  }
+
+  .arrowLine::after {
+    right: auto;
+    bottom: 0;
+    top: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid var(--border-default);
+    border-bottom: none;
+  }
+
+  .flow:hover .arrowLine::after {
+    border-top-color: var(--accent-line);
+    border-left-color: transparent;
   }
 
   .arrowLabel {
-    font-size: 8px;
+    font-size: 9px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
   }
 }
 

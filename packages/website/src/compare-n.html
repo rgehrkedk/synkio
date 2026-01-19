@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare AnimatedN vs AnimatedNFill</title>
+  <style>
+    :root {
+      --text-primary: #ffffff;
+      --accent-vermillion: #ff6b35;
+      --accent-moss: #8bc34a;
+      --accent-indigo: #5c6bc0;
+      --bg-primary: #0a0a0a;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 40px;
+    }
+
+    .comparison {
+      display: flex;
+      gap: 80px;
+      justify-content: center;
+      align-items: center;
+      min-height: 80vh;
+    }
+
+    .demo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .demo h2 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #888;
+      margin: 0;
+    }
+
+    .letter-container {
+      font-size: 200px;
+      line-height: 1;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: 1px solid #333;
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2a2a2a;
+    }
+  </style>
+</head>
+<body>
+  <div class="comparison">
+    <div class="demo">
+      <h2>AnimatedN (stroke-based)</h2>
+      <div class="letter-container" id="stroke-n"></div>
+      <div class="controls">
+        <button id="play-stroke">Play</button>
+        <button id="pause-stroke">Pause</button>
+      </div>
+    </div>
+
+    <div class="demo">
+      <h2>AnimatedNFill (fill-based)</h2>
+      <div class="letter-container" id="fill-n"></div>
+      <div class="controls">
+        <button id="play-fill">Play</button>
+        <button id="pause-fill">Pause</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { AnimatedN } from './components/shared/AnimatedN';
+    import { AnimatedNFill } from './components/shared/AnimatedNFill';
+
+    // Create stroke-based N
+    const strokeContainer = document.getElementById('stroke-n');
+    const strokeN = AnimatedN({ animated: true });
+    strokeContainer.appendChild(strokeN);
+
+    // Create fill-based N
+    const fillContainer = document.getElementById('fill-n');
+    const fillN = AnimatedNFill({ animated: true });
+    fillContainer.appendChild(fillN);
+
+    // Controls for stroke N
+    document.getElementById('play-stroke').addEventListener('click', () => {
+      const controls = strokeN.__animatedNControls;
+      if (controls) {
+        const tl = controls.getTimeline();
+        if (tl) tl.restart();
+      }
+    });
+
+    document.getElementById('pause-stroke').addEventListener('click', () => {
+      const controls = strokeN.__animatedNControls;
+      if (controls) controls.pause();
+    });
+
+    // Controls for fill N
+    document.getElementById('play-fill').addEventListener('click', () => {
+      const controls = fillN.__animatedNFillControls;
+      if (controls) {
+        const tl = controls.getTimeline();
+        if (tl) tl.restart();
+      }
+    });
+
+    document.getElementById('pause-fill').addEventListener('click', () => {
+      const controls = fillN.__animatedNFillControls;
+      if (controls) controls.pause();
+    });
+  </script>
+</body>
+</html>

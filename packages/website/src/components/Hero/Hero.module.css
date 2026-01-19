@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   padding: var(--spacing-6xl) var(--spacing-4xl);
   position: relative;
   overflow: hidden;
@@ -75,19 +76,22 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4xl);
-  max-width: 720px;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-3xl);
+  max-width: 1000px;
+  width: 100%;
   position: relative;
   z-index: 1;
 }
 
-/* Decorative vertical line with gradient */
-.content::before {
+/* Decorative vertical line with gradient - left side of viewport */
+.hero > .content::before {
   content: '';
-  position: absolute;
-  left: calc(-1 * var(--spacing-4xl));
+  position: fixed;
+  left: 0;
   top: 0;
-  height: 100%;
+  height: 100vh;
   width: 2px;
   background: linear-gradient(
     to bottom,
@@ -101,6 +105,7 @@
   transform: scaleY(0);
   transform-origin: top;
   animation: lineReveal 1.5s ease-out 0.5s forwards;
+  pointer-events: none;
 }
 
 @keyframes lineReveal {
@@ -110,28 +115,17 @@
 }
 
 .logoContainer {
-  margin-bottom: var(--spacing-lg);
   opacity: 0;
-  animation: slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-}
-
-/* Hide the main Logo, show only LetterLogo */
-.logoContainer > *:first-child {
-  display: none;
-}
-
-.letterLogoContainer {
-  opacity: 0;
-  animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+  justify-content: center;
 }
 
 .textContent {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-2xl);
+  align-items: center;
+  gap: var(--spacing-lg);
 }
 
 .tagline {
@@ -145,62 +139,61 @@
   animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
 }
 
-/* Each word can animate separately for kinetic effect */
+/* Each word animates separately for kinetic effect */
 .taglineWord {
   display: inline-block;
   opacity: 0;
-  animation: wordReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: wordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger word animations: Figma → Code → Figma */
+.taglineWord:nth-of-type(1) {
+  animation-delay: 0.5s;
+}
+
+.taglineWord:nth-of-type(2) {
+  animation-delay: 0.7s;
+}
+
+.taglineWord:nth-of-type(3) {
+  animation-delay: 0.9s;
 }
 
 @keyframes wordReveal {
   from {
     opacity: 0;
-    transform: translateY(20px) rotateX(-10deg);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) rotateX(0);
+    transform: translateY(0);
   }
 }
 
-.taglineGradient {
-  position: relative;
+/* Bidirectional arrow */
+.taglineIcon {
   display: inline-block;
-  color: var(--text-tertiary);
+  margin: 0 0.2em;
+  color: var(--accent-vermillion);
+  opacity: 0;
+  animation: iconReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
 }
 
-/* Elegant strikethrough with organic curve */
-.taglineGradient::after {
-  content: '';
-  position: absolute;
-  left: -2%;
-  top: 52%;
-  width: 104%;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--accent-vermillion) 10%,
-    var(--accent-vermillion) 90%,
-    transparent 100%
-  );
-  transform: scaleX(0) rotate(-1deg);
-  transform-origin: left;
-  animation: strikethrough 0.8s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
-}
-
-@keyframes strikethrough {
-  to {
-    transform: scaleX(1) rotate(-1deg);
+@keyframes iconReveal {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
 .subhead {
-  font-size: var(--typography-size-lg);
+  font-size: var(--typography-size-xl);
   color: var(--text-secondary);
   margin: 0;
   font-weight: var(--typography-weight-light);
-  max-width: 440px;
+  max-width: 540px;
   line-height: 1.65;
   opacity: 0;
   animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
@@ -209,6 +202,7 @@
 .installSection {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--spacing-md);
   width: 100%;
   max-width: 400px;
@@ -243,9 +237,9 @@
 
 .actions {
   display: flex;
+  justify-content: center;
   gap: var(--spacing-lg);
   flex-wrap: wrap;
-  margin-top: var(--spacing-xl);
   opacity: 0;
   animation: fadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 1s forwards;
 }
@@ -292,6 +286,17 @@
   }
 }
 
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* =============================================================================
    Responsive Styles
    ============================================================================= */
@@ -327,7 +332,7 @@
   }
 
   .content {
-    gap: var(--spacing-3xl);
+    gap: var(--spacing-2xl);
   }
 
   .tagline {
@@ -367,15 +372,11 @@
   }
 
   .content {
-    gap: var(--spacing-2xl);
-  }
-
-  .logoContainer {
-    margin-bottom: 0;
+    gap: var(--spacing-xl);
   }
 
   .textContent {
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
   }
 
   .tagline {
@@ -392,7 +393,6 @@
   }
 
   .actions {
-    margin-top: var(--spacing-lg);
     gap: var(--spacing-sm);
   }
 }
@@ -406,9 +406,9 @@
   .hero::after,
   .content::before,
   .logoContainer,
-  .letterLogoContainer,
   .tagline,
-  .taglineGradient::after,
+  .taglineIcon,
+  .taglineWord,
   .subhead,
   .installSection,
   .actions,

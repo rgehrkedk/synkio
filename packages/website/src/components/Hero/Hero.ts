@@ -1,10 +1,9 @@
 /**
  * Hero Component
- * Main hero section with animated logo, tagline, and CTAs
+ * Centered stack layout with animated SYNKIO wordmark
  */
 
-import { Logo } from '../shared/Logo';
-import { LetterLogo } from '../shared/LetterLogo';
+import { SynkioLogo } from '../shared/SynkioLogo';
 import { Button } from '../shared/Button';
 import { CodeBlock } from '../shared/CodeBlock';
 import styles from './Hero.module.css';
@@ -16,49 +15,48 @@ export function Hero(): HTMLElement {
   const section = document.createElement('section');
   section.className = getStyle('hero');
 
-  // Decorative enso circle - zen accent
-  const enso = document.createElement('div');
-  enso.className = getStyle('ensoDecor');
-  section.appendChild(enso);
-
   const content = document.createElement('div');
   content.className = getStyle('content');
 
-  // Logo (left column)
+  // Animated SYNKIO wordmark - the hero
   const logoContainer = document.createElement('div');
   logoContainer.className = getStyle('logoContainer');
-  logoContainer.appendChild(Logo({ size: 'hero', animated: true }));
-
-  // Letter logo (Monoton wordmark) below the main logo
-  const letterLogoContainer = document.createElement('div');
-  letterLogoContainer.className = getStyle('letterLogoContainer');
-  letterLogoContainer.setAttribute('data-hero-logo', 'true');
-  letterLogoContainer.appendChild(LetterLogo({ animated: true }));
-  logoContainer.appendChild(letterLogoContainer);
-
+  logoContainer.setAttribute('data-hero-logo', 'true');
+  logoContainer.appendChild(SynkioLogo({
+    animated: true,
+    layout: 'inline',
+    letterGaps: {
+      S: '1em',
+      Y: '1em',
+      N: '2em',
+      K: '1.5em',
+      I: '1.5em',
+    }
+  }));
   content.appendChild(logoContainer);
-
-  // Right column - contains all text content, install section, and CTAs
-  const rightColumn = document.createElement('div');
-  rightColumn.className = getStyle('rightColumn');
 
   // Text content
   const textContent = document.createElement('div');
   textContent.className = getStyle('textContent');
 
-  // Tagline
+  // Tagline - Bidirectional sync message
   const tagline = document.createElement('h1');
   tagline.className = getStyle('tagline');
-  tagline.innerHTML = `Your tokens are<br><span class="${getStyle('taglineGradient')}">drifting</span>`;
+
+  tagline.innerHTML = `
+    <span class="${getStyle('taglineWord')}">Figma</span>
+    <span class="${getStyle('taglineIcon')}">⇄</span>
+    <span class="${getStyle('taglineWord')}">Code</span>
+  `;
   textContent.appendChild(tagline);
 
   // Subhead
   const subhead = document.createElement('p');
   subhead.className = getStyle('subhead');
-  subhead.textContent = "Figma updated. Code didn't. Synkio keeps them in sync.";
+  subhead.textContent = "Two-way sync for Figma variables. No costs.";
   textContent.appendChild(subhead);
 
-  rightColumn.appendChild(textContent);
+  content.appendChild(textContent);
 
   // Install section
   const installSection = document.createElement('div');
@@ -76,7 +74,7 @@ export function Hero(): HTMLElement {
   );
   installSection.appendChild(codeBlockWrapper);
 
-  rightColumn.appendChild(installSection);
+  content.appendChild(installSection);
 
   // CTA buttons
   const actions = document.createElement('div');
@@ -98,9 +96,7 @@ export function Hero(): HTMLElement {
   });
   actions.appendChild(docsButton);
 
-  rightColumn.appendChild(actions);
-
-  content.appendChild(rightColumn);
+  content.appendChild(actions);
 
   section.appendChild(content);
 

@@ -34,10 +34,11 @@ export interface FeatureCardProps {
   icon: IconName;
   title: string;
   description: string;
+  link?: string;
 }
 
 export function FeatureCard(props: FeatureCardProps): HTMLElement {
-  const { icon, title, description } = props;
+  const { icon, title, description, link } = props;
 
   const card = document.createElement('div');
   card.className = getStyle('card');
@@ -59,9 +60,21 @@ export function FeatureCard(props: FeatureCardProps): HTMLElement {
   descEl.className = getStyle('cardDescription');
   descEl.textContent = description;
 
+  // Read more link (revealed on hover)
+  const linkEl = document.createElement('a');
+  linkEl.className = getStyle('cardLink');
+  linkEl.href = link || '#';
+  linkEl.textContent = 'Read more';
+  // Add arrow icon
+  const arrow = document.createElement('span');
+  arrow.className = getStyle('cardLinkArrow');
+  arrow.innerHTML = '→';
+  linkEl.appendChild(arrow);
+
   card.appendChild(iconContainer);
   card.appendChild(titleEl);
   card.appendChild(descEl);
+  card.appendChild(linkEl);
 
   return card;
 }

@@ -19,13 +19,9 @@ export type { IconName, IconSize } from './Icon';
 export { Logo, LogoIcon } from './Logo';
 export type { LogoProps } from './Logo';
 
-// LetterLogo (Monoton display wordmark with animated "s")
-export { LetterLogo } from './LetterLogo';
-export type { LetterLogoProps } from './LetterLogo';
-
-// AnimatedS (GSAP-powered running glow animation on S letter)
-export { AnimatedS } from './AnimatedS';
-export type { AnimatedSProps, AnimatedSControls } from './AnimatedS';
+// SynkioLogo (Complete animated SYNKIO wordmark using SVG shapes)
+export { SynkioLogo, AnimatedLetter, LETTERS } from './SynkioLogo';
+export type { SynkioLogoProps, AnimatedLetterProps, AnimatedLetterControls, LetterDefinition, LetterName } from './SynkioLogo';
 
 // Icons (SVG string-based icons for inline use)
 export { icons, createIcon } from './icons';

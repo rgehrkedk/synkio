@@ -214,25 +214,42 @@
   color: var(--text-secondary);
 }
 
-/* =============================================================================
-   Staggered layout - creates visual rhythm
-   ============================================================================= */
-
-/* Offset every other card for asymmetric feel */
-.card:nth-child(2) {
-  transform: translateY(20px);
+/* Read More Link - Hidden by default, revealed on hover */
+.cardLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--typography-size-sm);
+  font-weight: var(--typography-weight-medium);
+  color: var(--accent-moss);
+  text-decoration: none;
+  margin-top: var(--spacing-md);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.2s ease;
+  pointer-events: none;
 }
 
-.card:nth-child(2):hover {
-  transform: translateY(20px) translateX(8px);
+.card:hover .cardLink {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
-.card:nth-child(5) {
-  transform: translateY(20px);
+.cardLink:hover {
+  color: var(--accent-vermillion);
 }
 
-.card:nth-child(5):hover {
-  transform: translateY(20px) translateX(8px);
+.cardLinkArrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.cardLink:hover .cardLinkArrow {
+  transform: translateX(3px);
 }
 
 /* =============================================================================
@@ -243,24 +260,6 @@
   .grid {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-3xl) var(--spacing-3xl);
-  }
-
-  .card:nth-child(2),
-  .card:nth-child(5) {
-    transform: none;
-  }
-
-  .card:nth-child(2):hover,
-  .card:nth-child(5):hover {
-    transform: translateX(8px);
-  }
-
-  .card:nth-child(even) {
-    transform: translateY(16px);
-  }
-
-  .card:nth-child(even):hover {
-    transform: translateY(16px) translateX(8px);
   }
 }
 
@@ -295,16 +294,19 @@
     display: none;
   }
 
-  .card:nth-child(n) {
-    transform: none;
-  }
-
   .card:hover {
     transform: none;
   }
 
   .cardDescription {
     max-width: 100%;
+  }
+
+  /* Always show link on mobile (no hover) */
+  .cardLink {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
   }
 }
 
@@ -360,15 +362,19 @@
   .iconContainer::before,
   .icon,
   .cardTitle,
-  .cardDescription {
+  .cardDescription,
+  .cardLink,
+  .cardLinkArrow {
     transition: none;
-  }
-
-  .card:nth-child(n) {
-    transform: none;
   }
 
   .card:hover {
     transform: none;
+  }
+
+  .cardLink {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
   }
 }

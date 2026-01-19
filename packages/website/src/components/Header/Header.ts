@@ -3,7 +3,7 @@
  * Fixed header with navigation, logo, and theme toggle
  */
 
-import { LetterLogo } from '../shared/LetterLogo';
+import { SynkioLogo } from '../shared/SynkioLogo';
 import { createIcon } from '../shared/icons';
 import styles from './Header.module.css';
 
@@ -36,7 +36,7 @@ export function Header(): HTMLElement {
   logoLink.className = getStyle('logo');
   logoLink.setAttribute('aria-label', 'Synkio home');
 
-  const logoElement = LetterLogo({ animated: false, size: 'md' });
+  const logoElement = SynkioLogo({ animated: false, size: 'xs', layout: 'inline' });
   logoLink.appendChild(logoElement);
 
   const logoText = document.createElement('span');

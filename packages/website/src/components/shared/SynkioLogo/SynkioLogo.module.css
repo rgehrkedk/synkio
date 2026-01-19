@@ -1,0 +1,92 @@
+/* =============================================================================
+   SynkioLogo Component - Animated SYNKIO Wordmark
+
+   Sizing is controlled via viewBox in letters.ts
+   Each letter's viewBox includes its own spacing
+   All viewBox heights are 36, so setting height gives correct proportions
+   ============================================================================= */
+
+.synkioLogo {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Layout variants */
+.synkioLogo--stacked {
+  flex-direction: column;
+}
+
+.synkioLogo--inline {
+  flex-direction: row;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--letter-gap, 0.15em);
+}
+
+/* =============================================================================
+   Letter Container & SVG
+   ============================================================================= */
+
+.letter {
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Letter-specific sizing - S and O are slightly taller */
+.letter--S .letterSvg,
+.letter--O .letterSvg {
+  height: calc(var(--logo-height, 200px) * 1.015);
+}
+
+.letterSvg {
+  height: var(--logo-height, 200px);
+  width: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* =============================================================================
+   Size Variants
+   ============================================================================= */
+
+.synkioLogo--xs {
+  --logo-height: 20px;
+}
+
+.synkioLogo--sm {
+  --logo-height: 28px;
+}
+
+.synkioLogo--md {
+  --logo-height: 40px;
+}
+
+.synkioLogo--lg {
+  --logo-height: 80px;
+}
+
+.synkioLogo--hero {
+  --logo-height: 280px;
+}
+
+/* =============================================================================
+   Base Shapes - Text color
+   ============================================================================= */
+
+.shape {
+  fill: var(--text-primary);
+  transition: opacity 0.1s ease-out;
+}
+
+/* =============================================================================
+   Reduced Motion
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .shape {
+    opacity: 1 !important;
+  }
+}

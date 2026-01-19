@@ -22,36 +22,42 @@ const features: Feature[] = [
     icon: 'code' as IconName,
     title: 'W3C DTCG',
     description: 'Standard format. Works with Style Dictionary and friends.',
+    link: '#',
   },
   {
     id: 'diffing',
     icon: 'sync' as IconName,
     title: 'Smart diffing',
     description: 'Renames don\'t break things. We track by ID, not name.',
+    link: '#',
   },
   {
     id: 'css',
     icon: 'terminal' as IconName,
     title: 'CSS output',
     description: 'Custom properties. Utility classes. Ready to use.',
+    link: '#',
   },
   {
     id: 'modes',
     icon: 'palette' as IconName,
     title: 'Modes',
     description: 'Light, dark, brand variants. All supported.',
+    link: '#',
   },
   {
     id: 'split',
     icon: 'grid' as IconName,
     title: 'Flexible output',
     description: 'Split by collection, mode, or group. Your call.',
+    link: '#',
   },
   {
     id: 'styles',
     icon: 'brush' as IconName,
     title: 'Styles too',
     description: 'Paint, text, effect styles. Not just variables.',
+    link: '#',
   },
 ];
 
